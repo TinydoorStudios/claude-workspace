@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ValhallaVintageVerb pluginVersion="2.0.2" presetName="EmptyVocal" Mix="1"
+                     PreDelay="0.25200000405311584473" Decay="0.24300000071525573730"
+                     Size="0.80000001192092895508" Attack="0.21600000560283660889"
+                     BassMult="0.5" BassXover="0.5"
+                     HighShelf="1" HighFreq="0.5"
+                     EarlyDiffusion="0.74800002574920654297" LateDiffusion="0" ModRate="0.14100000262260437012"
+                     ModDepth="0.81199997663497924805" HighCut="0.71200001239776611328"
+                     LowCut="0.06400000303983688354" ColorMode="0.66666668653488159180"
+                     ReverbMode="0.375"/>
