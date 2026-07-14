@@ -1,3 +1,13 @@
+## 2026-07-14 — Dante switch plant remediated live (five Cisco switches to standard)
+
+Executed the Dante-on-Cisco runbook live on the work theater plant. Pre- and post-change backups of all five switches in `audio/Network/backups/2026-07-14/` (BigRack SSH/cert key material scrubbed).
+
+- **All five switches now snoop VLAN 200 with one live querier.** Global IGMP snooping + bridge-multicast-filtering on BigRack, FOH, Tech Table, Office, Attic; QoS Basic + trust DSCP + queue map (PTP DSCP 56 → top queue, audio 46 → next, low 8 → q2; 8-queue on the CBS350s, 4-queue on Attic/BigRack); EEE/Green-Ethernet off everywhere. Dante Controller verified stable — one clock leader, no dropouts.
+- **Querier is on Tech Table, not BigRack — the SG200-50P core is an Sx200 Smart switch with no IGMP querier capability** (IGMP dialogs expose only query-timing params, no querier enable anywhere). Confirmed actively querying: FOH auto-learned it as a dynamic mrouter across the trunk. This supersedes the runbook's "querier on BigRack" step; KB article `dante-cisco-switch-config.md` corrected (standard + Open Questions).
+- Method: the CBS350/SG500 switches (FOH/TT/Office/Attic) driven via CLI over SSH (expect scripts, legacy KEX for the old SG500); BigRack (SG200 — GUI-only, no SSH) driven by hand in the web GUI by Brian, since its row Edit dialogs won't drive under browser automation.
+- Resolved: FOH gi10 "missing allow-list" was a bare `switchport mode trunk` = all VLANs, functional (not a stale backup). Snooping confirmed never operational plant-wide before today.
+- Deferred to a separate on-site session: BigRack QoS + RSTP-root-priority (GUI by hand); Auto-Smartport → static-trunk conversion on BigRack's five trunks (link-risk, one at a time with console access); pin FOH gi10 to an explicit allow-list; remove FOH's inert staged querier address; NTP (all switch clocks read 2023).
+
 ## 2026-07-08 — FSQ show feedback baked into the pipeline (Hot Magnolias console pass)
 
 Brian loaded the first shared-engine FSQ .ses (Hot Magnolias) on the console — file recalled properly. His five corrections, all now code + docs:

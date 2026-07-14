@@ -1,0 +1,183 @@
+config-file-header
+Attic
+v1.3.5.58 / R750_NIK_1_35_647_358
+CLI v1.0
+set system mode switch 
+
+file SSD indicator encrypted
+@
+ssd-control-start
+ssd config
+ssd file passphrase control unrestricted
+no ssd file integrity control
+ssd-control-end cb0a3fdb1f3a1af4e4430033719968c0
+!
+bridge multicast filtering
+vlan database
+vlan 100-101,200,300
+exit
+voice vlan oui-table add 0001e3 Siemens_AG_phone________
+voice vlan oui-table add 00036b Cisco_phone_____________
+voice vlan oui-table add 00096e Avaya___________________
+voice vlan oui-table add 000fe2 H3C_Aolynk______________
+voice vlan oui-table add 0060b9 Philips_and_NEC_AG_phone
+voice vlan oui-table add 00d01e Pingtel_phone___________
+voice vlan oui-table add 00e075 Polycom/Veritel_phone___
+voice vlan oui-table add 00e0bb 3Com_phone______________
+ip igmp snooping
+ip igmp snooping vlan 200
+no eee enable
+qos map dscp-queue 8 to 2
+qos map dscp-queue 46 to 3
+qos map dscp-queue 56 to 4
+hostname Attic
+no passwords complexity enable
+ip ssh server
+snmp-server location attic
+snmp-server contact attic
+!
+interface vlan 1
+ ip address 192.168.0.252 255.255.255.0
+ no ip address dhcp
+!
+interface vlan 100
+ name Internet
+!
+interface vlan 101
+ name Paradigm
+!
+interface vlan 200
+ name Dante
+ bridge multicast mode ipv4-group
+ bridge multicast ipv6 mode ip-group
+!
+interface vlan 300
+ name sACN
+!
+interface gigabitethernet1
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet2
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet3
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet4
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet5
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet6
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet7
+ switchport mode access
+ switchport access vlan 100
+!
+interface gigabitethernet8
+ switchport mode access
+ switchport access vlan 100
+!
+interface gigabitethernet9
+ switchport mode access
+ switchport access vlan 100
+!
+interface gigabitethernet10
+ spanning-tree link-type point-to-point
+ switchport mode access
+ switchport access vlan 100
+ macro description switch
+ !next command is internal.
+ macro auto smartport dynamic_type unknown
+!
+interface gigabitethernet11
+ switchport mode access
+ switchport access vlan 100
+!
+interface gigabitethernet12
+ switchport mode access
+ switchport access vlan 100
+!
+interface gigabitethernet13
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet14
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet15
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet16
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet17
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet18
+ switchport mode access
+ switchport access vlan 101
+!
+interface gigabitethernet19
+ switchport mode access
+ switchport access vlan 200
+!
+interface gigabitethernet20
+ switchport mode access
+ switchport access vlan 200
+!
+interface gigabitethernet21
+ switchport mode access
+ switchport access vlan 200
+!
+interface gigabitethernet22
+ switchport mode access
+ switchport access vlan 200
+!
+interface gigabitethernet23
+ switchport mode access
+ switchport access vlan 200
+!
+interface gigabitethernet24
+ switchport mode access
+ switchport access vlan 300
+!
+interface gigabitethernet25
+ switchport mode access
+!
+interface gigabitethernet26
+ spanning-tree link-type point-to-point
+ switchport mode access
+ switchport access vlan 300
+ macro description switch
+ !next command is internal.
+ macro auto smartport dynamic_type unknown
+!
+interface gigabitethernet27
+ switchport trunk allowed vlan add 100-101,200,300
+!
+interface gigabitethernet28
+ !next command is internal.
+ macro auto smartport dynamic_type switch
+!
+exit
+banner login ^C
+attic switch
+cisco
+^C
+banner exec ^C
+attic switch
+cisco
+^C

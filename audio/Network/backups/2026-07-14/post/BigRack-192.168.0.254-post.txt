@@ -1,0 +1,274 @@
+config-file-header
+BigRack
+v1.4.8.6 / R800_NIK_1_4_202_008
+CLI v1.0
+set system 
+file SSD indicator encrypted
+@
+ssd-control-start 
+ssd config 
+ssd file passphrase control unrestricted 
+no ssd file integrity control 
+ssd-control-end cb0a3fdb1f3a1af4e4430033719968c0 
+!
+bridge multicast filtering 
+vlan database
+vlan 100,200,300 
+exit
+voice vlan oui-table add 0001e3 Siemens_AG_phone________
+voice vlan oui-table add 00036b Cisco_phone_____________
+voice vlan oui-table add 00096e Avaya___________________
+voice vlan oui-table add 000fe2 H3C_Aolynk______________
+voice vlan oui-table add 0060b9 Philips_and_NEC_AG_phone
+voice vlan oui-table add 00d01e Pingtel_phone___________
+voice vlan oui-table add 00e075 Polycom/Veritel_phone___
+voice vlan oui-table add 00e0bb 3Com_phone______________
+no eee enable 
+hostname BigRack
+no passwords complexity enable 
+username cisco password encrypted 7af78c911d5b48bea1dc2449d9d89513abeb4be5 privilege 15 
+snmp-server location "Big Rack"
+!
+interface vlan 1
+ ip address 192.168.0.254 255.255.255.0 
+ no ip address dhcp 
+!
+interface vlan 100
+ name Data 
+!
+interface vlan 200
+ name Dante 
+ bridge multicast mode ipv4-group 
+ bridge multicast ipv6 mode ip-group 
+!
+interface vlan 300
+ name sACN 
+!
+interface gigabitethernet1
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet2
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet3
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet4
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet5
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet6
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet7
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet8
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet9
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet10
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet11
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet12
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet13
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet14
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet15
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet16
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet17
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet18
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet19
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet20
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet21
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet22
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet23
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet24
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet25
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet26
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet27
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet28
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet29
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet30
+ switchport mode access 
+ switchport access vlan 100 
+!
+interface gigabitethernet31
+ switchport mode access 
+ switchport access vlan 200 
+!
+interface gigabitethernet32
+ switchport mode access 
+ switchport access vlan 200 
+!
+interface gigabitethernet33
+ switchport mode access 
+ switchport access vlan 200 
+!
+interface gigabitethernet34
+ switchport mode access 
+ switchport access vlan 200 
+!
+interface gigabitethernet35
+ switchport mode access 
+ switchport access vlan 200 
+!
+interface gigabitethernet36
+ switchport mode access 
+ switchport access vlan 300 
+!
+interface gigabitethernet37
+ switchport mode access 
+ switchport access vlan 300 
+!
+interface gigabitethernet38
+ switchport mode access 
+ switchport access vlan 300 
+!
+interface gigabitethernet39
+ switchport mode access 
+ switchport access vlan 300 
+!
+interface gigabitethernet40
+ switchport mode access 
+ switchport access vlan 300 
+!
+interface gigabitethernet41
+ switchport mode access 
+ switchport access vlan 300 
+!
+interface gigabitethernet42
+ switchport mode access 
+ switchport access vlan 300 
+!
+interface gigabitethernet43
+ switchport mode access 
+ switchport access vlan 300 
+!
+interface gigabitethernet44
+ switchport mode access 
+ switchport access vlan 300 
+!
+interface gigabitethernet45
+ spanning-tree link-type point-to-point 
+ switchport trunk allowed vlan add 100,200,300 
+ macro description switch
+ !next command is internal.
+ macro auto smartport dynamic_type switch 
+!
+interface gigabitethernet46
+ description "FOH Trunk"
+ spanning-tree link-type point-to-point 
+ switchport trunk allowed vlan add 100,200,300 
+ macro description switch
+ !next command is internal.
+ macro auto smartport dynamic_type switch 
+!
+interface gigabitethernet47
+ description "Trunk Tech Table"
+ spanning-tree link-type point-to-point 
+ switchport trunk allowed vlan add 100,200,300 
+ macro description switch
+ !next command is internal.
+ macro auto smartport dynamic_type switch 
+!
+interface gigabitethernet48
+ description Access
+ switchport mode access 
+!
+interface gigabitethernet49
+ description "Attic Trunk"
+ spanning-tree link-type point-to-point 
+ switchport trunk allowed vlan add 100,200,300 
+ macro description switch
+ !next command is internal.
+ macro auto smartport dynamic_type switch 
+!
+interface gigabitethernet50
+ description "Production Room Fiber Trunk"
+ spanning-tree link-type point-to-point 
+ switchport trunk allowed vlan add 100,200,300 
+ macro description switch
+ !next command is internal.
+ macro auto smartport dynamic_type switch 
+!
+exit
+banner login 
+Big Cisco Rack
+
+banner exec 
+Big Cisco Rack
+
+ip igmp snooping vlan 200 
+!! <SSH host-key / HTTPS certificate material redacted for wiki — auto-regenerated by switch> !!

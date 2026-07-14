@@ -1,0 +1,73 @@
+config-file-header
+Office
+v3.0.0.69 / RCBS3.0_930_770_008
+CLI v1.0
+file SSD indicator excluded
+@
+!
+unit-type-control-start 
+unit-type unit 1 network gi uplink none 
+unit-type-control-end 
+!
+vlan database
+vlan 100,200 
+exit
+voice vlan oui-table add 0001e3 Siemens_AG_phone
+voice vlan oui-table add 00036b Cisco_phone
+voice vlan oui-table add 00096e Avaya
+voice vlan oui-table add 000fe2 H3C_Aolynk
+voice vlan oui-table add 0060b9 Philips_and_NEC_AG_phone
+voice vlan oui-table add 00d01e Pingtel_phone
+voice vlan oui-table add 00e075 Polycom/Veritel_phone
+voice vlan oui-table add 00e0bb 3Com_phone
+bonjour interface range vlan 1
+hostname Office
+username brian password encrypted $15$xnUCGWH/0LuYXEk+$bZ0mejNxvJF6rdD3y6d/DI621ELdexhAsbcdYeE1waAuL/8JOUFGXXNNJDo7zqjXUGLn5LeqUr5M7kIZvg0eOA== privilege 15 
+snmp-server location Office
+snmp-server contact Office
+!
+interface vlan 1
+ ip address 192.168.0.250 255.255.255.0 
+ no ip address dhcp 
+!
+interface vlan 100
+ name Internet 
+!
+interface vlan 200
+ name Dante 
+!
+interface GigabitEthernet1
+ switchport access vlan 100 
+!
+interface GigabitEthernet2
+ switchport access vlan 100 
+!
+interface GigabitEthernet3
+ switchport access vlan 100 
+!
+interface GigabitEthernet4
+ switchport access vlan 100 
+!
+interface GigabitEthernet5
+ switchport access vlan 200 
+!
+interface GigabitEthernet6
+ switchport access vlan 200 
+!
+interface GigabitEthernet7
+ switchport access vlan 200 
+!
+interface GigabitEthernet8
+ switchport access vlan 200 
+!
+interface GigabitEthernet10
+ switchport mode trunk 
+ switchport trunk allowed vlan 1,100,200 
+!
+exit
+banner login 
+Orange
+
+banner exec 
+Orange
+

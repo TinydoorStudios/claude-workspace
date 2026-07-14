@@ -1,0 +1,91 @@
+config-file-header
+FOH
+v2.5.9.54 / RCBS3.1_930_871_120
+CLI v1.0
+file SSD indicator encrypted
+@
+ssd-control-start
+ssd config
+ssd file passphrase control unrestricted
+no ssd file integrity control
+ssd-control-end cb0a3fdb1f3a1af4e4430033719968c0
+!
+!
+unit-type-control-start
+unit-type unit 1 network gi uplink none
+unit-type-control-end
+!
+vlan database
+vlan 100,200,300
+exit
+voice vlan state auto-triggered
+voice vlan oui-table add 0001e3 Siemens_AG_phone________
+voice vlan oui-table add 00036b Cisco_phone_____________
+voice vlan oui-table add 00096e Avaya___________________
+voice vlan oui-table add 000fe2 H3C_Aolynk______________
+voice vlan oui-table add 0060b9 Philips_and_NEC_AG_phone
+voice vlan oui-table add 00d01e Pingtel_phone___________
+voice vlan oui-table add 00e075 Polycom/Veritel_phone___
+voice vlan oui-table add 00e0bb 3Com_phone______________
+no eee enable
+no boot host auto-config
+no boot host auto-update
+bonjour interface range vlan 1
+no qos
+hostname FOH
+username cisco password encrypted $86$zlcnfvfu/UanDtIL$S9NXM2u0WmQzxWynf4MPPT+HV6F/8xfvDV3yCioFJIqDPtUcViRL0nxv70B1WcofiGSDoPsoLHNXigd5djk7xw== privilege 15
+ip ssh server
+snmp-server location FOH
+snmp-server contact FOH
+clock timezone J 0 minutes 0
+!
+interface vlan 1
+ ip address 192.168.0.251 255.255.255.0
+ no ip address dhcp
+!
+interface vlan 100
+ name Data
+!
+interface vlan 200
+ name Dante
+!
+interface vlan 300
+ name sACN
+!
+interface GigabitEthernet1
+ switchport access vlan 100
+!
+interface GigabitEthernet2
+ switchport access vlan 100
+!
+interface GigabitEthernet3
+ switchport access vlan 100
+!
+interface GigabitEthernet4
+ switchport access vlan 100
+!
+interface GigabitEthernet5
+ switchport access vlan 200
+!
+interface GigabitEthernet6
+ switchport access vlan 200
+!
+interface GigabitEthernet7
+ switchport access vlan 200
+!
+interface GigabitEthernet8
+ switchport access vlan 200
+!
+interface GigabitEthernet10
+ switchport mode trunk
+!
+exit
+banner login ^C
+FOH Cisco Switch
+^C
+banner exec ^C
+FOH Cisco Switch
+^C
+ip igmp snooping vlan 200
+no ip igmp snooping querier
+ip igmp snooping vlan 200 querier address 192.168.0.251
