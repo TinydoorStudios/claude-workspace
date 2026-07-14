@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page {
+    size: letter;
+    margin: 0.55in 0.6in 0.6in 0.6in;
+    @bottom-right {
+      content: "spl.tinydoorstudios.com";
+      font-size: 7.5pt;
+      color: #9aa3b2;
+    }
+    @bottom-left {
+      content: "Tiny Door Studios \2014 SPL Monitor Guide";
+      font-size: 7.5pt;
+      color: #9aa3b2;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #1c2230;
+    margin: 0;
+    font-size: 10.3pt;
+    line-height: 1.48;
+  }
+  .page { break-after: page; }
+  .page:last-child { break-after: auto; }
+
+  .kicker {
+    font-size: 8.4pt;
+    letter-spacing: 1.2px;
+    color: #6b7686;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  h1.title {
+    font-size: 21pt;
+    margin: 0 0 3px 0;
+    color: #17324d;
+  }
+  .subtitle {
+    font-size: 10.5pt;
+    color: #55606f;
+    margin-bottom: 14px;
+  }
+  h2.section {
+    font-size: 14pt;
+    color: #17324d;
+    margin: 0 0 3px 0;
+  }
+  .section-num {
+    display: inline-block;
+    background: #17324d;
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 11pt;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+  .rule {
+    border: none;
+    border-top: 2px solid #17324d;
+    margin: 6px 0 16px 0;
+  }
+  p { margin: 0 0 9px 0; }
+  strong.term { color: #17324d; }
+
+  .shot {
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid #2a3550;
+    display: block;
+    margin: 10px 0 4px 0;
+  }
+  .shot-narrow {
+    width: 68%;
+    border-radius: 5px;
+    border: 1px solid #2a3550;
+    display: block;
+    margin: 10px auto 4px auto;
+  }
+  .caption {
+    font-size: 7.8pt;
+    color: #8a94a3;
+    text-align: center;
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+
+  .note {
+    background: #f4f6f9;
+    border-left: 3px solid #17324d;
+    border-radius: 3px;
+    padding: 8px 11px;
+    font-size: 9.6pt;
+    margin: 8px 0 12px 0;
+  }
+  .note b { color: #17324d; }
+
+  .cover {
+    text-align: left;
+    padding-top: 40px;
+  }
+  .cover .bigtitle {
+    font-size: 28pt;
+    color: #17324d;
+    margin: 0 0 6px 0;
+    line-height: 1.15;
+  }
+  .cover .lede {
+    font-size: 12pt;
+    color: #444d5c;
+    max-width: 90%;
+    margin-bottom: 22px;
+  }
+  .cover-meta {
+    font-size: 9pt;
+    color: #7c8492;
+    border-top: 1px solid #d8dee7;
+    padding-top: 8px;
+    margin-top: 30px;
+  }
+  .contents {
+    margin-top: 26px;
+    background: #f4f6f9;
+    border-radius: 6px;
+    padding: 16px 20px;
+  }
+  .contents .c-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10pt;
+    padding: 5px 0;
+    border-bottom: 1px solid #dfe4ec;
+    color: #33394a;
+  }
+  .contents .c-item:last-child { border-bottom: none; }
+  .contents .c-item b { color: #17324d; }
+
+  .flowbox {
+    background: #f4f6f9;
+    border: 1px solid #d8dee7;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 10px 0 12px 0;
+  }
+  .flowstep {
+    display: flex;
+    gap: 9px;
+    margin-bottom: 9px;
+    align-items: flex-start;
+  }
+  .flowstep:last-child { margin-bottom: 0; }
+  .flowstep .n {
+    background: #17324d;
+    color: #fff;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    font-size: 8.4pt;
+    font-weight: 700;
+    text-align: center;
+    line-height: 18px;
+    flex-shrink: 0;
+  }
+  .flowstep .tx { font-size: 9.8pt; }
+  .flowstep .tx b { color: #17324d; }
+
+  .twocol { display: flex; gap: 14px; }
+  .twocol > div { flex: 1; }
+
+  .badge {
+    display: inline-block;
+    background: #eaf1fb;
+    color: #17324d;
+    border: 1px solid #c3d5ec;
+    border-radius: 3px;
+    padding: 2px 7px;
+    font-size: 8.8pt;
+    font-weight: 600;
+  }
+
+  .footer-line {
+    margin-top: 10px;
+    padding-top: 6px;
+    border-top: 1px solid #c7ccd6;
+    font-size: 8pt;
+    color: #8a94a3;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="page cover">
+  <div class="kicker">SPL Monitor &middot; Fountain Square</div>
+  <div class="bigtitle">Reading the SPL Dashboard</div>
+  <div class="lede">A plain-language walkthrough of what's on screen, where the numbers come from, and how the alert system works &mdash; built for anyone who doesn't spend their nights staring at a sound level meter.</div>
+
+  <div class="contents">
+    <div class="c-item"><span>Dashboard Overview, At a Glance</span> <b>pg. 2</b></div>
+    <div class="c-item"><span>1&nbsp;&nbsp;The Hero Number</span> <b>pg. 3</b></div>
+    <div class="c-item"><span>2&nbsp;&nbsp;Virtual Readings &mdash; and Why They're Trustworthy</span> <b>pg. 4</b></div>
+    <div class="c-item"><span>3&nbsp;&nbsp;Two Numbers That Matter: 10-Second vs. 6-Minute</span> <b>pg. 5</b></div>
+    <div class="c-item"><span>4&nbsp;&nbsp;The Three-Strike System</span> <b>pg. 6</b></div>
+    <div class="c-item"><span>5&nbsp;&nbsp;Where the Data Comes From, and How to Check It Yourself</span> <b>pg. 7</b></div>
+  </div>
+
+  <div class="cover-meta">
+    Prepared by Brian Lloyd &middot; Tiny Door Studios &middot; Screens below are the live dashboard running in Simulator mode with a test signal, so the numbers are safe to look at but not from a real show.
+  </div>
+</div>
+
+<!-- PAGE INTRO: FULL DASHBOARD ORIENTATION -->
+<div class="page">
+  <div class="kicker">Before You Dive In</div>
+  <h2 class="section">Dashboard Overview, At a Glance</h2>
+  <hr class="rule">
+
+  <img class="shot" src="full_dashboard.png">
+  <div class="caption">Full dashboard view, spl.tinydoorstudios.com &mdash; Simulator mode, Fountain Square</div>
+
+  <p>Here's the whole screen before we zoom into pieces of it. Top bar: venue selector, a tag showing <strong class="term">Simulator</strong> or <strong class="term">live</strong>, and a clock &mdash; always check that tag first so you know whether you're looking at a real show. Below that, top to bottom: the hero reading and headroom bar (Section 1); the compliance strip and strike tracker (Sections 3&ndash;4); four quick tiles for instant level, 6-minute compliance, a short-term prediction, and one estimated location; the Low-Frequency Bass Watch panel; a full metrics grid for anyone who wants every number Smaart is tracking; then the SPL Compensation row and Sound Ordinance panel (Sections 2&ndash;3). Everything on screen updates live, and the whole layout fits without scrolling.</p>
+</div>
+
+<!-- PAGE 1: HERO NUMBER -->
+<div class="page">
+  <div class="kicker">Section 1 of 5</div>
+  <h2 class="section"><span class="section-num">1</span>The Hero Number</h2>
+  <hr class="rule">
+
+  <img class="shot" src="hero.png">
+  <div class="caption">Live screen capture, spl.tinydoorstudios.com &mdash; Simulator mode, Fountain Square</div>
+
+  <p>The big number top-left is the <strong class="term">current reading</strong> &mdash; a 10-second rolling average (labeled <strong class="term">10-s LAeq</strong>) from our one calibrated measurement microphone at front-of-house. Think of it as a speedometer: it's telling you what's happening right now, smoothed just enough that it isn't jumping around on every kick drum hit.</p>
+
+  <p>Next to it is the <strong class="term">limit</strong> &mdash; our internal working ceiling for the show (90 dBA in this example). The row of segments is a headroom gauge, centered on that limit line: it fills green to the right as long as we're under the limit, and more lit segments means more buffer before we'd cross it. If we went over, segments on the <strong class="term">"OVER"</strong> side (left) would light up instead, showing how far past the limit we'd gone. <strong class="term">Headroom</strong>, top right, is that same buffer expressed as one number &mdash; the gap left before we'd hit the limit.</p>
+
+  <div class="note"><b>Why a 10-second average.</b> A single instant reading bounces all over the place and isn't useful to make decisions from. Ten seconds is short enough to react to in real time, long enough to actually mean something.</div>
+
+  <div class="footer-line">spl.tinydoorstudios.com &mdash; accessible from any laptop, tablet, or phone with an internet connection, no software install required.</div>
+</div>
+
+<!-- PAGE 2: VIRTUAL READINGS -->
+<div class="page">
+  <div class="kicker">Section 2 of 5</div>
+  <h2 class="section"><span class="section-num">2</span>Virtual Readings &mdash; and Why They're Trustworthy</h2>
+  <hr class="rule">
+
+  <img class="shot" src="virtual_readings.png">
+  <div class="caption">SPL Compensation Measurement row &mdash; Front of Stage is the one physical mic; everything else is calculated</div>
+
+  <p>We only have one physical, calibrated measurement microphone out there, positioned at front-of-house. Every other card on that row &mdash; Middle of Plaza, Back of Plaza, Container Bar, The Davidson, Jeff Ruby's, McCormick &amp; Schmick's, Westin Hotel &mdash; is a <strong class="term">virtual reading</strong>. There's no second microphone sitting on the patio at Jeff Ruby's. Those numbers are calculated.</p>
+
+  <p>Here's how that calculation stays honest: our measurement software (Smaart) supports a feature called <strong class="term">SPL Compensation</strong>. A reference signal gets measured at both the FOH mic position and each of those other spots, and the software works out a fixed dB offset between them. From then on, that offset rides along with the live FOH reading, so each card shows what a microphone placed at that spot actually would read &mdash; without needing a microphone actually placed there.</p>
+
+  <p>That's also why every card is labeled <strong class="term">"SPL Compensation &middot; Reference Only"</strong> right on the dashboard itself. That's not a caveat we added for this guide &mdash; it's built into the software: calibrated estimates anchored to one real physical measurement, not a second mic quietly sitting at each spot.</p>
+
+  <div class="footer-line">Note: this offset is set during a calibration pass against a physical reference standard &mdash; it isn't something we redo before every single show.</div>
+</div>
+
+<!-- PAGE 3: TWO AVERAGES -->
+<div class="page">
+  <div class="kicker">Section 3 of 5</div>
+  <h2 class="section"><span class="section-num">3</span>Two Numbers That Matter: 10-Second vs. 6-Minute</h2>
+  <hr class="rule">
+
+  <img class="shot" src="compliance_bar.png">
+  <div class="caption">The compliance strip &mdash; our working limit and the city's separate ordinance number, side by side</div>
+
+  <p>The dashboard tracks two different limits, and they're easy to mix up:</p>
+
+  <div class="twocol">
+    <div>
+      <p><span class="badge">Our working limit</span><br>90 dBA, measured as a <strong class="term">10-second average at FOH</strong>. This is the number we watch to make mix decisions and the number that drives the strike system (more on that next page). It's ours &mdash; a mixing guardrail, not a legal one.</p>
+    </div>
+    <div>
+      <p><span class="badge">City ordinance</span><br>75 dBA, measured as a <strong class="term">6-minute rolling average at the property line</strong>. This is Cincinnati's actual Downtown Development Zone sound ordinance number &mdash; the one that matters legally, and it's measured out at the edge of the site, not at our mix position.</p>
+    </div>
+  </div>
+
+  <p>A loud moment at FOH can spike the 10-second number without ever pushing the 6-minute property-line average anywhere near the ordinance limit &mdash; that's normal. The dashboard estimates that property-line number continuously so we're never guessing:</p>
+
+  <img class="shot" src="sound_ordinance.png">
+  <div class="caption">Sound Ordinance panel &mdash; FOH is a live measurement; the surrounding property lines are calculated estimates (see previous page)</div>
+
+  <p>FOH is tagged <strong class="term">"Live FOH"</strong> because it's the real, direct measurement. The property-line figures (Westin Hotel, The Davidson, Jeff Ruby's) are tagged <strong class="term">"Estimated"</strong> because they're calculated the same way the virtual readings on the previous page are &mdash; offset from the one physical mic, not a second mic on someone else's roof.</p>
+</div>
+
+<!-- PAGE 4: THREE-STRIKE SYSTEM -->
+<div class="page">
+  <div class="kicker">Section 4 of 5</div>
+  <h2 class="section"><span class="section-num">4</span>The Three-Strike System</h2>
+  <hr class="rule">
+
+  <img class="shot" src="strikes_panel.png">
+  <div class="caption">Strike tracking panel &mdash; live counter, current status, total time over limit, and the most recent violation</div>
+
+  <p>Every time the 10-second FOH reading crosses our working limit (90 dBA in this example), it's logged as a <strong class="term">strike</strong>, tracked toward a maximum of three. The panel above shows exactly what that looks like mid-show: <strong class="term">3 strikes</strong> logged, status currently <strong class="term">clear</strong> (meaning we're back under the limit right now), and a running total of <strong class="term">2:32</strong> of total time spent over the limit across the whole night.</p>
+
+  <p>Duration is tracked per incident, not just counted. <strong class="term">Last violation: #3 &middot; 45s &middot; 94 dBA</strong> tells us strike three lasted 45 seconds and peaked at 94 dBA &mdash; so we know not just that it happened, but how long it ran and how hot it got. That's what lets us have a real conversation afterward instead of a vague one.</p>
+
+  <div class="note"><b>The Slack alert.</b> Any strike of 3 or higher automatically posts to our internal Slack channel in real time, with the violation number, duration, and peak level included &mdash; the same detail shown on screen. Nobody has to be staring at this dashboard for a violation to get flagged and logged.</div>
+
+  <p>The <strong class="term">Reset</strong> button clears the counter between shows &mdash; it doesn't erase the historical log, it just starts the next event's count at zero.</p>
+</div>
+
+<!-- PAGE 5: DATA FLOW + ACCESS -->
+<div class="page">
+  <div class="kicker">Section 5 of 5</div>
+  <h2 class="section"><span class="section-num">5</span>Where the Data Comes From, and How to Check It Yourself</h2>
+  <hr class="rule">
+
+  <img class="shot" src="full_dashboard.png">
+  <div class="caption">Full dashboard view &mdash; every panel covered in this guide, together in context</div>
+
+  <div class="flowbox">
+    <div class="flowstep"><span class="n">1</span><span class="tx"><b>Smaart</b> (our field-standard SPL logging software) reads the FOH measurement mic continuously through the show. When it's a real show, the dashboard shows the actual input source (a DiGiCo console feed); in these sample screens it reads <b>"Simulator"</b> instead, so you can tell at a glance that this data isn't from a live event.</span></div>
+    <div class="flowstep"><span class="n">2</span><span class="tx">Smaart streams that live data out continuously, which is what powers the dashboard at <b>spl.tinydoorstudios.com</b> in real time &mdash; the page you're looking at updates the whole time doors are open.</span></div>
+    <div class="flowstep"><span class="n">3</span><span class="tx">Every night, Smaart separately <b>generates and emails a full SPL log report</b> &mdash; an independent record of the night, separate from the live dashboard feed, so we've still got a log if the connection ever drops mid-show.</span></div>
+  </div>
+
+  <p>The live dashboard and the report that lands in the inbox the next morning trace back to the same measurement chain &mdash; just two different snapshots of it.</p>
+
+  <div class="note"><b>Access.</b> The dashboard is browser-based at <b>spl.tinydoorstudios.com</b> &mdash; it opens on any laptop, tablet, or phone with an internet connection, no software install needed. The venue selector at top lets us switch between monitored sites as more come online.</div>
+</div>
+
+</body>
+</html>

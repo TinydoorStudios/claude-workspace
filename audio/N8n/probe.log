@@ -1,0 +1,47 @@
+=== probe Thu Jun 11 09:54:55 EDT 2026 ===
+--- foh-channel-processing.pdf
+  origin-direct (127.0.0.1:8088): 200
+  in-container file:
+    -rw-r--r--    1 1000     1000         64001 Jun 11 03:24 /kb-assets/shows/2026-06-20-blue-eighty-eight/foh-channel-processing.pdf
+  through-Cloudflare headers:
+    HTTP/2 404 
+    content-type: text/plain; charset=utf-8
+    content-disposition: attachment; filename=foh-channel-processing.pdf
+    cf-cache-status: DYNAMIC
+    server: cloudflare
+    cf-ray: a0a11c4e4e1812e3-ATL
+
+--- blue-eighty-eight.ses
+  origin-direct (127.0.0.1:8088): 200
+  in-container file:
+    -rw-r--r--    1 1000     1000       2466215 Jun 10 03:38 /kb-assets/shows/2026-06-20-blue-eighty-eight/blue-eighty-eight.ses
+  through-Cloudflare headers:
+    HTTP/2 404 
+    content-type: text/plain; charset=utf-8
+    content-disposition: attachment; filename=blue-eighty-eight.ses
+    cf-cache-status: DYNAMIC
+    server: cloudflare
+    cf-ray: a0a11c552d5c53c8-ATL
+
+  landing /assets/ nginx block:
+        server_name kb.tinydoorstudios.com;
+    
+        location /assets/ {
+            alias /kb-assets/;
+            autoindex off;
+            add_header Content-Disposition attachment;
+            add_header Cache-Control "no-store, private, must-revalidate";
+        }
+    
+        location / {
+            proxy_pass http://192.168.200.126:3000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 300s;
+        }
+    }

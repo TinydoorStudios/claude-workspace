@@ -1,0 +1,45 @@
+=== cf-fix2 Thu Jun 11 09:48:51 EDT 2026 ===
+[A] Header fingerprint through Cloudflare:
+  --- Blue%20Eighty-Eight%20-%20FOH%20Channel%20Processing.pdf
+     HTTP/2 404 
+     content-type: text/plain; charset=utf-8
+     content-disposition: attachment; filename=blue%20eighty-eight%20-%20foh%20channel%20processing.pdf
+     cf-cache-status: MISS
+     server: cloudflare
+     cf-ray: a0a113697f826c1d-ATL
+  --- Blue%20Eighty-Eight%20-%20FOH%20Channel%20Processing.md
+     HTTP/2 404 
+     content-type: text/html; charset=utf-8
+     cf-cache-status: DYNAMIC
+     server: cloudflare
+     cf-ray: a0a1136a4e582de3-ATL
+  --- Blue%20Eighty-Eight.ses
+     HTTP/2 200 
+     content-type: application/octet-stream
+     content-disposition: attachment; filename=blue%20eighty-eight.ses
+     cf-cache-status: DYNAMIC
+     server: cloudflare
+     cf-ray: a0a1136b7e9150ca-ATL
+[B] URL normalization setting:
+     {
+       "result": null,
+       "success": false,
+       "errors": [
+         {
+           "message": "request is not authorized"
+         }
+       ],
+       "messages": []
+     }
+
+[C] Add Cache Rule: bypass cache for /assets/* …
+     cacherule success: True errors: []
+[D] Purge everything…
+     purged
+[E] Wait for propagation…
+[F] Verify public downloads:
+     404  Blue%20Eighty-Eight%20-%20FOH%20Channel%20Processing.pdf
+     404  Blue%20Eighty-Eight%20-%20Input%20List.xlsx
+     200  Blue%20Eighty-Eight.ses
+     404  Blue88%20-%20Handoff.pdf
+(token file self-deleted)

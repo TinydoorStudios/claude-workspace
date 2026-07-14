@@ -1,0 +1,17 @@
+[Unit]
+Description=SPL Monitor (Smaart live dashboard)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/spl-monitor
+EnvironmentFile=/etc/spl-monitor.env
+ExecStart=/opt/spl-monitor/.venv/bin/python -m backend.app
+Restart=always
+RestartSec=3
+# adjust User to whoever owns /opt/spl-monitor on the Pi (often 'pi')
+User=pi
+
+[Install]
+WantedBy=multi-user.target

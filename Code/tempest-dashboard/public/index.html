@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3CDC Weather — Live</title>
+  <style>
+    :root {
+      --bg: #080a0f; --card: #10141c; --card-border: #1e2535;
+      --header: #0c0f18; --accent: #e94560; --blue: #3b82f6;
+      --text: #e8eaf0; --muted: #5a6480; --green: #22c55e;
+      --yellow: #eab308; --orange: #f97316; --red: #e94560;
+      --section-bg: #0e1220;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--header);
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    header h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    header h1 span { color: var(--text); }
+
+    #status-bar { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+
+    #conn-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red); transition: background 0.4s;
+      box-shadow: 0 0 6px var(--red);
+    }
+    #conn-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    /* ── Lightning alerts ─────────────────────────────────────────────── */
+    .danger-banner {
+      display: none; background: #7f1d1d; border-bottom: 1px solid #ef4444;
+      padding: 10px 28px; font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: #fca5a5;
+      text-align: center; animation: banner-flash 1.4s ease-in-out infinite;
+    }
+    @keyframes banner-flash { 0%,100%{opacity:1} 50%{opacity:0.65} }
+    body.danger-lightning .danger-banner { display: block; }
+    body.danger-lightning { animation: danger-pulse 1.4s ease-in-out infinite; }
+    body.danger-lightning header { background: #1f0606; border-bottom-color: #7f1d1d; }
+    @keyframes danger-pulse { 0%,100%{background-color:#1a0505} 50%{background-color:#300a0a} }
+
+    .card--lightning-near {
+      border-color: #f97316 !important;
+      background: linear-gradient(180deg, rgba(249,115,22,0.1) 0%, var(--card) 140px) !important;
+      box-shadow: 0 0 28px rgba(249,115,22,0.2), inset 0 0 0 1px rgba(249,115,22,0.25);
+    }
+    .card--lightning-near .graph-wrap { background: rgba(249,115,22,0.04); }
+
+    /* ── Grid & card ─────────────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 16px; padding: 20px 24px 28px;
+      max-width: 1500px; margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+    }
+
+    .card-header { padding: 14px 20px 0; display: flex; justify-content: space-between; align-items: baseline; }
+    .station-name { font-size: 0.95rem; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); text-transform: uppercase; }
+    .station-id { font-size: 0.68rem; color: #2e3a52; font-family: monospace; }
+
+    /* ── Temp hero ───────────────────────────────────────────────────── */
+    .temp-hero {
+      padding: 10px 20px 18px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .temp-big { font-size: 7rem; font-weight: 800; line-height: 0.9; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
+    .temp-unit { font-size: 2.8rem; font-weight: 300; opacity: 0.5; letter-spacing: -0.02em; }
+    .temp-feels { margin-top: 6px; font-size: 0.85rem; color: var(--muted); }
+    .temp-feels strong { color: var(--text); font-weight: 500; }
+
+    .temp-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-bottom: 6px; }
+    .meta-pill {
+      background: var(--section-bg); border: 1px solid var(--card-border);
+      border-radius: 20px; padding: 4px 12px; font-size: 0.78rem;
+      color: var(--muted); white-space: nowrap;
+    }
+    .meta-pill strong { color: var(--text); font-weight: 600; }
+
+    .t-freezing{color:#38bdf8} .t-cold{color:#60a5fa} .t-cool{color:#818cf8}
+    .t-mild{color:#e8eaf0} .t-warm{color:#fbbf24} .t-hot{color:#f97316} .t-extreme{color:#ef4444}
+
+    /* ── Wind block ──────────────────────────────────────────────────── */
+    .wind-block {
+      padding: 14px 20px; display: flex; align-items: center;
+      justify-content: space-between; border-bottom: 1px solid var(--card-border); gap: 12px;
+    }
+    .wind-label { font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 4px; }
+    .wind-speed-row { display: flex; align-items: baseline; gap: 6px; }
+    .wind-num { font-size: 3.8rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+    .wind-mph { font-size: 1rem; color: var(--muted); font-weight: 400; }
+    .wind-gust-line { margin-top: 3px; font-size: 0.8rem; color: var(--muted); }
+    .wind-gust-line strong { font-weight: 600; }
+
+    .compass-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
+    .compass {
+      width: 64px; height: 64px; border: 1.5px solid var(--card-border);
+      border-radius: 50%; position: relative;
+      background: radial-gradient(circle, rgba(255,255,255,0.02) 0%, transparent 70%);
+    }
+    .compass-arrow {
+      position: absolute; top: 50%; left: 50%;
+      width: 3px; height: 24px;
+      background: linear-gradient(to bottom, var(--accent) 50%, #1e2535 50%);
+      transform-origin: 50% 100%; margin-left: -1.5px; margin-top: -24px;
+      border-radius: 3px 3px 0 0;
+      transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .compass-dir { font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+
+    /* ── Lower cells ─────────────────────────────────────────────────── */
+    .lower-grid { display: grid; grid-template-columns: 1fr 1fr; }
+    .lower-cell { padding: 12px 20px; border-bottom: 1px solid var(--card-border); }
+    .lower-cell:nth-child(odd) { border-right: 1px solid var(--card-border); }
+    .lower-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 5px; }
+    .lower-value { font-size: 1.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .lower-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+    .tempest-link { display: block; text-align: center; margin-top: 10px; padding: 7px 0; border-top: 1px solid #1a2234; color: var(--muted); font-size: 0.78rem; font-weight: 600; text-decoration: none; letter-spacing: 0.02em; transition: color 0.15s; }
+    .tempest-link:hover { color: #3b82f6; }
+
+    .lightning-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+    .lc { background: rgba(34,197,94,0.1); color: var(--green); }
+    .ln { background: rgba(249,115,22,0.12); color: var(--orange); }
+    .ld { background: rgba(233,69,96,0.15); color: var(--red); box-shadow: 0 0 8px rgba(233,69,96,0.2); }
+
+    .aw{color:var(--yellow)!important} .ao{color:var(--orange)!important} .ar{color:var(--red)!important}
+    .tr{color:var(--blue)} .tf{color:var(--yellow)} .ts{color:var(--muted)}
+
+    /* ── 24h Temp Graph ──────────────────────────────────────────────── */
+    .graph-wrap {
+      background: var(--section-bg);
+      border-top: 1px solid var(--card-border);
+    }
+
+    .temp-svg { width: 100%; height: auto; display: block; }
+
+    /* SVG text classes — must be defined here so they apply inside inline SVG */
+    .gl {
+      font-size: 9px; fill: #3a4a65;
+      font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    }
+    .gt {
+      font-size: 8px; fill: #2a3550; text-transform: uppercase; letter-spacing: 0.08em;
+      font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    .graph-empty {
+      padding: 14px 20px; font-size: 0.72rem; color: var(--muted);
+      text-align: center; font-style: italic;
+    }
+
+    /* ── Misc ─────────────────────────────────────────────────────────── */
+    .error-card { padding: 40px 20px; color: var(--muted); font-size: 0.85rem; text-align: center; }
+
+    footer { text-align: center; padding: 14px; font-size: 0.68rem; color: #2a3248; letter-spacing: 0.05em; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>3CDC <span>Weather</span></h1>
+  <div id="status-bar">
+    <div id="conn-dot"></div>
+    <span id="conn-label">Connecting...</span>
+    <span id="last-update"></span>
+  </div>
+</header>
+
+<div class="danger-banner">&#9889; LIGHTNING WITHIN 1 MILE &#9889;</div>
+<div class="grid" id="grid"></div>
+<footer>TEMPEST WEATHERFLOW &nbsp;&middot;&nbsp; AUTO-REFRESH 30s</footer>
+
+<script>
+  const ORDER = [215217, 211956, 216868];
+  const connDot   = document.getElementById('conn-dot');
+  const connLabel = document.getElementById('conn-label');
+  const lastUpd   = document.getElementById('last-update');
+  const grid      = document.getElementById('grid');
+
+  // The station API returns raw metric (°C, m/s, mb, mm) regardless of unit
+  // params, so convert everything here to match the official Tempest grid.
+  const toF   = c  => c * 9/5 + 32;
+  const toIH  = v  => v == null ? null : v > 100 ? v * 0.02953 : v;  // mb→inHg
+  const toMph = ms => ms == null ? 0 : ms * 2.23694;                  // m/s→mph
+  const toIn  = mm => mm == null ? 0 : mm * 0.0393701;                // mm→in
+
+  function tc(f) {
+    if (f == null) return '';
+    return f<=32?'t-freezing':f<=45?'t-cold':f<=60?'t-cool':f<=75?'t-mild':f<=88?'t-warm':f<=100?'t-hot':'t-extreme';
+  }
+  function wc(m) { return m>=40?'ar':m>=25?'ao':m>=15?'aw':''; }
+  function cd(d) { return ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16]; }
+  function fmt(v, d=1, fb='--') { return (v==null||isNaN(v)) ? fb : Number(v).toFixed(d); }
+  function ago(ep) {
+    if (!ep) return '--';
+    const m = Math.round((Date.now()/1000 - ep) / 60);
+    return m < 60 ? m+'m ago' : Math.floor(m/60)+'h '+(m%60)+'m ago';
+  }
+  // Lightning resetting clock: a ring is "active" for 30 min after its last
+  // in-range strike. Epochs (seconds) are stamped server-side per distance ring.
+  var LWIN = 30 * 60; // seconds
+  function lActive(ep) { return ep>0 && (Date.now()/1000 - ep) <= LWIN; }
+  function lBadge(active, dist, cnt) {
+    if (!active) return '<span class="lightning-badge lc">Clear</span>';
+    const cls = dist!=null && dist<=5 ? 'ld' : 'ln';
+    const n = cnt>0 ? cnt : 1;
+    return '<span class="lightning-badge '+cls+'">'+n+' strike'+(n!==1?'s':'')+' &middot; '+(dist!=null?dist+' mi':'--')+' away</span>';
+  }
+  function tClass(t) { return t==='rising'?'tr':t==='falling'?'tf':'ts'; }
+  function tIcon(t)  { return t==='rising'?'&uarr;':t==='falling'?'&darr;':'&rarr;'; }
+
+  // ── 24h Temperature Graph ─────────────────────────────────────────────
+
+  function renderGraph(id, hist) {
+    if (!hist || hist.length < 3) {
+      return '<div class="graph-wrap"><div class="graph-empty">Collecting 24h temperature history&hellip;</div></div>';
+    }
+
+    const W=400, H=92;
+    const P={t:16,r:10,b:22,l:34};
+    const gW=W-P.l-P.r, gH=H-P.t-P.b;
+    const now=Date.now(), win=24*3600000, t0=now-win;
+
+    const vals=hist.map(p=>p.f);
+    const minF=Math.floor(Math.min(...vals));
+    const maxF=Math.ceil(Math.max(...vals));
+    const range=maxF-minF||2;
+    const yPad=range*0.18;
+    const yMin=minF-yPad, yMax=maxF+yPad, yR=yMax-yMin;
+
+    const xp=t=>P.l+Math.max(0,Math.min(1,(t-t0)/win))*gW;
+    const yp=f=>P.t+gH-((f-yMin)/yR)*gH;
+    const pts=hist.map(p=>[xp(p.t),yp(p.f)]);
+
+    const lineD=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const by=(P.t+gH).toFixed(1);
+    const areaD=lineD+' L'+pts[pts.length-1][0].toFixed(1)+','+by+' L'+P.l+','+by+' Z';
+    const dot=pts[pts.length-1];
+
+    // X ticks at -18h, -12h, -6h
+    const xticks=[18,12,6].map(h=>{
+      const t=now-h*3600000;
+      const d=new Date(t);
+      const hr=d.getHours(), mn=d.getMinutes();
+      const label=hr===0?'12a':hr<12?hr+'a':hr===12?'12p':(hr-12)+'p';
+      return {x:xp(t).toFixed(1),label};
+    });
+
+    const gid='tg'+id, cid='tc'+id;
+
+    return '<div class="graph-wrap">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" class="temp-svg">' +
+      '<defs>' +
+        '<linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="#3b82f6" stop-opacity="0.22"/>' +
+          '<stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>' +
+        '</linearGradient>' +
+        '<clipPath id="'+cid+'">' +
+          '<rect x="'+P.l+'" y="'+(P.t-2)+'" width="'+gW+'" height="'+(gH+4)+'"/>' +
+        '</clipPath>' +
+      '</defs>' +
+      // Grid lines
+      '<line x1="'+P.l+'" y1="'+P.t+'" x2="'+(W-P.r)+'" y2="'+P.t+'" stroke="#1a2234" stroke-width="0.5"/>' +
+      '<line x1="'+P.l+'" y1="'+(P.t+gH*0.5).toFixed(1)+'" x2="'+(W-P.r)+'" y2="'+(P.t+gH*0.5).toFixed(1)+'" stroke="#1a2234" stroke-width="0.5" stroke-dasharray="3,4"/>' +
+      '<line x1="'+P.l+'" y1="'+(P.t+gH)+'" x2="'+(W-P.r)+'" y2="'+(P.t+gH)+'" stroke="#1a2234" stroke-width="0.5"/>' +
+      // X tick lines
+      xticks.map(t=>'<line x1="'+t.x+'" y1="'+P.t+'" x2="'+t.x+'" y2="'+(P.t+gH)+'" stroke="#1a2234" stroke-width="0.5" stroke-dasharray="3,4"/>').join('') +
+      // Y labels
+      '<text x="'+(P.l-4)+'" y="'+(P.t+4).toFixed(1)+'" text-anchor="end" class="gl">'+maxF+'°</text>' +
+      '<text x="'+(P.l-4)+'" y="'+(P.t+gH+4).toFixed(1)+'" text-anchor="end" class="gl">'+minF+'°</text>' +
+      // X labels
+      '<text x="'+P.l+'" y="'+(H-3)+'" text-anchor="start" class="gl">24h</text>' +
+      xticks.map(t=>'<text x="'+t.x+'" y="'+(H-3)+'" text-anchor="middle" class="gl">'+t.label+'</text>').join('') +
+      '<text x="'+(W-P.r)+'" y="'+(H-3)+'" text-anchor="end" class="gl">now</text>' +
+      // Area + line (clipped)
+      '<g clip-path="url(#'+cid+')">' +
+        '<path d="'+areaD+'" fill="url(#'+gid+')"/>' +
+        '<path d="'+lineD+'" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '</g>' +
+      // Current value dot
+      '<circle cx="'+dot[0].toFixed(1)+'" cy="'+dot[1].toFixed(1)+'" r="3" fill="#3b82f6" stroke="#0e1220" stroke-width="1.5"/>' +
+      '</svg></div>';
+  }
+
+  // ── Card renderer ─────────────────────────────────────────────────────
+
+  function renderCard(d) {
+    const o    = d.obs;
+    const hist = d.history || [];
+
+    if (d.error || !o) {
+      return '<div class="card" data-id="'+d.id+'">'+
+        '<div class="card-header"><span class="station-name">'+d.name+'</span><span class="station-id">#'+d.id+'</span></div>'+
+        '<div class="error-card">No current data &mdash; '+(d.error||'waiting for obs')+'</div>'+
+        renderGraph(d.id, hist)+
+        '<a class="tempest-link" href="https://tempestwx.com/station/'+d.id+'/grid" target="_blank" rel="noopener noreferrer">View on Tempest &#8599;</a>'+
+      '</div>';
+    }
+
+    const tempC=o.air_temperature??null, feelsC=o.feels_like??null;
+    const tempF=tempC!=null?toF(tempC):null, feelsF=feelsC!=null?toF(feelsC):null;
+    const hum=o.relative_humidity??null, pres=toIH(o.station_pressure??null), trend=o.pressure_trend??null;
+    const wa=toMph(o.wind_avg??0), wg=toMph(o.wind_gust??0), wd=o.wind_direction??0;
+    const lw=d.lightningWithin||{}, lActive30=lActive(lw[30]);
+    // Lightning is device-derived server-side (closest strike in last 30 min, km→mi).
+    const sc=d.lightningCount??0, sd=d.lightningClosestMi??null, se=d.lightningLastEpoch??null;
+    const r1=toIn(o.precip_accum_last_1hr??0), rd=toIn(o.precip_accum_local_day??0);
+
+    return '<div class="card" data-id="'+d.id+'">'+
+      '<div class="card-header"><span class="station-name">'+d.name+'</span><span class="station-id">#'+d.id+'</span></div>'+
+
+      '<div class="temp-hero">'+
+        '<div>'+
+          '<div class="temp-big '+tc(tempF)+'">'+fmt(tempF,0)+'<span class="temp-unit">&deg;F</span></div>'+
+          (feelsF!=null?'<div class="temp-feels">Feels like <strong>'+fmt(feelsF,0)+'&deg;F</strong></div>':'')+
+        '</div>'+
+        '<div class="temp-right">'+
+          (hum!=null?'<div class="meta-pill"><strong>'+fmt(hum,0)+'%</strong> RH</div>':'')+
+          (pres!=null?'<div class="meta-pill"><strong class="'+tClass(trend)+'">'+fmt(pres,3)+' inHg</strong> '+tIcon(trend)+'</div>':'')+
+        '</div>'+
+      '</div>'+
+
+      '<div class="wind-block">'+
+        '<div>'+
+          '<div class="wind-label">Wind</div>'+
+          '<div class="wind-speed-row"><span class="wind-num '+wc(wa)+'">'+fmt(wa,1)+'</span><span class="wind-mph">mph</span></div>'+
+          '<div class="wind-gust-line">Gust <strong class="'+wc(wg)+'">'+fmt(wg,1)+' mph</strong></div>'+
+        '</div>'+
+        '<div class="compass-wrap">'+
+          '<div class="compass"><div class="compass-arrow" style="transform:rotate('+wd+'deg)"></div></div>'+
+          '<span class="compass-dir">'+cd(wd)+' '+wd+'&deg;</span>'+
+        '</div>'+
+      '</div>'+
+
+      '<div class="lower-grid">'+
+        '<div class="lower-cell">'+
+          '<div class="lower-label">Lightning</div>'+
+          '<div class="lower-value">'+lBadge(lActive30,sd,sc)+'</div>'+
+          (lActive30?'<div class="lower-sub">Last: '+ago(se)+'</div>':'')+
+        '</div>'+
+        '<div class="lower-cell">'+
+          '<div class="lower-label">Rain (1 hr)</div>'+
+          '<div class="lower-value '+(r1>0?'aw':'')+'">'+fmt(r1,2)+' <span style="font-size:0.7rem;font-weight:400;color:var(--muted)">in</span></div>'+
+          '<div class="lower-sub">Today: '+fmt(rd,2)+' in</div>'+
+        '</div>'+
+      '</div>'+
+
+      renderGraph(d.id, hist)+
+      '<a class="tempest-link" href="https://tempestwx.com/station/'+d.id+'/grid" target="_blank" rel="noopener noreferrer">View on Tempest &#8599;</a>'+
+    '</div>';
+  }
+
+  // ── Global render ──────────────────────────────────────────────────────
+
+  function render(stations) {
+    const byId = {};
+    stations.forEach(s => byId[s.id] = s);
+    grid.innerHTML = ORDER.map(id => byId[id] ? renderCard(byId[id]) : '').join('');
+    lastUpd.textContent = new Date().toLocaleTimeString();
+
+    // Full-page red: any station with an active ≤1 mi strike (30-min clock)
+    const dangerClose = stations.some(s => lActive((s.lightningWithin||{})[1]));
+    document.body.classList.toggle('danger-lightning', dangerClose);
+
+    // Per-card orange: that station with an active ≤5 mi strike (30-min clock)
+    ORDER.forEach(id => {
+      const card = grid.querySelector('[data-id="'+id+'"]');
+      if (!card) return;
+      const near = lActive((byId[id]?.lightningWithin||{})[5]);
+      card.classList.toggle('card--lightning-near', !!near);
+    });
+  }
+
+  // ── WebSocket ──────────────────────────────────────────────────────────
+
+  let ws, rt;
+  function connect() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    ws = new WebSocket(proto + '://' + location.host);
+    ws.onopen    = () => { connDot.classList.add('live'); connLabel.textContent = 'Live ·'; clearTimeout(rt); };
+    ws.onmessage = e => { try { render(JSON.parse(e.data)); } catch(_){} };
+    ws.onclose = ws.onerror = () => { connDot.classList.remove('live'); connLabel.textContent = 'Reconnecting...'; rt = setTimeout(connect,5000); };
+  }
+
+  // ── Mock history for preview (replaced by live data on WS connect) ────
+
+  function mockHist(nowF, swing, seed) {
+    const pts=[], n=Date.now();
+    for (let i=287;i>=0;i--) {
+      const t=n-i*5*60000;
+      const hr=new Date(t).getHours()+new Date(t).getMinutes()/60;
+      const phase=((hr-14)/24)*2*Math.PI;
+      // Seeded pseudo-noise using sin
+      const noise=(Math.sin(t*0.0001+seed)*0.5+Math.sin(t*0.00037+seed*2)*0.5)*1.8;
+      const f=nowF+swing*Math.sin(phase+Math.PI)+noise;
+      pts.push({t,f:+f.toFixed(1)});
+    }
+    return pts;
+  }
+
+  connect();
+
+  // Render placeholder immediately so the page isn't blank while WS connects
+  render([
+    {id:215217,name:'Fountain Square',error:null,fetched:Date.now(),
+     history:mockHist(74,11,1),
+     lightningWithin:{1:0,5:0,30:0},lightningClosestMi:null,lightningCount:0,lightningLastEpoch:null,
+     obs:{air_temperature:23.4,feels_like:24.5,relative_humidity:68,station_pressure:1002.4,pressure_trend:'falling',wind_avg:3.1,wind_gust:4.6,wind_direction:247,precip:0,precip_accum_last_1hr:0,precip_accum_local_day:3.6}},
+    {id:211956,name:'Elm Street Plaza',error:null,fetched:Date.now(),
+     history:mockHist(72,10,2),
+     lightningWithin:{1:0,5:0,30:Math.floor(Date.now()/1000)-420},lightningClosestMi:12,lightningCount:3,lightningLastEpoch:Math.floor(Date.now()/1000)-420,
+     obs:{air_temperature:22.8,feels_like:23.9,relative_humidity:71,station_pressure:1001.9,pressure_trend:'falling',wind_avg:3.6,wind_gust:5.1,wind_direction:190,precip:0,precip_accum_last_1hr:0.5,precip_accum_local_day:2.0}},
+    {id:216868,name:'Zeigler Park',error:null,fetched:Date.now(),
+     history:mockHist(77,9,3),
+     lightningWithin:{1:0,5:0,30:0},lightningClosestMi:null,lightningCount:0,lightningLastEpoch:null,
+     obs:{air_temperature:5.6,feels_like:3.1,relative_humidity:84,station_pressure:1003.1,pressure_trend:'steady',wind_avg:9.8,wind_gust:14.1,wind_direction:312,precip:0,precip_accum_last_1hr:0,precip_accum_local_day:0}}
+  ]);
+</script>
+</body>
+</html>

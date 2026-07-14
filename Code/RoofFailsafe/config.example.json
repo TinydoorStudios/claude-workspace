@@ -1,0 +1,18 @@
+{
+  "_comment": "Copy to config.json and fill the THREE values marked FILL after inspecting the DMP-8000. Everything else has a sane default.",
+
+  "dmp_host": "192.168.200.121",
+  "vdcp_port": 0,          "_vdcp_port": "FILL: TCP (or UDP) port the DMP listens on for VDCP. Set in the DMP protocol/port config. No universal default — read it off the player.",
+  "transport": "tcp",       "_transport": "tcp or udp — must match the DMP's VDCP socket type.",
+  "signal_port": 1,         "_signal_port": "FILL/CONFIRM: the VDCP signal (output) port number that maps to the roof display's Content region.",
+  "open_port_first": false, "_open_port_first": "Set true only if SELECT PORT alone is rejected (NAK). Sends OPEN PORT first.",
+  "id_mode": "fixed8",      "_id_mode": "fixed8 = 8-char space-padded IDs (default). Switch to 'variable' if the DMP command sign uses longer IDs.",
+
+  "cues": {
+    "switcher": "1",        "_cues": "FILL: map friendly name -> the content ID from the DMP command sign (usually named 'Switcher'). 'switcher' should point at the DeckLink Duo (1).dpf entry.",
+    "regular": "2"
+  },
+
+  "listen_port": 8099,
+  "passcode": "lockdown"
+}

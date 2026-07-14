@@ -1,0 +1,206 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+@page { size: letter; margin: 0.6in 0.55in; @bottom-center { content: "Deep Build Run Guide — Memo + FSQ — " counter(page) " of " counter(pages); font-size: 7.5pt; color: #888; } }
+body { font-family: Helvetica, Arial, sans-serif; font-size: 9.5pt; color: #1a1a1a; line-height: 1.45; }
+h1 { font-size: 16pt; color: #0e2a47; margin: 0 0 4px 0; }
+h2 { font-size: 12pt; color: #0e2a47; border-bottom: 2px solid #0e2a47; padding-bottom: 3px; margin: 20px 0 8px 0; page-break-after: avoid; }
+h3 { font-size: 10.5pt; color: #333; margin: 13px 0 4px 0; page-break-after: avoid; }
+pre { background: #f0f3f7; border: 1px solid #c9d2dc; border-left: 4px solid #0e2a47; padding: 10px 12px; font-family: Menlo, monospace; font-size: 7.8pt; line-height: 1.4; white-space: pre-wrap; }
+code { font-family: Menlo, monospace; font-size: 8.3pt; background: #eef1f5; padding: 0 3px; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 14px 0; font-size: 8.4pt; }
+th { background: #0e2a47; color: #fff; padding: 4px 6px; text-align: left; }
+td { border: 1px solid #c9d2dc; padding: 4px 6px; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f6f9; }
+li { margin: 3px 0; } p { margin: 6px 0; } hr { border: none; border-top: 1px solid #ccc; margin: 16px 0; }
+</style></head><body><h1>Deep Build Run Guide — Memo + FSQ</h1>
+<p><em>Exactly what to type to get the best result out of the show pipeline, every run. Built 2026-07-08 from the hot-mag A/B: the prompt below forces the behaviors that made the Fable 5 run (<code>hot-mag 3</code>) the stronger packet, so it works on any model — before or after the pipeline upgrade lands.</em></p>
+<hr />
+<h2>Before you type anything</h2>
+<ol>
+<li><strong>Start a fresh Cowork conversation</strong> with the <code>audio</code> folder connected. A new show = a new conversation — don't bolt a build onto an old chat.</li>
+<li><strong>Have the input list ready.</strong> Best → worst: ShowBuilder <code>&lt;Show&gt;.brief.json</code> · xlsx/typed channel list with mics and notes · artist name only (the build will stop and ask for the list, so don't bother starting without one).</li>
+<li><strong>Have the rider and stage plot if they exist.</strong> Drop them in the chat or the show folder as <code>&lt;Show&gt; - Rider.pdf</code> and <code>&lt;Show&gt; - Stage Plot.pdf</code> — the MASTER PDF picks them up automatically, and the rider is the densest research input there is.</li>
+<li><strong>Know your answers</strong> for the question round (list below) so the build runs straight through after one reply.</li>
+</ol>
+<hr />
+<h2>THE FSQ PROMPT — copy, fill the brackets, paste as your first message</h2>
+<pre><code>New show — FSQ, [YYYY-MM-DD], [ARTIST NAME]. Run the full deep build.
+
+Input list: [attached / pasted below / in the show folder].
+Rider / stage plot: [attached / none exists — I asked].
+
+Hold this build to the deep-research floor:
+
+1. THE KB IS FOR LONGEVITY, NOT RESEARCH. Do not source any EQ value from the
+   KB. Web-research EVERY instrument x mic unit with named external sources —
+   including the familiar ones (57s, 58As, i5, D6, all of them). Each unit needs
+   at least one quantitative capsule fact (a frequency + dB) in the research
+   summary, and the summary closes with &quot;no web&lt;-&gt;KB disagreements&quot; or the list
+   of them. The KB's only job during the build is to cross-check what the web
+   found; a channel justified by &quot;KB only&quot; is a failed unit. Any web&lt;-&gt;KB
+   difference comes to me with three options: go with the research, go with the
+   KB, or go with the research and update the KB. If the research finds
+   something better than the current KB entry (a more precise frequency, a
+   baked-peak fact the KB lacks), offer me the KB update in the question round.
+2. Before any boost, state what the capsule already bakes in. A boost inside a
+   baked peak is wrong — trim it instead. Don't re-cut what a capsule already
+   scooped.
+3. Two-mic sources (kick in/out, blends): name the shared frequency zones and
+   give each mic ONE lane across the whole spectrum — no stacked boosts on the
+   same zone, top or bottom. Polarity checks in the notes.
+4. Sections (horns, backing vocals, twin guitars): if the research says slot
+   them, the band values must actually differ, and each channel's summary names
+   the lane it owns. Audit your own numbers against your own stated principles
+   before writing the spec.
+5. Pull the show-window forecast and quote the real numbers (temp, RH, wind,
+   rain risk) in the room context. No seasonal assumptions — humid and dry point
+   opposite directions on HF.
+6. Switchable hardware on spec'd mics (contour switches, pads, HF caps): state
+   the assumed position and the fallback if it's wrong.
+7. Reverbs: Seventh Heaven Pro preset names verbatim from the KB, every settings
+   value anchored to factory — &quot;(factory)&quot; or &quot;(from X factory)&quot; — and presets
+   picked for what THIS band's material needs, not the generic trio.
+8. Comp/gate notes carry numbers (attack ms, ratio) and say what must survive
+   the gate, tied to the genre.
+9. Batch every question, locker alternative, and carried flag into ONE round and
+   get them resolved — nothing ships as an open FLAG that I can rule on today.
+
+Remember FSQ: outdoor deeper-cut rule (-6 to -9, up to -10 on mud/box), OH is a
+STEREO pair on fader 9 and fader 10 is the reserved SNARE PL8 return, vocal
+faders 25/26 ship a template wireless curve/notch — call out any override.
+
+Ask your question round before committing any EQ. I want to see the searches run.
+</code></pre>
+<h2>THE MEMO PROMPT — copy, fill the brackets, paste as your first message</h2>
+<pre><code>New show — Memo, [YYYY-MM-DD], [ARTIST NAME]. Run the full deep build.
+
+Input list: [attached / pasted below / in the show folder].
+Rider / stage plot: [attached / none exists — I asked].
+
+Hold this build to the deep-research floor:
+
+1. THE KB IS FOR LONGEVITY, NOT RESEARCH. Do not source any EQ value from the
+   KB. Web-research EVERY instrument x mic unit with named external sources —
+   including the familiar ones (57s, 58As, i5, D6, all of them). Each unit needs
+   at least one quantitative capsule fact (a frequency + dB) in the research
+   summary, and the summary closes with &quot;no web&lt;-&gt;KB disagreements&quot; or the list
+   of them. The KB's only job during the build is to cross-check what the web
+   found; a channel justified by &quot;KB only&quot; is a failed unit. Any web&lt;-&gt;KB
+   difference comes to me with three options: go with the research, go with the
+   KB, or go with the research and update the KB. If the research finds
+   something better than the current KB entry (a more precise frequency, a
+   baked-peak fact the KB lacks), offer me the KB update in the question round.
+2. Before any boost, state what the capsule already bakes in. A boost inside a
+   baked peak is wrong — trim it instead. Don't re-cut what a capsule already
+   scooped.
+3. Two-mic sources (kick in/out, blends, AxeMount): name the shared frequency
+   zones and give each mic ONE lane across the whole spectrum — no stacked boosts
+   on the same zone, top or bottom. Polarity checks in the notes. Ribbons = NO
+   48V, flagged red.
+4. Sections (horns, backing vocals, twin guitars): if the research says slot
+   them, the band values must actually differ, and each channel's summary names
+   the lane it owns. Audit your own numbers against your own stated principles
+   before writing the spec.
+5. Switchable hardware on spec'd mics (contour switches, pads, B3 HF caps):
+   state the assumed position and the fallback if it's wrong.
+6. Reverbs: Seventh Heaven Pro preset names verbatim from the KB, every settings
+   value anchored to factory — &quot;(factory)&quot; or &quot;(from X factory)&quot; — and presets
+   picked for what THIS band's material needs, not the generic trio.
+7. Comp/gate notes carry numbers (attack ms, ratio) and say what must survive
+   the gate, tied to the genre.
+8. Batch every question, locker alternative, and carried flag into ONE round and
+   get them resolved — nothing ships as an open FLAG that I can rule on today.
+
+Remember Memo: standing waves at 63 / 125 / 200 / 250-315 Hz — any boost in that
+range is suspect, DEQ where a static cut won't hold; working RT60 1.6s; the crowd
+rig (OM1 / Deity S2 / CM4) is always patched with CH numbers blank and keeps its
+FIXED EQ — don't re-derive it. Indoor — skip the weather pull.
+
+Ask your question round before committing any EQ. I want to see the searches run.
+</code></pre>
+<h3>Why each numbered clause is in there</h3>
+<p>Every clause maps to a difference the A/B caught. Clause 1 is Brian's hardest guardrail (set 2026-07-08): the KB exists so lessons survive between sessions — longevity — not so a model can skip the search. It's why Fable trimmed the i5 instead of boosting it: it searched a mic Opus treated as "the KB already knows this one." Clause 2 is the same failure generalized. Clause 3 caught Opus boosting lows on both kick mics at once. Clause 4 is the horn line: Opus's research said "slot the horns" and its numbers didn't. Clause 5 is the weather: Opus assumed dry July air; the forecast said 74% humidity. Clauses 6–8 are the anchoring behaviors (contour switch, factory reverb values, numeric comp) that make the paperwork auditable at the desk. Clause 9 keeps flags from riding through two revs unresolved. The closing line — "I want to see the searches run" — matters: instant output is the tell that research was skipped.</p>
+<hr />
+<h2>Step by step — the full run, both venues</h2>
+<p><strong>Step 1 — Paste the prompt.</strong> The build routes via <code>ROUTING.md</code>, confirms date + name, and scaffolds <code>&lt;Venue&gt;/YYYY-MM-DD ShowName/</code>.</p>
+<p><strong>Step 2 — Watch the research.</strong> You should see artist searches first (live videos and setlists beat press copy), then per-unit mic research. If EQ numbers appear before you've seen searches, stop it and say: <code>You skipped the research floor — run the per-unit web pass first.</code></p>
+<p><strong>Step 3 — Answer the question round.</strong> One message, everything batched. Expect some or all of:</p>
+<ul>
+<li>Mic-locker alternatives (one max per channel, with a concrete why) — accept or decline each</li>
+<li>Any blank or ambiguous mics on the list — name them</li>
+<li>Vocal assignments (who's lead, what's backing, what's SPARE)</li>
+<li>Mono vs stereo on keys/playback</li>
+<li>TOUR/artist gear confirmations (RF coordination, don't-touch gear)</li>
+<li>Monitor counts/splits if the list doesn't say</li>
+<li>Any web↔KB disagreement it found — rule on it, with "update the KB to match" always one of the options</li>
+<li>Anything the research found that beats the current KB entry — accept or decline the KB update</li>
+<li>Any flag carried from a prior rev — resolve it now</li>
+</ul>
+<p>Answer everything in one reply. Half-answers mean a second round and a slower build.</p>
+<p><strong>Step 4 — Let it build.</strong> Spec → <code>build_packet.py</code> (validates, then writes .md / .xlsx / Show Packet PDF / EQ Rationale PDF / MASTER PDF) → venue patcher for the .ses. Two pass-lines to demand before accepting the .ses:</p>
+<pre><code>bytes changed outside mic'd blocks: 0  PASS
+</code></pre>
+<p>and an identical file size to the venue template. If either fails, the .ses doesn't go to the console.</p>
+<p><strong>Step 5 — Check the packet before load-in.</strong> Fast quality audit (this is the checklist hot-mag 3 passes and hot-mag 2 fails):</p>
+<ul>
+<li>research_summary: a named source per unit, a frequency+dB fact per unit, reconciliation line present</li>
+<li>No boost sitting inside a baked capsule peak</li>
+<li>Two-mic pairs: one lane each, no doubled boosts</li>
+<li>Section EQs actually differ, lanes named</li>
+<li>Outdoor: forecast quoted with numbers (FSQ) / Memo: no standing-wave boosts, crowd rig untouched</li>
+<li>Reverbs: factory-anchored values, genre-fitted preset picks</li>
+<li>Comp/gate notes numeric</li>
+<li>decisions list shows your question-round answers; no orphan FLAGs</li>
+</ul>
+<p><strong>Step 6 — Console verify.</strong> The build stops and waits — this is the hard stop. Check the flagged template overrides first (FSQ: vocal faders 25/26 wireless curve/notch removal). When it's right, say <code>verified</code>.</p>
+<p><strong>Step 7 — Close out.</strong> Say <code>publish to the wiki</code> for the wiki push, and let the harvest run (KB write-backs, active-projects, changelog). If you moved something live during the show and want it remembered, volunteer it — the pipeline logs it but won't ask.</p>
+<hr />
+<h2>Quick reference — venue differences that change the run</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>FSQ</th>
+<th>Memo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Console / patcher</td>
+<td>Q225 · <code>apply_show_TEMPLATE_FSQ.py</code></td>
+<td>Q225 (house) · Memo patcher</td>
+</tr>
+<tr>
+<td>Base .ses</td>
+<td><code>_TEMPLATE/brian fsq start.ses</code></td>
+<td><code>_TEMPLATE/brian memo june 2026.ses</code></td>
+</tr>
+<tr>
+<td>Room filter</td>
+<td>Outdoor: cuts −6 to −9 (to −10 on mud/box), no room gain, clarity first</td>
+<td>Standing waves 63/125/200/250–315 Hz, RT60 1.6s, DEQ over static cuts where needed</td>
+</tr>
+<tr>
+<td>Weather</td>
+<td>Fetch show-window forecast, quote numbers</td>
+<td>Skip (indoor)</td>
+</tr>
+<tr>
+<td>Fixed template traps</td>
+<td>Fader 10 = SNARE PL8 return; OH stereo on 9; vocal faders 25/26 ship wireless curve/notch</td>
+<td>Crowd rig (OM1/Deity S2/CM4) always patched, CH blank, fixed EQ</td>
+</tr>
+<tr>
+<td>Monitors</td>
+<td>M32, 8× L-Acoustics X12</td>
+<td>Per show (IEM/wedges) — confirm</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>L-Acoustics A15 / KS21</td>
+<td>House</td>
+</tr>
+</tbody>
+</table>
+<h2>What NOT to do</h2>
+<p>Don't paste EQ numbers into the prompt — the build researches them; your numbers belong in the question round or at the desk. Don't run Memo and FSQ shows in the same conversation. Don't skip the rider question — "none exists — I asked" is an answer; silence isn't. Don't accept a packet whose research summary has no named sources; that's the hot-mag 2 failure mode, and it's the one thing the whole prompt exists to prevent.</p></body></html>

@@ -1,0 +1,695 @@
+{
+  "date": "2026-06-24",
+  "show": "Izzy Escobar",
+  "venue": "fsq",
+  "genre": "pop and soul",
+  "eq_on": true,
+  "comp_on": true,
+  "channels": [
+    {
+      "ch": 1,
+      "name": "Kick In",
+      "instrument": "Kick",
+      "mic": "Shure Beta 91A",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 80,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 250,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": -2,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 5,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 2,
+      "name": "Kick Out",
+      "instrument": "Kick",
+      "mic": "Shure Beta 52A",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 80,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 250,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": -1,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 3,
+      "name": "Snare Top",
+      "instrument": "Snare",
+      "mic": "Audix i5",
+      "hpf": 120,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -7,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": 4,
+          "freq": 1000,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": -2,
+          "freq": 5500,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 2,
+          "freq": 7000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 5,
+      "name": "Hat",
+      "instrument": "Hi-Hat",
+      "mic": "Shure SM81",
+      "hpf": 500,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -6,
+          "freq": 800,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 2000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 6,
+      "name": "Rack 1",
+      "instrument": "Rack Tom",
+      "mic": "Audix D2",
+      "hpf": 90,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 3,
+          "freq": 135,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 450,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 2800,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 7,
+      "name": "Rack 2",
+      "instrument": "Rack Tom",
+      "mic": "Audix D2",
+      "hpf": 80,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 3,
+          "freq": 120,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 405,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 2525,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 8,
+      "name": "Floor",
+      "instrument": "Floor Tom",
+      "mic": "Audix D4",
+      "hpf": 55,
+      "lpf": 10000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 70,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 405,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 1800,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 9,
+      "name": "OH HL",
+      "instrument": "Overhead",
+      "mic": "Shure SM81",
+      "hpf": 180,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 300,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": 5,
+          "freq": 5000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 10,
+      "name": "OH HR",
+      "instrument": "Overhead",
+      "mic": "Shure SM81",
+      "hpf": 180,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 300,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": 5,
+          "freq": 5000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 11,
+      "name": "Bass DI",
+      "instrument": "Bass DI",
+      "mic": "XLR",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 80,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 250,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 600,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": -5,
+          "freq": 1500,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 12,
+      "name": "Bass Mic",
+      "instrument": "Bass Cab",
+      "mic": "Shure SM57",
+      "hpf": 60,
+      "lpf": 5000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 100,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -7,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 900,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 13,
+      "name": "Guitar 57",
+      "instrument": "Electric Guitar",
+      "mic": "Shure SM57",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 200,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 5,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 14,
+      "name": "Guitar 27",
+      "instrument": "Electric Guitar",
+      "mic": "Shure Beta 27",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -2,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 2,
+          "freq": 800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 5,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 15,
+      "name": "Acoustic Guitar",
+      "instrument": "Acoustic Guitar",
+      "mic": "BSS AR 133",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": -6,
+          "freq": 2000,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 5,
+          "freq": 5000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 17,
+      "name": "Keys",
+      "instrument": "Keys",
+      "mic": "Whirlwind IMP",
+      "hpf": 60,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 200,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": 4,
+          "freq": 300,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 2500,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 18,
+      "name": "Click",
+      "instrument": "Tracks / Playback",
+      "mic": "Whirlwind IMP",
+      "hpf": 80,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 315,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 19,
+      "name": "Guide",
+      "instrument": "Tracks / Playback",
+      "mic": "Whirlwind IMP",
+      "hpf": 80,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 315,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 20,
+      "name": "Tracks",
+      "instrument": "Tracks / Playback",
+      "mic": "Whirlwind IMP",
+      "hpf": 80,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 315,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 25,
+      "name": "Izzy",
+      "instrument": "Female Vocal",
+      "mic": "Neumann KMS 105",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": -4,
+          "freq": 1600,
+          "q": 1.4,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": -5,
+          "freq": 8000,
+          "q": 2.2,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    }
+  ],
+  "reverbs": [
+    {
+      "bank": "Plates 1",
+      "num": "06",
+      "name": "Vocal Plate"
+    },
+    {
+      "bank": "Rooms 1",
+      "num": "02",
+      "name": "Studio B Close"
+    },
+    {
+      "bank": "Plates 1",
+      "num": "17",
+      "name": "Small Plate"
+    },
+    {
+      "bank": "Halls 1",
+      "num": "03",
+      "name": "Small Hall"
+    }
+  ],
+  "ses_ok": true
+}

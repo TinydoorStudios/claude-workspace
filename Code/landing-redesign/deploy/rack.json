@@ -1,0 +1,8 @@
+{
+  "_howto": "Systems shown on /rack/ in addition to the PVE host + this VM. Fields: id, name, role (subtitle), check: 'ping'|'http'|null, target (IP or URL), vmid (optional — merges CPU/MEM/uptime from the PVE push when the tds cron is installed). Edit this file on the VM at /opt/status-writer/rack.json — picked up on the next 30s writer run, no restarts needed.",
+  "systems": [
+    { "id": "wikijs",    "name": "CT 101 · WIKIJS",  "role": "LXC · Live Sound KB",   "check": "http", "target": "http://192.168.200.126:3000/", "vmid": 101 },
+    { "id": "audionas",  "name": "AUDIO NAS",        "role": "TrueNAS · .200.36",     "check": "ping", "target": "192.168.200.36" },
+    { "id": "coldstore", "name": "COLD STORAGE",     "role": "TrueNAS · .200.35",     "check": "ping", "target": "192.168.200.35" }
+  ]
+}

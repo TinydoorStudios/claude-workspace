@@ -1,0 +1,58 @@
+{
+  "name": "Roof Failsafe - Switcher",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "roof-switcher",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-roof-switcher",
+      "name": "Webhook (roof-switcher)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [420, 300],
+      "webhookId": "roof-switcher"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8099/fire/switcher",
+        "options": { "timeout": 6000 },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "pass", "value": "lockdown" }
+          ]
+        }
+      },
+      "id": "http-fire-switcher",
+      "name": "Fire VDCP -> DMP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#alerts",
+        "text": "=Roof failsafe FIRED (Switcher/DeckLink) at {{$now}} — DMP result ok={{$json[\"ok\"]}}"
+      },
+      "id": "slack-notify",
+      "name": "Slack notify (optional)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [900, 300],
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Webhook (roof-switcher)": {
+      "main": [[{ "node": "Fire VDCP -> DMP", "type": "main", "index": 0 }]]
+    },
+    "Fire VDCP -> DMP": {
+      "main": [[{ "node": "Slack notify (optional)", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {},
+  "active": false
+}

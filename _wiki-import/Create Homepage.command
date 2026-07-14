@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+cd "$(dirname "$0")" || exit 1
+[ -f "$HOME/.claude/kb-secrets.sh" ] && source "$HOME/.claude/kb-secrets.sh"
+python3 create_home.py
+echo
+echo "Press any key to close…"
+read -n 1 -s

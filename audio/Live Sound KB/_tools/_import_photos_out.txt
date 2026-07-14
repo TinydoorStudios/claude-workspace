@@ -1,0 +1,53 @@
+===== Import Mic Photos Mon Jul 13 09:07:03 EDT 2026 =====
+source: /Users/brianlloyd/Downloads/mic downloads
+OK  Deity S2.jpg  ->  deity-s2
+OK  Deity S3.jpg  ->  deity-s3
+OK  4099.png  ->  dpa-4099
+OK  421.png  ->  sennheiser-md421
+OK  52.png  ->  shure-beta-52a
+OK  57.png  ->  shure-sm57
+OK  58.png  ->  shure-sm58
+OK  604.png  ->  sennheiser-e604
+OK  81.png  ->  shure-sm81
+? no unique page match for '906.png' (token '906') — skipping. See PHOTO-MANIFEST.md.
+OK  91.png  ->  shure-beta-91a
+OK  AEA R88.png  ->  aea-r88
+OK  AKG C414.png  ->  akg-c414
+OK  AKG C422.png  ->  akg-c422
+OK  AT Pro 35.png  ->  audio-technica-pro35
+OK  Audix M1280B.png  ->  audix-m1280b
+OK  Audix M1280BHC.png  ->  audix-m1280bhc
+OK  B58.png  ->  shure-beta-58a
+OK  BSS Audio AR-133.png  ->  bss-ar133
+OK  Beta 27.png  ->  shure-beta-27
+OK  D2.png  ->  audix-d2
+OK  D4.png  ->  audix-d4
+OK  D6.png  ->  audix-d6
+OK  DM6.png  ->  earthworks-dm6
+OK  Earthworks DM17.png  ->  earthworks-dm17
+OK  Earthworks SR20sp Gen 2.png  ->  earthworks-sr20sp
+OK  Earthworks SR25.png  ->  earthworks-sr25
+OK  Lauten LS-408.png  ->  lauten-ls-408
+OK  Line Audio OM1.png  ->  line-audio-om1
+? no unique page match for 'Line Audio OM4.png' (token 'line-audio-om4') — skipping. See PHOTO-MANIFEST.md.
+OK  M60.png  ->  telefunken-m60
+OK  MK4.png  ->  schoeps-cmc6-mk4
+OK  MK5.png  ->  schoeps-cmc6-mk5
+OK  MKH-40.png  ->  sennheiser-mkh40
+OK  Neumann KMS 105.png  ->  neumann-kms-105
+OK  Neumann TLM 102.png  ->  neumann-tlm-102
+OK  Neve RNDI.png  ->  neve-rndi
+OK  Radial J48.png  ->  radial-j48
+OK  Royer R-10.png  ->  royer-r-10
+OK  Royer R-121.png  ->  royer-r-121
+OK  Shure Beta 98H:C.png  ->  shure-beta-98hc
+OK  TRP2.png  ->  aea-trp2
+OK  Warm 87Jr.png  ->  warm-audio-wa-87
+OK  i5.png  ->  audix-i5
+OK  pro 6L.png  ->  audio-technica-pro-6l
+OK  sE sE8.png  ->  se-se8
+OK  v-beat.png  ->  se-v-beat
+OK  v-kick.png  ->  se-v-kick
+OK  v7x.png  ->  se-v7-x
+----- imported 47 photo(s) -----
+Next: publish (Publish to Wiki.command).

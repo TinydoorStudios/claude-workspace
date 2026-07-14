@@ -1,0 +1,14 @@
+===== push config.memo.json  Fri Jul 10 18:54:26 EDT 2026 =====
+config OK
+active
+----- fresh logs -----
+Jul 10 18:54:43 n8n python[1491005]: [session] summary written: /opt/spl-monitor-memo/logs/spl_20260710_184321_summary.xml
+Jul 10 18:54:43 n8n systemd[1]: spl-monitor-memo.service: Deactivated successfully.
+Jul 10 18:54:43 n8n systemd[1]: Stopped spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:54:43 n8n systemd[1]: spl-monitor-memo.service: Consumed 8.251s CPU time.
+Jul 10 18:54:43 n8n systemd[1]: Started spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:54:43 n8n python[1492903]: [spl-monitor] source=smaart  dashboard=http://127.0.0.1:8091/
+Jul 10 18:54:43 n8n python[1492903]: [smaart] streaming Dante Virtual Soundcard / SPL
+Jul 10 18:54:43 n8n python[1492903]: /opt/spl-monitor-memo/backend/app.py:190: DeprecationWarning: Changing state of started or joined application is deprecated
+Jul 10 18:54:43 n8n python[1492903]:   app["last_frame_ts"] = time.time()
+===== end =====

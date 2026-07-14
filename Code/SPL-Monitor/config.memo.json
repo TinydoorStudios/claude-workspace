@@ -1,0 +1,86 @@
+{
+  "_note": "Memorial Hall instance. Deployed as its own service (spl-monitor-memo, port 8091) — see deploy/spl-monitor-memo.*. yellow/red = A-weighted show limits (dBA), the hero measurement (SPL A Slow). cYellow/cRed = C-weighted 'bass cop' limits (dBC) — left null (WATCH mode: C-weighted readouts shown per virtual location, no alarm) until real thresholds are set. subYellow/subRed = 63 Hz octave-band limits — this rig's stream has no 63 Hz band metric, so the sub lamp runs in WATCH mode regardless.",
+
+  "subBand": { "label10s": null, "label1m": null },
+
+  "source": {
+    "type": "simulator",
+    "smaart": {
+      "host": "127.0.0.1",
+      "port": 26000,
+      "password": null,
+      "deviceName": null,
+      "channelName": null,
+      "instantMetric": "SPL A Slow",
+      "targetFps": 8
+    }
+  },
+
+  "windows": {
+    "shortSeconds": 10,
+    "longSeconds": 360
+  },
+
+  "prediction": {
+    "horizonSeconds": 60
+  },
+
+  "complianceMetric": "long",
+
+  "compliance": {
+    "mode": "native",
+    "longMetric": "LAeq 6"
+  },
+
+  "violations": {
+    "metric": "LAeq 10s",
+    "thresholdDb": 100,
+    "sustainSeconds": 0,
+    "alertFromViolation": 3,
+    "longViolationSeconds": 60,
+    "sessionGapSeconds": 300,
+    "alertWebhookUrl": ""
+  },
+
+  "dailySummary": {
+    "rolloverHour": 5
+  },
+
+  "logging": {
+    "enabled": true,
+    "directory": "logs",
+    "intervalSeconds": 1
+  },
+
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8091
+  },
+
+  "resetPasscode": "2578",
+
+  "showInfo": {
+    "enabled": false
+  },
+
+  "activeVenue": "Memorial Hall",
+  "venues": {
+    "Memorial Hall": {
+      "yellow": 90,
+      "red": 100,
+      "cYellow": null,
+      "cRed": null,
+      "subYellow": null,
+      "subRed": null,
+      "virtualLocations": [
+        { "name": "FOH",          "offsetA":  1.04, "offsetC": -0.68 },
+        { "name": "Front Row",    "offsetA":  0.88, "offsetC":  0.24 },
+        { "name": "Balcony Side", "offsetA":  2.57, "offsetC": -0.56 },
+        { "name": "Box M",        "offsetA": -0.76, "offsetC": -0.53 },
+        { "name": "Section 200",  "offsetA":  0.37, "offsetC": -0.03 },
+        { "name": "Section 300",  "offsetA":  6.05, "offsetC":  4.50 },
+        { "name": "Section 900",  "offsetA": -1.37, "offsetC": -2.48 }
+      ]
+    }
+  }
+}

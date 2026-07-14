@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "showbuilder",
+      "runtimeExecutable": "Code/ShowBuilder/run.sh",
+      "runtimeArgs": [],
+      "port": 8095
+    },
+    {
+      "name": "spl-green",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd Code/SPL-Monitor && SPL_SOURCE=simulator SPL_SIM_SCENE=green ./.venv/bin/python -m backend.app"],
+      "port": 8080
+    },
+    {
+      "name": "landing-mockup",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8099", "--directory", "Code/landing-redesign"],
+      "port": 8099
+    },
+    {
+      "name": "spl-hot",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd Code/SPL-Monitor && SPL_SOURCE=simulator SPL_SIM_SCENE=hot ./.venv/bin/python -m backend.app"],
+      "port": 8080
+    }
+  ]
+}

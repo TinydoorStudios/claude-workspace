@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Show Builder — Brief Export</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">Show<span>Builder</span></div>
+  <div class="tag">capture the input list · export a facts-only brief</div>
+  <div class="role" id="roleTag"></div>
+</header>
+
+<nav class="steps">
+  <span data-step="1" class="on">1 · Show</span>
+  <span data-step="2">2 · Channels</span>
+  <span data-step="3">3 · Export brief</span>
+</nav>
+
+<main>
+  <div id="draftBanner"></div>
+  <!-- STEP 1 -->
+  <section id="step1" class="step on">
+    <h2>Show details</h2>
+    <div class="grid">
+      <label>Venue<select id="venue"></select></label>
+      <label>Show name<input id="showName" placeholder="Artist / Event"></label>
+      <label>Artist<input id="artist" placeholder="Performer"></label>
+      <label>Genre<input id="genre" list="genreList" placeholder="e.g. rock, jazz, classical"></label>
+      <label>Date<input id="showDate" type="date"></label>
+      <label>Show time<input id="showTime" placeholder="7:30 PM"></label>
+      <label>FOH engineer<input id="foh"></label>
+      <label>Monitor engineer<input id="mon"></label>
+      <label>Rev<input id="rev" value="Rev 1.0"></label>
+    </div>
+    <label class="wide">Show notes <span class="muted">— anything that should factor into the build (PA, weather, tonal requests, set length, "no gate", broadcast feed…). Mined verbatim by the deep build.</span>
+      <textarea id="showNotes" rows="3" placeholder="Outdoor, possible wind. Intimate vocal, minimal verb. 75-min set."></textarea>
+    </label>
+    <p class="hint" id="venueHint"></p>
+    <div class="actions">
+      <button class="primary" id="toStep2">Next: Channels →</button>
+      <button id="importBrief">Import brief…</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+      <span class="err" id="step1err"></span>
+    </div>
+    <datalist id="genreList"></datalist>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="step2" class="step">
+    <h2>Channels <span class="sub" id="chCountLabel"></span></h2>
+    <p class="hint">Full mic names (no shorthand). Notes are kept exactly as typed — drop in amps, miking
+      techniques, tunings, anything. The deep build researches them.</p>
+    <div class="rowtools">
+      <label class="inline">Channel count <input id="chCount" type="number" min="1" max="64" value="32" style="width:5rem"></label>
+      <button id="genRows">Set rows</button>
+      <button id="addRow">+ Row</button>
+      <span class="hint" id="crowdHint"></span>
+    </div>
+    <div class="tablewrap">
+      <table id="chTable">
+        <thead><tr><th></th><th>Ch</th><th>Console name</th><th>Instrument</th><th>Mic / DI</th><th>48V</th><th>Patch</th><th>Stand</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="chBody"></tbody>
+      </table>
+    </div>
+    <datalist id="instList"></datalist>
+    <datalist id="micList"></datalist>
+    <div class="actions">
+      <button id="backTo1">← Back</button>
+      <button class="primary" id="toReview">Review brief →</button>
+      <span class="err" id="step2err"></span>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section id="step3" class="step">
+    <h2>Export brief <span class="sub">— facts only · no EQ</span></h2>
+    <div id="reviewMeta" class="metabar"></div>
+    <div id="reviewWarn"></div>
+    <div class="tablewrap"><table id="revTable"><thead><tr><th>Ch</th><th>Name</th><th>Instrument</th><th>Mic</th><th>48V</th><th>Patch</th><th>Section</th><th>Stand</th><th>Notes</th></tr></thead><tbody id="revBody"></tbody></table></div>
+    <div class="actions">
+      <button id="backTo2">← Edit channels</button>
+      <button class="primary" id="export">Export brief ✓</button>
+      <span class="err" id="step3err"></span>
+    </div>
+    <div id="exportOut"></div>
+    <div id="inboxList"></div>
+  </section>
+</main>
+
+<div id="busy" class="busy"><div class="spinner"></div><span id="busyMsg">Working…</span></div>
+<script src="/app.js"></script>
+</body>
+</html>

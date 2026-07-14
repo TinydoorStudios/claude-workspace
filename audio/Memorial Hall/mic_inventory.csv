@@ -1,0 +1,46 @@
+Model,Category,Pattern,Primary Applications,48V Phantom,Kit / Source,Notes
+Shure SM57,Dynamic,Cardioid,"Snare, guitar cab, brass, perc, utility",No phantom,Standalone,
+Shure SM58,Dynamic,Cardioid,Handheld vocals,No phantom,Standalone,
+Shure Beta 52,Dynamic,Supercardioid,Kick drum — body/thump layer (inside),No phantom,Standalone,Pair with Beta 91 for 2-mic kick rig
+Shure Beta 58,Dynamic,Supercardioid,Handheld vocals — higher off-axis rejection than SM58,No phantom,Standalone,
+Sennheiser MD421,Dynamic,Cardioid,"Toms, guitar cabs, brass, woodwinds",No phantom,Standalone,5-position bass rolloff switch
+Sennheiser e609,Dynamic,Supercardioid,"Guitar cab — side-address, hang over cab face",No phantom,Standalone,
+Sennheiser e604,Dynamic,Cardioid,"Toms, snare — clip-on mount",No phantom,Standalone,
+Audix D6,Dynamic,Cardioid,Kick drum — attack/click layer (inside),No phantom,Standalone + DP8,
+Audix i5,Dynamic,Cardioid,"Snare — tight, punchy",No phantom,Audix DP8,
+Audix D2,Dynamic,Cardioid,Small/mid toms,No phantom,Audix DP8,×2 in DP8
+Audix D4,Dynamic,Cardioid,Floor tom — more low-end extension than D2,No phantom,Audix DP8,
+Audio-Technica AE2500,Dynamic / Condenser,Cardioid,Kick drum — dual-element (dynamic + condenser) in one body; complete kick picture on two channels,48V req. (cond. element only),Standalone,"Two XLR outputs — dynamic for body/thump, condenser for attack/transient; blend on console or sum post-fader"
+sE V-Kick,Dynamic,Dynamic,Kick drum — compact alternative,No phantom,sE V Pack Arena,
+sE V-Beat,Dynamic,Dynamic,Toms — V-Clamp rim mount,No phantom,sE V Pack Arena,×3 in kit
+sE V7 X,Dynamic,Supercardioid,Snare — dynamic instrument mic,No phantom,sE V Pack Arena,
+Lauten Snare Mic,SDC,Cardioid,"Snare drum — purpose-built FET condenser; studio, live, and touring",Requires 48V,Standalone,LS-408; 28dB off-axis rejection; onboard HP (flat/80Hz/140Hz) & LP (flat/12kHz/5kHz) filters; articulating swivel mount included
+Schoeps CMC6 + MK4,SDC,Cardioid,"Classical overheads, acoustic soloists, spot mics",Requires 48V,Standalone,Interchangeable cap body
+Schoeps CMC6 + MK5,SDC,Omni / Cardioid,"Classical room, Decca tree, wide ambient",Requires 48V,Standalone,Switchable omni or cardioid
+Sennheiser MKH 40,SDC,Cardioid,"Classical main pair — ORTF, NOS, spaced omni",Requires 48V,Standalone,Pair; extremely low self-noise. First-call classical main.
+DPA 4099,SDC,Supercardioid,"Instrument clip — strings, brass, woodwinds, piano, guitar; spot mic on kit",Requires 48V,Standalone,144 dB SPL; instrument-specific mounts
+Shure SM81,SDC,Cardioid,"Overheads, hi-hat, acoustic instruments",Requires 48V,Standalone,
+Shure Beta 91,SDC,Boundary (half-card.),"Kick drum — attack layer (inside, on head)",Requires 48V,Standalone,Pair with Beta 52
+AKG C422,SDC,Stereo coincident,"Stereo overheads, acoustic piano",Requires 48V,Standalone,XY stereo pair in one body
+Audix M1280BHC,SDC,Cardioid,Hi-hat — ultra-compact condenser clip mic,Requires 48V,Audix DP8,
+Audix M1280B,SDC,Cardioid,Overheads / cymbals — compact matched pair,Requires 48V,Audix DP8,×2 in DP8
+Earthworks DM6,SDC,Supercardioid,Kick drum — condenser; wide freq response; solo or layer with dynamic,Requires 48V,Earthworks DK-6,Triad-Orbit M2-R mount included
+Earthworks DM17,SDC,Cardioid,"Snare, toms — rim-mount (RM3); condenser clarity on kit",Requires 48V,Earthworks DK-6,×4 in kit; RM3 rim mounts included
+Earthworks SR20sp G2,SDC,Cardioid,Drum overheads — matched stereo pair,Requires 48V,Earthworks DK-6,
+Earthworks SR25,SDC,Cardioid,Overheads (×2) or kick (×1) — 3 mics in DK-25,Requires 48V,Earthworks DK-25,×3 in kit
+sE sE8,SDC,Cardioid,Drum overheads — matched stereo pair,Requires 48V,sE V Pack Arena,
+Line Audio OM1,SDC,Omni pressure,Crowd / ambient — flown 18' above stage at The Memo,Requires 48V,Standalone,Pair; EQ starting points in venue-notes.md
+Line Audio CM4,SDC,Cardioid (ORTF pr),"Crowd, balcony rear-facing at The Memo",Requires 48V,Standalone,Pair; EQ starting points in venue-notes.md
+Deity S2,SDC / Shotgun,Short shotgun,"Crowd — under main-floor PA, aimed into audience at The Memo",Requires 48V,Standalone,Pair; EQ starting points in venue-notes.md
+Neumann KMS 105,LDC,Supercardioid,Lead vocals (stage condenser) — detail and presence over dynamics,Requires 48V,Standalone,Designed for live handheld use
+Neumann TLM 102,LDC,Cardioid,"Studio/recording vocals, acoustic instruments, overheads",Requires 48V,Standalone,Transformerless; low self-noise
+AKG C414,LDC,Omni/Card/Fig-8/Supercard,"Versatile — room, overheads, vocals, brass, strings",Requires 48V,Standalone,Multiple pattern/pad/HPF switches
+Shure Beta 27,LDC,Cardioid,"Vocals, overheads, acoustic instruments",Requires 48V,Standalone,Low-cut & −15 dB pad switches
+Warm Audio WA-87,LDC,Omni / Cardioid / Fig-8,"Vocals, room, overheads, acoustic instruments",Requires 48V,Standalone,Transformer-coupled; U87-inspired; multi-pattern; low-cut & pad switches
+Warm Audio WA-14,LDC,Omni / Cardioid / Fig-8,"Vocals, room, overheads, instruments — versatile multi-pattern",Requires 48V,Standalone,Transformer-coupled; C414-inspired; multiple pattern/pad/HPF switches
+Royer R-121,Ribbon,Figure-8,Guitar cab blend mic (pair with SM57),⚠ NO 48V — destroys ribbon,Standalone,Sit 6–10 dB below SM57; polarity-check in mono; VCA-group with SM57 (CH 13/15 at Memo)
+Royer R-10,Ribbon,Figure-8,"Guitar cab, room, acoustic instruments — alt to R-121",⚠ NO 48V — destroys ribbon,Standalone,
+AEA R88,Ribbon,Stereo Fig-8 (Blumlein),"Room, overhead, acoustic ensemble",⚠ NO 48V — destroys ribbon,Standalone,High output — watch gain; handle with care
+Radial J48,DI,Active (phantom),"General-purpose DI — keys, bass, acoustic guitar, playback",Requires 48V,Standalone,Jensen-style transformer output
+Radial ProDI,DI,Passive,"General-purpose passive DI — guitar, bass, keys, acoustic",No phantom,Standalone,Passive; transformer-isolated; no power required
+Neve RNDI,DI,Active (phantom),"Hi-Z instrument — electric bass, guitar direct, synth",Requires 48V,Standalone,Transformer-balanced; excellent for bass clarity

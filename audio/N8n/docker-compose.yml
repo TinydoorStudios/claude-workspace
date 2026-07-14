@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_USER: wiki
+      POSTGRES_PASSWORD: wikidbpass
+    volumes: [pgdata:/var/lib/postgresql/data]
+    restart: unless-stopped
+
+  wiki:
+    image: requarks/wiki:2
+    depends_on: [db]
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: wiki
+      DB_PASS: wikidbpass
+      DB_NAME: wiki
+    ports: ["3000:3000"]
+    volumes:
+      - wiki-data:/wiki/data
+    restart: unless-stopped
+
+  kb-assets:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    volumes:
+      - wiki-data:/wiki-data:ro
+      - ./nginx-assets.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  pgdata:
+  wiki-data:
+    external: true
+    name: "6bc3c709c1ab3cbe5b41c6a0fcb80ea4c9f34abe5dc556f3e943ccac8e59751d"

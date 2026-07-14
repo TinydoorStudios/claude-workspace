@@ -1,0 +1,49 @@
+===== Memo SPL instance stand-up  Fri Jul 10 18:24:23 EDT 2026 =====
+----- 1. create remote dir -----
+----- 2. rsync source (excluding config.json/config.memo.json/.venv/logs) -----
+rsync OK
+----- 3. push config.memo.json as remote config.json -----
+config OK
+----- 4. python venv + deps -----
+aiohttp OK 3.14.1
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'matplotlib'
+WARN: report deps not linked — nightly PDF email will fail on this instance until fixed
+----- 5. install systemd unit + env file -----
+Created symlink /etc/systemd/system/multi-user.target.wants/spl-monitor-memo.service → /etc/systemd/system/spl-monitor-memo.service.
+activating
+----- 6. verify: local curl on the VM -----
+local 8091 = HTTP 000
+----- 7. verify: Smaart connection in the journal -----
+Jul 10 18:24:39 n8n python[1487709]:                ^^^^^^^^^^^
+Jul 10 18:24:39 n8n python[1487709]:   File "/opt/spl-monitor-memo/backend/app.py", line 302, in build_app
+Jul 10 18:24:39 n8n python[1487709]:     app["showinfo"] = ShowInfoTracker(cfg)
+Jul 10 18:24:39 n8n python[1487709]:                       ^^^^^^^^^^^^^^^^^^^^
+Jul 10 18:24:39 n8n python[1487709]:   File "/opt/spl-monitor-memo/backend/showinfo.py", line 89, in __init__
+Jul 10 18:24:39 n8n python[1487709]:     self.schedule_url = _export_url(si["scheduleSheetId"], si["scheduleGid"])
+Jul 10 18:24:39 n8n python[1487709]:                                     ~~^^^^^^^^^^^^^^^^^^^
+Jul 10 18:24:39 n8n python[1487709]: KeyError: 'scheduleSheetId'
+Jul 10 18:24:39 n8n systemd[1]: spl-monitor-memo.service: Main process exited, code=exited, status=1/FAILURE
+Jul 10 18:24:39 n8n systemd[1]: spl-monitor-memo.service: Failed with result 'exit-code'.
+Jul 10 18:24:42 n8n systemd[1]: spl-monitor-memo.service: Scheduled restart job, restart counter is at 1.
+Jul 10 18:24:42 n8n systemd[1]: Stopped spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:24:42 n8n systemd[1]: Started spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:24:42 n8n python[1487735]: Traceback (most recent call last):
+Jul 10 18:24:42 n8n python[1487735]:   File "<frozen runpy>", line 198, in _run_module_as_main
+Jul 10 18:24:42 n8n python[1487735]:   File "<frozen runpy>", line 88, in _run_code
+Jul 10 18:24:42 n8n python[1487735]:   File "/opt/spl-monitor-memo/backend/app.py", line 327, in <module>
+Jul 10 18:24:42 n8n python[1487735]:     main()
+Jul 10 18:24:42 n8n python[1487735]:   File "/opt/spl-monitor-memo/backend/app.py", line 317, in main
+Jul 10 18:24:42 n8n python[1487735]:     app, cfg = build_app()
+Jul 10 18:24:42 n8n python[1487735]:                ^^^^^^^^^^^
+Jul 10 18:24:42 n8n python[1487735]:   File "/opt/spl-monitor-memo/backend/app.py", line 302, in build_app
+Jul 10 18:24:42 n8n python[1487735]:     app["showinfo"] = ShowInfoTracker(cfg)
+Jul 10 18:24:42 n8n python[1487735]:                       ^^^^^^^^^^^^^^^^^^^^
+Jul 10 18:24:42 n8n python[1487735]:   File "/opt/spl-monitor-memo/backend/showinfo.py", line 89, in __init__
+Jul 10 18:24:42 n8n python[1487735]:     self.schedule_url = _export_url(si["scheduleSheetId"], si["scheduleGid"])
+Jul 10 18:24:42 n8n python[1487735]:                                     ~~^^^^^^^^^^^^^^^^^^^
+Jul 10 18:24:42 n8n python[1487735]: KeyError: 'scheduleSheetId'
+Jul 10 18:24:43 n8n systemd[1]: spl-monitor-memo.service: Main process exited, code=exited, status=1/FAILURE
+Jul 10 18:24:43 n8n systemd[1]: spl-monitor-memo.service: Failed with result 'exit-code'.
+===== end =====

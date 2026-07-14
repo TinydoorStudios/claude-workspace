@@ -1,0 +1,10 @@
+[Unit]
+Description=Run status-writer every 30s
+
+[Timer]
+OnBootSec=20
+OnUnitActiveSec=30
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,11 @@
+===== SPL deploy  Thu Jul  2 21:58:10 EDT 2026 =====
+----- rsync source -> VM -----
+rsync OK
+----- restart service -----
+active
+----- verify: /api/show-info now live -----
+{"date": "2026-07-02", "show": "Salsa (5-11): Dayton Salsa Project", "event": "Salsa (5-11)", "band": "Salsa (5-11): Dayton Salsa Project", "engineer": "KS + SC", "engineerCode": "KS + SC", "updatedAt": "2026-07-02T21:58:42-04:00"}
+----- verify: VM config showInfo present -----
+showInfo enabled: True
+----- verify: [showinfo] log activity -----
+===== end =====

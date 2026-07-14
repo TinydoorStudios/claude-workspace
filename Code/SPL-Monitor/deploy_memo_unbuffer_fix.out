@@ -1,0 +1,19 @@
+===== unbuffer fix  Fri Jul 10 18:43:19 EDT 2026 =====
+----- push unit -----
+active
+----- fresh logs (10s after restart) -----
+Jul 10 18:43:21 n8n systemd[1]: Stopping spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard)...
+Jul 10 18:43:21 n8n python[1488781]: [spl-monitor] source=smaart  dashboard=http://127.0.0.1:8091/
+Jul 10 18:43:21 n8n python[1488781]: [smaart] streaming Dante Virtual Soundcard / SPL
+Jul 10 18:43:21 n8n python[1488781]: [session] summary written: /opt/spl-monitor-memo/logs/spl_20260710_183023_summary.xml
+Jul 10 18:43:21 n8n systemd[1]: spl-monitor-memo.service: Deactivated successfully.
+Jul 10 18:43:21 n8n systemd[1]: Stopped spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:43:21 n8n systemd[1]: spl-monitor-memo.service: Consumed 7.687s CPU time.
+Jul 10 18:43:21 n8n systemd[1]: Started spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:43:21 n8n python[1491005]: [spl-monitor] source=smaart  dashboard=http://127.0.0.1:8091/
+Jul 10 18:43:21 n8n python[1491005]: [smaart] streaming Dante Virtual Soundcard / SPL
+Jul 10 18:43:21 n8n python[1491005]: /opt/spl-monitor-memo/backend/app.py:190: DeprecationWarning: Changing state of started or joined application is deprecated
+Jul 10 18:43:21 n8n python[1491005]:   app["last_frame_ts"] = time.time()
+----- local curl -----
+local 8091 = HTTP 200
+===== end =====

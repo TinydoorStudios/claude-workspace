@@ -1,0 +1,51 @@
+===== KB DIAGNOSTIC Sun Jun 14 09:34:15 EDT 2026 =====
+
+########## 1. token verify ##########
+{"result":{"id":"a834d9bb27609c3b195d8a2d9012a37c","status":"active"},"success":true,"errors":[],"messages":[{"code":10000,"message":"This API Token is valid and active","type":null}]}
+
+########## 2. AUTHORITATIVE tunnel configuration (remote-managed ingress) ##########
+{"success":true,"errors":[],"messages":[],"result":{"tunnel_id":"b1e6581d-4384-4fbe-b960-a156760a2860","version":8,"config":{"ingress":[{"service":"http://127.0.0.1:8088","hostname":"tinydoorstudios.com"},{"service":"http://127.0.0.1:8088","hostname":"n8n.tinydoorstudios.com"},{"service":"http://localhost:3001","hostname":"tempest.tinydoorstudios.com"},{"service":"http://localhost:8090","hostname":"spl.tinydoorstudios.com"},{"service":"http://192.168.200.126:3000","hostname":"kb.tinydoorstudios.com"},{"service":"http_status:404"}],"warp-routing":{"enabled":false}},"source":"cloudflare","created_at":"2026-06-10T21:23:16.178181Z"}}
+
+########## 3. tunnel info + active connections (where cloudflared runs) ##########
+{"success":true,"errors":[],"messages":[],"result":{"id":"b1e6581d-4384-4fbe-b960-a156760a2860","account_tag":"fbeee7047a26f8691be223ce5a7ba260","created_at":"2025-10-28T01:20:12.467909Z","deleted_at":null,"name":"n8n-tunnel","connections":[{"colo_name":"atl15","uuid":"340cb0f0-e30d-4c7f-a905-39bbdae01193","id":"340cb0f0-e30d-4c7f-a905-39bbdae01193","is_pending_reconnect":false,"origin_ip":"2600:2b00:8741:c700:be24:11ff:fe57:440f","opened_at":"2026-06-14T13:20:30.434883Z","client_id":"e720e86b-6da0-4368-af1d-ed72f326266a","client_version":"2026.5.2"},{"colo_name":"atl12","uuid":"3535949f-f2c0-47c7-a9d4-2eb6c837db28","id":"3535949f-f2c0-47c7-a9d4-2eb6c837db28","is_pending_reconnect":false,"origin_ip":"2600:2b00:8741:c700:be24:11ff:fe57:440f","opened_at":"2026-06-14T13:20:30.633669Z","client_id":"e720e86b-6da0-4368-af1d-ed72f326266a","client_version":"2026.5.2"},{"colo_name":"atl14","uuid":"3069cd6f-0da3-41bb-a1c3-a737ca0436da","id":"3069cd6f-0da3-41bb-a1c3-a737ca0436da","is_pending_reconnect":false,"origin_ip":"2600:2b00:8741:c700:be24:11ff:fe57:440f","opened_at":"2026-06-14T13:20:31.636438Z","client_id":"e720e86b-6da0-4368-af1d-ed72f326266a","client_version":"2026.5.2"},{"colo_name":"atl12","uuid":"c0445b62-553e-431e-bc8a-29fe55c753fe","id":"c0445b62-553e-431e-bc8a-29fe55c753fe","is_pending_reconnect":false,"origin_ip":"2600:2b00:8741:c700:be24:11ff:fe57:440f","opened_at":"2026-06-14T13:20:32.682270Z","client_id":"e720e86b-6da0-4368-af1d-ed72f326266a","client_version":"2026.5.2"}],"conns_active_at":"2026-06-14T13:20:30.434883Z","conns_inactive_at":null,"tun_type":"cfd_tunnel","metadata":{},"status":"healthy","remote_config":true,"config_src":"cloudflare"}}
+
+########## 4. tunnel connections ##########
+{"success":true,"errors":[],"messages":[],"result":[{"id":"e720e86b-6da0-4368-af1d-ed72f326266a","features":["management_logs","allow_remote_config","serialized_headers","support_datagram_v2","support_quic_eof"],"version":"2026.5.2","arch":"linux_amd64","conns":[{"colo_name":"atl15","uuid":"340cb0f0-e30d-4c7f-a905-39bbdae01193","id":"340cb0f0-e30d-4c7f-a905-39bbdae01193","is_pending_reconnect":false,"origin_ip":"2600:2b00:8741:c700:be24:11ff:fe57:440f","opened_at":"2026-06-14T13:20:30.434883Z","client_id":"e720e86b-6da0-4368-af1d-ed72f326266a","client_version":"2026.5.2"},{"colo_name":"atl12","uuid":"3535949f-f2c0-47c7-a9d4-2eb6c837db28","id":"3535949f-f2c0-47c7-a9d4-2eb6c837db28","is_pending_reconnect":false,"origin_ip":"2600:2b00:8741:c700:be24:11ff:fe57:440f","opened_at":"2026-06-14T13:20:30.633669Z","client_id":"e720e86b-6da0-4368-af1d-ed72f326266a","client_version":"2026.5.2"},{"colo_name":"atl14","uuid":"3069cd6f-0da3-41bb-a1c3-a737ca0436da","id":"3069cd6f-0da3-41bb-a1c3-a737ca0436da","is_pending_reconnect":false,"origin_ip":"2600:2b00:8741:c700:be24:11ff:fe57:440f","opened_at":"2026-06-14T13:20:31.636438Z","client_id":"e720e86b-6da0-4368-af1d-ed72f326266a","client_version":"2026.5.2"},{"colo_name":"atl12","uuid":"c0445b62-553e-431e-bc8a-29fe55c753fe","id":"c0445b62-553e-431e-bc8a-29fe55c753fe","is_pending_reconnect":false,"origin_ip":"2600:2b00:8741:c700:be24:11ff:fe57:440f","opened_at":"2026-06-14T13:20:32.682270Z","client_id":"e720e86b-6da0-4368-af1d-ed72f326266a","client_version":"2026.5.2"}],"run_at":"2026-06-14T13:20:30.434883Z","ha_status":null}]}
+
+########## 5. LIVE public test — asset PDF ##########
+HTTP/2 404 
+date: Sun, 14 Jun 2026 13:34:16 GMT
+content-type: text/plain; charset=utf-8
+content-length: 9
+content-disposition: attachment; filename=fsq-m32-failover-sop.pdf
+content-language: en
+etag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"
+referrer-policy: same-origin
+vary: Accept-Encoding
+x-content-type-options: nosniff
+x-frame-options: deny
+x-ua-compatible: IE=edge
+x-xss-protection: 1; mode=block
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=NUNY2RVkBWU9pIp%2FOFSzIW3nvAoBb%2FoJ6J6m34omtwJnLDg0ghdS1Rbx1fEMsGtKPXhKYTgwAqwJTic2s%2B5TV4wb5%2FMr%2B0DOOKYPlcTUgLaqVxrpn6%2BgZOZnhND4Y8KDRimU8%2BMx66%2BNZdS%2Bwn275L5x%2FwW5"}]}
+server: cloudflare
+cf-ray: a0b9b62a49c41978-ATL
+alt-svc: h3=":443"; ma=86400
+
+
+########## 6. LIVE public test — a normal wiki page ##########
+HTTP/2 404 
+date: Sun, 14 Jun 2026 13:34:16 GMT
+content-type: text/html; charset=utf-8
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=4SLZWJ6VyBuJziBsKXdWwePFBccYKjql2jaKWkDdO9q63Qo4HNuqXzwxB9IVQg10ce5kGw50V03%2F9B%2B7GSU8Wi%2BKUi1Zahti%2B5eieMBbWwkOyEemPR9%2FX8sjZmE1K4%2Bg7Sh0%2FpaSKuIXeJsTnSlamZaCJKxN"}]}
+content-language: en
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+referrer-policy: same-origin
+vary: Accept-Encoding
+x-content-type-options: nosniff
+x-frame-options: deny
+x-ua-compatible: IE=edge
+x-xss-protection: 1; mode=block
+
+===== END =====

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Seventh Heaven Pro — Reference (Memorial Hall)</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #222; background: #fff; }
+.page { max-width: 870px; margin: 0 auto; padding: 36px 44px; }
+
+/* Cover */
+.cover-block { background: #1A1A2E; padding: 18px 20px 14px 20px; margin-bottom: 0; }
+.cover-block h1 { font-size: 22pt; color: #fff; letter-spacing: 1.5px; margin-bottom: 4px; }
+.cover-block .sub { font-size: 10.5pt; color: #E94560; font-weight: bold; margin-bottom: 6px; }
+.cover-block .meta { font-size: 8.5pt; color: #aab8cc; }
+.cover-rule { height: 3px; background: #E94560; margin-bottom: 20px; }
+
+/* Section headers */
+.section-header { background: #0F3460; color: #fff; padding: 7px 14px; font-size: 10pt; font-weight: bold; margin: 22px 0 10px 0; letter-spacing: 0.5px; }
+.sub-header { background: #1A1A2E; color: #fff; padding: 5px 14px; font-size: 9pt; font-weight: bold; margin: 14px 0 8px 0; }
+
+/* Data tables */
+.data-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 8pt; }
+.data-table th { background: #0F3460; color: #fff; padding: 5px 8px; text-align: left; font-size: 8pt; }
+.data-table td { padding: 4px 8px; border-bottom: 1px solid #e8e8e8; vertical-align: top; line-height: 1.4; }
+.data-table tr:nth-child(even) td { background: #f6f8fc; }
+
+/* Alert / callout boxes */
+.callout { border-left: 4px solid #E94560; background: #fff5f7; padding: 8px 12px; margin: 10px 0 14px 0; font-size: 8.5pt; line-height: 1.5; }
+.callout .callout-head { font-weight: bold; color: #b71c1c; margin-bottom: 3px; }
+.note { border-left: 4px solid #0F3460; background: #f0f4fa; padding: 8px 12px; margin: 10px 0 14px 0; font-size: 8.5pt; line-height: 1.5; }
+
+/* Prose paragraphs */
+p { margin-bottom: 8px; font-size: 8.5pt; line-height: 1.55; }
+.label { font-weight: bold; }
+
+/* Tag chips */
+.v1 { background: #1A1A2E; color: #fff; padding: 1px 5px; border-radius: 2px; font-size: 7.5pt; }
+.v2 { background: #0F3460; color: #fff; padding: 1px 5px; border-radius: 2px; font-size: 7.5pt; }
+.nl { background: #555; color: #fff; padding: 1px 5px; border-radius: 2px; font-size: 7.5pt; }
+.warn { color: #b71c1c; font-weight: bold; }
+
+/* Notation example box */
+.notation-box { background: #f0f4fa; border: 1px solid #c5d0e0; padding: 8px 12px; margin: 8px 0; font-family: Courier, monospace; font-size: 8pt; line-height: 1.6; }
+
+/* Page break */
+.page-break { page-break-after: always; }
+
+/* Footer */
+.footer { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 8px; font-size: 7.5pt; color: #888; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ══════════════════════════════════════════════════════════ COVER -->
+<div class="cover-block">
+  <h1>SEVENTH HEAVEN PROFESSIONAL</h1>
+  <div class="sub">Reference — Memorial Hall / Live FOH</div>
+  <div class="meta">Brian Lloyd · Jazz At The Memo · DiGiCo Quantum 225 · Last updated: 2026-05-28</div>
+  <div class="meta" style="margin-top:4px;">Source: Liquidsonics Seventh Heaven Professional Manual v1.5.7 · Presets List v1.100 · Direct operational knowledge</div>
+</div>
+<div class="cover-rule"></div>
+
+<!-- ══════════════════════════════════════════════════════════ CORE PRINCIPLE -->
+<div class="section-header">CORE PRINCIPLE — MEMO RT60</div>
+
+<p>The Memo adds roughly <strong>1.6 seconds</strong> of natural decay in a working show. Factory preset decay times are designed for drier rooms. For most shows at Memo, pull decay time down <strong>30–40% from factory</strong> as a starting point. Let the room do the late field work. You're adding placement and character — not competing with the room.</p>
+
+<div class="note"><strong>Exception:</strong> Very close-mic'd sources (DI bass, kick inside mic, lip-close vocal) that pick up minimal natural room need reverb for placement context — these can run longer because the mic isn't picking up the room.</div>
+
+<!-- ══════════════════════════════════════════════════════════ CONTROLS -->
+<div class="section-header">CONTROLS REFERENCE</div>
+
+<div class="sub-header">Decay Time</div>
+<p>RT60 in seconds. Right-click "Decay Time" to snap to exact sampled M7 values — interpolation between those points is fine, but at the sampled values you're hearing the actual hardware capture. Factory values are in the spec tables below.</p>
+
+<div class="sub-header">Pre-Delay</div>
+<p>Affects <strong>late reverb and VLF only.</strong> Does not move the early reflections (that's an M7 design behavior). Range 0–500 ms; tempo-sync available. Minimum 10 ms on most sends; 20–30 ms on vocals.</p>
+
+<div class="sub-header">VLF (Very Low Frequency Reverb)</div>
+<p>A <strong>single level slider</strong> — not an EQ band. Controls the level of the M7's dedicated sub-200 Hz reverb component: body and fullness, metered separately. Factory VLF levels from presets PDF range from 0 dB to −20 dB relative to the late tail.</p>
+<p>At Memo, the room reinforces 60–315 Hz through standing waves — cut VLF aggressively:</p>
+<table class="data-table" style="max-width:480px;">
+<tr><th>Genre</th><th>Memo VLF Target</th></tr>
+<tr><td>Classical / acoustic</td><td>−18 to −20 dB, or off entirely</td></tr>
+<tr><td>Jazz / Celtic / folk</td><td>−15 to −18 dB</td></tr>
+<tr><td>Contemporary / gospel</td><td>−12 to −15 dB</td></tr>
+</table>
+
+<div class="sub-header">Early / Late (Balance Slider)</div>
+<div class="callout">
+  <div class="callout-head">⚠ Critical Behavior — Hard Jump to MAX</div>
+  The slider range is <strong>−20 dB to Equal Mix</strong>. Crossing Equal Mix causes an <strong>immediate hard jump to MAX on the opposite side</strong> — there is no gradual crossfade through center. In practice:<br><br>
+  • Slider in the <em>Early half</em>: Early signal = displayed dB value, Late = MAX<br>
+  • Slider in the <em>Late half</em>: Late signal = displayed dB value, Early = MAX<br>
+  • Equal Mix = the only balanced point<br><br>
+  Example: "Early: −15 dB, Late: MAX" means the slider is positioned in the Early half at −15 dB.
+</div>
+<p>Push toward Early for room placement without long tail; push toward Late for bloom and wash. At Memo, most sends benefit from slightly more Early than factory — the room handles the late field.</p>
+<p><strong>Notation standard:</strong> Use "Early: −X dB, Late: MAX" or "Equal Mix" — never percentage pairs (35/65, 60/40, etc.).</p>
+<div class="notation-box">
+Preset: Halls 1 / Boston Hall A | Decay 1.3s • PreDelay 20ms • VLF −18dB • Early: −8 dB, Late: MAX • Late Rolloff 5kHz • Mix 18% — classical vocal
+</div>
+
+<div class="sub-header">Early Reflections Set (0–31)</div>
+<p>Thirty-two discrete early reflection patterns sampled from the M7. Lower numbers = small spaces; higher = large spaces. More reflective environments within each group have higher numbers. Factory value shown in spec tables.</p>
+
+<div class="sub-header">Early Rolloff / Late Rolloff</div>
+<p>Two <strong>separate</strong> filter cutpoint controls. <span class="warn">Not called "HF Damp" anywhere in the plugin.</span></p>
+<table class="data-table" style="max-width:560px;">
+<tr><th>Control</th><th>Memo Target by Genre</th></tr>
+<tr><td>Late Rolloff</td><td>Classical/acoustic: 4–6 kHz · Jazz/folk: 6–9 kHz · Contemporary: 8–10 kHz</td></tr>
+<tr><td>Early Rolloff</td><td>Usually leave at factory</td></tr>
+</table>
+
+<div class="sub-header">Frequency Dependent Decay Time</div>
+<p>HF and LF multipliers relative to main RT60. At Memo with low-end buildup, an LF multiplier below 1.0 tightens bass reverb time without touching main decay.</p>
+
+<div class="sub-header">Ducker</div>
+<p>Two modes: <strong>Reverb</strong> (late tail + VLF only) or <strong>Wet Mix</strong> (all signals). For vocals, use Reverb mode — early reflections stay up for placement while tail ducks during phrases. Controls: Threshold, Ratio, Release, Trim.</p>
+
+<div class="sub-header">Algorithm Types</div>
+<table class="data-table" style="max-width:640px;">
+<tr><th>Type</th><th>Character</th><th>When to Use</th></tr>
+<tr><td><span class="v1">V1</span></td><td>Static, realistic, low modulation — "pure" Bricasti sound</td><td>Classical, jazz, Celtic, acoustic folk, chamber. Source keeps its character.</td></tr>
+<tr><td><span class="v2">V2</span></td><td>Brighter, more modulated, lush bloom</td><td>Gospel, contemporary, pop/rock, dense choir. Wash and bloom over accuracy.</td></tr>
+<tr><td><span class="nl">NL</span></td><td>Non-decaying initial region (~50–300ms) then ~200ms exponential tail</td><td>Drums only, gated effects. Not a primary tool at Memo.</td></tr>
+</table>
+<p>When in doubt on acoustic shows: V1. When in doubt on contemporary: V2 for plates/vocals, V1 for halls.</p>
+
+<!-- ══════════════════════════════════════════════════════════ FACTORY SPECS -->
+<div class="section-header">FACTORY SPECS — RECOMMENDED PRESETS</div>
+<p style="margin-bottom:8px;">All values verified against Liquidsonics Seventh Heaven Professional Presets List v1.100. Memo Target = 30–40% pull from factory as starting point.</p>
+
+<div class="sub-header">Halls</div>
+<table class="data-table">
+<tr><th>Preset</th><th>Algo</th><th>Factory Decay</th><th>Memo Target</th><th>PreDly</th><th>VLF</th><th>Early Bal</th><th>Late Bal</th><th>Late Rolloff</th><th>Early Set</th></tr>
+<tr><td>Halls 1 / Concert Hall</td><td><span class="v1">V1</span></td><td>2.20s</td><td>1.3–1.4s</td><td>18ms</td><td>−10dB</td><td>0dB</td><td>0dB</td><td>5200Hz</td><td>19</td></tr>
+<tr><td>Halls 1 / Boston Hall A</td><td><span class="v1">V1</span></td><td>2.10s</td><td>1.2–1.3s</td><td>0ms</td><td class="warn">−2dB</td><td>−2dB</td><td>0dB</td><td>6000Hz</td><td>12</td></tr>
+<tr><td>Halls 1 / Boston Hall B</td><td><span class="v1">V1</span></td><td>1.80s</td><td>1.1–1.2s</td><td>0ms</td><td>−9dB</td><td>−2dB</td><td>0dB</td><td>4800Hz</td><td>9</td></tr>
+<tr><td>Halls 1 / Gold Hall</td><td><span class="v1">V1</span></td><td>1.80s</td><td>1.1–1.2s</td><td>30ms</td><td class="warn">0dB</td><td>Equal Mix</td><td>Equal Mix</td><td>—</td><td>—</td></tr>
+<tr><td>Halls 1 / Piano Hall</td><td><span class="v1">V1</span></td><td>2.00s</td><td>1.2s</td><td>24ms</td><td>−8dB</td><td>−4dB</td><td>0dB</td><td>6400Hz</td><td>16</td></tr>
+<tr><td>Halls 1 / Sandors Hall</td><td><span class="v1">V1</span></td><td>2.60s</td><td>1.6–1.8s</td><td>20ms</td><td>−14dB</td><td>−1dB</td><td>0dB</td><td>5600Hz</td><td>19</td></tr>
+<tr><td>Halls 1 / Small Hall</td><td><span class="v1">V1</span></td><td>1.40s</td><td>0.9–1.0s</td><td>0ms</td><td>−10dB</td><td>−4dB</td><td>0dB</td><td>5600Hz</td><td>6</td></tr>
+<tr><td>Halls 1 / Brass Hall</td><td><span class="v1">V1</span></td><td>2.00s</td><td>1.2–1.4s</td><td>20ms</td><td>−11dB</td><td>0dB</td><td>−2dB</td><td>8400Hz</td><td>19</td></tr>
+<tr><td>Halls 2 / Large Hall</td><td><span class="v2">V2</span></td><td>2.35s</td><td>1.5–1.7s</td><td>24ms</td><td>−13dB</td><td>−12dB</td><td>0dB</td><td>3600Hz</td><td>21</td></tr>
+<tr><td>Halls 2 / Jazz Church</td><td><span class="v2">V2</span></td><td>1.35s</td><td>0.85–1.0s</td><td>0ms</td><td>−10dB</td><td>−12dB</td><td>0dB</td><td>8800Hz</td><td>20</td></tr>
+</table>
+
+<div class="sub-header">Chambers</div>
+<table class="data-table">
+<tr><th>Preset</th><th>Algo</th><th>Factory Decay</th><th>Memo Target</th><th>PreDly</th><th>VLF</th><th>Early Bal</th><th>Late Bal</th><th>Late Rolloff</th><th>Early Set</th></tr>
+<tr><td>Chambers 1 / Vocal Chamber</td><td><span class="v1">V1</span></td><td>1.60s</td><td>1.0s</td><td>0ms</td><td>−10dB</td><td>0dB</td><td>0dB</td><td>8000Hz</td><td>9</td></tr>
+<tr><td>Chambers 1 / Sunset Chamber</td><td><span class="v1">V1</span></td><td>2.15s</td><td>1.3–1.5s</td><td>20ms</td><td>−20dB</td><td>−2dB</td><td>0dB</td><td>7200Hz</td><td>7</td></tr>
+<tr><td>Chambers 1 / A&amp;M Chamber</td><td><span class="v1">V1</span></td><td>2.20s</td><td>1.4s</td><td>20ms</td><td>−14dB</td><td>−5dB</td><td>0dB</td><td>6400Hz</td><td>7</td></tr>
+<tr><td>Chambers 1 / Snare Chamber</td><td><span class="v1">V1</span></td><td>1.20s</td><td>0.75–0.85s</td><td>10ms</td><td>−19dB</td><td>Equal Mix</td><td>Equal Mix</td><td>—</td><td>—</td></tr>
+<tr><td>Chambers 1 / Small Chamber</td><td><span class="v1">V1</span></td><td>1.00s</td><td>0.65s</td><td>0ms</td><td>−12dB</td><td>0dB</td><td>0dB</td><td>6400Hz</td><td>5</td></tr>
+<tr><td>Chambers 1 / Medium Chamber</td><td><span class="v1">V1</span></td><td>1.25s</td><td>0.8s</td><td>4ms</td><td>−12dB</td><td>0dB</td><td>0dB</td><td>6400Hz</td><td>5</td></tr>
+<tr><td>Chambers 1 / Kick Chamber</td><td><span class="v1">V1</span></td><td>0.70s</td><td>0.5s</td><td>0ms</td><td>−6dB</td><td>0dB</td><td>0dB</td><td>5600Hz</td><td>3</td></tr>
+</table>
+
+<div class="sub-header">Plates</div>
+<table class="data-table">
+<tr><th>Preset</th><th>Algo</th><th>Factory Decay</th><th>Memo Target</th><th>PreDly</th><th>VLF</th><th>Early Bal</th><th>Late Bal</th><th>Late Rolloff</th><th>Early Set</th></tr>
+<tr><td>Plates 1 / Vocal Plate</td><td><span class="v1">V1</span></td><td>1.50s</td><td>1.0s</td><td>24ms</td><td>−19dB</td><td>0dB</td><td>0dB</td><td>6400Hz</td><td>15</td></tr>
+<tr><td>Plates 1 / Snare Plate A</td><td><span class="v1">V1</span></td><td>1.20s</td><td>0.8s</td><td>0ms</td><td>−9dB</td><td>0dB</td><td>0dB</td><td>6800Hz</td><td>5</td></tr>
+<tr><td>Plates 1 / Snare Plate B</td><td><span class="v1">V1</span></td><td>1.00s</td><td>0.65s</td><td>20ms</td><td>−10dB</td><td>−1dB</td><td>0dB</td><td>7200Hz</td><td>3</td></tr>
+<tr><td>Plates 1 / Rich Plate</td><td><span class="v1">V1</span></td><td>1.90s</td><td>1.2–1.3s</td><td>0ms</td><td>−9dB</td><td>−2dB</td><td>0dB</td><td>9200Hz</td><td>4</td></tr>
+<tr><td>Plates 1 / Dark Plate</td><td><span class="v1">V1</span></td><td>1.50s</td><td>1.0s</td><td>0ms</td><td>−15dB</td><td>0dB</td><td>0dB</td><td>4800Hz</td><td>8</td></tr>
+<tr><td>Plates 2 / Vocal Shimmer</td><td><span class="v2">V2</span></td><td>1.80s</td><td>1.1–1.3s</td><td>20ms</td><td>−14dB</td><td>−2dB</td><td>0dB</td><td>8000Hz</td><td>8</td></tr>
+</table>
+<div class="note">Plates 2 / Vocal Shimmer: has baked-in hardware delay at 236 ms / −10 dB — part of the shimmer. Leave it.</div>
+
+<div class="sub-header">Rooms</div>
+<table class="data-table">
+<tr><th>Preset</th><th>Algo</th><th>Factory Decay</th><th>Memo Target</th><th>PreDly</th><th>VLF</th><th>Early Bal</th><th>Late Bal</th><th>Late Rolloff</th><th>Early Set</th></tr>
+<tr><td>Rooms 1 / Studio A</td><td><span class="v1">V1</span></td><td>0.70s</td><td>0.5s</td><td>4ms</td><td>−3dB</td><td>0dB</td><td>−5dB</td><td>—</td><td>—</td></tr>
+<tr><td>Rooms 1 / Studio B Close</td><td><span class="v1">V1</span></td><td>0.75s</td><td>0.5–0.6s</td><td>0ms</td><td class="warn">0dB</td><td>0dB</td><td>−7dB</td><td>8000Hz</td><td>7</td></tr>
+<tr><td>Rooms 1 / Studio B Far</td><td><span class="v1">V1</span></td><td>0.65s</td><td>0.45s</td><td>0ms</td><td>−3dB</td><td>0dB</td><td>−1dB</td><td>9200Hz</td><td>12</td></tr>
+<tr><td>Rooms 1 / Large Wooden</td><td><span class="v1">V1</span></td><td>1.20s</td><td>0.75s</td><td>0ms</td><td>−9dB</td><td>0dB</td><td>−1dB</td><td>8000Hz</td><td>9</td></tr>
+<tr><td>Rooms 1 / Small Wooden</td><td><span class="v1">V1</span></td><td>0.60s</td><td>0.4s</td><td>0ms</td><td>−7dB</td><td>0dB</td><td>0dB</td><td>9600Hz</td><td>9</td></tr>
+<tr><td>Rooms 1 / Djangos Room</td><td><span class="v1">V1</span></td><td>0.80s</td><td>0.5–0.55s</td><td>4ms</td><td>−10dB</td><td>0dB</td><td>−2dB</td><td>5200Hz</td><td>6</td></tr>
+<tr><td>Rooms 2 / Guitar Room</td><td><span class="v2">V2</span></td><td>1.20s</td><td>0.8s</td><td>0ms</td><td>−11dB</td><td>Equal Mix</td><td>Equal Mix</td><td>5200Hz</td><td>25</td></tr>
+</table>
+<div class="note"><strong>Studio A (Rooms 1 #01):</strong> Mod 0 — zero modulation, clean and transparent. Excellent glue reverb at Memo. Mix 3–5% only.</div>
+<div class="note"><strong>Studio B Close:</strong> Factory VLF is 0 dB — always cut to at least −12 dB at Memo.</div>
+<div class="note"><strong>Guitar Room (Rooms 2 #16):</strong> Has baked-in hardware delay at 300 ms / −14 dB with Mod 4. The slap echo is part of the preset — don't try to remove it. Great for British rock / American classic rock guitar character.</div>
+
+<div class="sub-header">Ambiences &amp; Spaces</div>
+<table class="data-table">
+<tr><th>Preset</th><th>Algo</th><th>Factory Decay</th><th>Memo Target</th><th>PreDly</th><th>VLF</th><th>Early Bal</th><th>Late Bal</th><th>Late Rolloff</th><th>Early Set</th></tr>
+<tr><td>Ambiences 1 / Large Ambience</td><td><span class="v1">V1</span></td><td>0.80s</td><td>0.5–0.6s</td><td>10ms</td><td>−10dB</td><td>0dB</td><td>−10dB</td><td>6000Hz</td><td>12</td></tr>
+<tr><td>Ambiences 1 / Percussion Air</td><td><span class="v1">V1</span></td><td>0.50s</td><td>0.35s</td><td>0ms</td><td>−6dB</td><td>0dB</td><td>−11dB</td><td>8000Hz</td><td>6</td></tr>
+<tr><td>Spaces 1 / North Church</td><td><span class="v1">V1</span></td><td>3.20s</td><td>1.8–2.0s</td><td>0ms</td><td>−6dB</td><td>−3dB</td><td>0dB</td><td>5600Hz</td><td>15</td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════ QUICK PICKS -->
+<div class="section-header">QUICK PICKS — BY SOURCE (MEMO-SPECIFIC)</div>
+
+<table class="data-table">
+<tr><th>Source</th><th>First Choice</th><th>Alt</th><th>Key Watch-Out</th></tr>
+<tr><td>Lead vocal — classical/acoustic</td><td>Chambers 1 / Sunset Chamber</td><td>Chambers 1 / Vocal Chamber</td><td>Sunset factory VLF already −20dB. Cut Vocal Chamber from −10dB.</td></tr>
+<tr><td>Lead vocal — contemporary plate</td><td>Plates 1 / Vocal Plate</td><td>Plates 2 / Vocal Shimmer</td><td>Vocal Plate VLF −19dB factory. Shimmer has baked delay — keep it.</td></tr>
+<tr><td>Lead vocal — hall (ballads/breathing)</td><td>Halls 1 / Gold Hall</td><td>Halls 1 / Boston Hall B</td><td>Gold Hall VLF at 0dB factory — cut hard to −12dB at Memo.</td></tr>
+<tr><td>Choir / group vocals</td><td>Halls 1 / Sandors Hall</td><td>Spaces 1 / North Church</td><td>North Church is 3.2s factory — pull hard (1.8–2.0s). VLF from −6dB → −15dB.</td></tr>
+<tr><td>Snare — bright crack</td><td>Plates 1 / Snare Plate A</td><td>Plates 1 / Snare Plate B</td><td>Plate B has 20ms factory pre-delay — good in dense mixes.</td></tr>
+<tr><td>Snare — vintage / British rock</td><td>Chambers 1 / Snare Chamber</td><td>Plates 1 / Dark Plate</td><td>Snare Chamber VLF at −19dB factory (already safe). Dense, characterful chamber body.</td></tr>
+<tr><td>Kick (reverb layer)</td><td>Chambers 1 / Kick Chamber</td><td>—</td><td>0.70s factory. VLF at −6dB factory — cut further at Memo.</td></tr>
+<tr><td>Drum bus / overheads</td><td>Rooms 1 / Studio B Close</td><td>Ambiences 1 / Percussion Air</td><td>Studio B Close VLF is 0dB factory — always cut at Memo.</td></tr>
+<tr><td>Overall glue</td><td>Rooms 1 / Studio A</td><td>Ambiences 1 / Large Ambience</td><td>Studio A: Mod 0 = zero modulation, fully transparent. Mix 3–5% max. VLF −3dB factory — cut to −12dB.</td></tr>
+<tr><td>Electric guitar — rock/British</td><td>Rooms 2 / Guitar Room</td><td>—</td><td>V2. Baked-in 300ms slap delay — part of the character, leave it.</td></tr>
+<tr><td>Acoustic guitar</td><td>Rooms 1 / Large Wooden</td><td>Chambers 1 / Small Chamber</td><td>Large Wooden: airy. Small Chamber: tighter and drier.</td></tr>
+<tr><td>Piano — solo</td><td>Halls 1 / Piano Hall</td><td>Halls 1 / Boston Hall A</td><td>Piano Hall VLF only −8dB — cut to −18dB+. Boston Hall A VLF only −2dB — cut hard.</td></tr>
+<tr><td>Upright bass</td><td>Rooms 1 / Djangos Room</td><td>Rooms 1 / Small Wooden</td><td>Djangos: 0.80s factory, jazz-club character.</td></tr>
+<tr><td>Orchestral strings</td><td>Halls 1 / Concert Hall</td><td>Halls 1 / Sandors Hall</td><td>Concert Hall: stable, low modulation. Sandors: denser, more tail.</td></tr>
+<tr><td>Amplified strings (clip-on)</td><td>Chambers 1 / A&amp;M Chamber</td><td>Rooms 1 / Studio B Far</td><td>A&amp;M: '70s smooth. Pre-delay 20ms factory already there.</td></tr>
+<tr><td>Brass section</td><td>Halls 1 / Brass Hall</td><td>Halls 1 / Small Hall</td><td>Brass Hall Late Rolloff 8400Hz factory — can pull to 6kHz at Memo.</td></tr>
+<tr><td>Flute / woodwinds</td><td>Chambers 1 / Small Chamber</td><td>Halls 1 / Small Hall</td><td>—</td></tr>
+<tr><td>Uilleann pipes</td><td>Chambers 1 / Medium Chamber</td><td>Rooms 1 / Large Wooden</td><td>—</td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════ BY GENRE -->
+<div class="section-header">STARTING POINTS — BY GENRE</div>
+
+<div class="sub-header">Classical / Chamber / Orchestral <span class="v1">V1</span></div>
+<table class="data-table">
+<tr><th>Use</th><th>Preset</th><th>Factory</th><th>Memo Target</th><th>Notes</th></tr>
+<tr><td>Main hall — full ensemble</td><td>Halls 1 / Concert Hall</td><td>2.20s</td><td>1.3–1.4s</td><td>VLF off or −20dB. Push Early↑. Late Rolloff 4–5kHz.</td></tr>
+<tr><td>Solo instrument / small chamber</td><td>Halls 1 / Boston Hall A</td><td>2.10s</td><td>1.2–1.3s</td><td>Brighter. VLF only −2dB factory — cut to −18dB+ at Memo.</td></tr>
+<tr><td>Piano solo</td><td>Halls 1 / Piano Hall</td><td>2.00s</td><td>1.2s</td><td>24ms pre-delay factory. VLF to −18dB+. Stereo send.</td></tr>
+<tr><td>Vocal (classical)</td><td>Chambers 1 / Sunset Chamber</td><td>2.15s</td><td>1.3–1.5s</td><td>Factory VLF already −20dB. Minimum 20ms pre-delay.</td></tr>
+<tr><td>Strings (close-mic'd)</td><td>Chambers 1 / A&amp;M Chamber</td><td>2.20s</td><td>1.4s</td><td>'70s smooth. 20ms pre-delay factory.</td></tr>
+<tr><td>Ensemble air / glue</td><td>Ambiences 1 / Large Ambience</td><td>0.80s</td><td>0.5–0.6s</td><td>Adds space without obvious tail. Cut VLF from −10dB factory.</td></tr>
+</table>
+
+<div class="sub-header">Jazz <span class="v1">V1</span></div>
+<table class="data-table">
+<tr><th>Use</th><th>Preset</th><th>Factory</th><th>Memo Target</th><th>Notes</th></tr>
+<tr><td>Drum bus / overheads</td><td>Rooms 1 / Studio B Close</td><td>0.75s</td><td>0.5–0.6s</td><td>Late Bal at −7dB factory — inherently early-heavy. VLF 0dB factory — cut to −12dB.</td></tr>
+<tr><td>Acoustic instruments</td><td>Rooms 1 / Djangos Room</td><td>0.80s</td><td>0.55s</td><td>Small jazz-club feel. VLF to −15dB.</td></tr>
+<tr><td>Upright bass / acoustic guitar</td><td>Rooms 1 / Large Wooden</td><td>1.20s</td><td>0.75s</td><td>Natural air.</td></tr>
+<tr><td>Lead vocal</td><td>Chambers 1 / Vocal Chamber</td><td>1.60s</td><td>1.0s</td><td>Classic chamber on vox. Pre-delay 20–40ms. Ducker on (Reverb mode).</td></tr>
+<tr><td>Snare</td><td>Plates 1 / Snare Plate A</td><td>1.20s</td><td>0.8s</td><td>Bright and dense.</td></tr>
+</table>
+
+<div class="sub-header">Celtic / Acoustic Folk <span class="v1">V1</span></div>
+<table class="data-table">
+<tr><th>Use</th><th>Preset</th><th>Factory</th><th>Memo Target</th><th>Notes</th></tr>
+<tr><td>Acoustic instruments (general)</td><td>Rooms 1 / Large Wooden</td><td>1.20s</td><td>0.75s</td><td>Natural, airy. VLF to −15dB.</td></tr>
+<tr><td>Flute / whistles</td><td>Chambers 1 / Small Chamber</td><td>1.00s</td><td>0.65s</td><td>Compact, warm.</td></tr>
+<tr><td>Uilleann pipes</td><td>Chambers 1 / Medium Chamber</td><td>1.25s</td><td>0.8s</td><td>Tight enough to stay clean.</td></tr>
+<tr><td>Bodhran</td><td>Rooms 1 / Studio B Close</td><td>0.75s</td><td>0.5s</td><td>Short and dense. Cut VLF from 0dB factory.</td></tr>
+<tr><td>Vocals</td><td>Chambers 1 / Sunset Chamber</td><td>2.15s</td><td>1.3–1.5s</td><td>Warm, characterful. VLF already −20dB factory.</td></tr>
+<tr><td>Fiddle / strings</td><td>Chambers 1 / A&amp;M Chamber</td><td>2.20s</td><td>1.4s</td><td>Smooth, mid-forward.</td></tr>
+</table>
+
+<div class="sub-header">Rock / Blues / British Pop <span class="v1">V1</span> / <span class="v2">V2</span></div>
+<table class="data-table">
+<tr><th>Use</th><th>Preset</th><th>Factory</th><th>Memo Target</th><th>Notes</th></tr>
+<tr><td>Snare — crack</td><td>Plates 1 / Snare Plate A</td><td>1.20s</td><td>0.8s</td><td>Bright and aggressive.</td></tr>
+<tr><td>Snare — British rock / vintage</td><td>Chambers 1 / Snare Chamber</td><td>1.20s</td><td>0.8s</td><td>Dense chamber body. VLF −19dB factory (safe). Classic Brit rock character.</td></tr>
+<tr><td>Drum bus</td><td>Rooms 1 / Studio B Close</td><td>0.75s</td><td>0.5s</td><td>Dense. Cut VLF from 0dB factory.</td></tr>
+<tr><td>Electric guitar</td><td>Rooms 2 / Guitar Room</td><td>1.20s</td><td>0.8s</td><td>V2. Baked-in 300ms slap. Stones, Kinks, Bowie, Allmans.</td></tr>
+<tr><td>Vocal — plate (loud mix)</td><td>Plates 1 / Vocal Plate</td><td>1.50s</td><td>1.0s</td><td>Dense, forward. VLF −19dB factory.</td></tr>
+<tr><td>Vocal — hall (ballads)</td><td>Halls 1 / Gold Hall</td><td>1.80s</td><td>1.1–1.3s</td><td>Breathing room. Cut VLF from 0dB factory → −12dB.</td></tr>
+<tr><td>Overall glue</td><td>Rooms 1 / Studio A</td><td>0.70s</td><td>0.5s</td><td>Mod 0. No modulation. Mix 3–5% max.</td></tr>
+</table>
+
+<div class="sub-header">Gospel / Contemporary <span class="v1">V1</span> halls, <span class="v2">V2</span> plates/vocals</div>
+<table class="data-table">
+<tr><th>Use</th><th>Preset</th><th>Factory</th><th>Memo Target</th><th>Notes</th></tr>
+<tr><td>Main hall / choir wash</td><td>Halls 1 / Sandors Hall</td><td>2.60s</td><td>1.6–1.8s</td><td>Long and dense. VLF −14dB factory — can bring to −10dB for gospel weight.</td></tr>
+<tr><td>Lead vocal — traditional</td><td>Chambers 1 / Vocal Chamber</td><td>1.60s</td><td>1.0–1.1s</td><td>V1 warmth. Ducker on.</td></tr>
+<tr><td>Lead vocal — contemporary</td><td>Plates 2 / Vocal Shimmer</td><td>1.80s</td><td>1.1–1.3s</td><td>V2 bloom. Baked delay at 236ms / −10dB — part of shimmer.</td></tr>
+<tr><td>BG / choir vocals</td><td>Plates 1 / Rich Plate</td><td>1.90s</td><td>1.2–1.3s</td><td>Warmth and density.</td></tr>
+<tr><td>Snare</td><td>Plates 1 / Snare Plate A</td><td>1.20s</td><td>0.8s</td><td>Standard.</td></tr>
+<tr><td>Drum bus</td><td>Rooms 1 / Studio B Close</td><td>0.75s</td><td>0.5s</td><td>Cut VLF from 0dB factory.</td></tr>
+<tr><td>Keys / synth pads</td><td>Halls 2 / Large Hall</td><td>2.35s</td><td>1.5–1.7s</td><td>V2 bloom. Early Bal −12dB factory (inherently early-heavy).</td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════ TWEAK ORDER -->
+<div class="section-header">TWEAK PRIORITY ORDER — MEMO</div>
+
+<table class="data-table" style="max-width:700px;">
+<tr><th>#</th><th>Parameter</th><th>Action</th></tr>
+<tr><td>1</td><td>Decay Time</td><td>Pull 30–40% from factory. Use spec tables for starting number.</td></tr>
+<tr><td>2</td><td>VLF Slider</td><td>Cut aggressively. Room reinforces 60–315Hz. Watch Studio B Close (0dB) and Boston Hall A (−2dB) especially.</td></tr>
+<tr><td>3</td><td>Pre-Delay</td><td>Late reverb and VLF only — does not move early reflections. 10ms minimum; 20–30ms on vocals.</td></tr>
+<tr><td>4</td><td>Late Rolloff</td><td>4–6kHz classical/acoustic (audience absorbs HF). 6–9kHz jazz/folk. 8–10kHz contemporary.</td></tr>
+<tr><td>5</td><td>Early/Late Balance</td><td>Push slightly Early↑ on most sends. Room handles the late field.</td></tr>
+<tr><td>6</td><td>Ducker (Reverb mode)</td><td>Vocals especially — keeps early reflections up between phrases while late tail ducks.</td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════ LAYERING -->
+<div class="section-header">LAYERING STRATEGY</div>
+
+<p>Classic two-reverb move: short chamber/plate for close perspective + long hall pre-delayed 40–80 ms for tail. At Memo, the room itself is the third layer — most useful on close-mic'd sources that aren't picking up much natural room.</p>
+
+<p><strong>Example — vocal chain:</strong> Chambers 1 / Vocal Chamber (1.0s, 10ms pre-delay) + Halls 1 / Boston Hall A (1.3s, 50ms pre-delay). Both VLF at −18dB+. The Vocal Chamber provides sense of place; the Boston Hall adds size between phrases. The room handles the diffuse late field naturally.</p>
+
+<div class="note"><strong>Underhat / underhead offset:</strong> When cymbal mics are in underhat/underhead position, add +2 to +3 dB to the reverb send to compensate for reduced natural air. Preset choice doesn't change — only the send level.</div>
+
+<!-- ══════════════════════════════════════════════════════════ FOOTER -->
+<div class="footer">
+  Seventh Heaven Pro Reference — Memorial Hall / Brian Lloyd · Source: Liquidsonics SHP Manual v1.5.7 + Presets List v1.100 + direct operational knowledge · 2026-05-28
+</div>
+
+</div><!-- .page -->
+</body>
+</html>

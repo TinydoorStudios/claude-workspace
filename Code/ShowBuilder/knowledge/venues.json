@@ -1,0 +1,267 @@
+{
+  "_source": "ROUTING.md, venue KB articles, CLAUDE.md (2026-06-16)",
+  "_note": "Template/patcher paths are relative to the audio root (config.audio_root). Only memo + fsq have the calibrated Q225 .ses pipeline; others are spec/paperwork-only until their templates are calibrated.",
+  "venues": {
+    "memo": {
+      "name": "Memorial Hall",
+      "short": "Memo",
+      "console": "digico",
+      "console_label": "DiGiCo Quantum 225",
+      "outdoor": false,
+      "rt60_s": 1.6,
+      "problem_zones_hz": [
+        63,
+        125,
+        200,
+        250,
+        315
+      ],
+      "mud_zone_hz": [
+        200,
+        400
+      ],
+      "pipeline": true,
+      "template": "Memorial Hall/_TEMPLATE/brian memo june 2026.ses",
+      "patcher": "Memorial Hall/Q225 SES Patcher SOP/apply_show_TEMPLATE.py",
+      "output_bytes": 37661337,
+      "folder": "Memorial Hall",
+      "reverb_profile": "memo",
+      "default_foh": "Brian Lloyd",
+      "default_mon": "per show",
+      "crowd_rig": [
+        {
+          "name": "OM1 Flown Omni L",
+          "mic": "Line Audio OM1",
+          "hpf": 80,
+          "lpf": "OFF",
+          "bands": {
+            "3": "-3 | 800 | 1.5 | BELL",
+            "2": "-6 | 315 | 2.0 | BELL",
+            "1": "-5 | 200 | 2.0 | BELL"
+          }
+        },
+        {
+          "name": "OM1 Flown Omni R",
+          "mic": "Line Audio OM1",
+          "hpf": 80,
+          "lpf": "OFF",
+          "bands": {
+            "3": "-3 | 800 | 1.5 | BELL",
+            "2": "-6 | 315 | 2.0 | BELL",
+            "1": "-5 | 200 | 2.0 | BELL"
+          }
+        },
+        {
+          "name": "Deity S2 Under PA L",
+          "mic": "Deity S2",
+          "hpf": 100,
+          "lpf": 16000,
+          "bands": {
+            "3": "-3 | 2400 | 1.8 | BELL",
+            "2": "-5 | 315 | 2.0 | BELL",
+            "1": "-5 | 200 | 2.0 | BELL"
+          }
+        },
+        {
+          "name": "Deity S2 Under PA R",
+          "mic": "Deity S2",
+          "hpf": 100,
+          "lpf": 16000,
+          "bands": {
+            "3": "-3 | 2400 | 1.8 | BELL",
+            "2": "-5 | 315 | 2.0 | BELL",
+            "1": "-5 | 200 | 2.0 | BELL"
+          }
+        },
+        {
+          "name": "CM4 Balcony ORTF L",
+          "mic": "Line Audio CM4",
+          "hpf": 120,
+          "lpf": 14000,
+          "bands": {
+            "4": "-5 | 315 | 2.0 | BELL",
+            "3": "-4 | 400 | 1.5 | BELL",
+            "2": "-6 | 200 | 2.0 | BELL",
+            "1": "-5 | 63 | 2.5 | BELL"
+          }
+        },
+        {
+          "name": "CM4 Balcony ORTF R",
+          "mic": "Line Audio CM4",
+          "hpf": 120,
+          "lpf": 14000,
+          "bands": {
+            "4": "-5 | 315 | 2.0 | BELL",
+            "3": "-4 | 400 | 1.5 | BELL",
+            "2": "-6 | 200 | 2.0 | BELL",
+            "1": "-5 | 63 | 2.5 | BELL"
+          }
+        }
+      ]
+    },
+    "fsq": {
+      "name": "Fountain Square",
+      "short": "FSQ",
+      "console": "digico",
+      "console_label": "DiGiCo Quantum 225",
+      "outdoor": true,
+      "rt60_s": 0.0,
+      "problem_zones_hz": [],
+      "mud_zone_hz": [
+        200,
+        400
+      ],
+      "pipeline": true,
+      "template": "Fountain Square/_TEMPLATE/brian fsq start.ses",
+      "patcher": "Fountain Square/Q225 SES Patcher SOP/apply_show_TEMPLATE_FSQ.py",
+      "output_bytes": 3779766,
+      "folder": "Fountain Square",
+      "reverb_profile": "fsq",
+      "default_foh": "Brian Lloyd",
+      "default_mon": "M32 (monitors)",
+      "crowd_rig": [],
+      "default_channel_count": 32,
+      "default_channels": [
+        "Kick In",
+        "Kick Out",
+        "Snare Top",
+        "Snare Bottom",
+        "Hat",
+        "Rack 1",
+        "Rack 2",
+        "Floor",
+        "OH HL",
+        "OH HR",
+        "Bass DI",
+        "Bass Mic",
+        "Guitar 1",
+        "Guitar 2",
+        "Guitar 3",
+        "Guitar 4",
+        "Misc 1",
+        "Misc 2",
+        "Misc 3",
+        "Misc 4",
+        "Misc 5",
+        "Misc 6",
+        "Misc 7",
+        "Misc 8",
+        "Vocal 1",
+        "Vocal 2",
+        "Vocal 3",
+        "Vocal 4",
+        "Vocal 5",
+        "Vocal 6",
+        "Vocal 7",
+        "Vocal 8"
+      ],
+      "eq_cut_scale": 1.2,
+      "eq_boost_scale": 1.2
+    },
+    "wp": {
+      "name": "Washington Park",
+      "short": "WP",
+      "console": "midas",
+      "console_label": "Midas M32",
+      "outdoor": true,
+      "rt60_s": 0.0,
+      "problem_zones_hz": [],
+      "mud_zone_hz": [
+        200,
+        400
+      ],
+      "pipeline": false,
+      "reverb_profile": "post",
+      "folder": "Washington Park",
+      "crowd_rig": []
+    },
+    "esp": {
+      "name": "Elm Street Plaza",
+      "short": "ESP",
+      "console": "digico",
+      "console_label": "confirm at first show",
+      "outdoor": true,
+      "rt60_s": 0.0,
+      "problem_zones_hz": [],
+      "mud_zone_hz": [
+        200,
+        400
+      ],
+      "pipeline": false,
+      "reverb_profile": "post",
+      "folder": "Elm Street Plaza",
+      "crowd_rig": []
+    },
+    "csp": {
+      "name": "Court Street Plaza",
+      "short": "CSP",
+      "console": "digico",
+      "console_label": "confirm at first show",
+      "outdoor": true,
+      "rt60_s": 0.0,
+      "problem_zones_hz": [],
+      "mud_zone_hz": [
+        200,
+        400
+      ],
+      "pipeline": false,
+      "reverb_profile": "post",
+      "folder": "Court Street Plaza",
+      "crowd_rig": []
+    },
+    "zp": {
+      "name": "Zeigler Park",
+      "short": "ZP",
+      "console": "digico",
+      "console_label": "confirm at first show",
+      "outdoor": true,
+      "rt60_s": 0.0,
+      "problem_zones_hz": [],
+      "mud_zone_hz": [
+        200,
+        400
+      ],
+      "pipeline": false,
+      "reverb_profile": "post",
+      "folder": "Zeigler Park",
+      "crowd_rig": []
+    },
+    "ia": {
+      "name": "Imagination Alley",
+      "short": "IA",
+      "console": "digico",
+      "console_label": "confirm at first show",
+      "outdoor": true,
+      "rt60_s": 0.0,
+      "problem_zones_hz": [],
+      "mud_zone_hz": [
+        200,
+        400
+      ],
+      "pipeline": false,
+      "reverb_profile": "post",
+      "folder": "Imagination Alley",
+      "crowd_rig": []
+    },
+    "greaves": {
+      "name": "Greaves Concert Hall",
+      "short": "Greaves",
+      "console": "wing",
+      "console_label": "Behringer Wing",
+      "outdoor": false,
+      "rt60_s": 1.7,
+      "problem_zones_hz": [
+        200,
+        315
+      ],
+      "mud_zone_hz": [
+        200,
+        400
+      ],
+      "pipeline": false,
+      "reverb_profile": "memo",
+      "folder": "Greaves Concert Hall",
+      "crowd_rig": []
+    }
+  }
+}

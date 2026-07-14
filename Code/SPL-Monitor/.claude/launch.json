@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "spl-monitor",
+      "runtimeExecutable": "./.venv/bin/python",
+      "runtimeArgs": ["-m", "backend.app"],
+      "port": 8080
+    },
+    {
+      "name": "spl-green",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "SPL_SOURCE=simulator SPL_SIM_SCENE=green ./.venv/bin/python -m backend.app"],
+      "port": 8080
+    },
+    {
+      "name": "spl-hot",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "SPL_SOURCE=simulator SPL_SIM_SCENE=hot ./.venv/bin/python -m backend.app"],
+      "port": 8080
+    }
+  ]
+}

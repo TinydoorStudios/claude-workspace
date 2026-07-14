@@ -1,0 +1,21 @@
+=== fix-cloudflare-assets Thu Jun 11 09:45:36 EDT 2026 ===
+[1] Verify token…
+    success: True status: active errors: []
+[2] Find zone id…
+    zone_id: f5bf91260bd4b50fee1c185f40a46524
+[3] Current PAGE RULES:
+    (none)
+[4] Current CACHE RULES:
+    (none)
+[5] Purge everything…
+    purge success: True errors: []
+[6] Add Bypass-cache page rule for /assets/* …
+    pagerule success: False errors: [{'code': 9109, 'message': 'Unauthorized to access requested resource'}]
+[7] Wait for propagation…
+[8] Verify public downloads:
+    404  Blue%20Eighty-Eight%20-%20FOH%20Channel%20Processing.pdf
+    404  Blue%20Eighty-Eight%20-%20Input%20List.xlsx
+    200  Blue%20Eighty-Eight.ses
+    404  Blue88%20-%20Handoff.pdf
+
+Not all 200 yet — rule dumps above are in /Users/brianlloyd/Documents/Claude/audio/N8n/fix-cloudflare.log; I'll read them and follow up.

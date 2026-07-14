@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Verve Pipe — FOH Channel Processing</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 11pt; color: #111; background: #fff; margin: 30px; }
+  h1 { font-size: 16pt; margin-bottom: 2px; }
+  .subtitle { font-size: 10pt; color: #555; margin-bottom: 20px; }
+  table.inputlist { border-collapse: collapse; width: 100%; margin-bottom: 30px; font-size: 10pt; }
+  table.inputlist th { background: #1c3558; color: #fff; padding: 5px 8px; text-align: left; }
+  table.inputlist td { border: 1px solid #ccc; padding: 4px 8px; }
+  table.inputlist tr:nth-child(even) td { background: #f4f6f9; }
+  .channel-card { margin-bottom: 18px; border: 1px solid #ccc; page-break-inside: avoid; }
+  .card-header { background: #1c3558; color: #fff; padding: 6px 10px; font-weight: bold; font-size: 10.5pt; }
+  .card-header.manual { background: #8b1a1a; }
+  table.card-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  table.card-table td { border: 1px solid #ddd; padding: 4px 8px; vertical-align: top; }
+  table.card-table td:first-child { width: 22%; font-weight: bold; background: #f0f3f8; }
+  table.card-table td:nth-child(2) { width: 22%; }
+  table.card-table td:nth-child(3) { width: 56%; }
+  .section-header { background: #1c3558; color: #fff; font-weight: bold; padding: 4px 10px; font-size: 10pt; margin-top: 24px; margin-bottom: 0; }
+  .notes-block { background: #f9f9f9; border: 1px solid #ddd; padding: 10px 14px; margin-bottom: 18px; font-size: 10pt; line-height: 1.5; }
+  .notes-block ul { margin: 4px 0 0 0; padding-left: 18px; }
+  .notes-block li { margin-bottom: 3px; }
+  .polarity-warn { color: #c00; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>The Verve Pipe — FOH Channel Processing</h1>
+<div class="subtitle">Console: DiGiCo Quantum 225 &nbsp;|&nbsp; Venue: Fountain Square (FSQ) &nbsp;|&nbsp; Date: 2026-05-29</div>
+
+<!-- INPUT LIST SUMMARY -->
+<div class="section-header">Input List Summary — Active Channels</div>
+<table class="inputlist">
+  <tr><th>Ch</th><th>Instrument</th><th>Mic / DI</th></tr>
+  <tr><td>1</td><td>Kick In</td><td>Shure Beta 91</td></tr>
+  <tr><td>2</td><td>Kick Out</td><td>Shure Beta 52</td></tr>
+  <tr><td>3</td><td>Snare Top</td><td>Shure SM57</td></tr>
+  <tr><td>4</td><td>Snare Bottom</td><td>Shure SM57</td></tr>
+  <tr><td>5</td><td>Hat</td><td>Shure SM81</td></tr>
+  <tr><td>6</td><td>Rack 1</td><td>Audix D2</td></tr>
+  <tr><td>7</td><td>Floor</td><td>Audix D4</td></tr>
+  <tr><td>8</td><td>Ride</td><td>Shure SM81</td></tr>
+  <tr><td>9</td><td>Overhead Left</td><td>Shure SM81</td></tr>
+  <tr><td>10</td><td>Overhead Right</td><td>Shure SM81</td></tr>
+  <tr><td>11</td><td>Bass DI</td><td>Radial ProDI (passive)</td></tr>
+  <tr><td>12</td><td>Bass Mic</td><td>Shure SM57</td></tr>
+  <tr><td>13</td><td>Guitar Center (SM57)</td><td>Shure SM57</td></tr>
+  <tr><td>14</td><td>Guitar Center (Beta27)</td><td>Shure Beta 27</td></tr>
+  <tr><td>15</td><td>Guitar Right (SM57)</td><td>Shure SM57</td></tr>
+  <tr><td>16</td><td>Guitar Right (Beta27)</td><td>Shure Beta 27</td></tr>
+  <tr><td>17</td><td>Acoustic</td><td>Radial ProDI (passive)</td></tr>
+  <tr><td>18</td><td>Keys</td><td>Radial ProDI (passive)</td></tr>
+  <tr><td>19</td><td>SPDX</td><td>Radial ProDI (passive)</td></tr>
+  <tr><td>20</td><td>Looper</td><td>Radial ProDI (passive)</td></tr>
+  <tr><td>21–32</td><td colspan="2"><em>No mic listed — not processed. Vocals arrive via Dante/wireless.</em></td></tr>
+</table>
+
+<!-- CHANNEL CARDS -->
+<div class="section-header">Per-Channel Processing</div>
+
+<!-- Ch 1 -->
+<div class="channel-card">
+  <div class="card-header">Ch 1 — Kick In &nbsp;|&nbsp; Shure Beta 91</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>40 Hz @ 12 dB/oct</td><td>Sub rumble only — Beta91 boundary element benefits from a clean low end; keep it low</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−3 dB @ 8 kHz</td><td>Beta91 has a presence rise in the upper mids/high — pull it back to keep the attack channel controlled</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 3.5 kHz, Q 2.5</td><td>Tighten beater click; leaves definition without the brittle edge</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−4 dB @ 300 Hz, Q 1.5</td><td>Reduce cardboard/boxy resonance from the head</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>Flat</td><td>Beta91 is the attack layer; let Ch 2 carry the body and fundamental</td></tr>
+    <tr><td>Dynamics 1; Compressor</td><td>On</td><td>Ratio 4:1 · Thr −18 dB · Atk 3 ms · Rel 80 ms — keep transients punchy, control peaks</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Fast attack, tight hold — reject bleed between hits</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Attack layer of a two-mic kick rig. Beta91 sits on the batter head and captures the beater click and initial transient. The goal is clean attack definition for this alt-rock show — not warmth. Upper-mid and high-shelf cuts tame the Beta91's boundary-element brightness without losing the punch. No low-end shaping here; that's Ch 2's job. Outdoor FSQ — tighter gain margins than Memo, so the comp is there to control level before the PA clips.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 2 -->
+<div class="channel-card">
+  <div class="card-header">Ch 2 — Kick Out &nbsp;|&nbsp; Shure Beta 52</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>25 Hz @ 12 dB/oct</td><td>Let it breathe — Beta52 fundamental starts low, don't kill it</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−4 dB @ 8 kHz</td><td>Beta52 has a presence peak; attack/click content comes from Ch 1, not here</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−4 dB @ 2.5 kHz, Q 2.0</td><td>Push click range down — let Ch 1 own that territory</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 350 Hz, Q 1.5</td><td>Cardboard cut; this freq builds up in enclosed kick shells</td></tr>
+    <tr><td>Band 4; Low (Lowshelf)</td><td>+3 dB @ 60 Hz</td><td>Enhance body and thump — this is the weight layer. Alt-rock kick needs to move air</td></tr>
+    <tr><td>Dynamics 1; Compressor</td><td>On</td><td>Ratio 4:1 · Thr −18 dB · Atk 3 ms · Rel 80 ms — match Ch 1</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Tight, matched to Ch 1</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Body layer of the two-mic kick rig. Beta52 is positioned for thump — the low shelf boost at 60 Hz is intentional to give the sub array something to work with at FSQ's KS21 subs. Upper mids are pulled down hard so Ch 1 (Beta91) stays the attack reference. Blend the two channels to taste at soundcheck — start with Ch 1 at unity and bring up Ch 2 until the kick has enough weight in the room.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 3 -->
+<div class="channel-card">
+  <div class="card-header">Ch 3 — Snare Top &nbsp;|&nbsp; Shure SM57</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>100 Hz @ 18 dB/oct</td><td>Kill low-end kick bleed; snare has no useful content below this</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>+2 dB @ 10 kHz</td><td>SM57 rolls off above 12 kHz — modest lift restores crack and snap for a dense rock mix</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−2 dB @ 1.2 kHz, Q 2.0</td><td>Reduce nasal woody body that can build up on SM57 close-miked snare</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−4 dB @ 400 Hz, Q 2.0</td><td>Cardboard/box resonance — the main mud frequency on a close-miked snare</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>−6 dB @ 200 Hz, Q 1.5</td><td>Aggressive cut to reduce kick bleed that passes through the HPF skirt</td></tr>
+    <tr><td>Dynamics 1; Compressor</td><td>Off</td><td>Snare top usually doesn't need compression in a live rock context — let the transient breathe</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Fast attack, fast release — reject hat and kick bleed between strokes</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Standard SM57 snare top for an alt-rock show. The high shelf at 10 kHz is a deliberate restore of the SM57's rolled-off top end — in a dense Verve Pipe mix, the snare needs to cut. The 400 Hz cut is the first thing to dial at soundcheck; it's where the snare sounds like a cardboard box when the mic is close. Gate tuned to reject hat bleed without chopping ghost notes.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 4 -->
+<div class="channel-card">
+  <div class="card-header">Ch 4 — Snare Bottom &nbsp;|&nbsp; Shure SM57</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>200 Hz @ 18 dB/oct</td><td>Snare wires start here — there's nothing useful below 200 Hz on a bottom mic</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>+3 dB @ 8 kHz</td><td>Enhance snare wire sizzle and brightness; the bottom mic's purpose is that high-frequency snap</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 2 kHz, Q 2.5</td><td>Reduce harshness and midrange smear from the wire rattle</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−5 dB @ 400 Hz, Q 2.0</td><td>Aggressive mid cut — bottom mic sees a lot of proximity buildup through the shell</td></tr>
+    <tr><td>Band 4; Low (Lowshelf)</td><td>−8 dB @ 200 Hz</td><td>Steep shelf to reinforce the HPF — strip the low end entirely; not needed from this mic</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Tuned to track Ch 3 — same hits, tighter threshold</td></tr>
+    <tr><td>Polarity</td><td class="polarity-warn">CHECK</td><td>Bottom mic is almost always inverted relative to Ch 3. Flip and check in mono — the snare should get fatter, not thinner. Verify before advancing fader.</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Bottom mic contribution is all sizzle and wire. The HPF at 200 Hz and the aggressive low shelf together make sure this mic isn't adding body — that's Ch 3's job. The high shelf boost restores the snare wire content that gives a dense rock mix its snap. Polarity check is non-negotiable before bringing this channel up.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 5 -->
+<div class="channel-card">
+  <div class="card-header">Ch 5 — Hat &nbsp;|&nbsp; Shure SM81</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>450 Hz @ 18 dB/oct</td><td>Aggressive — reject snare and kick bleed; hat has no useful content below here in a loud mix</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−2 dB @ 12 kHz</td><td>Tame SM81 airiness — outdoor PA can make condenser highs hash-y with wind noise</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 6 kHz, Q 2.0</td><td>Reduce metallic harshness in the presence zone</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 800 Hz, Q 2.0</td><td>Bleed reduction — any kick/snare energy that gets through the HPF skirt lives here</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>−5 dB @ 350 Hz, Q 1.5</td><td>Additional bleed cleanup below the hat's useful range</td></tr>
+    <tr><td>Dynamics 2; Ducker</td><td>On</td><td>Thr ≈ −45 dB · Range 30 dB · slow attack/release — light ducker, not a hard gate. Lets the cymbal wash decay naturally rather than chopping it.</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Hat mic is running primarily for definition and articulation in the mix. The HPF at 450 Hz is intentionally aggressive — at FSQ's outdoor noise floor, anything passing through below that adds to the bleed problem. SM81 on hat can get hash-y with any wind; the high shelf and upper-mid cuts manage that. Ducker rather than gate: a hard gate chops the cymbal wash on a rock kit in a way that sounds cut-off. The ducker pulls it back softly during silence.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 6 -->
+<div class="channel-card">
+  <div class="card-header">Ch 6 — Rack 1 &nbsp;|&nbsp; Audix D2</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>80 Hz @ 18 dB/oct</td><td>Clean up low-end bleed; rack toms don't need sub content</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−2 dB @ 10 kHz</td><td>D2 doesn't need help up top — control noise floor</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 2 kHz, Q 2.0</td><td>Reduce ring/overtone buildup</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−4 dB @ 500 Hz, Q 1.5</td><td>Tom mud cut — this frequency makes a rack tom sound cardboard</td></tr>
+    <tr><td>Band 4; Low (Lowshelf)</td><td>+2 dB @ 80 Hz</td><td>Modest fundamental enhancement — rack toms in a rock kit need some weight</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Medium threshold, release tuned to natural tom decay — don't chop ring</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">D2 on rack tom is a solid workhorse choice. The 500 Hz cut is the key move — it's where the muddy "bonk" lives on a close-miked tom. Gate release needs to breathe with the drum; set it too fast and you'll hear the gate close on sustained hits. Start the gate release at 200–300 ms and tighten from there.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 7 -->
+<div class="channel-card">
+  <div class="card-header">Ch 7 — Floor &nbsp;|&nbsp; Audix D4</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>50 Hz @ 12 dB/oct</td><td>Floor tom fundamental sits low — keep it but strip rumble</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−2 dB @ 8 kHz</td><td>Noise floor control; D4 is voiced warm, no need for extra top</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 2 kHz, Q 2.0</td><td>Ring control — floor toms ring longer and this is where it lives</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−4 dB @ 400 Hz, Q 1.5</td><td>Mud cut</td></tr>
+    <tr><td>Band 4; Low (Lowshelf)</td><td>+3 dB @ 80 Hz</td><td>Floor tom needs mass. The D4 is designed for it — use the headroom</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Longer release than rack — floor toms sustain more. 400–500 ms starting point</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Floor tom with the Audix D4 — the right mic for the job. The low shelf at 80 Hz is more generous than the rack because the floor tom genuinely sits lower and needs that weight in a dense alt-rock mix. Gate release is the main thing to dial here; let it breathe or the tom sounds like it's being choked.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 8 -->
+<div class="channel-card">
+  <div class="card-header">Ch 8 — Ride &nbsp;|&nbsp; Shure SM81</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>500 Hz @ 18 dB/oct</td><td>Very aggressive — ride mic only needs cymbal and bell content, nothing below here</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−3 dB @ 12 kHz</td><td>Tame SM81 harshness; outdoor wind can excite the high end</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−2 dB @ 4 kHz, Q 2.0</td><td>Metallic edge control</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−4 dB @ 800 Hz, Q 2.0</td><td>Bleed rejection — anything below the cymbal range</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>−5 dB @ 400 Hz, Q 1.5</td><td>Additional cleanup below the HPF skirt</td></tr>
+    <tr><td>Dynamics 2; Ducker</td><td>On</td><td>Thr ≈ −45 dB · Range 25 dB — same light ducker approach as hat; cymbal wash should decay naturally</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Ride mic is mostly for bell definition — in a rock context the ride is more articulation than wash. The 500 Hz HPF is intentional; ride content that matters starts above there. If this drummer plays the ride more melodically (jazz-style), back the HPF off to 300 Hz. Ducker keeps it from pumping under the rest of the kit.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 9 -->
+<div class="channel-card">
+  <div class="card-header">Ch 9 — Overhead Left &nbsp;|&nbsp; Shure SM81</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>200 Hz @ 18 dB/oct</td><td>Strip low-end kit wash; overheads carry cymbal image, not kick/snare body</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−1 dB @ 12 kHz</td><td>Very subtle — preserve cymbal air, just shave the extreme top for outdoor noise</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−2 dB @ 5 kHz, Q 2.5</td><td>Reduce SM81 harshness without losing cymbal clarity</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 250 Hz, Q 1.5</td><td>Kit body bleed reduction</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>−4 dB @ 150 Hz, Q 1.5</td><td>Additional low-end bleed below the HPF skirt</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Light threshold, long release — let cymbal wash sustain and decay naturally</td></tr>
+    <tr><td>Polarity</td><td class="polarity-warn">CHECK</td><td>Verify L/R pair sums cleanly to mono. Sum both overhead faders and listen in mono — image should collapse to center without the kit thinning out. If thin, check relative polarity and/or mic placement symmetry.</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">True overhead position — no broadcast or camera restrictions noted, so standard overhead EQ applies. SM81 pair on overheads for an alt-rock kit is a solid choice; the mic has enough top-end to carry the cymbal image without boosting. The 200 Hz HPF and lower-mid cuts are about bleed rejection, not about the cymbal sound itself. Keep the high shelf cut to 1 dB only — you want the air. Polarity check with Ch 10 before advancing levels.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 10 -->
+<div class="channel-card">
+  <div class="card-header">Ch 10 — Overhead Right &nbsp;|&nbsp; Shure SM81</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>200 Hz @ 18 dB/oct</td><td>Matched to Ch 9</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−1 dB @ 12 kHz</td><td>Matched to Ch 9</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−2 dB @ 5 kHz, Q 2.5</td><td>Matched to Ch 9</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 250 Hz, Q 1.5</td><td>Matched to Ch 9</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>−4 dB @ 150 Hz, Q 1.5</td><td>Matched to Ch 9</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Long release — matched to Ch 9</td></tr>
+    <tr><td>Polarity</td><td class="polarity-warn">CHECK</td><td>Check vs Ch 9 — stereo pair must sum cleanly to mono. Link gate and processing with Ch 9 if console allows.</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Right overhead — matched pair with Ch 9. Link these channels together for consistent gate behavior and processing. Stereo image on the overheads carries the kit's width; if the mono sum sounds thin, check polarity and mic placement before touching EQ.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 11 -->
+<div class="channel-card">
+  <div class="card-header">Ch 11 — Bass DI &nbsp;|&nbsp; Radial ProDI (passive)</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>35 Hz @ 12 dB/oct</td><td>Sub rumble cleanup; ProDI passes low — pull the inaudible stuff</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−3 dB @ 8 kHz</td><td>Bass DI doesn't need extended top — reduces string noise and fret click</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>+2 dB @ 1.5 kHz, Q 2.0</td><td>Definition boost — in a dense alt-rock mix, bass needs midrange presence to cut through on the mains</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−4 dB @ 250 Hz, Q 1.5</td><td>Wool/mud cut — where bass sounds thick and undefined on a passive DI</td></tr>
+    <tr><td>Band 4; Low (Lowshelf)</td><td>+2 dB @ 80 Hz</td><td>Modest fundamental support for the KS21 subs</td></tr>
+    <tr><td>Dynamics 1; Compressor</td><td>On</td><td>Ratio 3:1 · Thr −16 dB · Atk 15 ms · Rel 100 ms — evening out note-to-note variation; bass players vary more than they think</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">ProDI passive is clean and transformer-coupled — it doesn't need to be fixed, just shaped. The upper-mid boost at 1.5 kHz is the one intentional boost in this chain and it's deliberate: in a guitar-heavy Verve Pipe mix, the bass will disappear into the low-end soup without some midrange presence to locate it. The 250 Hz cut addresses the wooliness that passive DIs can have. Blend with Ch 12 (bass mic) for grind and character.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 12 -->
+<div class="channel-card">
+  <div class="card-header">Ch 12 — Bass Mic &nbsp;|&nbsp; Shure SM57</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>60 Hz @ 12 dB/oct</td><td>Let some low end through but strip the sub</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−4 dB @ 6 kHz</td><td>SM57 presence peak on a bass cab — pull it down; grit should come from the mids, not the high-mids</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−2 dB @ 2.5 kHz, Q 2.0</td><td>Harshness reduction</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 400 Hz, Q 1.5</td><td>Mud reduction</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>−6 dB @ 100 Hz, Q 1.5</td><td>Pull low end out of the mic channel — let Ch 11 own the bottom</td></tr>
+    <tr><td>Dynamics 1; Compressor</td><td>On</td><td>Matched to Ch 11 — same settings for consistent blend behavior</td></tr>
+    <tr><td>Polarity</td><td class="polarity-warn">CHECK</td><td>Check Ch 12 vs Ch 11 in mono. Advance Ch 12 slowly while listening — if the low end thins out, flip polarity on Ch 12. SM57 on cab + DI almost always needs a polarity flip.</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Bass mic is the grit and cab character layer. EQ strips out the low end so Ch 11 can own the fundamental cleanly — the two channels blend at different frequency ranges. SM57 on a bass cab almost always needs polarity flip vs the DI; check before advancing. If the blend makes the bass sound thinner instead of fuller, flip Ch 12 polarity.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 13 -->
+<div class="channel-card">
+  <div class="card-header">Ch 13 — Guitar Center (SM57) &nbsp;|&nbsp; Shure SM57</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>100 Hz @ 18 dB/oct</td><td>Guitar cabs have no useful content below 100 Hz; strip it</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−2 dB @ 8 kHz</td><td>SM57 presence peak; leads this blend so keep it controlled</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 3 kHz, Q 2.0</td><td>Classic SM57 harshness zone on a guitar cab — cut before it sears</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−4 dB @ 400 Hz, Q 1.5</td><td>Cab mud — where the speaker box resonance lives</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>−6 dB @ 150 Hz, Q 1.5</td><td>Tighten the low end; bass guitar owns this range in the mix</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Light — open on playing, close between passages. Not too tight; pick attack opens it first</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Primary mic on the center guitar cab. SM57 leads this dual-mic blend — it provides the attack and cut that gets a guitar through a dense mix. The 3 kHz cut is always the first thing to address on an SM57 guitar channel; it's where harshness lives. Blend with Ch 14 (Beta27) to add body and warmth. Ch 14 should be 6–8 dB below Ch 13 to start.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 14 -->
+<div class="channel-card">
+  <div class="card-header">Ch 14 — Guitar Center (Beta27) &nbsp;|&nbsp; Shure Beta 27</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>120 Hz @ 18 dB/oct</td><td>Higher than Ch 13 — Beta27 adds body, not low-end weight</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−1 dB @ 10 kHz</td><td>Subtle — Beta27 has natural high-end character; just shave the peak</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−2 dB @ 2.5 kHz, Q 2.0</td><td>Slight presence taming so it doesn't compete with Ch 13's attack character</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 350 Hz, Q 1.5</td><td>Mud reduction</td></tr>
+    <tr><td>Band 4; Low (Lowshelf)</td><td>−4 dB @ 150 Hz</td><td>Strip low end so Ch 13 leads the blend; Beta27 contributes warmth, not weight</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Matched to Ch 13 — same threshold and release</td></tr>
+    <tr><td>Polarity</td><td class="polarity-warn">CHECK — CRITICAL</td><td>Two mics on the same cab, different capsule distances. Check Ch 14 polarity vs Ch 13 in mono before bringing it up. It should make the tone fuller, not thinner. If the combined sound is thin or phasey, flip Ch 14 polarity. Also check for comb filtering around 300–500 Hz when both channels are open.</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Blend mic on the center guitar cab. Beta27 contributes body, warmth, and breadth to the SM57's attack-forward character. Keep this channel 6–8 dB below Ch 13 to start — it's a seasoning, not the lead. Polarity check is the single most important step before mixing this channel; two mics on one cab at slightly different distances will phase cancel in a way that's immediately obvious in mono. Check it first, then set blend level.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 15 -->
+<div class="channel-card">
+  <div class="card-header">Ch 15 — Guitar Right (SM57) &nbsp;|&nbsp; Shure SM57</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>100 Hz @ 18 dB/oct</td><td>Matched approach to Ch 13</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−2 dB @ 8 kHz</td><td></td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 3 kHz, Q 2.0</td><td></td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−4 dB @ 400 Hz, Q 1.5</td><td></td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>−6 dB @ 150 Hz, Q 1.5</td><td></td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Same settings as Ch 13 to start; adjust if right guitar plays differently</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Same mic, same approach as Ch 13. Treat this channel identically to start, then diverge at soundcheck based on what the right guitar amp actually sounds like. These are two different guitarists on two different rigs — adjust each pair independently once you hear them.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 16 -->
+<div class="channel-card">
+  <div class="card-header">Ch 16 — Guitar Right (Beta27) &nbsp;|&nbsp; Shure Beta 27</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>120 Hz @ 18 dB/oct</td><td>Matched to Ch 14</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−1 dB @ 10 kHz</td><td></td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−2 dB @ 2.5 kHz, Q 2.0</td><td></td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 350 Hz, Q 1.5</td><td></td></tr>
+    <tr><td>Band 4; Low (Lowshelf)</td><td>−4 dB @ 150 Hz</td><td></td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>On</td><td>Matched to Ch 15</td></tr>
+    <tr><td>Polarity</td><td class="polarity-warn">CHECK — CRITICAL</td><td>Check Ch 16 polarity vs Ch 15 in mono — same procedure as Ch 13/14 pair. Must check independently from Ch 13/14; different rig, different distances.</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Blend mic for the right guitar cab. Same approach as Ch 14 — polarity check is the first thing before bringing it up. The right cab may respond differently than center; treat the Ch 15/16 blend as its own thing after verifying polarity.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 17 -->
+<div class="channel-card">
+  <div class="card-header">Ch 17 — Acoustic &nbsp;|&nbsp; Radial ProDI (passive)</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>80 Hz @ 12 dB/oct</td><td>Clean up bass string rumble and proximity buildup from the instrument's preamp</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−2 dB @ 10 kHz</td><td>Passive DI on an acoustic can be bright depending on the onboard preamp; tame gently</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 3 kHz, Q 2.5</td><td>Reduce pick attack harshness — acoustic piezo pickups can be harsh in this zone</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−4 dB @ 400 Hz, Q 2.0</td><td>Boom/body resonance from the onboard system — common on acoustic DI signals</td></tr>
+    <tr><td>Band 4; Low (Lowshelf)</td><td>−3 dB @ 120 Hz</td><td>Tighten the low end of the acoustic; carve space for bass in the mix</td></tr>
+    <tr><td>Dynamics 2; Gate</td><td>Optional</td><td>Light expander if string buzz or handling noise is audible between passages</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Acoustic guitar via passive DI — the starting point assumes a piezo or undersaddle pickup onboard. The 400 Hz cut addresses the "boxy" resonance that acoustic DI signals typically carry; the 3 kHz cut handles the piezo brittleness in the presence zone. This is a starting-point EQ — an active instrument with a studio-grade preamp may need less correction, while a cheap piezo might need more of the same. Adjust at soundcheck once you hear what system the player is using.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 18 -->
+<div class="channel-card">
+  <div class="card-header">Ch 18 — Keys &nbsp;|&nbsp; Radial ProDI (passive)</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>40 Hz @ 12 dB/oct</td><td>Let keys have the full range — only strip sub rumble</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−2 dB @ 12 kHz</td><td>Modern digital keys can be very bright in the extreme top; tame slightly</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 3 kHz, Q 2.0</td><td>Reduce digital harshness in the presence range — especially noticeable on piano patches</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 250 Hz, Q 1.5</td><td>Reduce mid density to carve space from the guitars — four channels of guitar in this mix means keys need to step aside in the low-mids</td></tr>
+    <tr><td>Band 4; Low (Lowshelf)</td><td>−3 dB @ 100 Hz</td><td>Let bass guitar own the bottom; keys don't need to compete</td></tr>
+    <tr><td>Dynamics 1; Compressor</td><td>On</td><td>Ratio 2:1 · Thr −18 dB · Atk 30 ms · Rel 150 ms — gentle evening out of pad vs. piano level variation</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Keys in a Verve Pipe mix are supporting players — the band is guitar-forward and the keys need to sit underneath and fill, not compete. The low-mid cut at 250 Hz and low shelf are about creating mix space more than correcting any problem with the DI signal. The comp is light and slow — it's about ride-to-ride consistency, not effect. Adjust based on what patches are being played; a synth bass patch needs very different treatment than an organ pad.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 19 -->
+<div class="channel-card">
+  <div class="card-header">Ch 19 — SPDX &nbsp;|&nbsp; Radial ProDI (passive)</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>35 Hz @ 12 dB/oct</td><td>Sub cleanup — SPD-SX samples can have very extended low end</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−3 dB @ 10 kHz</td><td>Electronic samples are often mastered bright; tame top</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 3 kHz, Q 2.0</td><td>Reduce digital harshness in the presence zone — common on electronic drum samples</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 300 Hz, Q 1.5</td><td>Generic DI mud reduction</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>Flat</td><td>Content is entirely patch-dependent — some SPD-SX patches are kick drums, some are claps, some are FX. Do not shape the low end until you hear what's loaded.</td></tr>
+    <tr><td>Dynamics 1; Compressor</td><td>On</td><td>Ratio 3:1 · Thr −14 dB · Atk 10 ms · Rel 100 ms — SPD-SX patches vary wildly in level between pads; comp protects the PA</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Roland SPD-SX sample/trigger pad. This is a starting-point EQ only — the content depends entirely on what samples the drummer has loaded. Band 4 is intentionally left flat; you don't know if the patch is a kick drum (needs low end), a vocal sample (needs none), or an ambient texture (variable). Set comp before soundcheck and let it run; the level variation between pads on an SPD is often significant and can spike the PA without warning.</td></tr>
+  </table>
+</div>
+
+<!-- Ch 20 -->
+<div class="channel-card">
+  <div class="card-header">Ch 20 — Looper &nbsp;|&nbsp; Radial ProDI (passive)</div>
+  <table class="card-table">
+    <tr><td>HPF</td><td>60 Hz @ 12 dB/oct</td><td>Loops can accumulate low-end energy; start with some cleanup</td></tr>
+    <tr><td>LPF</td><td>Off</td><td></td></tr>
+    <tr><td>Band 1; High Shelf</td><td>−2 dB @ 10 kHz</td><td>General brightness control</td></tr>
+    <tr><td>Band 2; Upper-Mid (Param)</td><td>−3 dB @ 3 kHz, Q 2.0</td><td>Reduce presence buildup as layers stack in a loop</td></tr>
+    <tr><td>Band 3; Lower-Mid (Param)</td><td>−3 dB @ 400 Hz, Q 1.5</td><td>Mid density control</td></tr>
+    <tr><td>Band 4; Low (Param)</td><td>−4 dB @ 150 Hz, Q 1.5</td><td>As loops stack, low-mid energy builds; this controls that accumulation</td></tr>
+    <tr><td>Dynamics 1; Compressor</td><td>On</td><td>Ratio 3:1 · Thr −14 dB · Atk 10 ms · Rel 100 ms — level control as layers build</td></tr>
+    <tr><td>Quick Summary</td><td colspan="2">Looper DI — the EQ here is a best-guess starting point since a looper's content is whatever the player feeds into it during the show. If the looper is used for guitar loops, it'll need similar treatment to Ch 13/15. If it's used for basslines, the EQ will need to open up the bottom. The comp is set conservatively — it will need monitoring during the set as loop layers stack and cumulative level increases. Be ready to ride this fader or adjust threshold when the first loop build happens.</td></tr>
+  </table>
+</div>
+
+<!-- CRITICAL NOTES -->
+<div class="section-header">Critical Notes</div>
+<div class="notes-block">
+  <ul>
+    <li><strong>Polarity checks — BEFORE advancing levels:</strong> Ch 4 vs Ch 3 (snare bottom vs top) · Ch 12 vs Ch 11 (bass mic vs DI) · Ch 14 vs Ch 13 (Guitar Center blend) · Ch 16 vs Ch 15 (Guitar Right blend) · Ch 9/10 stereo overhead mono sum</li>
+    <li><strong>Guitar dual-mic blends (Ch 13/14 and Ch 15/16):</strong> Start with the SM57 at unity and bring the Beta27 up 6–8 dB below. Check polarity on each Beta27 independently before blending. After polarity is confirmed, listen for comb filtering around 300–500 Hz when both are open — pull that band if needed on either channel.</li>
+    <li><strong>Bass blend (Ch 11/12):</strong> DI owns the low end; mic adds grit and cab character. Polarity flip on Ch 12 is very likely — check before blending.</li>
+    <li><strong>Outdoor gain margins:</strong> FSQ has a higher ambient noise floor than Memo. Build in more headroom on all channels. The L-Acoustics A15 rig is tuned — resist the urge to boost anything; cuts are more effective here.</li>
+    <li><strong>Vocals:</strong> Not in this patch. Vocals are arriving via Dante/wireless on a separate route. Monitor the Dante feed before show.</li>
+    <li><strong>No reverb:</strong> Outdoor setting at FSQ — no room reverb applied. If talent requests reverb on monitors (via M32), that's separate from FOH.</li>
+    <li><strong>Fountain:</strong> The Tyler Davidson Fountain may be running. If audible in mics, check omni-pattern wireless capsules first; SM81 and directional mics will largely reject it at normal distances.</li>
+  </ul>
+</div>
+
+<!-- WORKFLOW REMINDERS -->
+<div class="section-header">Workflow Reminders</div>
+<div class="notes-block">
+  <ul>
+    <li><strong>VCA groups:</strong> Drums (Ch 1–10), Bass (Ch 11–12), Guitars (Ch 13–16), Keys/Electronics (Ch 17–20)</li>
+    <li><strong>Anchor channel:</strong> Kick In (Ch 1) — set gain structure from the kick, build the mix from the bottom up</li>
+    <li><strong>Soundcheck order:</strong> Kick → bass → drums kit → guitars (start with one SM57, then blend Beta27) → acoustic → keys → SPDX → looper</li>
+    <li><strong>SPDX and Looper:</strong> Get the drummer to hit every pad before the show so you can hear the sample levels. Comp threshold may need adjustment per pad bank.</li>
+    <li><strong>Gate check:</strong> Run the drummer through the full kit solo before band soundcheck — verify all gates open cleanly and release doesn't chop ring on toms and overheads.</li>
+    <li><strong>Dante/wireless status:</strong> Confirm vocal channels are routing before show. Channels 25–32 are reserved; verify Dante feed is present and named correctly on the Q225.</li>
+  </ul>
+</div>
+
+</body>
+</html>

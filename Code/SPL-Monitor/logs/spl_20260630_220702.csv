@@ -1,0 +1,2 @@
+timestamp,venue,FS Peak,Peak C,SPL Fast,SPL A Fast,SPL C Fast,SPL Slow,SPL A Slow,SPL C Slow,Leq 1,LAeq 1,LCeq 1,LAeq 1s,LAeq 3,LAeq 6,LAeq 10s,LCeq 3,LCeq 10s,Leq 10s C-A,Exposure O,Exposure N,LAeq_10s_computed,sub63_10s,sub63_1min,light,violation,overload,yellow_limit,red_limit
+2026-06-30T22:07:02.491-04:00,Fountain Square,-54.11,91.64,78.38,76.98,81.15,84.14,82.74,86.24,,,,,,,,,,,,,82.7,78.4,78.7,yellow,0,0,80,90

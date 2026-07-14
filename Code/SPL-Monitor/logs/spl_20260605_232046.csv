@@ -1,0 +1,5 @@
+timestamp,venue,instant_dBA,LAeq_10s,LAeq_6min,light,projected_6min,timeToLimit_s,peakC_dB,violation,overload,yellow_limit,red_limit
+2026-06-05T23:20:46.078-04:00,Fountain Square,82.9,82.9,82.9,green,82.9,,92.16,0,0,88,90
+2026-06-05T23:20:47.088-04:00,Fountain Square,81.6,81.7,81.7,green,81.7,,94.22,0,0,88,90
+2026-06-05T23:20:48.096-04:00,Fountain Square,80.7,81.2,81.2,green,81.2,,90.04,0,0,88,90
+2026-06-05T23:20:49.105-04:00,Fountain Square,81.5,81.2,81.2,green,81.2,,96.64,0,0,88,90

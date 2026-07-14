@@ -1,0 +1,987 @@
+{
+  "_source": "Live Sound KB/Wiki/mic-library.md + CLAUDE.md mic shorthand (2026-06-16)",
+  "_note": "ribbon=true forces NO 48V (flagged red in paperwork). phantom is the sane default; the wizard lets it be overridden per channel. 'aka' lists shorthand/alternates the matcher accepts. New mics added through the wizard are appended here and queued for the mic-library KB article.",
+  "mics": [
+    {
+      "name": "Earthworks DM6",
+      "aka": [
+        "DM6",
+        "DM6 SeisMic"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "SeisMic kick condenser, wide LF response. Body + sub. EQ differently from an attack mic and blend.",
+      "eq": {
+        "character": "SeisMic flat/extended-LF kick condenser. Honest, uncolored, huge sub reach — takes full shaping. Weakness: needs EQ to get a 'modern' kick, captures everything incl. bleed.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Earthworks DM17",
+      "aka": [
+        "DM17"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Rim-mount snare/tom condenser, fast and clear. Less low-mid build than a dynamic.",
+      "eq": {
+        "character": "Flat snare/tom condenser, fast, detailed, high SPL. Honest. Weakness: needs EQ for character.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Earthworks SR20sp Gen 2",
+      "aka": [
+        "SR20",
+        "SR20sp",
+        "SR20sp G2"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Matched overhead pair. Natural cymbal air; HPF for the genre.",
+      "eq": {
+        "character": "Flat, fast SDC, extended top, very accurate OH/room. Weakness: reveals harshness honestly, no hype.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Earthworks SR25",
+      "aka": [
+        "SR25"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Overheads or single kick condenser.",
+      "eq": {
+        "character": "Flat cardioid SDC, fast transients, natural top end for hat/OH. Weakness: uncolored — flatters nothing.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Sennheiser MKH40",
+      "aka": [
+        "MKH40",
+        "MKH 40"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "RF cardioid, extremely low noise. Flute, pipes, classical detail.",
+      "eq": {
+        "character": "RF cardioid condenser, near-flat with slight airy presence, very low noise. Pristine on flute/strings/detail. Weakness: clinical, proximity if close.",
+        "soften": {
+          "presence": 0.85
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Warm Audio WA-87",
+      "aka": [
+        "U87 Jr",
+        "87 JR",
+        "WA-87",
+        "WA87",
+        "U87",
+        "87"
+      ],
+      "type": "ldc",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Brian's '87 JR' — his ONLY 87-family mic; there is no Neumann U87 in the kit. Any '87'/'U87' on Brian's paperwork = this WA-87. U87 clone, used on trombone at Memo.",
+      "eq": {
+        "character": "U87-style LDC clone, presence ~5-9kHz, smooth top, slightly more lower-mid than a real 87. Used on trombone. Weakness: proximity warmth, modest off-axis.",
+        "soften": {
+          "presence": 0.8,
+          "air": 0.7
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Shure SM57",
+      "aka": [
+        "SM57",
+        "57"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Snare/cab workhorse. Presence around 3-5kHz; box/mud at 300-500Hz on cabs.",
+      "eq": {
+        "character": "Mid-forward workhorse, presence 3-5kHz, proximity-prone. On cabs/snare builds box/honk 300-500Hz. Weakness: thin lows, can be honky/harsh in upper mids.",
+        "tame": [
+          {
+            "freq": 400,
+            "gain": -3,
+            "q": 1.8,
+            "role": "box"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Shure SM58",
+      "aka": [
+        "SM58",
+        "58"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Handheld vocal. HPF aggressively; cuts-only for feedback control.",
+      "eq": {
+        "character": "Cardioid vocal dynamic, presence ~4-6kHz, gentle low rolloff, proximity. Tough, consistent. Weakness: muddy if close, limited air, upper-mid spit.",
+        "tame": [
+          {
+            "freq": 500,
+            "gain": -2,
+            "q": 1.5,
+            "role": "box"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Shure Beta 58A",
+      "aka": [
+        "Beta 58A",
+        "Beta 58",
+        "B58"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Supercardioid handheld; tighter rejection for loud stages.",
+      "eq": {
+        "character": "Supercardioid vocal dynamic, 50Hz-16kHz, <500Hz attenuated for proximity control, TWO presence peaks (~4kHz and ~10kHz) — brighter/more bite than SM58, tighter pattern, more gain-before-feedback. Weakness: those peaks can get strident/sibilant.",
+        "soften": {
+          "presence": 0.85
+        },
+        "tame": [
+          {
+            "freq": 600,
+            "gain": -2,
+            "q": 1.6,
+            "role": "box"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Shure Beta 52A",
+      "aka": [
+        "Beta 52",
+        "B52"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Kick body/thump, inside. Blend with an attack mic.",
+      "eq": {
+        "character": "Tailored kick dynamic, scooped low-mids, presence lift ~4kHz, big lows. Click+thump voiced in.",
+        "soften": {
+          "mud": 0.4,
+          "box": 0.3,
+          "attack": 0.6
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Shure Beta 91A",
+      "aka": [
+        "Beta 91",
+        "B91"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Boundary kick, attack/click layer on the head.",
+      "eq": {
+        "character": "Half-cardioid boundary kick/piano mic. Solid boundary low end + pronounced beater click; nominally flat (contour switch cuts 7dB@400 if engaged). Weakness: picks up shell boxiness ~300-500.",
+        "soften": {
+          "boom": 0.85
+        },
+        "tame": [
+          {
+            "freq": 400,
+            "gain": -3,
+            "q": 1.6,
+            "role": "box"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Shure Beta 98H/C",
+      "aka": [
+        "Beta 98H/C",
+        "Beta 98",
+        "98H/C"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Clip-on horn condenser.",
+      "eq": {
+        "character": "Clip-on cardioid condenser, 20Hz-20kHz, tailored/voiced presence for open natural horn/perc sound, tight pattern, gooseneck. Sax/brass/drum rim. Weakness: thin lows, the voiced presence can get edgy close.",
+        "soften": {
+          "presence": 0.75
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Shure SM81",
+      "aka": [
+        "SM81"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Overheads, hat, acoustic instruments.",
+      "eq": {
+        "character": "Ruler-flat SDC, clean detailed highs with no harsh fizz, flat/6/18dB HPF. Accurate on hat/OH/acoustic — takes EQ well. Weakness: needs care on cymbal wash, no built-in flattery.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Sennheiser MD 421-U (Silver Tail)",
+      "aka": [
+        "MD421",
+        "421",
+        "MD 421",
+        "421-U",
+        "MD421-U",
+        "Silver Tail"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Brian owns the vintage 1970s MD 421-U 'Silver Tail' (native XLR, chrome connector base) — NOT the 2002 MD 421-II. Any '421' on Brian's paperwork = the 421-U. Same 421 element, so EQ character is unchanged. Toms, guitar cabs, brass. 5-position M-S roll-off on the body; no Tuchel adapter needed.",
+      "eq": {
+        "character": "Large-diaphragm dynamic, wide 30Hz-17kHz, extended low end + low-mid girth, voiced presence boost (~4-5kHz), 5-position bass rolloff (M=flat…S=-6dB<500Hz). Toms/brass/cabs. Weakness: low-mid bloat 200-400 if close.",
+        "soften": {
+          "boom": 0.7,
+          "presence": 0.85
+        },
+        "tame": [
+          {
+            "freq": 300,
+            "gain": -2,
+            "q": 1.4,
+            "role": "mud"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Sennheiser e609",
+      "aka": [
+        "e609",
+        "609"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Side-address cab mic, hangs over the grille. Tame 2-4kHz harshness.",
+      "eq": {
+        "character": "Flat-face cab dynamic, bright upper-mid/presence ~4-5kHz, supercardioid. Weakness: can be edgy ~2.5-4kHz on bright amps.",
+        "soften": {
+          "presence": 0.7
+        },
+        "tame": [
+          {
+            "freq": 2800,
+            "gain": -2,
+            "q": 1.8,
+            "role": "harsh"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Sennheiser e604",
+      "aka": [
+        "e604",
+        "604"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Clip-on tom dynamic, quick setup.",
+      "eq": {
+        "character": "Tom/snare clip dynamic, scooped low-mids, voiced attack. Convenient, fast. Weakness: thinner/boxier than a D-series, modest low end.",
+        "soften": {
+          "mud": 0.5,
+          "attack": 0.6
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Audix D6",
+      "aka": [
+        "D6"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Kick attack/click, scooped mids.",
+      "eq": {
+        "character": "Pre-scooped 'smiley' kick voicing: peaks ~63Hz and ~5kHz, deep mid scoop ~600Hz (-15dB). Thump+click baked in; needs almost no EQ. Weakness: one-trick, no midrange body.",
+        "soften": {
+          "boom": 0.7,
+          "mud": 0.2,
+          "box": 0.1,
+          "attack": 0.4
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Audix i5",
+      "aka": [
+        "i5"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Snare, tight cardioid, punchy.",
+      "eq": {
+        "character": "Body lift ~+5dB@150Hz, presence ~+9dB@5.5kHz, mids slightly scooped vs SM57 — more open, more body. Weakness: that 5.5k peak can get harsh on a cracky snare.",
+        "soften": {
+          "body": 0.4,
+          "crack": 0.7,
+          "snap": 0.4
+        },
+        "tame": [
+          {
+            "freq": 5500,
+            "gain": -2,
+            "q": 2.0,
+            "role": "harsh"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Audix D2",
+      "aka": [
+        "D2"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Small/mid toms.",
+      "eq": {
+        "character": "Rack-tom hypercardioid: +150Hz body, dip 500Hz-1kHz, subtle upper-mid lift. Punchy, articulate. Weakness: leaner deep lows than D4.",
+        "soften": {
+          "mud": 0.4,
+          "boom": 0.6
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Audix D4",
+      "aka": [
+        "D4"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Floor tom, more LF extension.",
+      "eq": {
+        "character": "Floor-tom/low source: flat to ~63Hz, rise ~80Hz, reaches 35Hz, smooth 800Hz-1kHz (not scooped). Deep, resonant. Weakness: less upper-mid attack — may need a touch of click.",
+        "soften": {
+          "mud": 0.5,
+          "boom": 0.7
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Audix M1280BHC",
+      "aka": [
+        "M1280BHC"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Ultra-compact hat condenser.",
+      "eq": {
+        "character": "Miniature hypercardioid condenser, extended 40Hz-20kHz, integrated preamp, RF-immune, tight isolation. Hi-hat/overhead/podium. Weakness: thin lows, upper-mid forwardness.",
+        "soften": {
+          "presence": 0.8
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Audix M1280B",
+      "aka": [
+        "M1280B"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Compact overhead condenser pair.",
+      "eq": {
+        "character": "Miniature cardioid condenser, 40Hz-20kHz, integrated preamp, RF-immune, generous front pickup. Overheads/cymbals/ensemble. Weakness: thin lows, room-sensitive.",
+        "soften": {
+          "presence": 0.8
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Audio-Technica Pro 35",
+      "aka": [
+        "AT Pro 35",
+        "Pro 35",
+        "Pro35",
+        "AT Pro35"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Clip-on instrument condenser; sax/horn clip use.",
+      "eq": {
+        "character": "Clip-on cardioid condenser, 50Hz-15kHz (limited top), voiced presence lift, clamp mount. Drums/brass. Weakness: rolled-off extreme top, thin lows, plasticky upper-mid if close.",
+        "soften": {
+          "presence": 0.75
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Telefunken M80",
+      "aka": [
+        "M80",
+        "Telefunken M80"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Supercardioid handheld vocal, extended top.",
+      "eq": {
+        "character": "Handheld dynamic with hyped extended highs + air and scooped low-mids — condenser-like. Weakness: can over-sibilance, proximity buildup ~200-300.",
+        "soften": {
+          "presence": 0.6,
+          "body": 0.6
+        },
+        "tame": [
+          {
+            "freq": 250,
+            "gain": -2,
+            "q": 1.2,
+            "role": "proximity"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Shure Beta 56A",
+      "aka": [
+        "Beta 56A",
+        "B56A"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Tom/snare dynamic; confirm if used on vocal — earlier HF rolloff than a 58.",
+      "eq": {
+        "character": "Supercardioid dynamic, presence peak ~4-6kHz, tight pattern, good on snare/toms. Weakness: presence can get spiky, box ~400.",
+        "soften": {
+          "presence": 0.8
+        },
+        "tame": [
+          {
+            "freq": 400,
+            "gain": -2,
+            "q": 1.6,
+            "role": "box"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Lauten LS-408",
+      "aka": [
+        "LS-408",
+        "Lauten LS-408"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Side-address instrument condenser; snare/utility.",
+      "eq": {
+        "character": "FET large-diaphragm condenser voiced specifically for SNARE — pressure-gradient, ultra-high SPL/dynamic range, onboard HPF (80/140Hz) and LPF (5/12kHz) switches, tight rejection. Detailed, controlled crack. Weakness: snare-specialized, not a general vocal/room mic.",
+        "soften": {
+          "body": 0.5,
+          "crack": 0.7,
+          "snap": 0.6
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Neumann KMS 105",
+      "aka": [
+        "KMS 105",
+        "KMS105"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Stage condenser vocal; more presence, more feedback-sensitive — cuts only.",
+      "eq": {
+        "character": "Supercardioid stage condenser. Flat 500Hz-7kHz, gentle air peak ~+5dB at 12kHz (voiced to add clarity without sibilance), internal always-on HPF -3dB@120Hz, partial proximity compensation. Smooth, airy, detailed. Weakness: feedback-sensitive, the 12k air can turn sibilant/harsh on a loud PA; proximity chest if eaten.",
+        "soften": {
+          "proximity": 0.5,
+          "presence": 0.6,
+          "air": 0.4
+        },
+        "tame": [
+          {
+            "freq": 1600,
+            "gain": -3,
+            "q": 1.4,
+            "role": "nasal"
+          },
+          {
+            "freq": 8000,
+            "gain": -4,
+            "q": 2.2,
+            "role": "sibilance"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Neumann TLM 102",
+      "aka": [
+        "TLM 102",
+        "TLM102"
+      ],
+      "type": "ldc",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Studio vocal/acoustic LDC.",
+      "eq": {
+        "character": "Compact LDC, presence/air boost ~+4dB above 6kHz peaking ~10-12kHz, fast. Bright, modern. Weakness: that HF lift can get sibilant on vocals/cymbals.",
+        "soften": {
+          "presence": 0.7,
+          "air": 0.5
+        },
+        "tame": [
+          {
+            "freq": 8000,
+            "gain": -2,
+            "q": 2.0,
+            "role": "sibilance"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "AKG C414",
+      "aka": [
+        "C414"
+      ],
+      "type": "ldc",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Multi-pattern utility LDC.",
+      "eq": {
+        "character": "Versatile multipattern LDC, slight presence ~3-5k + air, detailed. Weakness: can be edgy/forward, needs taming on bright sources.",
+        "soften": {
+          "presence": 0.8
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "AKG C422",
+      "aka": [
+        "C422"
+      ],
+      "type": "ldc",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Stereo LDC, two capsules one body — XY for horns, 2 console channels. Polarity-check L vs R.",
+      "eq": {
+        "character": "Vintage stereo LDC, two twin-diaphragm CK12 capsules (classic AKG brilliance rise ~6-12kHz), elastically suspended, M/S or XY. Smooth/full body with an airy top. XY on horns. Weakness: large/delicate, proximity, the CK12 top can get bright.",
+        "soften": {
+          "presence": 0.8,
+          "air": 0.7
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Shure Beta 27",
+      "aka": [
+        "Beta 27",
+        "B27"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Side-address condenser; vocals/overheads/acoustic.",
+      "eq": {
+        "character": "Supercardioid LDC, flat 60Hz-3kHz, small peaks +2dB at 5.5k and 9k, -15dB pad, flatter than SM57. Open, clean cab/instrument mic. Weakness: slight 9k fizz on bright amps.",
+        "soften": {
+          "honk": 0.5,
+          "box": 0.5
+        },
+        "tame": [
+          {
+            "freq": 9000,
+            "gain": -2,
+            "q": 2.0,
+            "role": "harsh"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Schoeps CMC6 + MK4",
+      "aka": [
+        "MK4",
+        "Schoeps MK4"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "SDC cardioid; classical spot/overhead/soloist.",
+      "eq": {
+        "character": "Reference cardioid SDC, flat with a slight ~10kHz rise (compensates room HF loss), constant pattern, transparent/natural. Classical spot/main. Weakness: pricey/fragile, uncolored.",
+        "soften": {
+          "presence": 0.85
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Schoeps CMC6 + MK5",
+      "aka": [
+        "MK5",
+        "Schoeps MK5"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "SDC switchable omni/cardioid; classical main pair / Decca tree.",
+      "eq": {
+        "character": "Switchable omni/cardioid SDC. BOTH patterns carry an HF lift vs the MK2/MK4 (brighter than the MK4); omni mode is natural with extended low end. Classical main pair. Weakness: that top lift can over-air a bright room — ease off presence/air.",
+        "soften": {
+          "presence": 0.8,
+          "air": 0.7
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Schoeps CMC6 + MK41",
+      "aka": [
+        "MK41",
+        "Schoeps MK41"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "SDC supercardioid; classical spot.",
+      "eq": {
+        "character": "Supercardioid SDC, tight, natural with gentle presence, great rejection. Classical spot. Weakness: slight off-axis coloration at extreme angles.",
+        "soften": {
+          "presence": 0.85
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "DPA 4099 CORE+",
+      "aka": [
+        "DPA 4099",
+        "4099"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Clip-on supercardioid for piano/strings/brass. Designed for the instrument — don't over-EQ. Don't touch the 10-12kHz boost.",
+      "eq": {
+        "character": "Clip-on supercardioid CORE+ condenser, ±2dB 80Hz-17kHz with a 2dB soft boost at 10-12kHz, very low distortion. Piano/strings/brass. Weakness: that HF lift is fixed (don't also boost air); proximity on loud sources.",
+        "soften": {
+          "presence": 0.7,
+          "air": 0.5
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Countryman B3",
+      "aka": [
+        "B3",
+        "B3-B10"
+      ],
+      "type": "lav",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Omni lavalier on strings; selectable HF caps +0/+4/+8dB. Light touch.",
+      "eq": {
+        "character": "Omni lavalier, selectable HF caps (+0/+4/+8dB), smooth, small. String/instrument clip. Weakness: omni = feedback/bleed risk, HF cap choice sets brightness.",
+        "soften": {
+          "presence": 0.7
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Line Audio OM1",
+      "aka": [
+        "OM1"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Omni crowd/ambient, flown at Memo. Fixed EQ.",
+      "eq": {
+        "character": "Pressure (omni) condenser, very flat/natural, low self-noise. Flown ambient. Weakness: omni = lots of room/LF, needs HPF + mud cuts.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Line Audio CM4",
+      "aka": [
+        "CM4"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "ORTF crowd pair, balcony at Memo. Fixed EQ.",
+      "eq": {
+        "character": "Cardioid SDC, flat/natural, ORTF room. Weakness: balcony distance = boomy LF + room mud, needs aggressive HPF.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Deity S2",
+      "aka": [
+        "S2",
+        "Deity S2"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Short shotgun crowd pair, under PA at Memo. Fixed EQ.",
+      "eq": {
+        "character": "Deity S-Mic 2 supercardioid shotgun, 50Hz-20kHz, smooth/warm with NO presence-peak hype (unlike an MKH416), ~-18dB off-axis rejection, low coloration. Under-PA crowd mic at Memo. Weakness: rear (180°) rejection is only fair, so it does pick up PA HF — tame with the crowd-rig LPF.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "AEA R88",
+      "aka": [
+        "R88"
+      ],
+      "type": "ribbon",
+      "phantom": false,
+      "ribbon": true,
+      "notes": "Stereo ribbon (Blumlein/MS). NO 48V — disengage phantom before patching. Passive — confirm preamp gain/impedance.",
+      "eq": {
+        "character": "Passive stereo ribbon (Blumlein/MS), 20Hz-20kHz with ribbon HF rolloff (~-10dB@18k), big smooth bass, never harsh. Classical room. NO 48V (passive — disengage phantom!). Weakness: dark top, low output, needs 60dB+ quiet gain.",
+        "soften": {
+          "presence": 0.65,
+          "air": 0.55
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Royer R-121",
+      "aka": [
+        "R-121",
+        "R121"
+      ],
+      "type": "ribbon",
+      "phantom": false,
+      "ribbon": true,
+      "notes": "Cab ribbon, blends under an SM57. NO 48V — destroys the ribbon. Sits 6-10dB below the 57.",
+      "eq": {
+        "character": "Figure-8 ribbon, flat 30Hz-15kHz, deep full (not boomy) low, defined mids, sweet natural top (never edgy/sibilant) rolling off above ~15k, proximity. Rear side records brighter. NO 48V. Weakness: soft top vs condensers, low output, proximity bloom.",
+        "soften": {
+          "presence": 0.7,
+          "air": 0.65,
+          "top": 0.6
+        },
+        "tame": [
+          {
+            "freq": 200,
+            "gain": -2,
+            "q": 1.0,
+            "role": "proximity"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Royer R-10",
+      "aka": [
+        "R-10",
+        "R10"
+      ],
+      "type": "ribbon",
+      "phantom": false,
+      "ribbon": true,
+      "notes": "Compact cab/room ribbon. NO 48V.",
+      "eq": {
+        "character": "Roadworthy passive ribbon: less throaty lows than the R-121, a touch brighter, smooth top, great on cabs/brass. Rear side brighter (offset ribbon). NO 48V. Weakness: still darker than condensers, proximity-prone.",
+        "soften": {
+          "presence": 0.75,
+          "air": 0.65
+        },
+        "tame": [
+          {
+            "freq": 200,
+            "gain": -2,
+            "q": 1.0,
+            "role": "proximity"
+          }
+        ],
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Radial J48",
+      "aka": [
+        "J48",
+        "DI"
+      ],
+      "type": "di",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Active DI — keys, bass, acoustic, playback.",
+      "eq": {
+        "character": "Active phantom DI, clean/transparent, tight lows, high headroom. Bass DI. Weakness: clinical (no color).",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Neve RNDI",
+      "aka": [
+        "RNDI",
+        "Neve RNDI"
+      ],
+      "type": "di",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Active transformer DI — bass, guitar direct, synth.",
+      "eq": {
+        "character": "Active transformer DI, smooth musical top, gentle harmonic warmth, full lows. Bass/gtr/keys direct. Weakness: very slight HF softening vs a clean DI.",
+        "soften": {
+          "presence": 0.85
+        },
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Radial DI",
+      "aka": [
+        "Radial DI"
+      ],
+      "type": "di",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Active DI — playback/utility.",
+      "eq": {
+        "character": "Clean DI, transparent. Weakness: depends on model; assume neutral.",
+        "soften": {},
+        "research": "established knowledge"
+      }
+    },
+    {
+      "name": "DI",
+      "aka": [
+        "D.I.",
+        "Direct"
+      ],
+      "type": "di",
+      "phantom": true,
+      "ribbon": false,
+      "notes": "Generic DI box. Confirm active/passive at load-in.",
+      "eq": {
+        "character": "Generic DI — neutral, full-range, no proximity. Treat tone at the instrument template.",
+        "soften": {},
+        "research": "established knowledge"
+      }
+    },
+    {
+      "name": "BSS AR 133",
+      "aka": [],
+      "type": "di",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Added via ShowBuilder — confirm specs.",
+      "eq": {
+        "character": "Active DI, clean full-range with a slight high-mid air, solid lows. Acoustic/bass/keys. Weakness: minimal color — piezo quack passes through, treat at the instrument.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "Whirlwind IMP",
+      "aka": [],
+      "type": "di",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Added via ShowBuilder — confirm specs.",
+      "eq": {
+        "character": "Passive DI, neutral/honest, reliable. Bass/keys direct. Weakness: passive = slight HF/level loss into low-Z, no active sparkle.",
+        "soften": {},
+        "research": "web-verified 2026-06-22"
+      }
+    },
+    {
+      "name": "XLR",
+      "aka": [],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Added via ShowBuilder — confirm specs.",
+      "eq": {
+        "character": "Unspecified source (placeholder). Confirm the actual mic/DI at the desk.",
+        "soften": {},
+        "research": "established knowledge"
+      }
+    }
+  ]
+}

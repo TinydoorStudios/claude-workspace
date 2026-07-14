@@ -1,0 +1,980 @@
+{
+  "venue": "fsq",
+  "show_name": "Izzy Escobar",
+  "artist": "Izzy Escobar",
+  "genre": "pop and soul",
+  "show_date": "2026-06-24",
+  "foh_engineer": "Brian Lloyd",
+  "mon_engineer": "TBD",
+  "show_time": "9:00pm",
+  "rev": "Rev 2.0",
+  "eq_on": true,
+  "comp_on": true,
+  "channels": [
+    {
+      "ch": 1,
+      "name": "Kick In",
+      "instrument": "Kick",
+      "mic": "Shure Beta 91A",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Boom",
+      "notes": "§ Beta 52A/Beta 91A blend — BODY + TOP to the Beta 52A; low-mids backed off so they don't stack. Polarity: sum in mono, flip ⌀ on one mic if thinner. Bus: notch -2/-3 dB @300-500 if it builds.",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 80,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 250,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -2,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 5,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 80
+      },
+      "gate": true,
+      "is_crowd": false,
+      "mic_notes": "Boundary kick, attack/click layer on the head.",
+      "eq_summary": "Body vs attack — serve the genre. Two-mic kick: blend inside body with boundary attack. Gate tight. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only. Blend complement to Beta 52A."
+    },
+    {
+      "ch": 2,
+      "name": "Kick Out",
+      "instrument": "Kick",
+      "mic": "Shure Beta 52A",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "notes": "§ Beta 52A/Beta 91A blend on kick — MID/PRESENCE core mic. Treat the pair as ONE: pan together, same VCA, keep the blend constant. Treat the pair as one signal: pan together, group to a VCA, keep the blend constant. Polarity: sum in mono and flip the polarity on one mic if the sum is thinner than either alone. Watch 300-500Hz buildup on the bus — notch -2 to -3dB if it stacks.",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 80,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 250,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -1,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 80
+      },
+      "gate": true,
+      "is_crowd": false,
+      "mic_notes": "Kick body/thump, inside. Blend with an attack mic.",
+      "eq_summary": "Body vs attack — serve the genre. Two-mic kick: blend inside body with boundary attack. Gate tight. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only. Blend core (Beta 52A/Beta 91A)."
+    },
+    {
+      "ch": 3,
+      "name": "Snare Top",
+      "instrument": "Snare",
+      "mic": "Audix i5",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "notes": "",
+      "hpf": 120,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -7,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": 4,
+          "freq": 1000,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -2,
+          "freq": 5500,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 2,
+          "freq": 7000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 80
+      },
+      "gate": true,
+      "is_crowd": false,
+      "mic_notes": "Snare, tight cardioid, punchy.",
+      "eq_summary": "Crack vs body vs ring — genre picks the target. Gate to reject hat/kick bleed without chopping ghost notes. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 5,
+      "name": "Hat",
+      "instrument": "Hi-Hat",
+      "mic": "Shure SM81",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Boom",
+      "notes": "",
+      "hpf": 500,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -6,
+          "freq": 800,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 2000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": null,
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Overheads, hat, acoustic instruments.",
+      "eq_summary": "HPF aggressively; manage bleed. Ducker over a hard gate on acoustic-forward shows. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 6,
+      "name": "Rack 1",
+      "instrument": "Rack Tom",
+      "mic": "Audix D2",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "notes": "",
+      "hpf": 90,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 3,
+          "freq": 135,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 450,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 2800,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 100
+      },
+      "gate": true,
+      "is_crowd": false,
+      "mic_notes": "Small/mid toms.",
+      "eq_summary": "Mud control + attack. Gate release matches the kit's decay. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only. Tom 1 of 3 (highest) — voiced in the high→low kit series."
+    },
+    {
+      "ch": 7,
+      "name": "Rack 2",
+      "instrument": "Rack Tom",
+      "mic": "Audix D2",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "notes": "",
+      "hpf": 80,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 3,
+          "freq": 120,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 405,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 2525,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 100
+      },
+      "gate": true,
+      "is_crowd": false,
+      "mic_notes": "Small/mid toms.",
+      "eq_summary": "Mud control + attack. Gate release matches the kit's decay. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only. Tom 2 of 3 (mid) — voiced in the high→low kit series."
+    },
+    {
+      "ch": 8,
+      "name": "Floor",
+      "instrument": "Floor Tom",
+      "mic": "Audix D4",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "notes": "",
+      "hpf": 55,
+      "lpf": 10000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 70,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 405,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 1800,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -12,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 100
+      },
+      "gate": true,
+      "is_crowd": false,
+      "mic_notes": "Floor tom, more LF extension.",
+      "eq_summary": "Low extension + ring control. Slow release on ballads. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only. Tom 3 of 3 (lowest) — voiced in the high→low kit series."
+    },
+    {
+      "ch": 9,
+      "name": "OH HL",
+      "instrument": "Overhead",
+      "mic": "Shure SM81",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Boom",
+      "notes": "",
+      "hpf": 180,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 300,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": 5,
+          "freq": 5000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": null,
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Overheads, hat, acoustic instruments.",
+      "eq_summary": "Cymbal air; HPF to taste. Gate fine if the kit allows. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 10,
+      "name": "OH HR",
+      "instrument": "Overhead",
+      "mic": "Shure SM81",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Boom",
+      "notes": "",
+      "hpf": 180,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 300,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": 5,
+          "freq": 5000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": null,
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Overheads, hat, acoustic instruments.",
+      "eq_summary": "Cymbal air; HPF to taste. Gate fine if the kit allows. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 11,
+      "name": "Bass DI",
+      "instrument": "Bass DI",
+      "mic": "XLR",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "notes": "",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 80,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 250,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 600,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": -5,
+          "freq": 1500,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 20,
+        "rel_ms": 120
+      },
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Added via ShowBuilder — confirm specs.",
+      "eq_summary": "Fundamental vs upper harmonics for definition on small speakers. Gentle comp. Memo: 125Hz mode in the fundamental. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 12,
+      "name": "Bass Mic",
+      "instrument": "Bass Cab",
+      "mic": "Shure SM57",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "notes": "",
+      "hpf": 60,
+      "lpf": 5000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 100,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -7,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 900,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 20,
+        "rel_ms": 120
+      },
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Snare/cab workhorse. Presence around 3-5kHz; box/mud at 300-500Hz on cabs.",
+      "eq_summary": "Cab body; blend with DI for definition. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 13,
+      "name": "Guitar 57",
+      "instrument": "Electric Guitar",
+      "mic": "Shure SM57",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "notes": "§ SM57/Beta 27 blend on guitar — MID/PRESENCE core mic. Treat the pair as ONE: pan together, same VCA, keep the blend constant. 57 = midrange grit + presence core; Beta 27 = clean low-end body and the airy top (5.5k/9k) the 57 lacks. Keep the 57 owning mids — don't double them.",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 200,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 5,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -18,
+        "ratio": 4,
+        "atk_ms": 10,
+        "rel_ms": 80
+      },
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Snare/cab workhorse. Presence around 3-5kHz; box/mud at 300-500Hz on cabs.",
+      "eq_summary": "Mud at 300-500Hz almost always. Upper-mid harshness varies by amp/player. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only. Blend core (SM57/Beta 27)."
+    },
+    {
+      "ch": 14,
+      "name": "Guitar 27",
+      "instrument": "Electric Guitar",
+      "mic": "Shure Beta 27",
+      "section": "RHYTHM",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "DI",
+      "notes": "§ SM57/Beta 27 blend — BODY + TOP to the SM57; low-mids backed off so they don't stack. Polarity: sum in mono, flip ⌀ on one mic if thinner. Bus: notch -2/-3 dB @300-500 if it builds.",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -2,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 2,
+          "freq": 800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 5,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -18,
+        "ratio": 4,
+        "atk_ms": 10,
+        "rel_ms": 80
+      },
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Side-address condenser; vocals/overheads/acoustic.",
+      "eq_summary": "Mud at 300-500Hz almost always. Upper-mid harshness varies by amp/player. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only. Blend complement to SM57."
+    },
+    {
+      "ch": 15,
+      "name": "Acoustic Guitar",
+      "instrument": "Acoustic Guitar",
+      "mic": "BSS AR 133",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "notes": "",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -6,
+          "freq": 2000,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 5,
+          "freq": 5000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 15,
+        "rel_ms": 120
+      },
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Added via ShowBuilder — confirm specs.",
+      "eq_summary": "Piezo quack at 1.5-2kHz is the primary target on DI'd acoustics. Conservative for acoustic genres. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 17,
+      "name": "Keys",
+      "instrument": "Keys",
+      "mic": "Whirlwind IMP",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "notes": "",
+      "hpf": 60,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 200,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": 4,
+          "freq": 300,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 2500,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": null,
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Added via ShowBuilder — confirm specs.",
+      "eq_summary": "Depends on the patch. Clean DI — carve space in the mix. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 18,
+      "name": "Click",
+      "instrument": "Tracks / Playback",
+      "mic": "Whirlwind IMP",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "notes": "",
+      "hpf": 80,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 315,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": null,
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Added via ShowBuilder — confirm specs.",
+      "eq_summary": "Stereo playback. Light — already mixed. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 19,
+      "name": "Guide",
+      "instrument": "Tracks / Playback",
+      "mic": "Whirlwind IMP",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "notes": "",
+      "hpf": 80,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 315,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": null,
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Added via ShowBuilder — confirm specs.",
+      "eq_summary": "Stereo playback. Light — already mixed. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 20,
+      "name": "Tracks",
+      "instrument": "Tracks / Playback",
+      "mic": "Whirlwind IMP",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "notes": "",
+      "hpf": 80,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 315,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": null,
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Added via ShowBuilder — confirm specs.",
+      "eq_summary": "Stereo playback. Light — already mixed. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    },
+    {
+      "ch": 25,
+      "name": "Izzy",
+      "instrument": "Female Vocal",
+      "mic": "Neumann KMS 105",
+      "section": "VOCALS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Tall",
+      "notes": "",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -4,
+          "freq": 1600,
+          "q": 1.4,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": -5,
+          "freq": 8000,
+          "q": 2.2,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 10,
+        "rel_ms": 80
+      },
+      "gate": false,
+      "is_crowd": false,
+      "mic_notes": "Stage condenser vocal; more presence, more feedback-sensitive — cuts only.",
+      "eq_summary": "HPF first and aggressive. Low-mid box (300-600) is where feedback builds — cut. Presence/air boosts come down if cuts-only is enforced. Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable. FSQ: aggressive cuts for the outdoor PA; no room DEQ; vocals cut-only."
+    }
+  ],
+  "reverbs": [
+    {
+      "bank": "Plates 1",
+      "num": "06",
+      "name": "Vocal Plate",
+      "decay_s": 1.5,
+      "predelay_ms": 24.0,
+      "vlf": "near factory",
+      "early_late": "Max Early · Late Equal to -6dB",
+      "late_rolloff": "8-10kHz",
+      "use": "vocal — short, forward",
+      "rationale": "FSQ: vocal — short, forward. Decay near factory (no room to subtract)."
+    },
+    {
+      "bank": "Rooms 1",
+      "num": "02",
+      "name": "Studio B Close",
+      "decay_s": 0.75,
+      "predelay_ms": 0,
+      "vlf": "near factory",
+      "early_late": "Max Early · Late Equal to -6dB",
+      "late_rolloff": "8-10kHz",
+      "use": "drum bus / instruments — tight",
+      "rationale": "FSQ: drum bus / instruments — tight. Decay near factory (no room to subtract)."
+    },
+    {
+      "bank": "Plates 1",
+      "num": "17",
+      "name": "Small Plate",
+      "decay_s": 0.9,
+      "predelay_ms": 0,
+      "vlf": "near factory",
+      "early_late": "Max Early · Late Equal to -6dB",
+      "late_rolloff": "8-10kHz",
+      "use": "small bright plate for snare/inst",
+      "rationale": "FSQ: small bright plate for snare/inst. Decay near factory (no room to subtract)."
+    },
+    {
+      "bank": "Halls 1",
+      "num": "03",
+      "name": "Small Hall",
+      "decay_s": 1.4,
+      "predelay_ms": 0,
+      "vlf": "near factory",
+      "early_late": "Max Early · Late Equal to -6dB",
+      "late_rolloff": "8-10kHz",
+      "use": "subtle size if a tail is wanted",
+      "rationale": "FSQ: subtle size if a tail is wanted. Decay near factory (no room to subtract)."
+    }
+  ],
+  "reverb_note": "FSQ is outdoors — default is no reverb send; the open air gives nothing back and wash competes with building reflections. Use only when the show calls for it. When used: short, bright, Late higher.",
+  "new_mics": [],
+  "app_version": "1.0"
+}

@@ -1,0 +1,1025 @@
+{
+  "date": "2026-06-20",
+  "show": "test",
+  "venue": "fsq",
+  "genre": "",
+  "eq_on": true,
+  "comp_on": false,
+  "channels": [
+    {
+      "ch": 1,
+      "name": "Kick In",
+      "instrument": "Kick",
+      "mic": "Earthworks DM6",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 80,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 250,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": -3,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 4,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 2,
+      "name": "Kick Out",
+      "instrument": "Kick",
+      "mic": "",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 80,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 250,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": -3,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 4,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 3,
+      "name": "Snare Top",
+      "instrument": "Snare",
+      "mic": "",
+      "hpf": 120,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 3,
+          "freq": 180,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 1000,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 4,
+          "freq": 7000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 4,
+      "name": "Snare Bottom",
+      "instrument": "Snare Bottom",
+      "mic": "",
+      "hpf": 200,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": 5,
+          "freq": 1800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 7000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 5,
+      "name": "Hat",
+      "instrument": "Hi-Hat",
+      "mic": "",
+      "hpf": 500,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -4,
+          "freq": 800,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 2000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 6,
+      "name": "Rack 1",
+      "instrument": "Rack Tom",
+      "mic": "",
+      "hpf": 80,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 120,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 400,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 7,
+      "name": "Rack 2",
+      "instrument": "Rack Tom",
+      "mic": "",
+      "hpf": 80,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 120,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 400,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 8,
+      "name": "Floor",
+      "instrument": "Floor Tom",
+      "mic": "",
+      "hpf": 60,
+      "lpf": 10000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 80,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 450,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 2000,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 9,
+      "name": "OH HL",
+      "instrument": "Overhead",
+      "mic": "",
+      "hpf": 180,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 300,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": 4,
+          "freq": 5000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 10,
+      "name": "OH HR",
+      "instrument": "Overhead",
+      "mic": "",
+      "hpf": 180,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 300,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": 4,
+          "freq": 5000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 11,
+      "name": "Bass DI",
+      "instrument": "Bass DI",
+      "mic": "",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 80,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 250,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 600,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": -3,
+          "freq": 1500,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 12,
+      "name": "Bass Mic",
+      "instrument": "Bass Cab",
+      "mic": "",
+      "hpf": 60,
+      "lpf": 5000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 100,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 900,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 13,
+      "name": "Guitar 1",
+      "instrument": "Electric Guitar",
+      "mic": "",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 4,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 14,
+      "name": "Guitar 2",
+      "instrument": "Electric Guitar",
+      "mic": "",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 4,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 15,
+      "name": "Guitar 3",
+      "instrument": "Electric Guitar",
+      "mic": "",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 4,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 16,
+      "name": "Guitar 4",
+      "instrument": "Electric Guitar",
+      "mic": "",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 4,
+          "freq": 2500,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 17,
+      "name": "Misc 1",
+      "instrument": "",
+      "mic": "",
+      "hpf": null,
+      "lpf": null,
+      "bands": []
+    },
+    {
+      "ch": 18,
+      "name": "Misc 2",
+      "instrument": "",
+      "mic": "",
+      "hpf": null,
+      "lpf": null,
+      "bands": []
+    },
+    {
+      "ch": 19,
+      "name": "Misc 3",
+      "instrument": "",
+      "mic": "",
+      "hpf": null,
+      "lpf": null,
+      "bands": []
+    },
+    {
+      "ch": 20,
+      "name": "Misc 4",
+      "instrument": "",
+      "mic": "",
+      "hpf": null,
+      "lpf": null,
+      "bands": []
+    },
+    {
+      "ch": 21,
+      "name": "Misc 5",
+      "instrument": "",
+      "mic": "",
+      "hpf": null,
+      "lpf": null,
+      "bands": []
+    },
+    {
+      "ch": 22,
+      "name": "Misc 6",
+      "instrument": "",
+      "mic": "",
+      "hpf": null,
+      "lpf": null,
+      "bands": []
+    },
+    {
+      "ch": 23,
+      "name": "Misc 7",
+      "instrument": "",
+      "mic": "",
+      "hpf": null,
+      "lpf": null,
+      "bands": []
+    },
+    {
+      "ch": 24,
+      "name": "Misc 8",
+      "instrument": "",
+      "mic": "",
+      "hpf": null,
+      "lpf": null,
+      "bands": []
+    },
+    {
+      "ch": 25,
+      "name": "Vocal 1",
+      "instrument": "Lead Vocal",
+      "mic": "",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 26,
+      "name": "Vocal 2",
+      "instrument": "Lead Vocal",
+      "mic": "",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 27,
+      "name": "Vocal 3",
+      "instrument": "Lead Vocal",
+      "mic": "",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 28,
+      "name": "Vocal 4",
+      "instrument": "Lead Vocal",
+      "mic": "",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 29,
+      "name": "Vocal 5",
+      "instrument": "Lead Vocal",
+      "mic": "",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 30,
+      "name": "Vocal 6",
+      "instrument": "Lead Vocal",
+      "mic": "",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 31,
+      "name": "Vocal 7",
+      "instrument": "Lead Vocal",
+      "mic": "",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        }
+      ]
+    },
+    {
+      "ch": 32,
+      "name": "Vocal 8",
+      "instrument": "Lead Vocal",
+      "mic": "",
+      "hpf": 130,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 3,
+          "gain": 3,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": false
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": false
+        }
+      ]
+    }
+  ],
+  "reverbs": [
+    {
+      "bank": "Plates 1",
+      "num": "06",
+      "name": "Vocal Plate"
+    },
+    {
+      "bank": "Rooms 1",
+      "num": "02",
+      "name": "Studio B Close"
+    },
+    {
+      "bank": "Plates 1",
+      "num": "17",
+      "name": "Small Plate"
+    },
+    {
+      "bank": "Halls 1",
+      "num": "03",
+      "name": "Small Hall"
+    }
+  ],
+  "ses_ok": true
+}

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Seals and Crofts 2 — FOH Channel Processing</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #222; background: #fff; }
+.page { max-width: 870px; margin: 0 auto; padding: 36px 44px; }
+
+h1 { text-align: center; font-size: 22pt; color: #1c3558; margin-bottom: 6px; letter-spacing: 1px; }
+.subtitle { text-align: center; font-size: 12pt; color: #1c3558; font-weight: bold; margin-bottom: 24px; }
+.section-title { font-size: 11pt; color: #1c3558; font-weight: bold; margin: 20px 0 10px 0; }
+
+/* Input list */
+.input-list { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.input-list th { background: #1c3558; color: #fff; padding: 6px 12px; text-align: left; font-size: 9pt; }
+.input-list th:first-child { text-align: center; width: 44px; }
+.input-list td { padding: 5px 12px; border-bottom: 1px solid #ddd; font-size: 9pt; }
+.input-list td:first-child { text-align: center; }
+.input-list tr:nth-child(even) td { background: #f4f4f4; }
+.manual-row td { color: #8b1a1a; font-style: italic; }
+.footnote { font-size: 8pt; color: #8b1a1a; margin-top: 6px; }
+
+/* Channel cards */
+.card { margin-bottom: 18px; border: 1px solid #ccc; }
+.card-header { background: #1c3558; color: #fff; padding: 8px 14px; font-size: 11pt; font-weight: bold; }
+.card table { width: 100%; border-collapse: collapse; }
+.card table th { background: #e6e6e6; padding: 5px 10px; text-align: left; font-size: 8.5pt; font-weight: bold; color: #333; border-bottom: 1px solid #bbb; }
+.card table td { padding: 5px 10px; vertical-align: top; font-size: 8.5pt; border-bottom: 1px solid #eaeaea; }
+.card table td.col-section { font-weight: bold; width: 185px; color: #1c3558; }
+.card table td.col-value  { width: 170px; }
+.card table td.col-detail { }
+.card table tr:nth-child(odd) td  { background: #fafafa; }
+.card table tr:nth-child(even) td { background: #fff; }
+.card table tr.summary-row td { background: #eef2f7 !important; }
+.card table tr.summary-row td.col-detail { font-size: 8.5pt; line-height: 1.4; }
+
+/* Manual channels */
+.card.manual .card-header { background: #8b1a1a; }
+
+/* Reverb / notes section */
+.reverb-header { background: #1c3558; color: #fff; padding: 8px 14px; font-size: 11pt; font-weight: bold; margin-top: 28px; }
+.reverb-table { width: 100%; border-collapse: collapse; }
+.reverb-table td { padding: 5px 10px; vertical-align: top; font-size: 8.5pt; border-bottom: 1px solid #eaeaea; }
+.reverb-table td:first-child { font-weight: bold; width: 200px; color: #1c3558; background: #fafafa; }
+.reverb-table tr:nth-child(even) td { background: #f4f4f4; }
+.reverb-table tr:nth-child(even) td:first-child { background: #eeeeee; }
+
+.notes-block { margin-top: 20px; }
+.notes-block h4 { font-size: 9pt; font-weight: bold; color: #1c3558; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.notes-block li { font-size: 8.5pt; margin-bottom: 4px; margin-left: 18px; line-height: 1.4; }
+
+@media print {
+  .card { page-break-inside: avoid; }
+  .page-break { page-break-before: always; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>SEALS AND CROFTS 2</h1>
+<div class="subtitle">FOH CHANNEL PROCESSING — DiGiCo Quantum 225 | Memorial Hall | 2026-05-27</div>
+
+<div class="section-title">Input List Summary</div>
+<table class="input-list">
+<tr><th>Ch</th><th>Instrument</th><th>Mic / DI</th></tr>
+<tr><td>1</td><td>Kick</td><td>Earthworks DM6</td></tr>
+<tr><td>2</td><td>Snare</td><td>Lauten LS-408</td></tr>
+<tr><td>3</td><td>Underhat</td><td>Audix M1280BHC</td></tr>
+<tr><td>4</td><td>Rack 1</td><td>Earthworks DM17</td></tr>
+<tr><td>5</td><td>Rack 2</td><td>Earthworks DM17</td></tr>
+<tr><td>6</td><td>Floor Tom</td><td>Earthworks DM17</td></tr>
+<tr><td>7</td><td>Overhead Left</td><td>Earthworks SR20sp G2</td></tr>
+<tr><td>8</td><td>Overhead Right</td><td>Earthworks SR20sp G2</td></tr>
+<tr><td>9</td><td>Bass DI</td><td>Artist DI (XLR — confirm load-in)</td></tr>
+<tr><td>10</td><td>Acoustic Guitar</td><td>Neve RNDI</td></tr>
+<tr><td>11</td><td>Electric Guitar L</td><td>DI (XLR)</td></tr>
+<tr><td>12</td><td>Electric Guitar R</td><td>DI (XLR)</td></tr>
+<tr><td>13</td><td>Piano Low</td><td>DPA 4099</td></tr>
+<tr><td>14</td><td>Piano High</td><td>DPA 4099</td></tr>
+<tr><td>15</td><td>Tracks L</td><td>Radial DI</td></tr>
+<tr><td>16</td><td>Tracks R</td><td>Radial DI</td></tr>
+<tr><td>17</td><td>Click</td><td>Radial DI</td></tr>
+<tr><td>18</td><td>Video</td><td>Radial DI</td></tr>
+<tr><td>19</td><td>Ziggy Vox</td><td>Beta 58</td></tr>
+<tr><td>20</td><td>Lua Vox</td><td>Telefunken M80</td></tr>
+<tr><td>21</td><td>Brady Vox</td><td>Telefunken M80</td></tr>
+<tr><td>22</td><td>Key Vox</td><td>Telefunken M80</td></tr>
+<tr><td>23</td><td>Brian Vox</td><td>Beta 58</td></tr>
+<tr><td>24</td><td>John Vox</td><td>Beta 56A ⚠ confirm</td></tr>
+<tr><td>25</td><td>Test</td><td>SM57</td></tr>
+</table>
+
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 1 — Kick -->
+<div class="card">
+<div class="card-header">Ch 1 – Kick — Earthworks DM6</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">40 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">8 kHz @ 12 dB/Oct</td><td class="col-detail">Keeps kick body tight; acoustic-leaning mix doesn't need upper presence on kick</td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">-2 dB @ 6 kHz</td><td class="col-detail">Q 0.8; Shelf — Tame condenser edge; punchy without brittleness</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+3 dB @ 3 kHz</td><td class="col-detail">Q 1.5 — Beater click and attack; drives kick through the arrangement</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-5 dB @ 250 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 8 ms; R 80 ms — Memo primary standing wave; tightens as drummer pushes harder</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">+2 dB @ 60 Hz</td><td class="col-detail">Q 1.2; Shelf — Sub weight, deliberately lighter than a dense gospel mix; acoustic-centered show doesn't need the same low-end aggression</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -10 dB | Ratio 5:1 | A 5 ms | R 80 ms | Gain +3 dB | Knee Hard</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -42 dB | A 3 ms | H 30 ms | R 150 ms | Range 70 dB — Opens cleanly on hits; sits above stage bleed at nominal headamp gain</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">DM6's wide condenser response captures the full kick spectrum. Sub shelf at +2 dB is deliberately lighter than a gospel kick — this arrangement lives in acoustic guitar and vocal space, not sub energy. Dynamic EQ at 250 Hz targets the Memo's primary standing wave. Beater click at 3 kHz cuts through the arrangement without fighting acoustic guitar presence.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 2 — Snare -->
+<div class="card">
+<div class="card-header">Ch 2 – Snare — Lauten LS-408</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail">Set LS-408 onboard HP switch to 80 Hz; console adds the extra slope</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail">Leave LS-408 onboard LP flat</td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+2 dB @ 10 kHz</td><td class="col-detail">Q 0.8; Shelf — Air and shimmer; LS-408 handles the extension cleanly</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 4 kHz</td><td class="col-detail">Q 1.5 — Snap and attack definition; softer than gospel approach</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 250 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 8 ms; R 80 ms — Memo standing wave; dynamic tightens on harder hits</td></tr>
+<tr><td class="col-section">Band4; Low (Param)</td><td class="col-value">+3 dB @ 180 Hz</td><td class="col-detail">Q 1.5 — Shell body; 180 Hz is warmer than a 160 Hz body bell — matches the softer, acoustic-forward character of this show</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -10 dB | Ratio 4:1 | A 6 ms | R 80 ms | Gain +3 dB | Knee Hard</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -38 dB | A 2 ms | H 20 ms | R 100 ms | Range 70 dB — Adjust at soundcheck per drummer intensity</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">LS-408 28 dB off-axis rejection does heavy lifting in any loud stage context. Body bell at 180 Hz sits warmer than the 160 Hz Gospel starting point — this arrangement rewards a fuller, rounder snare. Dynamic EQ at 250 Hz tightens automatically on harder hits. Gate at -38 dB opens cleanly on hits without false-triggering on kick or tom bleed at nominal gain.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 3 — Underhat -->
+<div class="card">
+<div class="card-header">Ch 3 – Underhat — Audix M1280BHC</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">Placement</td><td class="col-value">Below hat</td><td class="col-detail">2–4 inches below bottom cymbal, angled up 30–45°. Mount on goose-neck off hat stand or short boom. Keep out of camera sightline — this is the entire point.</td></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">200 Hz @ 24 dB/Oct</td><td class="col-detail">Underside captures more body and fundamental than top position; HPF moves down. Still need to clear kick bleed.</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+4 dB @ 12 kHz</td><td class="col-detail">Q 0.8; Shelf — Underside pickup is inherently darker; heavier HF lift needed vs top position</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+4 dB @ 6 kHz</td><td class="col-detail">Q 1.2 — Compensate for reduced stick-attack transient; underside misses the top-plate impact</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param)</td><td class="col-value">-3 dB @ 600 Hz</td><td class="col-detail">Q 2.0 — Metallic clank from underside; no DEQ here — open-hat pedal pattern in S&amp;C arrangements is consistent enough that a static cut is correct</td></tr>
+<tr><td class="col-section">Band4; Low (Param)</td><td class="col-value">-5 dB @ 315 Hz</td><td class="col-detail">Q 1.5 — Memo standing wave PLUS kick/shell bleed are more prominent in underhat position; heavier cut than top position</td></tr>
+<tr><td class="col-section">Polarity</td><td class="col-value">CHECK</td><td class="col-detail">Check polarity against kick in mono. Underhat position frequently inverts vs close mics depending on placement angle.</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -18 dB | Ratio 2:1 | A 20 ms | R 200 ms | Gain +1 dB | Knee Soft</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -42 dB | A 3 ms | H 10 ms | R 60 ms | Range 60 dB — Tighter than top-position; kick bleed is heavier from below</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Underhat position (broadcast visual restriction) — mic points upward at the underside of the bottom cymbal. Inherently darker with more body, less top-plate transient. Lower HPF captures that body. Two heaviest adjustments vs top-position: more HF boost and a heavier 315 Hz cut (kick bleed and shell resonance more prominent from below). No DEQ on Band3 — open-hat pattern in S&amp;C material is consistent enough that a static cut is cleaner. Polarity check is not optional.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 4 — Rack 1 -->
+<div class="card">
+<div class="card-header">Ch 4 – Rack 1 — Earthworks DM17</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">12 kHz @ 12 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">-2 dB @ 8 kHz</td><td class="col-detail">Q 0.8; Shelf — Tame condenser edge; toms warm, not brittle</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 4 kHz</td><td class="col-detail">Q 1.2 — Attack and smack</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-5 dB @ 315 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 8 ms; R 100 ms — Memo standing wave; prevents boom buildup on hard hits</td></tr>
+<tr><td class="col-section">Band4; Low (Param)</td><td class="col-value">+3 dB @ 200 Hz</td><td class="col-detail">Q 1.5 — Tom shell body; balance against the Memo standing wave at this frequency</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -10 dB | Ratio 4:1 | A 8 ms | R 120 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -42 dB | A 4 ms | H 20 ms | R 150 ms | Range 70 dB</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">DM17 rim-mount gives consistent placement. Body at 200 Hz with dynamic cut at 315 Hz balances warmth against the Memo's two worst standing wave frequencies. Gate at -42 dB gives clean separation between hits and inter-drum bleed at nominal headamp gain. Adjust threshold if tom hits aren't tracking cleanly at soundcheck.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 5 — Rack 2 -->
+<div class="card">
+<div class="card-header">Ch 5 – Rack 2 — Earthworks DM17</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">12 kHz @ 12 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">-2 dB @ 8 kHz</td><td class="col-detail">Q 0.8; Shelf — Match Rack 1</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 4 kHz</td><td class="col-detail">Q 1.2 — Match Rack 1</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-5 dB @ 315 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 8 ms; R 100 ms — Match Rack 1</td></tr>
+<tr><td class="col-section">Band4; Low (Param)</td><td class="col-value">+3 dB @ 200 Hz</td><td class="col-detail">Q 1.5 — Match Rack 1; shift frequency if drum tuning differs</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -10 dB | Ratio 4:1 | A 8 ms | R 120 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -42 dB | A 4 ms | H 20 ms | R 150 ms | Range 70 dB — Match Rack 1; adjust both gates relative to each other</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Match Rack 1 as starting point. Adjust Band 2 frequency if this drum is tuned differently. Gate at -42 dB matches Rack 1 — adjust both rack gates in relation to each other for consistent response across fills.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 6 — Floor Tom -->
+<div class="card">
+<div class="card-header">Ch 6 – Floor Tom — Earthworks DM17</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">60 Hz @ 24 dB/Oct</td><td class="col-detail">Lower than rack toms — floor fundamental lives at 60–100 Hz</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">10 kHz @ 12 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">-3 dB @ 8 kHz</td><td class="col-detail">Q 0.8; Shelf — Keep it warm and deep, not bright</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 3 kHz</td><td class="col-detail">Q 1.2 — Stick attack</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-5 dB @ 250 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -12 dB; A 8 ms; R 100 ms — Memo problem zone; floor toms resonate hard here; lower threshold than racks because floor hits harder</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">+4 dB @ 100 Hz</td><td class="col-detail">Q 1.2; Shelf — Deep floor tom thump and weight</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -8 dB | Ratio 4:1 | A 8 ms | R 150 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -45 dB | A 4 ms | H 30 ms | R 200 ms | Range 70 dB — Slower release; do not chop the tail on a floor hit in a quiet passage</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Lower HPF and build the low shelf aggressively — floor tom fundamentals live down here. 250 Hz is a prime Memo standing wave; floor toms compound it. Gate release is deliberately slower than rack gates — in the quiet passages S&amp;C is known for, a hard-cut floor tom tail is jarring. Let it breathe.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 7 — OH Left -->
+<div class="card">
+<div class="card-header">Ch 7 – Overhead Left — Earthworks SR20sp G2</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">Placement</td><td class="col-value">Above cymbals</td><td class="col-detail">True overhead position — 18–24 inches above outermost cymbal tops. Spaced pair or ORTF depending on kit width. These are NOT underheads; standard overhead EQ applies.</td></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail">Standard overhead HPF; close mics handle shell body</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+1 dB @ 12 kHz</td><td class="col-detail">Q 0.8; Shelf — Light air lift; SR20sp G2 extended HF response means less correction needed than underhead position</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+1 dB @ 6 kHz</td><td class="col-detail">Q 1.2 — Light presence; top-plate shimmer is present naturally in this position</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 315 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -18 dB; A 20 ms; R 200 ms — Memo standing wave; slow DEQ to preserve transient sheen from top-plate impact</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-4 dB @ 200 Hz</td><td class="col-detail">Q 2.0; Shelf — Keeps overhead wash clean; close mics handle shell body</td></tr>
+<tr><td class="col-section">Polarity</td><td class="col-value">CHECK</td><td class="col-detail">Check Ch 7 and Ch 8 together against Ch 1 (kick) and Ch 2 (snare) in mono. True overhead position is less likely to require a flip than underhead, but always verify. Should sound fuller in mono — if thinner, flip both.</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -18 dB | Ratio 2:1 | A 25 ms | R 300 ms | Gain +1 dB | Knee Soft — Gentle glue; preserve transient openness</td></tr>
+<tr><td class="col-section">Dynamics 2; Ducker</td><td class="col-value">On</td><td class="col-detail">Thr -50 dB | A 10 ms | H 50 ms | R 300 ms | Range 30 dB — Light ducker, not a hard gate; S&amp;C cymbal wash is musical</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">True overhead position — critically different from Gospel Awards where broadcast visual restrictions forced underhead placement. SR20sp G2 captures natural top-plate shimmer and transient detail; the aggressive HF correction needed for underheads is not needed here. Slow DEQ at thr -18 dB with long release preserves transient openness. Light ducker rather than hard gate keeps cymbal wash musical through S&amp;C's quiet passages. Link Ch 7 and 8 as a stereo pair on Q225.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 8 — OH Right -->
+<div class="card">
+<div class="card-header">Ch 8 – Overhead Right — Earthworks SR20sp G2</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">Placement</td><td class="col-value">Above cymbals</td><td class="col-detail">Match Ch 7 — same height, same angle. Mirror image on stage right.</td></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+1 dB @ 12 kHz</td><td class="col-detail">Q 0.8; Shelf — Match Ch 7</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+1 dB @ 6 kHz</td><td class="col-detail">Q 1.2 — Match Ch 7</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 315 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -18 dB; A 20 ms; R 200 ms — Match Ch 7</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-4 dB @ 200 Hz</td><td class="col-detail">Q 2.0; Shelf — Match Ch 7</td></tr>
+<tr><td class="col-section">Polarity</td><td class="col-value">CHECK</td><td class="col-detail">Flip Ch 7 and Ch 8 together, not independently. Check in mono against close mics. Adjust as a matched pair.</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -18 dB | Ratio 2:1 | A 25 ms | R 300 ms | Gain +1 dB | Knee Soft</td></tr>
+<tr><td class="col-section">Dynamics 2; Ducker</td><td class="col-value">On</td><td class="col-detail">Thr -50 dB | A 10 ms | H 50 ms | R 300 ms | Range 30 dB — Match Ch 7</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Match Ch 7 exactly — link as stereo pair on Q225. Polarity must be checked and matched on both channels simultaneously. Verify stereo image during soundcheck; nudge angle or pan if kit sounds asymmetric.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 9 — Bass DI -->
+<div class="card">
+<div class="card-header">Ch 9 – Bass DI — Artist DI (XLR)</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">50 Hz @ 24 dB/Oct</td><td class="col-detail">Slightly tighter than a dense festival mix; S&amp;C doesn't need sub-basement low end competing with acoustic guitar</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">5 kHz @ 12 dB/Oct</td><td class="col-detail">Bass DI does not need top end</td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+1 dB @ 3.5 kHz</td><td class="col-detail">Q 0.8; Shelf — String click and pick attack; light touch — bass sits supportively behind acoustic guitar</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 800 Hz</td><td class="col-detail">Q 1.5 — Warmth and body in the midrange; 800 Hz chosen over 1 kHz for a rounder, warmer character</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 250 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 10 ms; R 100 ms — Memo worst standing wave on bass; accumulates fast</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">+2 dB @ 80 Hz</td><td class="col-detail">Q 1.2; Shelf — Fundamental weight; modest gain to avoid competing with kick</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -16 dB | Ratio 4:1 | A 8 ms | R 100 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">Off</td><td class="col-detail">No gate on bass — sustain is intentional</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Artist DI — confirm signal chain on load-in; adjust HPF if amp is in signal chain. Bass sits supportively in S&amp;C material — it's not a lead voice. 800 Hz warmth bell vs 1 kHz midrange emphasis in Gospel; rounder character fits the genre. 250 Hz is the worst Memo standing wave on bass. No gate.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 10 — Ac Guitar -->
+<div class="card">
+<div class="card-header">Ch 10 – Acoustic Guitar — Neve RNDI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">80 Hz @ 24 dB/Oct</td><td class="col-detail">Preserve string body; acoustic guitar fundamentals start here</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail">Full range from the RNDI</td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+2 dB @ 8 kHz</td><td class="col-detail">Q 0.8; Shelf — String sparkle and air; RNDI transformer warmth means this won't go harsh</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 2.5 kHz</td><td class="col-detail">Q 1.2 — Presence and note clarity; acoustic guitar sits in the 2–3 kHz register to cut through the arrangement</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-5 dB @ 250 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 15 ms; R 120 ms — Mud control; acoustic guitar in a reverberant room compounds 250 Hz rapidly on hard strumming</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-2 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Memo standing wave; static cut keeps body clean without killing warmth</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 3:1 | A 12 ms | R 120 ms | Gain +2 dB | Knee Medium — Even out strumming dynamics; longer attack preserves pick transient</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">Off</td><td class="col-detail">No gate — open chord sustain and string resonance are central to the S&amp;C sound</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Central instrument of the S&amp;C sound. Neve RNDI chosen for transformer warmth over passive DI transparency — acoustic guitar DI into the RNDI sounds larger and more natural. 2.5 kHz presence bell is the note-definition register for acoustic guitar. Dynamic EQ at 250 Hz prevents mud from accumulating during hard strumming without dulling the body on fingerpicking passages. No gate — sustain is the point.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 11 — Elec Gtr L -->
+<div class="card">
+<div class="card-header">Ch 11 – Electric Guitar L — DI (XLR)</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">80 Hz @ 24 dB/Oct</td><td class="col-detail">XLR listed on patch sheet — treating as DI per show notes</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+1 dB @ 8 kHz</td><td class="col-detail">Q 0.8; Shelf — Light top-end definition; supporting role behind acoustic guitar</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 2.5 kHz</td><td class="col-detail">Q 1.5 — Presence; carve away from acoustic guitar at soundcheck if they clash</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 315 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -18 dB; A 10 ms; R 80 ms — Memo standing wave; DI electric guitar honks hard here</td></tr>
+<tr><td class="col-section">Band4; Low (Param)</td><td class="col-value">-3 dB @ 200 Hz</td><td class="col-detail">Q 1.5 — Memo standing wave cleanup; static cut keeps it clean</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 4:1 | A 10 ms | R 100 ms | Gain +2 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -50 dB | A 5 ms | H 20 ms | R 150 ms | Range 70 dB — Electric guitar drops near the noise floor when not playing; gate keeps it clean</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">XLR input treated as DI per patch notes. Supporting role behind acoustic guitar — lighter presence treatment, careful not to crowd the 2–3 kHz zone Ch 10 owns. Gate at -50 dB cleans up the signal when the guitarist is not playing. Monitor for frequency clash with Ch 10 and Ch 12 and carve as needed at soundcheck.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 12 — Elec Gtr R -->
+<div class="card">
+<div class="card-header">Ch 12 – Electric Guitar R — DI (XLR)</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">80 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+1 dB @ 8 kHz</td><td class="col-detail">Q 0.8; Shelf — Match Ch 11</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 2.5 kHz</td><td class="col-detail">Q 1.5 — Match Ch 11</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 315 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -18 dB; A 10 ms; R 80 ms — Match Ch 11</td></tr>
+<tr><td class="col-section">Band4; Low (Param)</td><td class="col-value">-3 dB @ 200 Hz</td><td class="col-detail">Q 1.5 — Match Ch 11</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 4:1 | A 10 ms | R 100 ms | Gain +2 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -50 dB | A 5 ms | H 20 ms | R 150 ms | Range 70 dB — Match Ch 11</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Match Ch 11. If signal is actually stereo, link and pan accordingly. If it's a mono source split to two channels, confirm with the artist before the show and reconsider patching.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 13 — Piano Low -->
+<div class="card">
+<div class="card-header">Ch 13 – Piano Low — DPA 4099</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">60 Hz @ 24 dB/Oct</td><td class="col-detail">Yamaha C6 closed lid — captures body register. Low enough to preserve piano fundamental without sub boom.</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail">Full range; Piano Low handles the low-to-mid register</td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+2 dB @ 8 kHz</td><td class="col-detail">Q 0.8; Shelf — Subtle air on upper notes crossing into this mic's range</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+1 dB @ 2 kHz</td><td class="col-detail">Q 1.2 — Light warmth and note presence in the low-mid register</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-5 dB @ 315 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -14 dB; A 10 ms; R 120 ms — Memo standing wave; lower threshold (-14) reflects that a dynamic pianist will hit this zone hard on strong passages</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-2 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Memo standing wave; static cut keeps body clean</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 3:1 | A 15 ms | R 150 ms | Gain +2 dB | Knee Soft — Gentle leveling; piano dynamics are musical</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">Off</td><td class="col-detail">No gate — piano sustain (especially on a C6) is integral to the arrangement</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">DPA 4099 piano mount on Yamaha C6 closed lid captures the body register. HPF at 60 Hz catches the fundamental without sub boom. DEQ threshold at -14 dB is lower than typical — a dynamic pianist playing S&amp;C material will vary widely between intimate fingerpicking and strong chordal passages. Soft knee on comp preserves the natural dynamic shape. No gate — the sustain is the instrument.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 14 — Piano High -->
+<div class="card">
+<div class="card-header">Ch 14 – Piano High — DPA 4099</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">120 Hz @ 24 dB/Oct</td><td class="col-detail">High string register; nothing useful below this</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail">Preserve high-frequency string clarity</td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+3 dB @ 10 kHz</td><td class="col-detail">Q 0.8; Shelf — Air and string shimmer on arpeggiated passages; DPA 4099 handles this extension cleanly</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 3 kHz</td><td class="col-detail">Q 1.2 — Note clarity and definition in the high register</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 315 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -18 dB; A 10 ms; R 100 ms — Memo standing wave even in the high piano mic; higher threshold because high-register playing rarely drives this zone as hard</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-3 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Memo standing wave cleanup; HPF at 120 Hz doesn't fully address resonance here</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -18 dB | Ratio 3:1 | A 15 ms | R 120 ms | Gain +2 dB | Knee Soft</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">Off</td><td class="col-detail">No gate</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">High string clarity is the job. Air shelf at +3 dB @ 10k opens the top end on arpeggiated passages. Higher DEQ threshold at -18 dB vs Piano Low — high-register playing doesn't drive 315 Hz nearly as hard. Link Ch 13 and Ch 14 as a stereo pair on Q225. Verify stereo image during soundcheck and nudge pan if needed.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 15 — Tracks L -->
+<div class="card">
+<div class="card-header">Ch 15 – Tracks L — Radial DI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">80 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">Flat</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">Flat</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param)</td><td class="col-value">-3 dB @ 315 Hz</td><td class="col-detail">Q 2.0 — Memo standing wave on playback source; static cut (tracks run at consistent level)</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-2 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Memo standing wave on playback source</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -18 dB | Ratio 2:1 | A 20 ms | R 200 ms | Gain +1 dB | Knee Soft — Level consistency only</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Tone shaping belongs to the track producer — this is level management only. Comp at -18 dB is appropriate for a consistent playback source. Standing wave cuts still apply; reverberant rooms accumulate those frequencies on any source. Confirm track content with production before show. Link Ch 15 and 16 as a stereo pair.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 16 — Tracks R -->
+<div class="card">
+<div class="card-header">Ch 16 – Tracks R — Radial DI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">80 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">Flat</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">Flat</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param)</td><td class="col-value">-3 dB @ 315 Hz</td><td class="col-detail">Q 2.0 — Match Ch 17</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-2 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Match Ch 17</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -18 dB | Ratio 2:1 | A 20 ms | R 200 ms | Gain +1 dB | Knee Soft</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Link to Ch 15 — match all settings exactly.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 17 — Click -->
+<div class="card">
+<div class="card-header">Ch 17 – Click — Radial DI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">80 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1–Band4</td><td class="col-value">Flat</td><td class="col-detail">Name and HPF only — no EQ or dynamics on the click feed</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">Off</td><td class="col-detail">Routed to IEM mix only — not to FOH</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Utility channel — name and HPF only. Routed to IEM mix, not FOH PA. Confirm with monitor engineer before show that click feed is correct and not accidentally assigned to a FOH bus.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 18 — Video -->
+<div class="card">
+<div class="card-header">Ch 18 – Video — Radial DI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">80 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1–Band4</td><td class="col-value">Flat</td><td class="col-detail">Name and HPF only</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Video playback feed — name and HPF only. EQ and dynamics flat. Confirm routing before show.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 19 — Ziggy Vox -->
+<div class="card">
+<div class="card-header">Ch 19 – Ziggy Vox — Shure Beta 58</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">15 kHz @ 12 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+3 dB @ 8 kHz</td><td class="col-detail">Q 0.7; Shelf — Adds air; compensates for Beta 58 roll-off above 7 kHz</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+3 dB @ 3 kHz</td><td class="col-detail">Q 1.2 — Intelligibility and presence; S&amp;C vocal harmonies need clear mid articulation</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 300 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 10 ms; R 80 ms — Boxiness; accumulates with multiple open mics in a reverberant room</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-4 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Proximity effect + Memo standing wave; one cut handles both</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 4:1 | A 12 ms | R 100 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -40 dB | A 5 ms | H 20 ms | R 100 ms | Range 70 dB — Adjust per voice at soundcheck</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Beta 58 upper-presence peak managed by the high shelf. 3 kHz presence bell for clarity in the vocal blend. Comp catches peaks; gate sits between singing level and stage bleed at nominal headamp gain. Start all lead/supporting vocal channels from this template — adjust gate per singer at soundcheck.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 20 — Lua Vox -->
+<div class="card">
+<div class="card-header">Ch 20 – Lua Vox — Telefunken M80</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">15 kHz @ 12 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+2 dB @ 8 kHz</td><td class="col-detail">Q 0.7; Shelf — M80 has a smoother top end than the Beta 58; less correction needed — shelf drops from +3 to +2</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+3 dB @ 3 kHz</td><td class="col-detail">Q 1.2 — Presence; Lua Crofts lead vocal</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 300 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 10 ms; R 80 ms — Boxiness; same treatment as other vocals</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-4 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Proximity effect + Memo standing wave</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 4:1 | A 12 ms | R 100 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -40 dB | A 5 ms | H 20 ms | R 100 ms | Range 70 dB — Adjust per voice at soundcheck</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">M80's smoother top end means the high shelf comes down from +3 dB to +2 dB vs the Beta 58 channels. Lua Crofts lead vocal. Keep EQ consistent with other vocal channels and adjust gate threshold at soundcheck to match her vocal level.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 21 — Brady Vox -->
+<div class="card">
+<div class="card-header">Ch 21 – Brady Vox — Telefunken M80</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">15 kHz @ 12 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+2 dB @ 8 kHz</td><td class="col-detail">Q 0.7; Shelf — M80 smooth top; match Lua Vox baseline</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+3 dB @ 3.5 kHz</td><td class="col-detail">Q 1.2 — Brady Seals lead vocal; presence bell shifted to 3.5 kHz vs 3 kHz — slightly brighter, more forward bite characteristic of his delivery</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 300 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 10 ms; R 80 ms — Boxiness; same treatment as other vocals</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-4 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Proximity effect + Memo standing wave</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 4:1 | A 12 ms | R 100 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -40 dB | A 5 ms | H 20 ms | R 100 ms | Range 70 dB — Adjust per voice at soundcheck</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Brady Seals lead vocal. The only departure from the Lua Vox template is the presence bell at 3.5 kHz instead of 3 kHz — his vocal delivery typically sits brighter with more forward attack. Adjust gate at soundcheck to his level. Watch that Brady and Lua's presence bells (3.5 and 3 kHz) don't clash when singing simultaneously; they should complement, not fight.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 22 — Key Vox -->
+<div class="card">
+<div class="card-header">Ch 22 – Key Vox — Telefunken M80</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">15 kHz @ 12 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+2 dB @ 8 kHz</td><td class="col-detail">Q 0.7; Shelf — Match Lua Vox baseline</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+3 dB @ 3 kHz</td><td class="col-detail">Q 1.2 — Presence; match Lua Vox</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 300 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 10 ms; R 80 ms — Match Lua Vox</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-4 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Match Lua Vox</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 4:1 | A 12 ms | R 100 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -40 dB | A 5 ms | H 20 ms | R 100 ms | Range 70 dB — Adjust per voice at soundcheck</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Keys player vocal. Matched to Lua Vox baseline — adjust gate threshold per singer level at soundcheck. If keys player has a significantly different vocal level or character, carve accordingly.</td></tr>
+</table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ Ch 23 — Brian Vox -->
+<div class="card">
+<div class="card-header">Ch 23 – Brian Vox — Shure Beta 58</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">15 kHz @ 12 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+3 dB @ 8 kHz</td><td class="col-detail">Q 0.7; Shelf — Match Ch 19 (Ziggy Vox, same mic)</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+3 dB @ 3 kHz</td><td class="col-detail">Q 1.2 — Presence; match Ch 21 as starting point</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 300 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 10 ms; R 80 ms</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-4 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 4:1 | A 12 ms | R 100 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -40 dB | A 5 ms | H 20 ms | R 100 ms | Range 70 dB — Adjust at soundcheck</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Beta 58 — match Ch 21 (Ziggy Vox) as starting template. Adjust gate at soundcheck per voice level. All 25 channels are now within patcher range — apply_seals.py covers this channel.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 24 — John Vox -->
+<div class="card">
+<div class="card-header">Ch 24 – John Vox — Beta 56A ⚠ confirm</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">15 kHz @ 12 dB/Oct</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+3 dB @ 8 kHz</td><td class="col-detail">Q 0.7; Shelf — Beta 56 ribbon-style dynamic rolls off earlier than Beta 58; heavier HF shelf needed</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+3 dB @ 3 kHz</td><td class="col-detail">Q 1.2 — Presence</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 300 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 10 ms; R 80 ms</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-4 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -14 dB | Ratio 4:1 | A 12 ms | R 100 ms | Gain +3 dB | Knee Medium</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -40 dB | A 5 ms | H 20 ms | R 100 ms | Range 70 dB — Adjust at soundcheck</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Beta 56 ribbon-style dynamic has a darker character and earlier HF rolloff than the Beta 58 channels — keep the +3 dB high shelf to compensate. Adjust gate at soundcheck. Confirm mic choice with artist — Beta 56A is a tom/kick dynamic, darker character, earlier HF rolloff. Compensate with heavier high shelf. All 25 channels now within patcher range.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ Ch 25 — Test -->
+<div class="card">
+<div class="card-header">Ch 25 – Test — Shure SM57</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">100 Hz @ 24 dB/Oct</td><td class="col-detail">Standard utility HPF</td></tr>
+<tr><td class="col-section">LPF</td><td class="col-value">Off</td><td class="col-detail"></td></tr>
+<tr><td class="col-section">Band1; High Shelf</td><td class="col-value">+1 dB @ 8 kHz</td><td class="col-detail">Q 0.8; Shelf — Light air; SM57 rolls off early above 10 kHz</td></tr>
+<tr><td class="col-section">Band2; Upper-Mid (Param)</td><td class="col-value">+2 dB @ 5 kHz</td><td class="col-detail">Q 1.2 — SM57 presence peak; push or cut depending on source</td></tr>
+<tr><td class="col-section">Band3; Lower-Mid (Param/Dyn)</td><td class="col-value">-4 dB @ 315 Hz</td><td class="col-detail">Q 2.0; Dyn On; Thr -16 dB; A 10 ms; R 80 ms — Memo standing wave; treat on all open mics</td></tr>
+<tr><td class="col-section">Band4; Low (Lowshelf)</td><td class="col-value">-3 dB @ 200 Hz</td><td class="col-detail">Q 1.5; Shelf — Memo problem frequency; static cut as placeholder</td></tr>
+<tr><td class="col-section">Dynamics 1; Compressor</td><td class="col-value">On</td><td class="col-detail">Thr -16 dB | Ratio 4:1 | A 10 ms | R 100 ms | Gain +2 dB | Knee Medium — Generic starting point; adjust per source</td></tr>
+<tr><td class="col-section">Dynamics 2; Gate</td><td class="col-value">On</td><td class="col-detail">Thr -40 dB | A 5 ms | H 20 ms | R 100 ms | Range 70 dB — Close on idle; open threshold for actual use</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value"></td><td class="col-detail">Utility test channel — SM57, application TBD. EQ and dynamics are conservative SM57 starting points. Adjust all parameters at soundcheck once source is confirmed. 315 Hz Memo standing wave cut applies regardless of source. Gate closed on idle to prevent open-mic bleed.</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ GLOBAL REVERB -->
+<div class="reverb-header">GLOBAL REVERB — SEVENTH HEAVEN PRO (WET MODE)</div>
+<table class="reverb-table">
+<tr><td>Lead Vocal Reverb — Main Hall</td><td>Preset: Warm Hall | Decay 1.8s • PreDelay 28 ms • Early/Late 35/65 • HF Damp 3.2 • Mix 14% — Warmer and slightly longer than Gospel; S&amp;C arrangements breathe more. Sweetening on return: HS +2 dB @ 8 kHz; LC 100 Hz</td></tr>
+<tr><td>Lead Vocal Reverb — Plate</td><td>Preset: Gold Plate | Decay 1.0s • PreDelay 18 ms • Early/Late 40/60 • HF Damp 3.6 • Mix 10% — Dense plate for blend on harmonies. Sweetening on return: HS +1 dB @ 10 kHz; LC 100 Hz</td></tr>
+<tr><td>Acoustic Guitar</td><td>Preset: Small Room | Decay 0.4s • PreDelay 8 ms • Early/Late 60/40 • HF Damp 4.0 • Mix 8% — Keep tight; acoustic guitar in the midrange doesn't benefit from long reverb in a 1.6s room. Sweetening on return: LC 200 Hz</td></tr>
+<tr><td>Piano</td><td>Preset: Concert Hall | Decay 1.4s • PreDelay 30 ms • Early/Late 30/70 • HF Damp 3.0 • Mix 12% — Spacious without washy; let the piano breathe without competing with the Memo room. Sweetening on return: HS +2 dB @ 10 kHz; LC 80 Hz</td></tr>
+<tr><td>Drum Room</td><td>Preset: Drum Room | Decay 0.4s • PreDelay 5 ms • Early/Late 60/40 • HF Damp 4.2 • Mix 6% — Minimal; true overhead coverage plus the Memo room means drum augmentation reverb is subtle. Use primarily on snare send. Sweetening on return: LC 150 Hz</td></tr>
+<tr><td>Overall Glue</td><td>Preset: Live Room | Decay 0.6s • PreDelay 5 ms • Early/Late 55/45 • HF Damp 4.0 • Mix 5% — Subtle cohesion; the Memo is already doing the glue work. Sweetening on return: LC 200 Hz</td></tr>
+</table>
+
+<div class="notes-block" style="margin-top:16px;">
+<h4>Critical Notes — Reverberant Room (RT60 ≈ 1.6s)</h4>
+<ul>
+<li>All reverb mix % assume 100% wet (send/return). Adjust channel sends as needed.</li>
+<li>Use LESS reverb than feels right in isolation — the room adds 1.6 seconds of natural reverb. Start conservative.</li>
+<li>Pay close attention to LC filters on reverb returns — essential to prevent low-mid mud buildup.</li>
+<li>Dynamic EQ settings are calibrated for a live reverberant environment. Trust the room.</li>
+<li>Memo problem frequencies (200 Hz, 250–315 Hz) accumulate on every open mic — treat them all.</li>
+<li>All settings are starting points. Trust your ears and adjust during soundcheck.</li>
+</ul>
+</div>
+
+<div class="notes-block">
+<h4>Workflow Reminders</h4>
+<ul>
+<li>Set gains FIRST — target RMS -25 to -20 dBFS at headamp before applying any EQ or dynamics.</li>
+<li>Gate thresholds are calibrated for that gain structure. Verify at soundcheck before tweaking.</li>
+<li>POLARITY CHECK — Underhat (Ch 3) and Overheads (Ch 7/8): check against close drum mics in mono BEFORE soundcheck. Underhat frequently requires a flip; true overheads less likely but always verify.</li>
+<li>Link stereo pairs: Overheads (Ch 7/8) • Piano (Ch 13/14) • Tracks (Ch 15/16).</li>
+<li>All 25 channels are within patcher range. Run apply_seals.py before show.</li>
+<li>VCA groups: Kit (Ch 1–8) • Bass/Gtr (Ch 9–12) • Piano (Ch 13–14) • Tracks (Ch 15–18) • Vocals (Ch 19–24) • Test (Ch 25).</li>
+<li>Acoustic guitar (Ch 10) is the anchor of the S&amp;C mix. When in doubt, push Ch 10 before anything else.</li>
+<li>Crowd mic rig (OM1, Deity S2, CM4) — patch as standard every show. EQ starting points in venue-notes.md.</li>
+</ul>
+</div>
+
+</div><!-- /page -->
+</body>
+</html>

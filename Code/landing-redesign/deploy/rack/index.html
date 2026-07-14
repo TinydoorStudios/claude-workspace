@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TDS · VM Rack</title>
+<style>
+:root{
+  --bg:#06080c; --panel:#0b0f16; --panel2:#0e141d; --inset:#090d13;
+  --edge:#1b2433; --edge2:#233044;
+  --ink:#d7e2f0; --mut:#69788f; --dim:#42506a;
+  --cy:#37c8ff; --cy-dim:#1a5f7d; --ok:#2fe6a0; --warn:#ffd24d; --hot:#ff9440; --bad:#ff4d57;
+  --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--mono); color:var(--ink); min-height:100vh; background:var(--bg);
+  background-image:
+    radial-gradient(1000px 550px at 50% -12%, rgba(55,200,255,.08), transparent 60%),
+    linear-gradient(rgba(55,200,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(55,200,255,.022) 1px, transparent 1px);
+  background-size:100% 100%, 44px 44px, 44px 44px;
+}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);opacity:.55}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 22px 56px;position:relative;z-index:1}
+
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  border:1px solid var(--edge);background:linear-gradient(180deg,#0d1420,#0a0e15);
+  border-radius:4px;padding:10px 16px;margin-bottom:14px}
+.brand{font-size:15px;font-weight:700;letter-spacing:2px;color:#fff}
+.brand b{color:var(--cy)}
+.brand a{color:var(--dim);text-decoration:none;font-size:10px;letter-spacing:1px;margin-left:12px}
+.brand a:hover{color:var(--cy)}
+.top .sp{flex:1}
+.link{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:1.5px;color:var(--dim)}
+.link .led{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.link.up{color:var(--ok)} .link.up .led{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.link.dn{color:var(--bad)} .link.dn .led{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+.clock{font-size:15px;color:#fff;font-weight:600;letter-spacing:1px}
+.clock small{color:var(--dim);font-size:10px;letter-spacing:2px;margin-left:6px}
+@keyframes blink{50%{opacity:0}}
+
+.panel{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));
+  border:1px solid var(--edge);border-radius:4px;padding:16px 18px;margin-bottom:14px}
+.panel::before,.panel::after,
+.panel .ck::before,.panel .ck::after{content:'';position:absolute;width:14px;height:14px;
+  border-color:var(--cy-dim);border-style:solid;border-width:0}
+.panel::before{top:-1px;left:-1px;border-top-width:2px;border-left-width:2px}
+.panel::after{top:-1px;right:-1px;border-top-width:2px;border-right-width:2px}
+.panel .ck::before{bottom:-1px;left:-1px;border-bottom-width:2px;border-left-width:2px}
+.panel .ck::after{bottom:-1px;right:-1px;border-bottom-width:2px;border-right-width:2px}
+.plabel{display:flex;align-items:center;gap:10px;font-size:10px;letter-spacing:2.5px;
+  color:var(--cy);margin-bottom:14px;text-transform:uppercase}
+.plabel::before{content:'▮';font-size:9px}
+.plabel .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--edge2),transparent)}
+.plabel .note{color:var(--dim);letter-spacing:1px;font-size:10px;text-transform:none}
+
+.rack{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px}
+.node{background:var(--inset);border:1px solid var(--edge);border-radius:3px;padding:12px 14px}
+.node.wide{grid-column:1 / -1}
+.nhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.nhead .led{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 7px var(--ok);flex:none}
+.nhead .led.off{background:var(--bad);box-shadow:0 0 7px var(--bad)}
+.nhead .led.unk{background:var(--dim);box-shadow:none}
+.nhead .nm{font-size:11px;font-weight:700;letter-spacing:1.5px;color:#fff}
+.nhead .role{font-size:9px;color:var(--dim);letter-spacing:1px;margin-left:auto;text-transform:uppercase;text-align:right}
+.meter{margin:7px 0}
+.meter .ml{display:flex;justify-content:space-between;font-size:9px;letter-spacing:1px;color:var(--mut);margin-bottom:3px}
+.meter .ml b{color:var(--ink)}
+.bar{height:5px;background:#121926;border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cy-dim),var(--cy));border-radius:2px;
+  box-shadow:0 0 8px rgba(55,200,255,.4)}
+.bar i.w{background:linear-gradient(90deg,#7d5f1a,var(--warn));box-shadow:0 0 8px rgba(255,210,77,.4)}
+.bar i.b{background:linear-gradient(90deg,#7d2a26,var(--bad));box-shadow:0 0 8px rgba(255,77,87,.4)}
+.nfoot{font-size:9px;color:var(--dim);letter-spacing:1px;margin-top:8px;text-transform:uppercase}
+.nfoot b{color:var(--mut)}
+.svcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 12px;margin-top:10px}
+.svcchip{display:flex;align-items:center;gap:7px;font-size:9.5px;letter-spacing:.8px;color:var(--mut);padding:3px 0}
+.svcchip .led{width:5px;height:5px;border-radius:50%;background:var(--ok);box-shadow:0 0 5px var(--ok);flex:none}
+.svcchip .led.off{background:var(--bad);box-shadow:0 0 5px var(--bad)}
+.svcchip b{color:var(--ink);font-weight:600}
+.svcchip .ut{margin-left:auto;color:var(--dim);font-size:8.5px}
+.foot{color:var(--dim);font-size:10px;letter-spacing:2px;margin-top:26px;text-align:center;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <span class="brand">TDS <b>VM RACK</b><a href="/">← CONSOLE</a></span>
+  <span class="sp"></span>
+  <span class="link" id="lnkSts"><span class="led"></span><span id="lnkStsTxt">STATUS FEED</span></span>
+  <span class="clock"><span id="clk">--:--:--</span><small id="dte"></small></span>
+</div>
+
+<div class="panel">
+  <span class="ck"></span>
+  <div class="plabel">RACK<span class="rule"></span><span class="note" id="stsNote">connecting…</span></div>
+  <div class="rack" id="rack"><div class="node"><div class="nhead"><span class="led unk"></span><span class="nm">LOADING…</span></div></div></div>
+</div>
+
+<div class="foot">systems defined in /opt/status-writer/rack.json on the n8n VM · nyquist</div>
+</div>
+
+<script>
+function tick(){
+  const now = new Date();
+  document.getElementById('clk').textContent =
+    now.toLocaleTimeString('en-US',{hour12:false,timeZone:'America/New_York'});
+  document.getElementById('dte').textContent =
+    now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'America/New_York'}).toUpperCase();
+}
+tick(); setInterval(tick, 1000);
+
+function meter(label, pct, valTxt){
+  const cls = pct >= 92 ? 'b' : pct >= 85 ? 'w' : '';
+  return '<div class="meter"><div class="ml"><span>'+label+'</span><b>'+(valTxt || pct.toFixed(0)+'%')+'</b></div>'+
+    '<div class="bar"><i class="'+cls+'" style="width:'+Math.min(pct,100)+'%"></i></div></div>';
+}
+function fmtUp(sec){
+  if (sec == null) return '—';
+  const d = Math.floor(sec/86400), h = Math.floor(sec%86400/3600);
+  return d > 0 ? d + 'D ' + h + 'H' : h + 'H ' + Math.floor(sec%3600/60) + 'M';
+}
+function dockerUt(status){
+  const m = /Up (?:About )?(\d+)?\s*(\w+)/.exec(status || '');
+  if (!m) return '';
+  return 'dckr·' + (m[1] || '1') + m[2][0];
+}
+function chip(name, ok, ut){
+  return '<span class="svcchip"><span class="led'+(ok ? '' : ' off')+'"></span><b>'+name+'</b>'+
+    '<span class="ut">'+(ut || '')+'</span></span>';
+}
+function led(state){ // true | false | null
+  return '<span class="led' + (state === true ? '' : state === false ? ' off' : ' unk') + '"></span>';
+}
+
+function render(S){
+  const note = document.getElementById('stsNote');
+  const age = Math.round(Date.now()/1000 - (S.generated || 0));
+  note.textContent = 'LIVE · UPDATED ' + (age < 90 ? age + 'S AGO' : 'STALE — ' + fmtUp(age) + ' OLD');
+  const lnk = document.getElementById('lnkSts');
+  lnk.className = 'link ' + (age < 180 ? 'up' : 'dn');
+
+  const guests = S.guests || [];
+  const byVmid = {};
+  guests.forEach(g => byVmid[g.vmid] = g);
+  const cards = [];
+
+  // ── PVE host ──
+  const pve = S.pve;
+  cards.push('<div class="node">'+
+    '<div class="nhead">'+led(pve ? pve.status === 'online' : null)+
+    '<span class="nm">PVE · TDS HOST</span><span class="role">Dell 14G · Proxmox 9</span></div>'+
+    (pve
+      ? meter('CPU', pve.cpu*100) + meter('MEM', pve.mem*100) +
+        '<div class="nfoot">ONLINE · UP '+fmtUp(pve.uptime)+' · '+guests.length+' GUESTS</div>'
+      : '<div class="nfoot">HOST TELEMETRY OFFLINE — PUSH CRON NOT INSTALLED ON TDS (SEE DEPLOY.MD)</div>')+
+    '</div>');
+
+  // ── self (n8n VM) — full local detail ──
+  const vm = S.vm || {};
+  const chips = [];
+  Object.entries(S.services || {}).forEach(([k, st]) =>
+    chips.push(chip(k.replace('tempest-dashboard','tempest-dash'), st === 'active', 'sysd')));
+  (S.docker || []).forEach(c =>
+    chips.push(chip(c.name.replace('n8n-n8n-1','n8n').replace('n8n-postgres-1','postgres'),
+                    /^Up/.test(c.status), dockerUt(c.status))));
+  const g100 = byVmid[100];
+  cards.push('<div class="node wide">'+
+    '<div class="nhead">'+led(true)+'<span class="nm">VM 100 · N8N</span>'+
+    '<span class="role">Debian 12 · 192.168.200.84 · self-reporting</span></div>'+
+    (vm.loadavg != null ? meter('CPU', Math.min(vm.loadavg/(vm.cores||1)*100,100), vm.loadavg.toFixed(2)+' LOAD / '+vm.cores+' CORES') : '')+
+    (vm.memUsedMb != null ? meter('MEM', vm.memUsedMb/vm.memTotMb*100, (vm.memUsedMb/1024).toFixed(1)+' / '+(vm.memTotMb/1024).toFixed(1)+' GB') : '')+
+    (vm.diskUsedGb != null ? meter('DISK', vm.diskUsedGb/vm.diskTotGb*100, vm.diskUsedGb+' / '+vm.diskTotGb+' GB') : '')+
+    '<div class="svcgrid">'+chips.join('')+'</div>'+
+    '<div class="nfoot">UP '+fmtUp(vm.uptime)+(g100 ? ' · PVE VIEW: CPU '+(g100.cpu*100).toFixed(0)+'% · '+g100.status.toUpperCase() : '')+'</div>'+
+    '</div>');
+
+  // ── defined systems ──
+  (S.systems || []).forEach(sys => {
+    const g = sys.vmid != null ? byVmid[sys.vmid] : null;
+    const up = sys.up === true ? true : sys.up === false ? false : null;
+    let foot = [];
+    if (sys.ms != null) foot.push((sys.check || 'CHECK').toUpperCase() + ' ' + sys.ms + ' MS');
+    if (up === false) foot = ['NOT RESPONDING — ' + (sys.check || '').toUpperCase() + ' FAILED'];
+    if (g) foot.push(g.status.toUpperCase() + ' · UP ' + fmtUp(g.uptime));
+    cards.push('<div class="node">'+
+      '<div class="nhead">'+led(up)+'<span class="nm">'+sys.name+'</span>'+
+      '<span class="role">'+(sys.role || '')+'</span></div>'+
+      (g ? meter('CPU', g.cpu*100) + meter('MEM', g.mem*100) : '')+
+      '<div class="nfoot">'+(foot.join(' · ') || 'NO CHECK DEFINED')+'</div>'+
+      '</div>');
+  });
+
+  document.getElementById('rack').innerHTML = cards.join('');
+}
+
+function offline(msg){
+  document.getElementById('stsNote').textContent = msg;
+  document.getElementById('lnkSts').className = 'link dn';
+}
+async function poll(){
+  try {
+    const r = await fetch('status.json?_t=' + Date.now(), { cache:'no-store', signal: AbortSignal.timeout(8000) });
+    if (!r.ok) { offline('STATUS FEED HTTP ' + r.status); return; }
+    render(await r.json());
+  } catch(e){ offline('STATUS FEED UNREACHABLE'); }
+}
+poll(); setInterval(poll, 15000);
+</script>
+</body>
+</html>

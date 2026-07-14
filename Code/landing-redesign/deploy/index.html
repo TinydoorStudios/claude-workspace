@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TDS · Command</title>
+<style>
+:root{
+  --bg:#06080c; --panel:#0b0f16; --panel2:#0e141d; --inset:#090d13;
+  --edge:#1b2433; --edge2:#233044;
+  --ink:#d7e2f0; --mut:#69788f; --dim:#42506a;
+  --cy:#37c8ff; --cy-dim:#1a5f7d; --ok:#2fe6a0; --warn:#ffd24d; --hot:#ff9440; --bad:#ff4d57;
+  --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--mono); color:var(--ink); min-height:100vh; background:var(--bg);
+  background-image:
+    radial-gradient(1000px 550px at 50% -12%, rgba(55,200,255,.08), transparent 60%),
+    linear-gradient(rgba(55,200,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(55,200,255,.022) 1px, transparent 1px);
+  background-size:100% 100%, 44px 44px, 44px 44px;
+}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);opacity:.55}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 22px 56px;position:relative;z-index:1}
+
+/* ── top bar ── */
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  border:1px solid var(--edge);background:linear-gradient(180deg,#0d1420,#0a0e15);
+  border-radius:4px;padding:10px 16px;margin-bottom:14px}
+.brand{font-size:15px;font-weight:700;letter-spacing:2px;color:#fff}
+.brand b{color:var(--cy)}
+@keyframes blink{50%{opacity:0}}
+.top .sp{flex:1}
+.link{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:1.5px;color:var(--dim)}
+.link .led{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.link.up{color:var(--ok)} .link.up .led{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.link.dn{color:var(--bad)} .link.dn .led{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+.clock{font-size:15px;color:#fff;font-weight:600;letter-spacing:1px}
+.clock small{color:var(--dim);font-size:10px;letter-spacing:2px;margin-left:6px}
+
+/* ── panels ── */
+.panel{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));
+  border:1px solid var(--edge);border-radius:4px;padding:16px 18px;margin-bottom:14px}
+.panel::before,.panel::after,
+.panel .ck::before,.panel .ck::after{content:'';position:absolute;width:14px;height:14px;
+  border-color:var(--cy-dim);border-style:solid;border-width:0}
+.panel::before{top:-1px;left:-1px;border-top-width:2px;border-left-width:2px}
+.panel::after{top:-1px;right:-1px;border-top-width:2px;border-right-width:2px}
+.panel .ck::before{bottom:-1px;left:-1px;border-bottom-width:2px;border-left-width:2px}
+.panel .ck::after{bottom:-1px;right:-1px;border-bottom-width:2px;border-right-width:2px}
+.plabel{display:flex;align-items:center;gap:10px;font-size:10px;letter-spacing:2.5px;
+  color:var(--cy);margin-bottom:14px;text-transform:uppercase}
+.plabel::before{content:'▮';font-size:9px}
+.plabel .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--edge2),transparent)}
+.plabel a,.plabel .note{color:var(--dim);text-decoration:none;letter-spacing:1px;font-size:10px;text-transform:none}
+.plabel a:hover{color:var(--cy);text-shadow:0 0 8px var(--cy)}
+
+.hero{display:grid;grid-template-columns:470px 1fr;gap:14px}
+.hero .panel{margin-bottom:0}
+.hero{margin-bottom:14px}
+@media(max-width:980px){.hero{grid-template-columns:1fr}}
+
+/* ── SPL ── */
+.spl-grid{display:grid;grid-template-columns:205px 1fr;gap:8px;align-items:center}
+.gauge{width:205px}
+.spl-big{font-size:56px;font-weight:700;line-height:.95;letter-spacing:-2px;
+  color:#fff;text-shadow:0 0 18px rgba(55,200,255,.35);font-variant-numeric:tabular-nums}
+.spl-big.c-warn{color:var(--warn);text-shadow:0 0 18px rgba(255,210,77,.4)}
+.spl-big.c-bad{color:var(--bad);text-shadow:0 0 18px rgba(255,77,87,.5);animation:blink .9s steps(1) infinite}
+.spl-big .u{font-size:15px;letter-spacing:1px;color:var(--mut);font-weight:400;text-shadow:none}
+.spl-sub{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:6px}
+.spl-long{font-size:11px;color:var(--mut);margin-top:8px;letter-spacing:.5px}
+.spl-long b{color:var(--ink)}
+.badge{display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:700;
+  letter-spacing:2px;padding:4px 10px;border:1px solid var(--edge2);border-radius:2px;margin-top:10px}
+.badge .led{width:7px;height:7px;border-radius:50%}
+.b-live{color:var(--ok);border-color:rgba(47,230,160,.35)} .b-live .led{background:var(--ok);box-shadow:0 0 8px var(--ok);animation:blink 1.4s steps(1) infinite}
+.b-stby{color:var(--dim)} .b-stby .led{background:var(--dim)}
+.showline{border-top:1px dashed var(--edge2);margin-top:14px;padding-top:10px;
+  font-size:11px;color:var(--mut);letter-spacing:.5px}
+.showline b{color:#fff;font-weight:600}
+.showline .pre{color:var(--cy)}
+.stby .spl-big{color:var(--dim);text-shadow:none}
+
+/* ── weather ── */
+.wx{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:680px){.wx{grid-template-columns:1fr}}
+.station{background:var(--inset);border:1px solid var(--edge);border-radius:3px;padding:12px 12px 10px}
+.station .name{font-size:9px;letter-spacing:2px;color:var(--cy);text-transform:uppercase;
+  margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.station .name::before{content:'▸ ';color:var(--dim)}
+.st-row{display:flex;align-items:center;gap:10px}
+.temp{font-size:34px;font-weight:700;line-height:1;color:#fff;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 14px rgba(55,200,255,.25)}
+.temp small{font-size:13px;color:var(--mut);font-weight:400;text-shadow:none}
+.feels{font-size:9px;letter-spacing:1px;color:var(--dim);margin-top:4px;text-transform:uppercase}
+.aux{display:flex;gap:14px;margin-top:8px;font-size:9px;letter-spacing:1px;color:var(--mut)}
+.aux b{color:var(--ink);font-weight:600}
+.radar{margin-left:auto;flex:none}
+.spark{display:block;margin-top:9px;width:100%;height:32px}
+.ltg-line{margin-top:8px;font-size:9px;letter-spacing:1.5px;display:flex;align-items:center;gap:7px;text-transform:uppercase}
+.ltg-line .led{width:6px;height:6px;border-radius:50%;flex:none}
+.lt-clear{color:var(--ok)} .lt-clear .led{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.lt-far{color:var(--warn)} .lt-far .led{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.lt-near{color:var(--hot)} .lt-near .led{background:var(--hot);box-shadow:0 0 6px var(--hot)}
+.lt-close{color:var(--bad)} .lt-close .led{background:var(--bad);box-shadow:0 0 8px var(--bad);animation:blink .8s steps(1) infinite}
+.ltg-det{font-size:9px;color:var(--dim);letter-spacing:1px;margin-top:4px}
+.radar svg{display:block}
+
+/* ── services manifest ── */
+.svc{display:grid;grid-template-columns:1fr 1fr;gap:2px 26px}
+@media(max-width:760px){.svc{grid-template-columns:1fr}}
+a.row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:2px;
+  text-decoration:none;color:var(--ink);font-size:12px;border-left:2px solid transparent}
+a.row:hover{background:rgba(55,200,255,.06);border-left-color:var(--cy)}
+.row .idx{color:var(--dim);font-size:10px;width:22px;flex:none}
+.row .nm{font-weight:700;letter-spacing:.5px;flex:none;color:#fff}
+.row .ds{color:var(--mut);font-size:10px;letter-spacing:.5px;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ping{font-size:9px;letter-spacing:1px;color:var(--dim);flex:none;width:74px;text-align:right}
+.ping.up{color:var(--ok)} .ping.dn{color:var(--bad)}
+.tag{font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:2px;flex:none;border:1px solid}
+.lock{color:var(--warn);border-color:rgba(255,210,77,.4)}
+.login{color:#c792ea;border-color:rgba(199,146,234,.4)}
+.lan{color:var(--cy);border-color:rgba(55,200,255,.4)}
+.foot{color:var(--dim);font-size:10px;letter-spacing:2px;margin-top:26px;text-align:center;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <span class="brand">TINY DOOR <b>STUDIOS</b></span>
+  <span class="sp"></span>
+  <span class="link" id="lnkSpl"><span class="led"></span>SPL LINK</span>
+  <span class="link" id="lnkTmp"><span class="led"></span>TEMPEST LINK</span>
+  <span class="clock"><span id="clk">--:--:--</span><small id="dte"></small></span>
+</div>
+
+<div class="hero">
+  <div class="panel" id="splPanel">
+    <span class="ck"></span>
+    <div class="plabel">SPL · FOH<span class="rule"></span><a href="https://spl.tinydoorstudios.com">FULL MONITOR ⇗</a></div>
+    <div class="spl-grid">
+      <svg class="gauge" viewBox="0 0 200 120" id="gaugeSvg"></svg>
+      <div>
+        <div class="spl-big" id="splVal">--.-<span class="u"> dBA</span></div>
+        <div class="spl-sub">LAEQ 10 S · <span id="splVenue">—</span></div>
+        <div class="spl-long" id="splLong"></div>
+        <span class="badge b-stby" id="splBadge"><span class="led"></span><span id="splBadgeTxt">CONNECTING…</span></span>
+      </div>
+    </div>
+    <div class="showline" id="showLine" style="display:none"></div>
+  </div>
+
+  <div class="panel">
+    <span class="ck"></span>
+    <div class="plabel">WX · TEMPEST NET<span class="rule"></span><a href="https://tempest.tinydoorstudios.com">FULL DASHBOARD ⇗</a></div>
+    <div class="wx" id="wx">
+      <div class="station"><div class="name">Fountain Square</div><div class="temp">--</div></div>
+      <div class="station"><div class="name">Elm Street Plaza</div><div class="temp">--</div></div>
+      <div class="station"><div class="name">Zeigler Park</div><div class="temp">--</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <span class="ck"></span>
+  <div class="plabel">SERVICES<span class="rule"></span><span class="note">RTT = live reachability probe</span></div>
+  <div class="svc" id="svcList"></div>
+</div>
+
+<div class="foot">tinydoorstudios.com · nyquist</div>
+</div>
+
+<script>
+// ══ clock ══
+function tick(){
+  const now = new Date();
+  document.getElementById('clk').textContent =
+    now.toLocaleTimeString('en-US',{hour12:false,timeZone:'America/New_York'});
+  document.getElementById('dte').textContent =
+    now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'America/New_York'}).toUpperCase();
+}
+tick(); setInterval(tick, 1000);
+
+function setLink(id, state){
+  document.getElementById(id).className = 'link' + (state ? ' ' + state : '');
+}
+
+// ══ SPL gauge ══
+const G = { min:60, max:110, cx:100, cy:105, r:86 };
+function polar(deg){
+  const rad = (180 - deg) * Math.PI / 180;
+  return [G.cx + G.r * Math.cos(rad), G.cy - G.r * Math.sin(rad)];
+}
+function vDeg(v){ return (Math.min(Math.max(v,G.min),G.max) - G.min) / (G.max - G.min) * 180; }
+function arc(v0, v1, color, w){
+  const [x0,y0] = polar(vDeg(v0)), [x1,y1] = polar(vDeg(v1));
+  return '<path d="M '+x0.toFixed(1)+' '+y0.toFixed(1)+' A '+G.r+' '+G.r+' 0 0 1 '+
+         x1.toFixed(1)+' '+y1.toFixed(1)+'" fill="none" stroke="'+color+'" stroke-width="'+w+'"/>';
+}
+function buildGauge(yellow, red){
+  let s = '';
+  s += arc(G.min, yellow ?? G.max, '#1b2433', 10);
+  if (yellow != null) s += arc(yellow, red ?? G.max, 'rgba(255,210,77,.45)', 10);
+  if (red != null)    s += arc(red, G.max, 'rgba(255,77,87,.5)', 10);
+  for (let v = G.min; v <= G.max; v += 10){
+    const d = vDeg(v), [xa,ya] = polar(d);
+    const rad = (180 - d) * Math.PI / 180;
+    const xi = G.cx + (G.r-12) * Math.cos(rad), yi = G.cy - (G.r-12) * Math.sin(rad);
+    const xt = G.cx + (G.r-24) * Math.cos(rad), yt = G.cy - (G.r-24) * Math.sin(rad);
+    s += '<line x1="'+xa.toFixed(1)+'" y1="'+ya.toFixed(1)+'" x2="'+xi.toFixed(1)+'" y2="'+yi.toFixed(1)+'" stroke="#42506a" stroke-width="1.5"/>';
+    s += '<text x="'+xt.toFixed(1)+'" y="'+(yt+3).toFixed(1)+'" text-anchor="middle" font-size="8" fill="#42506a" font-family="inherit">'+v+'</text>';
+  }
+  s += '<g id="needle" transform="rotate(0 '+G.cx+' '+G.cy+')" style="transition:transform .8s cubic-bezier(.3,1.4,.4,1)">'+
+       '<line x1="'+(G.cx-G.r+18)+'" y1="'+G.cy+'" x2="'+G.cx+'" y2="'+G.cy+'" stroke="#37c8ff" stroke-width="2" style="filter:drop-shadow(0 0 4px #37c8ff)"/>'+
+       '</g>'+
+       '<circle cx="'+G.cx+'" cy="'+G.cy+'" r="5" fill="#0b0f16" stroke="#37c8ff" stroke-width="1.5"/>';
+  document.getElementById('gaugeSvg').innerHTML = s;
+}
+buildGauge(80, 90);
+function setNeedle(v){
+  const n = document.getElementById('needle');
+  if (n) n.setAttribute('transform', 'rotate(' + vDeg(v ?? G.min).toFixed(1) + ' ' + G.cx + ' ' + G.cy + ')');
+}
+
+// ══ SPL feed ══
+const splState = { live:false, venues:{}, venue:null };
+function setSplBadge(cls, txt){
+  document.getElementById('splBadge').className = 'badge ' + cls;
+  document.getElementById('splBadgeTxt').textContent = txt;
+}
+function splStandby(msg){
+  document.getElementById('splPanel').classList.add('stby');
+  const el = document.getElementById('splVal');
+  el.className = 'spl-big'; el.innerHTML = '--.-<span class="u"> dBA</span>';
+  document.getElementById('splLong').textContent = '';
+  setNeedle(null); setSplBadge('b-stby', msg);
+}
+function renderSpl(s){
+  if (s.laeqShort == null || !splState.live) return;
+  const v = s.laeqShort;
+  const lim = splState.venues[splState.venue] || {};
+  let cls = '';
+  if (lim.red != null && v >= lim.red) cls = 'c-bad';
+  else if (lim.yellow != null && v >= lim.yellow) cls = 'c-warn';
+  const el = document.getElementById('splVal');
+  el.className = 'spl-big ' + cls;
+  el.innerHTML = v.toFixed(1) + '<span class="u"> dBA</span>';
+  setNeedle(v);
+  if (s.laeqLong != null)
+    document.getElementById('splLong').innerHTML = '6-MIN COMPLIANCE <b>' + s.laeqLong.toFixed(1) + '</b> dBA';
+}
+function connectSpl(){
+  let ws;
+  try { ws = new WebSocket('wss://spl.tinydoorstudios.com/ws'); }
+  catch(e){ setLink('lnkSpl','dn'); splStandby('OFFLINE'); return; }
+  ws.onopen = () => setLink('lnkSpl','up');
+  ws.onmessage = (ev) => {
+    let m; try { m = JSON.parse(ev.data); } catch(e){ return; }
+    if (m.type === 'hello'){ splState.venues = m.venues || {}; splState.venue = m.venue;
+      document.getElementById('splVenue').textContent = (m.venue || '—').toUpperCase();
+      const lim = splState.venues[m.venue] || {};
+      buildGauge(lim.yellow ?? 80, lim.red ?? 90); setNeedle(null); }
+    else if (m.type === 'venue'){ splState.venue = m.venue;
+      document.getElementById('splVenue').textContent = (m.venue || '—').toUpperCase(); }
+    else if (m.type === 'status'){
+      splState.live = !!m.live;
+      if (m.live){ document.getElementById('splPanel').classList.remove('stby'); setSplBadge('b-live','LIVE'); }
+      else splStandby('STANDBY · NO SIGNAL');
+    }
+    else if (m.type === 'state'){ renderSpl(m); }
+    else if (m.type === 'showinfo'){
+      const line = document.getElementById('showLine');
+      if (m.show){
+        line.style.display = '';
+        line.innerHTML = '<span class="pre">&gt;</span> TONIGHT: <b>' + m.show + '</b>';
+      } else line.style.display = 'none';
+    }
+  };
+  ws.onclose = () => { setLink('lnkSpl','dn'); splStandby('LINK DOWN'); setTimeout(connectSpl, 10000); };
+  ws.onerror = () => { try { ws.close(); } catch(e){} };
+}
+connectSpl();
+
+// ══ Tempest ══
+const WX_ORDER = ['Fountain Square','Elm Street Plaza','Zeigler Park'];
+const cToF = c => c * 9 / 5 + 32; // Tempest REST obs are °C regardless of units params
+
+function sparkline(points){
+  if (!points || points.length < 2) return '';
+  const w = 220, h = 32, pad = 3;
+  const t0 = points[0].t, t1 = points[points.length-1].t;
+  const fs = points.map(p => p.f);
+  const lo = Math.min(...fs), hi = Math.max(...fs), span = (hi - lo) || 1;
+  const xy = p => [
+    pad + (w - 2*pad) * ((p.t - t0) / ((t1 - t0) || 1)),
+    h - pad - (h - 2*pad) * ((p.f - lo) / span)
+  ];
+  const pts = points.map(p => xy(p).map(n => n.toFixed(1)).join(',')).join(' ');
+  const [lx,ly] = xy(points[points.length-1]);
+  let grid = '';
+  for (let i = 1; i < 4; i++){
+    const x = (w/4)*i;
+    grid += '<line x1="'+x+'" y1="0" x2="'+x+'" y2="'+h+'" stroke="#1b2433" stroke-width="0.5"/>';
+  }
+  return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+ grid +
+    '<polyline points="'+pts+'" fill="none" stroke="#37c8ff" stroke-width="1.3" style="filter:drop-shadow(0 0 3px rgba(55,200,255,.6))"/>'+
+    '<circle cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="2.2" fill="#37c8ff"/>'+
+    '<text x="3" y="8" font-size="7" fill="#42506a" font-family="inherit">'+Math.round(hi)+'°</text>'+
+    '<text x="3" y="'+(h-3)+'" font-size="7" fill="#42506a" font-family="inherit">'+Math.round(lo)+'°</text>'+
+    '</svg>';
+}
+
+function radar(s){
+  const W = s.lightningWithin || {};
+  const ringCol = r => W[r] ? (r === 1 ? '#ff4d57' : r === 5 ? '#ff9440' : '#ffd24d') : '#1b2433';
+  const active = W[1] || W[5] || W[30];
+  const blip = active && s.lightningClosestMi != null
+    ? (() => {
+        const mi = s.lightningClosestMi;
+        const rr = mi <= 1 ? 6 : mi <= 5 ? 13 : 20;
+        return '<circle cx="'+(24 + rr*0.7).toFixed(1)+'" cy="'+(24 - rr*0.71).toFixed(1)+'" r="2.4" fill="'+(mi<=1?'#ff4d57':mi<=5?'#ff9440':'#ffd24d')+'"><animate attributeName="opacity" values="1;.2;1" dur="1s" repeatCount="indefinite"/></circle>';
+      })()
+    : '';
+  return '<span class="radar"><svg width="48" height="48" viewBox="0 0 48 48">'+
+    '<circle cx="24" cy="24" r="20" fill="none" stroke="'+ringCol(30)+'" stroke-width="1.2"/>'+
+    '<circle cx="24" cy="24" r="13" fill="none" stroke="'+ringCol(5)+'" stroke-width="1.2"/>'+
+    '<circle cx="24" cy="24" r="6"  fill="none" stroke="'+ringCol(1)+'" stroke-width="1.2"/>'+
+    '<circle cx="24" cy="24" r="1.6" fill="#37c8ff"/>'+
+    blip + '</svg></span>';
+}
+
+function lightningLine(s){
+  const W = s.lightningWithin || {};
+  let cls = 'lt-clear', txt = 'LTG CLEAR';
+  if (W[1])       { cls = 'lt-close'; txt = 'LTG < 1 MI'; }
+  else if (W[5])  { cls = 'lt-near';  txt = 'LTG < 5 MI'; }
+  else if (W[30]) { cls = 'lt-far';   txt = 'LTG < 30 MI'; }
+  let det = '';
+  if (cls !== 'lt-clear'){
+    const bits = [];
+    if (s.lightningClosestMi != null) bits.push('CLOSEST ' + s.lightningClosestMi + ' MI');
+    if (s.lightningCount) bits.push(s.lightningCount + ' STRIKES/HR');
+    det = '<div class="ltg-det">' + bits.join(' · ') + '</div>';
+  }
+  return '<div class="ltg-line ' + cls + '"><span class="led"></span>' + txt + '</div>' + det;
+}
+
+function renderWx(stations){
+  stations = stations.slice().sort((a,b) => WX_ORDER.indexOf(a.name) - WX_ORDER.indexOf(b.name));
+  document.getElementById('wx').innerHTML = stations.map(s => {
+    const o = s.obs || {};
+    const t  = o.air_temperature != null ? cToF(o.air_temperature) : null;
+    const fl = o.feels_like      != null ? cToF(o.feels_like)      : null;
+    const gust = o.wind_gust, rh = o.relative_humidity;
+    return '<div class="station">'+
+      '<div class="name">' + s.name + '</div>'+
+      '<div class="st-row"><div><div class="temp">' + (t != null ? Math.round(t) + '<small>°F</small>' : '--') + '</div>'+
+      (fl != null ? '<div class="feels">FEELS ' + Math.round(fl) + '°</div>' : '') + '</div>'+
+      radar(s) + '</div>'+
+      '<div class="aux">' +
+        (gust != null ? '<span>GUST <b>' + Math.round(gust) + '</b> MPH</span>' : '') +
+        (rh   != null ? '<span>RH <b>' + Math.round(rh) + '</b>%</span>' : '') +
+      '</div>'+
+      sparkline(s.history) +
+      lightningLine(s) +
+      '</div>';
+  }).join('');
+}
+
+function connectTempest(){
+  let ws;
+  try { ws = new WebSocket('wss://tempest.tinydoorstudios.com/'); }
+  catch(e){ setLink('lnkTmp','dn'); return; }
+  ws.onopen = () => setLink('lnkTmp','up');
+  ws.onmessage = (ev) => {
+    let data; try { data = JSON.parse(ev.data); } catch(e){ return; }
+    if (Array.isArray(data) && data.length) renderWx(data);
+  };
+  ws.onclose = () => { setLink('lnkTmp','dn'); setTimeout(connectTempest, 15000); };
+  ws.onerror = () => { try { ws.close(); } catch(e){} };
+}
+connectTempest();
+
+// ══ SERVICES + live reachability probes ══
+const SERVICES = [
+  { nm:'LIVE SOUND KB', ds:'wiki — articles + shows', href:'https://kb.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://kb.tinydoorstudios.com' },
+  { nm:'N8N', ds:'automation workflows', href:'https://n8n.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://n8n.tinydoorstudios.com/healthz' },
+  { nm:'SHOWBUILDER', ds:'Q225 paperwork + .ses package', href:'https://showbuilder.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://showbuilder.tinydoorstudios.com' },
+  { nm:'UPLOADS', ds:'guest file drop — AFX (Cold Storage)', href:'https://uploads.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://uploads.tinydoorstudios.com' },
+  { nm:'GROW TENTS', ds:'AC Infinity monitor + control', href:'https://grow.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://grow.tinydoorstudios.com' },
+  { nm:'SPL MONITOR', ds:'FOH SPL — live during shows', href:'https://spl.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://spl.tinydoorstudios.com' },
+  { nm:'TEMPEST', ds:'3-station weather net', href:'https://tempest.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://tempest.tinydoorstudios.com' },
+  { nm:'CAMERAS', ds:'reboot 3× JVC PTZ (Memo)', href:'/cameras/', tag:['login','LOGIN'], probe:'same-origin:/cameras/' },
+  { nm:'VM RACK', ds:'infra dashboard — host, VMs, services', href:'/rack/', tag:['lock','PASSCODE'], probe:null },
+  { nm:'PROXMOX', ds:'TDS host management', href:'https://tds.tail9c92b.ts.net:8006', tag:['lan','TAILNET'], probe:null },
+  { nm:'IDRAC', ds:'Dell out-of-band mgmt', href:'https://192.168.0.7', tag:['lan','LAN'], probe:null },
+];
+function renderServices(){
+  document.getElementById('svcList').innerHTML = SERVICES.map((s,i) =>
+    '<a class="row" href="'+s.href+'"><span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
+    '<span class="nm">'+s.nm+'</span><span class="ds">'+s.ds+'</span>'+
+    '<span class="ping" id="ping'+i+'">'+(s.probe ? '· · ·' : '—')+'</span>'+
+    '<span class="tag '+s.tag[0]+'">'+s.tag[1]+'</span></a>').join('');
+}
+renderServices();
+async function probeAll(){
+  await Promise.allSettled(SERVICES.map(async (s,i) => {
+    if (!s.probe) return;
+    const el = document.getElementById('ping'+i);
+    const t0 = performance.now();
+    try {
+      if (s.probe.startsWith('same-origin:')){
+        // same-origin: real status is readable — 401 = auth gate up, 5xx = backend down
+        const r = await fetch(s.probe.slice(12) + '?_p=' + Date.now(), { cache:'no-store', signal: AbortSignal.timeout(8000) });
+        if (r.status >= 500) throw new Error('HTTP ' + r.status);
+      } else {
+        await fetch(s.probe + (s.probe.includes('/healthz') ? '?_p=' : '/?_p=') + Date.now(), { mode:'no-cors', cache:'no-store', signal: AbortSignal.timeout(8000) });
+      }
+      el.textContent = Math.round(performance.now() - t0) + ' MS';
+      el.className = 'ping up';
+    } catch(e){
+      el.textContent = 'NO ROUTE';
+      el.className = 'ping dn';
+    }
+  }));
+}
+probeAll(); setInterval(probeAll, 60000);
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+[Unit]
+Description=JVC PZ100 control-plane reset (heal wedged cameras)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=brian
+WorkingDirectory=/opt/jvc-reset
+# --if-wedged probes each camera first and only resets the ones that don't
+# answer, so a healthy / in-use camera is never interrupted.
+ExecStart=/opt/jvc-reset/.venv/bin/python /opt/jvc-reset/reset_cameras.py --method video --if-wedged

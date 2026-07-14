@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Blue Eighty-Eight &#8212; FOH Channel Processing</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #222; background: #fff; }
+.page { max-width: 870px; margin: 0 auto; padding: 36px 44px; }
+
+.cover-block { background: #1c3558; padding: 18px 20px 14px 20px; }
+.cover-block h1 { font-size: 24pt; color: #fff; letter-spacing: 1.5px; margin-bottom: 4px; }
+.cover-block .sub { font-size: 11pt; color: #c8a84b; font-weight: bold; margin-bottom: 6px; }
+.cover-block .meta { font-size: 8.5pt; color: #aab8cc; }
+.cover-rule { height: 3px; background: #c8a84b; margin-bottom: 14px; }
+
+.section-header { background: #1c3558; color: #fff; padding: 7px 14px; font-size: 10pt; font-weight: bold; margin: 22px 0 10px 0; letter-spacing: 0.4px; }
+
+.data-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.data-table th { background: #1c3558; color: #fff; padding: 5px 10px; text-align: left; font-size: 8.5pt; }
+.data-table th.center { text-align: center; }
+.data-table td { padding: 4px 10px; border-bottom: 1px solid #e8e8e8; font-size: 8.5pt; vertical-align: top; }
+.data-table td.center { text-align: center; }
+.data-table td.mono { font-family: Courier, monospace; font-size: 8pt; }
+.data-table td.red-cell { color: #b71c1c; font-weight: bold; text-align: center; }
+.data-table td.muted { color: #666; font-style: italic; }
+.data-table td.italic { font-style: italic; }
+.data-table tr:nth-child(even) td { background: #f6f6f6; }
+.data-table tr.mon-only-row td { background: #e8f0fe !important; }
+
+.watch-item { margin-bottom: 6px; border: 1px solid #e0e0e0; }
+.watch-title { padding: 5px 12px; font-size: 8pt; font-weight: bold; }
+.watch-title.red { background: #fde8e8; color: #b71c1c; }
+.watch-title.blue { background: #e8f0fe; color: #1a56a0; }
+.watch-title.dark { background: #f0f0f0; color: #333; }
+.watch-body { padding: 6px 12px; font-size: 8.5pt; line-height: 1.5; color: #333; background: #fff; }
+
+.card { margin-bottom: 18px; border: 1px solid #ccc; page-break-inside: avoid; }
+.card-header { background: #1c3558; color: #fff; padding: 8px 14px; font-size: 11pt; font-weight: bold; }
+.card table { width: 100%; border-collapse: collapse; }
+.card table th { background: #e6e6e6; padding: 5px 10px; text-align: left; font-size: 8.5pt; font-weight: bold; color: #333; border-bottom: 1px solid #bbb; }
+.card table th.col-section { width: 185px; }
+.card table th.col-value { width: 170px; }
+.card table td { padding: 5px 10px; vertical-align: top; font-size: 8.5pt; border-bottom: 1px solid #eaeaea; }
+.card table td.col-section { font-weight: bold; color: #1c3558; width: 185px; }
+.card table td.col-value { width: 170px; }
+.card table tr:nth-child(odd) td { background: #fafafa; }
+.card table tr:nth-child(even) td { background: #fff; }
+.card table tr.summary-row td { background: #eef2f7 !important; }
+.card table tr.phantom-row td { background: #fff0f0 !important; }
+
+.file-row { padding: 4px 0; border-bottom: 1px solid #eee; font-size: 8.5pt; }
+.fname { font-family: Courier, monospace; font-size: 8pt; font-weight: bold; color: #1c3558; }
+.fdesc { color: #555; margin-left: 8px; }
+
+.note { font-size: 8.5pt; color: #555; margin-bottom: 8px; }
+.page-break { page-break-before: always; }
+@media print {
+  .section-header { page-break-after: avoid; }
+  .watch-item { page-break-inside: avoid; }
+  .card { page-break-inside: avoid; }
+  .page-break { page-break-before: always; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="cover-block">
+  <h1>BLUE EIGHTY-EIGHT</h1>
+  <div class="sub">FOH CHANNEL PROCESSING &mdash; DiGiCo Quantum 225 &middot; Fountain Square &middot; 2026-06-20</div>
+  <div class="meta">17 active FOH channels &nbsp;&middot;&nbsp; 2 monitor-only &nbsp;&middot;&nbsp; Outdoor &middot; L-Acoustics A15/KS21 &middot; Cincinnati, OH</div>
+</div>
+<div class="cover-rule"></div>
+
+<div class="section-header">INPUT LIST &mdash; ACTIVE CHANNELS</div>
+<p class="note">Channels with no mic/DI listed are excluded. Ch 23 and 24 are monitor-only &mdash; no FOH processing, no EQ cards.</p>
+<table class="data-table">
+  <tr>
+    <th class="center" style="width:36px;">CH</th>
+    <th>SOURCE</th>
+    <th>MIC / DI</th>
+    <th class="center" style="width:40px;">48V</th>
+  </tr>
+  <tr><td class="center">9</td><td>E-Kit L</td><td>DI</td><td class="center">—</td></tr>
+<tr><td class="center">10</td><td>E-Kit R</td><td>DI</td><td class="center">—</td></tr>
+<tr><td class="center">11</td><td>Bass DI</td><td>DI</td><td class="center">—</td></tr>
+<tr><td class="center">12</td><td>Bass Keys</td><td>DI</td><td class="center">—</td></tr>
+<tr><td class="center">13</td><td>Guitar 1</td><td>Sennheiser e609</td><td class="center">—</td></tr>
+<tr><td class="center">14</td><td>Guitar 2</td><td>Sennheiser e609</td><td class="center">—</td></tr>
+<tr><td class="center">17</td><td>Keys</td><td>DI</td><td class="center">—</td></tr>
+<tr><td class="center">18</td><td>Sax 1</td><td>AT Pro 35</td><td class="red-cell">48V</td></tr>
+<tr><td class="center">19</td><td>Sax 2</td><td>AT Pro 35</td><td class="red-cell">48V</td></tr>
+<tr><td class="center">20</td><td>Perc 1 (Bongos)</td><td>Shure SM57</td><td class="center">—</td></tr>
+<tr><td class="center">21</td><td>Perc 2 (Toys)</td><td>Shure SM57</td><td class="center">—</td></tr>
+<tr><td class="center">25</td><td>Wayne (vox)</td><td>Shure SM58</td><td class="center">—</td></tr>
+<tr><td class="center">26</td><td>Brent (vox)</td><td>Shure SM58</td><td class="center">—</td></tr>
+<tr><td class="center">27</td><td>Chris (vox)</td><td>Shure SM58</td><td class="center">—</td></tr>
+<tr><td class="center">28</td><td>John (vox)</td><td>Shure SM58</td><td class="center">—</td></tr>
+<tr><td class="center">29</td><td>Carrie (vox)</td><td>Shure SM58</td><td class="center">—</td></tr>
+<tr><td class="center">30</td><td>MD (vox)</td><td>Shure SM58</td><td class="center">—</td></tr>
+<tr class="mon-only-row"><td class="center">23</td><td>Click <em class="muted">(monitor-only)</em></td><td>DI</td><td class="center">—</td></tr>
+<tr class="mon-only-row"><td class="center">24</td><td>Guide <em class="muted">(monitor-only)</em></td><td>DI</td><td class="center">—</td></tr>
+
+</table>
+
+<div class="section-header">CONSOLE REFERENCE</div>
+<p class="note" style="font-weight:bold;">Channel Labels</p>
+<table class="data-table" style="margin-bottom:14px;">
+  <tr>
+    <th class="center" style="width:36px;">CH</th>
+    <th style="width:80px;">SHORT LABEL</th>
+    <th>INSTRUMENT</th>
+    <th>MIC / DI</th>
+    <th class="center" style="width:38px;">48V</th>
+    <th class="center" style="width:52px;">HPF Hz</th>
+    <th style="width:80px;">VCA GROUP</th>
+  </tr>
+  <tr><td class="center">9</td><td class="mono">EKIT L</td><td>E-Kit L</td><td>DI</td><td class="center">—</td><td class="center">40</td><td>E-KIT</td></tr>
+<tr><td class="center">10</td><td class="mono">EKIT R</td><td>E-Kit R</td><td>DI</td><td class="center">—</td><td class="center">40</td><td>E-KIT</td></tr>
+<tr><td class="center">11</td><td class="mono">BASS DI</td><td>Bass DI</td><td>DI</td><td class="center">—</td><td class="center">40</td><td>BASS</td></tr>
+<tr><td class="center">12</td><td class="mono">BASS KEYS</td><td>Bass Keys</td><td>DI</td><td class="center">—</td><td class="center">80</td><td>BASS</td></tr>
+<tr><td class="center">13</td><td class="mono">GTR 1</td><td>Guitar 1</td><td>Sennheiser e609</td><td class="center">—</td><td class="center">120</td><td>GUITARS</td></tr>
+<tr><td class="center">14</td><td class="mono">GTR 2</td><td>Guitar 2</td><td>Sennheiser e609</td><td class="center">—</td><td class="center">120</td><td>GUITARS</td></tr>
+<tr><td class="center">17</td><td class="mono">KEYS</td><td>Keys</td><td>DI</td><td class="center">—</td><td class="center">80</td><td>KEYS/MISC</td></tr>
+<tr><td class="center">18</td><td class="mono">SAX 1</td><td>Sax 1</td><td>AT Pro 35</td><td class="red-cell">48V</td><td class="center">150</td><td>KEYS/MISC</td></tr>
+<tr><td class="center">19</td><td class="mono">SAX 2</td><td>Sax 2</td><td>AT Pro 35</td><td class="red-cell">48V</td><td class="center">150</td><td>KEYS/MISC</td></tr>
+<tr><td class="center">20</td><td class="mono">PERC 1</td><td>Perc 1 (Bongos)</td><td>Shure SM57</td><td class="center">—</td><td class="center">150</td><td>KEYS/MISC</td></tr>
+<tr><td class="center">21</td><td class="mono">PERC 2</td><td>Perc 2 (Toys)</td><td>Shure SM57</td><td class="center">—</td><td class="center">200</td><td>KEYS/MISC</td></tr>
+<tr><td class="center">25</td><td class="mono">WAYNE</td><td>Wayne (vox)</td><td>Shure SM58</td><td class="center">—</td><td class="center">120</td><td>VOCALS</td></tr>
+<tr><td class="center">26</td><td class="mono">BRENT</td><td>Brent (vox)</td><td>Shure SM58</td><td class="center">—</td><td class="center">120</td><td>VOCALS</td></tr>
+<tr><td class="center">27</td><td class="mono">CHRIS</td><td>Chris (vox)</td><td>Shure SM58</td><td class="center">—</td><td class="center">120</td><td>VOCALS</td></tr>
+<tr><td class="center">28</td><td class="mono">JOHN</td><td>John (vox)</td><td>Shure SM58</td><td class="center">—</td><td class="center">120</td><td>VOCALS</td></tr>
+<tr><td class="center">29</td><td class="mono">CARRIE</td><td>Carrie (vox)</td><td>Shure SM58</td><td class="center">—</td><td class="center">120</td><td>VOCALS</td></tr>
+<tr><td class="center">30</td><td class="mono">MD</td><td>MD (vox)</td><td>Shure SM58</td><td class="center">—</td><td class="center">120</td><td>VOCALS</td></tr>
+<tr class="mon-only-row"><td class="center">23</td><td class="mono">CLICK</td><td>Click</td><td>DI</td><td class="center">—</td><td class="center">—</td><td class="muted italic">Monitor-only</td></tr>
+<tr class="mon-only-row"><td class="center">24</td><td class="mono">GUIDE</td><td>Guide</td><td>DI</td><td class="center">—</td><td class="center">—</td><td class="muted italic">Monitor-only</td></tr>
+
+</table>
+<p class="note" style="font-weight:bold;">VCA Groups</p>
+<table class="data-table" style="margin-bottom:14px;">
+  <tr>
+    <th class="center" style="width:52px;">VCA</th>
+    <th style="width:120px;">NAME</th>
+    <th>CHANNELS</th>
+  </tr>
+  <tr><td class="center">1</td><td><strong>E-KIT</strong></td><td>Ch 9, 10</td></tr>
+<tr><td class="center">2</td><td><strong>BASS</strong></td><td>Ch 11, 12</td></tr>
+<tr><td class="center">3</td><td><strong>GUITARS</strong></td><td>Ch 13, 14</td></tr>
+<tr><td class="center">4</td><td><strong>KEYS/MISC</strong></td><td>Ch 17, 18, 19, 20, 21</td></tr>
+<tr><td class="center">5</td><td><strong>VOCALS</strong></td><td>Ch 25, 26, 27, 28, 29, 30</td></tr>
+<tr><td class="center">6</td><td><strong>ALL</strong></td><td>VCA 1–5 master</td></tr>
+
+</table>
+
+<div class="section-header">WATCHPOINTS</div>
+
+<div class="watch-item">
+  <div class="watch-title red">&#9888; PHANTOM POWER &mdash; Ch 18 &amp; 19 (AT Pro 35)</div>
+  <div class="watch-body">Both sax channels require 48V phantom. The AT Pro 35 runs through an AT8538 inline phantom power module &mdash; no phantom means no signal, not degraded signal. Confirm phantom is on before soundcheck. All other channels are passive DIs or dynamic mics; no phantom required elsewhere on this show.</div>
+</div>
+
+<div class="watch-item">
+  <div class="watch-title red">&#9888; AT PRO 35 MIC HPF SWITCH &mdash; Ch 18 &amp; 19</div>
+  <div class="watch-body">The AT Pro 35 has a built-in 80 Hz HPF switch at the capsule. Engage it on both mics before soundcheck. The console HPF sits above it at 150 Hz &mdash; the combination is intentional and handles outdoor wind and stage handling noise. Gate both channels; key slap between phrases is constant on clip-on sax mics.</div>
+</div>
+
+<div class="watch-item">
+  <div class="watch-title blue">E-KIT STEREO PAIR &mdash; Ch 9 &amp; 10</div>
+  <div class="watch-body">E-kick is folded into the stereo L/R output from the drum module. HPF stays at 40 Hz on both channels &mdash; anything higher eats kick body. Link Ch 9 and Ch 10 as a stereo pair on the Q225. Match gain before any EQ. Polarity check both channels against each other in mono. Kit image should sit naturally in the center field before soundcheck opens.</div>
+</div>
+
+<div class="watch-item">
+  <div class="watch-title blue">MD DOUBLING &mdash; Ch 12, 17, 30</div>
+  <div class="watch-body">The Music Director is on three channels: Ch 12 (Bass Keys), Ch 17 (Keys), and Ch 30 (vocal). This is the most routing-complex position on the stage. Coordinate with the M32 operator before soundcheck &mdash; the MD monitor mix needs to account for all three sources. The vocal channel (Ch 30) is the primary FOH presence.</div>
+</div>
+
+<div class="watch-item">
+  <div class="watch-title dark">FSQ OUTDOOR EQ APPROACH</div>
+  <div class="watch-body">All channels on this show follow the FSQ outdoor EQ rule: cuts over boosts throughout. The L-Acoustics A15/KS21 rig has clean high-end and deep sub extension &mdash; it doesn't need help from channel EQ. Vocals are cuts-only with no exceptions. The primary risk is gain-before-feedback on open mics in a downtown ambient noise floor, not room reflections.</div>
+</div>
+
+<div class="watch-item">
+  <div class="watch-title dark">TWO GUITARS &mdash; Ch 13 &amp; 14 CARVE</div>
+  <div class="watch-body">Both guitar channels use the same mic (e609). Starting values are intentionally offset &mdash; Ch 13 cuts at 3 kHz / 300 Hz, Ch 14 cuts at 3.5 kHz / 350 Hz &mdash; to create natural frequency separation without forcing it. If they compete in the mix, widen the separation before reaching for level. Check on the guitar bus together rather than independently.</div>
+</div>
+
+<div class="watch-item">
+  <div class="watch-title dark">MONITOR-ONLY &mdash; Ch 23 &amp; 24</div>
+  <div class="watch-body">Click (Ch 23) and Guide (Ch 24) are routed to monitors only. Confirm no FOH path is open on either channel. These feeds originate from playback &mdash; confirm routing at patch and verify at the M32 before soundcheck.</div>
+</div>
+
+<div class="page-break"></div>
+
+<h1 style="text-align:center;font-size:22pt;color:#1c3558;margin-bottom:6px;letter-spacing:1px;">BLUE EIGHTY-EIGHT</h1>
+<div style="text-align:center;font-size:12pt;color:#1c3558;font-weight:bold;margin-bottom:24px;">FOH CHANNEL PROCESSING &mdash; DiGiCo Q225 &middot; Fountain Square &middot; 2026-06-20</div>
+<p class="note">Band order: <strong>Band 4</strong> (highest) &#8594; <strong>Band 3</strong> &#8594; <strong>Band 2</strong> &#8594; <strong>Band 1</strong> (lowest) &mdash; matches Q225 console display. HPFs marked * are higher than indoor equivalents; outdoor ambient and wind justify the offset.</p>
+
+
+<div class="card">
+<div class="card-header">Ch 9 &mdash; E-Kit L &nbsp;&middot;&nbsp; DI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">40 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 8 kHz</td><td class="col-detail">Q 0.71; Shelf — Tame digital top-end glare from the drum module. The module already processes the signal; this smooths the HF character.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 3 kHz</td><td class="col-detail">Q 2.0 — Module mid-forward response. A cut here cleans up the slightly synthetic midrange without touching the fundamental.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-3 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Low-mid mud. Present in most DI sources; static cut is sufficient outdoors.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">HPF at 40 Hz handles the bottom. E-kick is in this stereo mix — don't choke the fundamental.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">E-kit L/R stereo output from module — signal arrives pre-processed. HPF stays low (40 Hz) because the e-kick is folded into this stereo mix; anything higher starts eating kick body. Match gain Ch 9 and Ch 10 before any EQ. Polarity check both against each other in mono before soundcheck.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 10 &mdash; E-Kit R &nbsp;&middot;&nbsp; DI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">40 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 8 kHz</td><td class="col-detail">Q 0.71; Shelf — Match Ch 9 exactly.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 3 kHz</td><td class="col-detail">Q 2.0 — Match Ch 9.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-3 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Match Ch 9.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">Match Ch 9.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">Mirror Ch 9 exactly. Link as a stereo pair on the Q225 before soundcheck and adjust as a unit. Confirm stereo image sits naturally in the field — nudge pan if the kit reads asymmetric.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 11 &mdash; Bass DI &nbsp;&middot;&nbsp; DI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">40 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 5 kHz</td><td class="col-detail">Q 0.71; Shelf — DI glare and string noise above the useful bass range. The A15/KS21 rig is clean up top; a shelf cut tidies the source without touching character.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-2 dB @ 800 Hz</td><td class="col-detail">Q 2.0 — Mid-bass honk. Common in active bass DIs; a modest cut opens up the mix without hollowing the fundamental.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-3 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Mud control. This range accumulates across the mix outdoors; address it on every DI source.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">The A15/KS21 sub arch has deep extension — don't pile on. Let the fundamental sit naturally.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">Electric bass DI. FSQ PA (A15/KS21) has serious low-end extension and doesn't need help — resist adding low shelf here. Cut the mud at 250 Hz, knock back the honk at 800 Hz, and let the fundamental breathe. Carve space between this and Bass Keys (Ch 12) once both are open.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 12 &mdash; Bass Keys &nbsp;&middot;&nbsp; DI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">80 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 6 kHz</td><td class="col-detail">Q 0.71; Shelf — Keyboard DI is usually clean; this trims the digital top end.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-2 dB @ 1 kHz</td><td class="col-detail">Q 2.0 — Keyboard mid-push at 1 kHz is the primary culprit when keys compete with bass DI. A modest cut creates space.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-3 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Same mud frequency as Ch 11. Treat it the same way.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">HPF at 80 Hz. Let it sit — this is keyboard bass, not sub bass.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">Keyboard bass DI. Primary concern is carving against Ch 11 (electric bass) — they live in the same frequency range. The 1 kHz cut creates the most useful separation. This is also the MD, who is simultaneously on Ch 17 (Keys) and Ch 30 (vocal) — plan the monitor mix before soundcheck.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 13 &mdash; Guitar 1 &nbsp;&middot;&nbsp; Sennheiser e609</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">120 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 8 kHz</td><td class="col-detail">Q 0.71; Shelf — e609 on a guitar cab has a forward upper-mid character. A gentle shelf above 8 kHz tames harshness without dulling the tone.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 3 kHz</td><td class="col-detail">Q 2.0 — The e609 natural presence peak. Cut rather than boost — let the mic's character work without adding more edge.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-4 dB @ 300 Hz</td><td class="col-detail">Q 2.0 — Cabinet body buildup. Most common problem area on e609-on-cab; needs addressing on every guitar channel outdoors.</td></tr>
+<tr><td class="col-section">Band 1; Low Bell</td><td class="col-value">-4 dB @ 150 Hz</td><td class="col-detail">Q 1.5 — Low-mid rumble below the guitar's useful fundamental. Outdoors this range accumulates from stage floor coupling.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">Guitar 1, e609 side-address over the cab face. The 609 is honest — what the amp sounds like is what you get. Keep cuts clean: 300 Hz for cab body, 150 Hz to clean up the floor. The 3 kHz cut controls the 609 presence peak rather than fighting it. Two e609 channels (13 and 14) — if they compete in the mix, widen the cut frequencies before reaching for level.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 14 &mdash; Guitar 2 &nbsp;&middot;&nbsp; Sennheiser e609</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">120 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 8 kHz</td><td class="col-detail">Q 0.71; Shelf — Match Ch 13 start, adjust per amp tone.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 3.5 kHz</td><td class="col-detail">Q 2.0 — Shifted slightly higher than Ch 13 to create natural carving between the two guitar channels.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-4 dB @ 350 Hz</td><td class="col-detail">Q 2.0 — Cabinet body. Shifted slightly from Ch 13 (300 Hz) to differentiate the two guitars.</td></tr>
+<tr><td class="col-section">Band 1; Low Bell</td><td class="col-value">-4 dB @ 150 Hz</td><td class="col-detail">Q 1.5 — Match Ch 13.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">Guitar 2, e609. Same mic and approach as Ch 13 — small offsets in Band 3 (3.5 kHz vs 3 kHz) and Band 2 (350 Hz vs 300 Hz) create natural frequency separation between the two guitars. Adjust once both are open. If one guitar is significantly brighter or darker than the other, go back to matching and adjust by ear rather than forcing separation.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 17 &mdash; Keys &nbsp;&middot;&nbsp; DI</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">80 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — Light trim at the top. Keyboard DI doesn't need extended air in a live outdoor mix.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-2 dB @ 3 kHz</td><td class="col-detail">Q 2.0 — Keyboard presence peak. A modest cut creates room for vocals above without dulling the instrument.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-3 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Standard mud control on all DI sources.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">HPF at 80 Hz. Let the left hand sit naturally; the subwoofer arch handles the bottom.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">Keys DI — role TBD (Rhodes/synth/piano). MD is simultaneously on Ch 12 (Bass Keys) and Ch 30 (vocal) — plan monitor complexity before soundcheck. If the keys are covering piano parts, the 3 kHz cut may need to come back slightly to keep attack. If covering pads or strings, keep as-is.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 18 &mdash; Sax 1 &nbsp;&middot;&nbsp; AT Pro 35 &nbsp;<span style="color:#b71c1c;font-size:8pt;font-weight:bold;">&#9888; 48V</span></div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr class="phantom-row"><td class="col-section">HPF</td><td class="col-value">150 Hz @ 24 dB/Oct</td><td class="col-detail">* HPF higher than indoor equivalent — outdoor wind noise and ambient floor justify the offset.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-3 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — The Pro 35 response falls off above 15 kHz anyway. Rolling off at 10 kHz removes harshness in the cap rolloff region without losing useful content. Do not try to boost air on this mic — it isn't there.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 1.2 kHz</td><td class="col-detail">Q 2.5; narrow — Clip-on key noise. Mechanical transients from pad mechanisms sit in the 1–1.5 kHz range and bleed constantly between phrases. Narrow cut minimises impact on tone.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-3 dB @ 350 Hz</td><td class="col-detail">Q 2.0 — Boxy proximity buildup from the clip-on position near the bell. Close placement exaggerates this range.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">Console HPF at 150 Hz handles this plus the mic built-in 80 Hz HPF. Don't stack more low cuts.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">AT Pro 35 clip-on on sax. Two mandatory checks before soundcheck: (1) 48V phantom is on — the Pro 35 runs off the AT8538 inline module and requires phantom; no phantom means no signal; (2) the mic built-in 80 Hz HPF switch is engaged at the capsule. The 1.2 kHz narrow cut is the most important move on this mic — key slap between phrases is the constant enemy on clip-on sax. Gate strongly recommended; set threshold so it closes cleanly between phrases without chopping held notes.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 19 &mdash; Sax 2 &nbsp;&middot;&nbsp; AT Pro 35 &nbsp;<span style="color:#b71c1c;font-size:8pt;font-weight:bold;">&#9888; 48V</span></div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr class="phantom-row"><td class="col-section">HPF</td><td class="col-value">150 Hz @ 24 dB/Oct</td><td class="col-detail">* HPF higher than indoor equivalent — outdoor wind noise and ambient floor justify the offset.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-3 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — Match Ch 18 as starting point.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 1.2 kHz</td><td class="col-detail">Q 2.5 — Match Ch 18. Adjust independently once both sax players are open.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-3 dB @ 350 Hz</td><td class="col-detail">Q 2.0 — Match Ch 18.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">Match Ch 18.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">Mirror Ch 18 as the starting point, then adjust independently per player. Different clip positions and instrument voices will need individual tuning — same mic, same approach, different ears. Same phantom and mic HPF requirements apply. Gate independently of Ch 18.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 20 &mdash; Perc 1 (Bongos) &nbsp;&middot;&nbsp; Shure SM57</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">150 Hz @ 24 dB/Oct</td><td class="col-detail">* HPF higher than indoor equivalent — outdoor wind noise and ambient floor justify the offset.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — Keep the SM57 from getting harsh on drum transients.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 3 kHz</td><td class="col-detail">Q 2.0 — SM57 presence peak on a percussion source. Cut rather than fight it.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-3 dB @ 350 Hz</td><td class="col-detail">Q 2.0 — Hand drum body buildup. Bongo fundamentals sit above this; the cut cleans up without thinning the tone.</td></tr>
+<tr><td class="col-section">Band 1; Low Bell</td><td class="col-value">-4 dB @ 200 Hz</td><td class="col-detail">Q 1.5 — Clear out low-mid below bongo fundamental. Bongos don't produce useful content here; the cut opens space for bass and kick.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">SM57 on bongos. Tight cardioid keeps bleed manageable on an outdoor stage with multiple open mics. HPF at 150 Hz is higher than you'd use indoors; outdoor ambient noise and floor coupling justify it. The 3 kHz cut manages the SM57 presence peak — don't boost over it. Bongo attack sits in the 3–5 kHz range naturally; let the mic provide it.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 21 &mdash; Perc 2 (Toys) &nbsp;&middot;&nbsp; Shure SM57</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">200 Hz @ 24 dB/Oct</td><td class="col-detail">* HPF higher than indoor equivalent — outdoor wind noise and ambient floor justify the offset.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — SM57 top-end management.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 3 kHz</td><td class="col-detail">Q 2.0 — SM57 presence peak. Same cut as Ch 20.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-4 dB @ 400 Hz</td><td class="col-detail">Q 2.0 — Percussion toys produce little useful content below 400 Hz; clear out the low-mid floor.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">HPF at 200 Hz handles this. Toys don't need low-end.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">SM57 on toys — percussion of unknown type. HPF at 200 Hz because most small percussion instruments produce nothing useful below that point. All cuts, no boosts. Adjust at soundcheck once the actual instruments are visible. If shakers are in play, the 3–4 kHz cut may need to come back slightly to let shimmer through.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 25 &mdash; Wayne (vox) &nbsp;&middot;&nbsp; Shure SM58</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">120 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — Outdoor vocal air management. SM58 handles this range naturally; light shelf trim stays out of the feedback zone without dulling intelligibility.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 2.5 kHz</td><td class="col-detail">Q 1.5 — SM58 upper-mid harshness and primary feedback frequency outdoors. Cuts only per FSQ vocal rule.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-4 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — SM58 proximity effect management. More aggressive than indoors; outdoor proximity buildup and wind can exaggerate this range significantly.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">HPF at 120 Hz. SM58 proximity effect is real; the HPF and the 250 Hz cut together handle the low-mid buildup.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">SM58, lead vocal. FSQ vocal rule: cuts only, no boosts. The SM58 outdoors means more proximity effect than you'd see at Memo; the 250 Hz cut at -4 dB is heavier than an indoor starting point for that reason. The 2.5 kHz cut manages harshness and keeps feedback margin comfortable. Don't chase brightness by boosting — solve it at mic placement if needed. Adjust per Wayne's voice at soundcheck.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 26 &mdash; Brent (vox) &nbsp;&middot;&nbsp; Shure SM58</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">120 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — Match Ch 25 start.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 2.5 kHz</td><td class="col-detail">Q 1.5 — Match Ch 25. Adjust per voice.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-4 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">Match Ch 25.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">SM58, vocal — Brent. Start at Ch 25 values, adjust per voice at soundcheck. Same outdoor proximity and feedback management logic applies.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 27 &mdash; Chris (vox) &nbsp;&middot;&nbsp; Shure SM58</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">120 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 2.5 kHz</td><td class="col-detail">Q 1.5 — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-4 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">Match Ch 25.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">SM58, vocal — Chris. Start at Ch 25 values and adjust per voice.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 28 &mdash; John (vox) &nbsp;&middot;&nbsp; Shure SM58</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">120 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 2.5 kHz</td><td class="col-detail">Q 1.5 — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-4 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">Match Ch 25.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">SM58, vocal — John. Start at Ch 25 values and adjust per voice.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 29 &mdash; Carrie (vox) &nbsp;&middot;&nbsp; Shure SM58</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">120 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 2.5 kHz</td><td class="col-detail">Q 1.5 — Match Ch 25. If sibilance is an issue, add a narrow -2 to -3 dB cut at 6–7 kHz — stays within cuts-only rule.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-4 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">Match Ch 25.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">SM58, vocal — Carrie. Start at Ch 25. If sibilance is an issue, add a narrow -2 to -3 dB cut at 6–7 kHz; no conflict with the cuts-only vocal rule. Adjust per voice at soundcheck.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">Ch 30 &mdash; MD (vox) &nbsp;&middot;&nbsp; Shure SM58</div>
+<table>
+<tr><th class="col-section">Section</th><th class="col-value">Parameter / Value</th><th class="col-detail">Details</th></tr>
+<tr><td class="col-section">HPF</td><td class="col-value">120 Hz @ 24 dB/Oct</td><td class="col-detail">Remove sub-bass stage noise.</td></tr>
+<tr><td class="col-section">Band 4; High Shelf</td><td class="col-value">-2 dB @ 10 kHz</td><td class="col-detail">Q 0.71; Shelf — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 3; Upper-Mid Bell</td><td class="col-value">-3 dB @ 2.5 kHz</td><td class="col-detail">Q 1.5 — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 2; Lower-Mid Bell</td><td class="col-value">-4 dB @ 250 Hz</td><td class="col-detail">Q 2.0 — Match Ch 25.</td></tr>
+<tr><td class="col-section">Band 1; Low</td><td class="col-value">FLAT</td><td class="col-detail">Match Ch 25.</td></tr>
+<tr class="summary-row"><td class="col-section">Quick Summary</td><td class="col-value">&nbsp;</td><td class="col-detail">SM58, vocal — MD (Music Director). MD is simultaneously on Ch 17 (Keys) and Ch 12 (Bass Keys) — this is the most routing-complex position. Plan monitor complexity before soundcheck and coordinate with the M32 operator. Confirm that only the vocal channel (Ch 30) has a FOH path on the MD's channels unless the Keys and Bass Keys are mixed differently.</td></tr>
+</table>
+</div>
+
+<div class="section-header">FILE INDEX</div>
+<p class="note">Folder: Fountain Square / 2026-06-20 Blue Eighty-Eight /</p>
+<div class="file-row"><span class="fname">Blue Eighty-Eight - FOH Channel Processing.md</span><span class="fdesc">Machine-readable EQ source &mdash; patcher input data, all active channels</span></div>
+<div class="file-row"><span class="fname">Blue Eighty-Eight - FOH Channel Processing.html</span><span class="fdesc">This document (source)</span></div>
+<div class="file-row"><span class="fname">Blue Eighty-Eight - FOH Channel Processing.pdf</span><span class="fdesc">PDF render &mdash; master FOH reference for load-in</span></div>
+<div class="file-row"><span class="fname">apply_blue88.py</span><span class="fdesc">Q225 .ses patcher script &mdash; pending Stage 6</span></div>
+<div class="file-row"><span class="fname">Blue Eighty-Eight.ses</span><span class="fdesc">DiGiCo Q225 show file &mdash; pending Stage 6</span></div>
+
+</div>
+</body>
+</html>

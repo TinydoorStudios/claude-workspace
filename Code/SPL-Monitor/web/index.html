@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPL Monitor</title>
+<link rel="stylesheet" href="/static/style.css?v=22">
+</head>
+<body>
+<div id="standby" class="standby">
+  <div class="sb-card">
+    <div class="sb-dot"></div>
+    <div class="sb-status">SPL&nbsp;MONITOR · ONLINE</div>
+    <h1 class="sb-msg">Sorry — show logging is currently not occurring at this time.</h1>
+    <p class="sb-sub">The system is online and connected. This screen clears automatically the moment the console starts SPL logging.</p>
+    <div class="sb-foot"><span id="sbVenue">—</span> · <span id="sbClock">--:--:--</span></div>
+  </div>
+</div>
+<div id="construction" class="construction hidden">
+  <div class="cn-card">
+    <div class="cn-stripe"></div>
+    <div class="cn-tag">🚧&nbsp; UNDER CONSTRUCTION</div>
+    <div class="cn-venue" id="cnVenue">Memorial Hall</div>
+    <h1 class="cn-title">Coming Soon</h1>
+    <p class="cn-sub">SPL logging for this venue isn't online yet. It's on the way — check back soon.</p>
+    <button id="cnBack" class="cn-back">← View live venue</button>
+    <div class="cn-stripe"></div>
+  </div>
+</div>
+<header class="topbar">
+  <div class="brand">SPL&nbsp;MONITOR</div>
+  <div class="topctrls">
+    <label class="venue">Venue
+      <select id="venue"></select>
+    </label>
+    <span id="source" class="src">—</span>
+    <span id="conn" class="conn down">offline</span>
+    <span id="clock" class="clock">--:--:--</span>
+  </div>
+</header>
+
+<div id="showBanner" class="show-banner hidden">
+  <span class="sb-item"><span class="sb-label">Tonight</span> <span id="showName" class="sb-val">—</span></span>
+  <span class="sb-sep">·</span>
+  <span class="sb-item"><span class="sb-label">Engineer</span> <span id="showEngineer" class="sb-val">—</span></span>
+</div>
+
+<main>
+  <!-- Hero: big LAeq 10s + headroom bar in one row -->
+  <section id="bigpanel" class="bigpanel idle">
+    <div class="light-col">
+      <span class="lamp red"></span>
+      <span class="lamp yellow"></span>
+      <span class="lamp green"></span>
+    </div>
+    <div class="big-read">
+      <div class="big-num"><span id="bigVal">--.-</span><span class="unit">dBA</span></div>
+      <div class="big-label"><span id="bigWin">10-s</span> LAeq &nbsp;·&nbsp; limit <span id="bigLimit">--</span></div>
+      <div id="flags" class="flags"></div>
+    </div>
+    <div class="hbar-embed">
+      <div class="hbar-inner">
+        <div class="hbar-left-label">
+          <span class="hbar-over-txt">OVER</span>
+          <span class="hbar-arrow">←</span>
+        </div>
+        <div class="hbar-meter" id="hbarMeter">
+          <span class="hbar-seg" id="hs0"></span>
+          <span class="hbar-seg" id="hs1"></span>
+          <span class="hbar-seg" id="hs2"></span>
+          <span class="hbar-seg" id="hs3"></span>
+          <span class="hbar-seg" id="hs4"></span>
+          <span class="hbar-divider"></span>
+          <span class="hbar-seg" id="hs5"></span>
+          <span class="hbar-seg" id="hs6"></span>
+          <span class="hbar-seg" id="hs7"></span>
+          <span class="hbar-seg" id="hs8"></span>
+          <span class="hbar-seg" id="hs9"></span>
+        </div>
+        <div class="hbar-right-label">
+          <span class="hbar-arrow">→</span>
+          <span class="hbar-room-txt">HEADROOM</span>
+        </div>
+        <div class="hbar-readout">
+          <span id="hbarVal" class="hbar-num">--</span>
+          <span class="hbar-unit">dB</span>
+        </div>
+      </div>
+      <div class="hbar-scale">
+        <span>−10</span><span>−8</span><span>−6</span><span>−4</span><span>−2</span>
+        <span class="hbar-scale-center">limit</span>
+        <span>+2</span><span>+4</span><span>+6</span><span>+8</span><span>+10</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plain-language limits strip -->
+  <div id="limitsStrip" class="limits-strip">
+    <span class="ls-item"><span class="ls-key">Compliance</span> 6-min rolling LAeq (A-weighted)</span>
+    <span class="ls-sep">·</span>
+    <span class="ls-item">warn <b id="lsYellow">--</b></span>
+    <span class="ls-item">limit <b id="lsRed">--</b> dBA</span>
+    <span class="ls-sep">·</span>
+    <span class="ls-item ls-bass">bass 63Hz <b id="lsBass">watch</b></span>
+    <span class="ls-sep" id="lsOrdSep">·</span>
+    <span class="ls-item ls-ord" id="lsOrdItem">ordinance <b id="lsOrd">--</b> dBA at property line</span>
+  </div>
+
+  <section class="violrow" id="violRow">
+    <div class="viol-count" id="violBox">
+      <span class="viol-n" id="violCount">0</span>
+      <span class="viol-lab">strikes<br><span class="dim" id="violRule">LAeq 10s ≥ 90 dBA</span></span>
+    </div>
+    <div class="viol-mid">
+      <div class="viol-cell"><div class="tile-label">Status</div><div id="violStatus" class="viol-status clear">—</div></div>
+      <div class="viol-cell"><div class="tile-label">Total time over</div><div id="violTotal" class="viol-val">0:00</div></div>
+      <div class="viol-cell"><div class="tile-label">Last violation</div><div id="violLast" class="viol-val">—</div></div>
+    </div>
+    <div class="viol-right">
+      <div class="viol-policy" id="violPolicy">Slack from violation 3 · and any over 1 min</div>
+      <label class="alert-toggle" title="Slack violation alerts">
+        <input type="checkbox" id="slackToggle" checked>
+        <span class="at-track"><span class="at-thumb"></span></span>
+        <span class="at-label">Slack alerts</span>
+      </label>
+      <button id="resetBtn" class="reset-btn" title="Reset strike counter">Reset</button>
+    </div>
+  </section>
+
+  <section class="tiles">
+    <div class="tile">
+      <div class="tile-label">Instant <span id="instLabel" class="dim">dBA Slow</span></div>
+      <div class="tile-val"><span id="instVal">--.-</span><span class="u">dBA</span></div>
+    </div>
+    <div class="tile">
+      <div class="tile-label"><span id="longLabel">6-min</span> LAeq <span class="dim">(compliance)</span></div>
+      <div class="tile-val"><span id="longTileVal">--.-</span><span class="u">dBA</span></div>
+    </div>
+    <div class="tile predict">
+      <div class="tile-label">Prediction <span class="dim">(<span id="predHorizon">60</span>s)</span></div>
+      <div class="predict-row">
+        <div><span id="predVal">--.-</span><span class="u">dBA</span></div>
+        <div class="ttl" id="ttlLine"></div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Davidson C-A <span class="dim">10s</span></div>
+      <div class="tile-val"><span id="davidsonCA">--.-</span><span class="u">dB</span></div>
+    </div>
+  </section>
+
+  <!-- Low-frequency "bass cop" watch — 63 Hz octave (Red Rocks dB1-style) -->
+  <section class="bass-section idle" id="bassSection">
+    <div class="bass-header">
+      <span class="bass-title">Low-Frequency (Bass) Watch — 63 Hz</span>
+      <span class="dim bass-note" id="bassNote">63 Hz octave · the building-transmission / complaint band · WATCH mode — no limit set yet</span>
+    </div>
+    <div class="bass-row">
+      <span class="bass-lamp" id="bassLamp"></span>
+      <div class="bass-read">
+        <div class="bass-num"><span id="bassLong">--.-</span><span class="unit">dB</span></div>
+        <div class="bass-label">1-min 63 Hz Leq <span class="dim">· limit <span id="bassLimit">—</span></span></div>
+      </div>
+      <div class="bass-tiles">
+        <div class="bass-tile"><div class="tile-label">Live 63 Hz <span class="dim">10s</span></div><div class="bass-tile-val"><span id="bassShort">--.-</span><span class="u">dB</span></div></div>
+        <div class="bass-tile"><div class="tile-label">C−A tilt <span class="dim">bass content</span></div><div class="bass-tile-val"><span id="bassCA">--.-</span><span class="u">dB</span></div></div>
+        <div class="bass-tile"><div class="tile-label">Full-band LCeq <span class="dim">6-min</span></div><div class="bass-tile-val"><span id="bassInst">--.-</span><span class="u">dBC</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- All raw Smaart metrics -->
+  <section class="allmetrics" id="allMetrics">
+    <div class="am-header">All Metrics <span class="dim am-note">dB unless noted</span></div>
+    <div class="am-grid" id="amGrid"></div>
+  </section>
+
+  <!-- SPL compensation measurement positions -->
+  <section class="virt-section" id="virtSection" style="display:none">
+    <div class="virt-header">
+      <span class="virt-title">SPL Compensation Measurement</span>
+      <span class="virt-note dim">Derived from FOH with calibrated offsets · Reference only</span>
+    </div>
+    <div class="virt-grid" id="virtGrid"></div>
+  </section>
+
+  <!-- Sound Ordinance -->
+  <section class="ord-section" id="ordSection" style="display:none">
+    <div class="ord-header">
+      <span class="ord-title">Sound Ordinance</span>
+      <span class="dim ord-note">Cincinnati DD Zone · LAeq 6-min · Limit <span id="ordLimit">--</span> dBA</span>
+    </div>
+    <div class="ord-grid" id="ordGrid"></div>
+  </section>
+
+  <!-- Reset passcode modal -->
+  <div id="resetModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Reset strike counter">
+    <div class="modal-card">
+      <div class="modal-title">Reset Strike Counter</div>
+      <p class="modal-sub">Enter the passcode to clear all strikes and violation history for this session.</p>
+      <input id="resetInput" class="modal-input" type="password" maxlength="32" placeholder="Passcode" autocomplete="off">
+      <div id="resetErr" class="modal-err hidden">Incorrect passcode.</div>
+      <div class="modal-actions">
+        <button id="resetCancel" class="modal-btn cancel">Cancel</button>
+        <button id="resetConfirm" class="modal-btn confirm">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="chartwrap">
+    <canvas id="chart"></canvas>
+    <div class="legend">
+      <span class="lg lg-long">6-min LAeq</span>
+      <span class="lg lg-inst">instant</span>
+      <span class="lg lg-red">red limit</span>
+      <span class="lg lg-yellow">yellow</span>
+    </div>
+  </section>
+</main>
+
+<footer class="status">
+  <span id="fill" class="dim">6-min window filling…</span>
+  <span id="device" class="dim"></span>
+</footer>
+
+<script src="/static/app.js?v=22"></script>
+</body>
+</html>

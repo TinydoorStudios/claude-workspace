@@ -1,0 +1,144 @@
+===== add memo-spl.tinydoorstudios.com  Fri Jul 10 18:33:29 EDT 2026 =====
+----- 1. DNS: create CNAME -----
+{"result":{"id":"ccd04428c72fbff56ceb1541b5d65037","name":"memo-spl.tinydoorstudios.com","type":"CNAME","content":"b1e6581d-4384-4fbe-b960-a156760a2860.cfargotunnel.com","proxiable":true,"proxied":true,"ttl":1,"settings":{"flatten_cname":false},"meta":{},"comment":null,"tags":[],"created_on":"2026-07-10T22:33:30.125811Z","modified_on":"2026-07-10T22:33:30.125811Z"},"success":true,"errors":[],"messages":[]}
+----- 2. tunnel: backup current ingress -> _cf_ingress_backup_20260710-183329.json -----
+saved: _cf_ingress_backup_20260710-183329.json
+current version: 12
+[
+  {
+    "service": "http://127.0.0.1:8088",
+    "hostname": "tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:5678",
+    "hostname": "n8n.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:3001",
+    "hostname": "tempest.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:8090",
+    "hostname": "spl.tinydoorstudios.com"
+  },
+  {
+    "path": "^/assets/",
+    "service": "http://127.0.0.1:8088",
+    "hostname": "kb.tinydoorstudios.com"
+  },
+  {
+    "service": "http://192.168.200.126:3000",
+    "hostname": "kb.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:8095",
+    "hostname": "showbuilder.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:8096",
+    "hostname": "grow.tinydoorstudios.com"
+  },
+  {
+    "service": "http_status:404"
+  }
+]
+----- 3. build + PUT new ingress (insert memo-spl before catch-all) -----
+{
+  "config": {
+    "ingress": [
+      {
+        "service": "http://127.0.0.1:8088",
+        "hostname": "tinydoorstudios.com"
+      },
+      {
+        "service": "http://localhost:5678",
+        "hostname": "n8n.tinydoorstudios.com"
+      },
+      {
+        "service": "http://localhost:3001",
+        "hostname": "tempest.tinydoorstudios.com"
+      },
+      {
+        "service": "http://localhost:8090",
+        "hostname": "spl.tinydoorstudios.com"
+      },
+      {
+        "path": "^/assets/",
+        "service": "http://127.0.0.1:8088",
+        "hostname": "kb.tinydoorstudios.com"
+      },
+      {
+        "service": "http://192.168.200.126:3000",
+        "hostname": "kb.tinydoorstudios.com"
+      },
+      {
+        "service": "http://localhost:8095",
+        "hostname": "showbuilder.tinydoorstudios.com"
+      },
+      {
+        "service": "http://localhost:8096",
+        "hostname": "grow.tinydoorstudios.com"
+      },
+      {
+        "service": "http://localhost:8091",
+        "hostname": "memo-spl.tinydoorstudios.com"
+      },
+      {
+        "service": "http_status:404"
+      }
+    ],
+    "warp-routing": {
+      "enabled": false
+    }
+  }
+}
+{"success":true,"errors":[],"messages":[],"result":{"tunnel_id":"b1e6581d-4384-4fbe-b960-a156760a2860","version":13,"config":{"ingress":[{"service":"http://127.0.0.1:8088","hostname":"tinydoorstudios.com"},{"service":"http://localhost:5678","hostname":"n8n.tinydoorstudios.com"},{"service":"http://localhost:3001","hostname":"tempest.tinydoorstudios.com"},{"service":"http://localhost:8090","hostname":"spl.tinydoorstudios.com"},{"path":"^/assets/","service":"http://127.0.0.1:8088","hostname":"kb.tinydoorstudios.com"},{"service":"http://192.168.200.126:3000","hostname":"kb.tinydoorstudios.com"},{"service":"http://localhost:8095","hostname":"showbuilder.tinydoorstudios.com"},{"service":"http://localhost:8096","hostname":"grow.tinydoorstudios.com"},{"service":"http://localhost:8091","hostname":"memo-spl.tinydoorstudios.com"},{"service":"http_status:404"}],"warp-routing":{"enabled":false}},"source":"cloudflare","created_at":"2026-07-10T22:33:31.889692Z"}}
+----- 4. re-read to confirm -----
+new version: 13
+[
+  {
+    "service": "http://127.0.0.1:8088",
+    "hostname": "tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:5678",
+    "hostname": "n8n.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:3001",
+    "hostname": "tempest.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:8090",
+    "hostname": "spl.tinydoorstudios.com"
+  },
+  {
+    "path": "^/assets/",
+    "service": "http://127.0.0.1:8088",
+    "hostname": "kb.tinydoorstudios.com"
+  },
+  {
+    "service": "http://192.168.200.126:3000",
+    "hostname": "kb.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:8095",
+    "hostname": "showbuilder.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:8096",
+    "hostname": "grow.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:8091",
+    "hostname": "memo-spl.tinydoorstudios.com"
+  },
+  {
+    "service": "http_status:404"
+  }
+]
+Waiting 8s for edge propagation...
+----- 5. live test (expect 502 until the VM-side service is deployed — that's OK, confirms routing) -----
+----- 6. sanity: existing spl.tinydoorstudios.com still up -----
+spl.tinydoorstudios.com = HTTP 200
+===== end =====

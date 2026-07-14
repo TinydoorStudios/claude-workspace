@@ -1,0 +1,15 @@
+[Unit]
+Description=ShowBuilder (Phase 2 — package-only front end on the n8n VM)
+After=network.target
+
+[Service]
+Type=simple
+User=brian
+WorkingDirectory=/opt/showbuilder
+EnvironmentFile=/etc/showbuilder.env
+ExecStart=/opt/showbuilder/.venv/bin/python -m backend.app
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

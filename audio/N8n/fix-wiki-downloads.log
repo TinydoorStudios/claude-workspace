@@ -1,0 +1,30 @@
+=== fix-wiki-downloads-v5 20260611-093523 ===
+[0] Preflight…
+[1] Backups…
+[2] Rsync assets…
+[3] Writing exact configs…
+[4] Installing…
+[5] Recreate + validate…
+ Container landing Recreate 
+ Container landing Recreated 
+ Container landing Starting 
+ Container landing Started 
+[6] Verify at ORIGIN (bypassing Cloudflare)…
+    origin 200  Blue%20Eighty-Eight%20-%20FOH%20Channel%20Processing.pdf
+    origin 200  Blue%20Eighty-Eight%20-%20Input%20List.xlsx
+    origin 200  Blue%20Eighty-Eight.ses
+    origin 200  Blue88%20-%20Handoff.pdf
+    ORIGIN SERVES ALL FILES — fix is correct. Keeping config.
+[7] Public check (through Cloudflare — may show stale cache)…
+    public 404  Blue%20Eighty-Eight%20-%20FOH%20Channel%20Processing.pdf
+    public 200  Blue%20Eighty-Eight.ses
+[8] Wire auto-sync…
+    Already wired or push script absent.
+
+============================================================
+ ORIGIN FIXED. If any 'public' line above is not 200, it is
+ Cloudflare edge cache — purge /assets/* (or Purge Everything)
+ in the Cloudflare dashboard, or wait out the TTL. New shows
+ sync automatically on push.
+ Backups: *.bak.20260611-093523
+============================================================

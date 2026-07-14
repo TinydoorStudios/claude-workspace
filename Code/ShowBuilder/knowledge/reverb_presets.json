@@ -1,0 +1,2519 @@
+{
+  "_source": "Live Sound KB/Wiki/reverb-reference-memo.md",
+  "_note": "Seventh Heaven Pro factory library + Memo genre selections, parsed verbatim from the KB. Re-run build_knowledge.py after editing the article. Reverb preset names/numbers are never invented — they come from here.",
+  "plugin": "LiquidSonics Seventh Heaven Professional",
+  "always": "100% wet on a dedicated FX return; level ridden by the send.",
+  "banks": [
+    {
+      "bank": "Ambiences 1",
+      "algo": "V1",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Large Ambience",
+          "decay_s": 0.8,
+          "predelay_ms": 10.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 6000.0,
+          "es": 12
+        },
+        {
+          "num": "02",
+          "name": "Med Ambience",
+          "decay_s": 0.65,
+          "predelay_ms": 2.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 6000.0,
+          "es": 7
+        },
+        {
+          "num": "03",
+          "name": "Small Ambience",
+          "decay_s": 0.45,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 6000.0,
+          "es": 1
+        },
+        {
+          "num": "04",
+          "name": "Large & Dark",
+          "decay_s": 1.0,
+          "predelay_ms": 10.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 3200.0,
+          "es": 9
+        },
+        {
+          "num": "05",
+          "name": "Medium & Dark",
+          "decay_s": 0.9,
+          "predelay_ms": 2.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 3200.0,
+          "es": 5
+        },
+        {
+          "num": "06",
+          "name": "Small & Dark",
+          "decay_s": 0.5,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 2800.0,
+          "es": 1
+        },
+        {
+          "num": "07",
+          "name": "Large & Bright",
+          "decay_s": 0.95,
+          "predelay_ms": 10.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 8000.0,
+          "es": 12
+        },
+        {
+          "num": "08",
+          "name": "Med & Bright",
+          "decay_s": 0.75,
+          "predelay_ms": 2.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 8000.0,
+          "es": 7
+        },
+        {
+          "num": "09",
+          "name": "Small & Bright",
+          "decay_s": 0.4,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 8000.0,
+          "es": 3
+        },
+        {
+          "num": "10",
+          "name": "Deep Ambience",
+          "decay_s": 1.0,
+          "predelay_ms": 20.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5600.0,
+          "es": 19
+        },
+        {
+          "num": "11",
+          "name": "Long Ambience",
+          "decay_s": 1.15,
+          "predelay_ms": 10.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 5600.0,
+          "es": 19
+        },
+        {
+          "num": "12",
+          "name": "Clear Ambience",
+          "decay_s": 0.7,
+          "predelay_ms": 6.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 6400.0,
+          "es": 9
+        },
+        {
+          "num": "13",
+          "name": "Heavy Ambience",
+          "decay_s": 0.55,
+          "predelay_ms": 6.0,
+          "vlf_db": -2.0,
+          "lateroll_hz": 7200.0,
+          "es": 5
+        },
+        {
+          "num": "14",
+          "name": "Bass XXL",
+          "decay_s": 1.25,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 200.0,
+          "es": 19
+        },
+        {
+          "num": "15",
+          "name": "Percussion Air",
+          "decay_s": 0.5,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 8000.0,
+          "es": 6
+        }
+      ]
+    },
+    {
+      "bank": "Chambers 1",
+      "algo": "V1",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Large Chamber",
+          "decay_s": 1.4,
+          "predelay_ms": 10.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 6400.0,
+          "es": 6
+        },
+        {
+          "num": "02",
+          "name": "Medium Chamber",
+          "decay_s": 1.25,
+          "predelay_ms": 4.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 6400.0,
+          "es": 5
+        },
+        {
+          "num": "03",
+          "name": "Small Chamber",
+          "decay_s": 1.0,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 6400.0,
+          "es": 5
+        },
+        {
+          "num": "04",
+          "name": "Large & Dark",
+          "decay_s": 1.5,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 4800.0,
+          "es": 9
+        },
+        {
+          "num": "05",
+          "name": "Small & Dark",
+          "decay_s": 1.2,
+          "predelay_ms": 0,
+          "vlf_db": -8.0,
+          "lateroll_hz": 5600.0,
+          "es": 9
+        },
+        {
+          "num": "06",
+          "name": "Large & Bright",
+          "decay_s": 1.6,
+          "predelay_ms": 10.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 8000.0,
+          "es": 6
+        },
+        {
+          "num": "07",
+          "name": "Small & Bright",
+          "decay_s": 1.0,
+          "predelay_ms": 0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 12000.0,
+          "es": 9
+        },
+        {
+          "num": "08",
+          "name": "Kick Chamber",
+          "decay_s": 0.7,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 5600.0,
+          "es": 3
+        },
+        {
+          "num": "09",
+          "name": "Snare Chamber",
+          "decay_s": 1.2,
+          "predelay_ms": 10.0,
+          "vlf_db": -19.0,
+          "lateroll_hz": 5600.0,
+          "es": 5
+        },
+        {
+          "num": "10",
+          "name": "Vocal Chamber",
+          "decay_s": 1.6,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 8000.0,
+          "es": 9
+        },
+        {
+          "num": "11",
+          "name": "A&M Chamber",
+          "decay_s": 2.2,
+          "predelay_ms": 20.0,
+          "vlf_db": -14.0,
+          "lateroll_hz": 6400.0,
+          "es": 7
+        },
+        {
+          "num": "12",
+          "name": "CD Chamber",
+          "decay_s": 1.9,
+          "predelay_ms": 20.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 6000.0,
+          "es": 6
+        },
+        {
+          "num": "13",
+          "name": "Deep Chamber",
+          "decay_s": 1.9,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 6400.0,
+          "es": 9
+        },
+        {
+          "num": "14",
+          "name": "Amb Chamber A",
+          "decay_s": 1.65,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 7600.0,
+          "es": 5
+        },
+        {
+          "num": "15",
+          "name": "A&M Chamber B",
+          "decay_s": 2.2,
+          "predelay_ms": 20.0,
+          "vlf_db": -17.0,
+          "lateroll_hz": 6000.0,
+          "es": 7
+        },
+        {
+          "num": "16",
+          "name": "Old Chamber",
+          "decay_s": 2.4,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 6400.0,
+          "es": 9
+        },
+        {
+          "num": "17",
+          "name": "Sunset Chamber",
+          "decay_s": 2.15,
+          "predelay_ms": 20.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 7200.0,
+          "es": 7
+        },
+        {
+          "num": "18",
+          "name": "Amb Chamber B",
+          "decay_s": 1.5,
+          "predelay_ms": 0,
+          "vlf_db": -8.0,
+          "lateroll_hz": 6000.0,
+          "es": 8
+        },
+        {
+          "num": "19",
+          "name": "Stone Chamber",
+          "decay_s": 1.7,
+          "predelay_ms": 10.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5200.0,
+          "es": 12
+        },
+        {
+          "num": "20",
+          "name": "Tiled Chamber",
+          "decay_s": 1.7,
+          "predelay_ms": 10.0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 7200.0,
+          "es": 15
+        },
+        {
+          "num": "21",
+          "name": "Fat Chamber",
+          "decay_s": 1.6,
+          "predelay_ms": 10.0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 5600.0,
+          "es": 12
+        },
+        {
+          "num": "22",
+          "name": "Echo Chamber",
+          "decay_s": 1.9,
+          "predelay_ms": 10.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 6400.0,
+          "es": 12
+        }
+      ]
+    },
+    {
+      "bank": "Halls 1",
+      "algo": "V1",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Large Hall",
+          "decay_s": 2.2,
+          "predelay_ms": 10.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 5200.0,
+          "es": 13
+        },
+        {
+          "num": "02",
+          "name": "Medium Hall",
+          "decay_s": 1.8,
+          "predelay_ms": 24.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 6000.0,
+          "es": 17
+        },
+        {
+          "num": "03",
+          "name": "Small Hall",
+          "decay_s": 1.4,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5600.0,
+          "es": 6
+        },
+        {
+          "num": "04",
+          "name": "Large & Near",
+          "decay_s": 2.2,
+          "predelay_ms": 10.0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 6000.0,
+          "es": 14
+        },
+        {
+          "num": "05",
+          "name": "Medium & Near",
+          "decay_s": 1.8,
+          "predelay_ms": 24.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 6000.0,
+          "es": 17
+        },
+        {
+          "num": "06",
+          "name": "Small & Near",
+          "decay_s": 1.4,
+          "predelay_ms": 0,
+          "vlf_db": -7.0,
+          "lateroll_hz": 5600.0,
+          "es": 7
+        },
+        {
+          "num": "07",
+          "name": "Large & Dark",
+          "decay_s": 2.15,
+          "predelay_ms": 0,
+          "vlf_db": -5.0,
+          "lateroll_hz": 4800.0,
+          "es": 6
+        },
+        {
+          "num": "08",
+          "name": "Large & Deep",
+          "decay_s": 2.15,
+          "predelay_ms": 40.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5200.0,
+          "es": 17
+        },
+        {
+          "num": "09",
+          "name": "Medium & Deep",
+          "decay_s": 1.8,
+          "predelay_ms": 20.0,
+          "vlf_db": -5.0,
+          "lateroll_hz": 5600.0,
+          "es": 17
+        },
+        {
+          "num": "10",
+          "name": "Concert Hall",
+          "decay_s": 2.2,
+          "predelay_ms": 18.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5200.0,
+          "es": 19
+        },
+        {
+          "num": "11",
+          "name": "Gold Hall",
+          "decay_s": 1.8,
+          "predelay_ms": 30.0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 6000.0,
+          "es": 19
+        },
+        {
+          "num": "12",
+          "name": "Sandors Hall",
+          "decay_s": 2.6,
+          "predelay_ms": 20.0,
+          "vlf_db": -14.0,
+          "lateroll_hz": 5600.0,
+          "es": 19
+        },
+        {
+          "num": "13",
+          "name": "Dense Hall",
+          "decay_s": 2.0,
+          "predelay_ms": 10.0,
+          "vlf_db": -3.0,
+          "lateroll_hz": 5600.0,
+          "es": 18
+        },
+        {
+          "num": "14",
+          "name": "Clear Hall",
+          "decay_s": 2.2,
+          "predelay_ms": 0,
+          "vlf_db": -4.0,
+          "lateroll_hz": 6800.0,
+          "es": 9
+        },
+        {
+          "num": "15",
+          "name": "Brass Hall",
+          "decay_s": 2.0,
+          "predelay_ms": 20.0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 8400.0,
+          "es": 19
+        },
+        {
+          "num": "16",
+          "name": "Amsterdam Hall",
+          "decay_s": 2.3,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 6800.0,
+          "es": 15
+        },
+        {
+          "num": "17",
+          "name": "Berliner Hall",
+          "decay_s": 2.5,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 6400.0,
+          "es": 10
+        },
+        {
+          "num": "18",
+          "name": "Boston Hall A",
+          "decay_s": 2.1,
+          "predelay_ms": 0,
+          "vlf_db": -2.0,
+          "lateroll_hz": 6000.0,
+          "es": 12
+        },
+        {
+          "num": "19",
+          "name": "Boston Hall B",
+          "decay_s": 1.8,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 4800.0,
+          "es": 9
+        },
+        {
+          "num": "20",
+          "name": "Chicago Hall",
+          "decay_s": 2.1,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 5600.0,
+          "es": 8
+        },
+        {
+          "num": "21",
+          "name": "Vienna Hall",
+          "decay_s": 2.3,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 5600.0,
+          "es": 16
+        },
+        {
+          "num": "22",
+          "name": "Worcester Hall",
+          "decay_s": 2.25,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 7600.0,
+          "es": 19
+        },
+        {
+          "num": "23",
+          "name": "The ArchDuke",
+          "decay_s": 1.8,
+          "predelay_ms": 0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 5200.0,
+          "es": 6
+        },
+        {
+          "num": "24",
+          "name": "Troy Hall",
+          "decay_s": 2.3,
+          "predelay_ms": 10.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 8800.0,
+          "es": 12
+        },
+        {
+          "num": "25",
+          "name": "Saint Sylvain",
+          "decay_s": 3.5,
+          "predelay_ms": 10.0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 8400.0,
+          "es": 7
+        },
+        {
+          "num": "26",
+          "name": "Mechanics Hall",
+          "decay_s": 2.25,
+          "predelay_ms": 0,
+          "vlf_db": -5.0,
+          "lateroll_hz": 7200.0,
+          "es": 6
+        },
+        {
+          "num": "27",
+          "name": "Saint Gerold",
+          "decay_s": 3.0,
+          "predelay_ms": 10.0,
+          "vlf_db": -3.0,
+          "lateroll_hz": 5600.0,
+          "es": 14
+        },
+        {
+          "num": "28",
+          "name": "Pepes Hall A",
+          "decay_s": 1.9,
+          "predelay_ms": 30.0,
+          "vlf_db": -18.0,
+          "lateroll_hz": 4000.0,
+          "es": 22
+        },
+        {
+          "num": "29",
+          "name": "Pepes Hall B",
+          "decay_s": 1.9,
+          "predelay_ms": 30.0,
+          "vlf_db": -18.0,
+          "lateroll_hz": 4000.0,
+          "es": 22
+        },
+        {
+          "num": "30",
+          "name": "Reflect Hall A",
+          "decay_s": 2.3,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 7200.0,
+          "es": 21
+        },
+        {
+          "num": "31",
+          "name": "Reflect Hall B",
+          "decay_s": 2.25,
+          "predelay_ms": 20.0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 6400.0,
+          "es": 15
+        },
+        {
+          "num": "32",
+          "name": "Piano Hall",
+          "decay_s": 2.0,
+          "predelay_ms": 24.0,
+          "vlf_db": -8.0,
+          "lateroll_hz": 6400.0,
+          "es": 16
+        }
+      ]
+    },
+    {
+      "bank": "Plates 1",
+      "algo": "V1",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Bright Plate",
+          "decay_s": 2.0,
+          "predelay_ms": 0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 6400.0,
+          "es": 15
+        },
+        {
+          "num": "02",
+          "name": "Dark Plate",
+          "decay_s": 1.5,
+          "predelay_ms": 0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 4800.0,
+          "es": 8
+        },
+        {
+          "num": "03",
+          "name": "London Plate",
+          "decay_s": 1.8,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 4400.0,
+          "es": 2
+        },
+        {
+          "num": "04",
+          "name": "Snare Plate A",
+          "decay_s": 1.2,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 6800.0,
+          "es": 5
+        },
+        {
+          "num": "05",
+          "name": "Snare Plate B",
+          "decay_s": 1.0,
+          "predelay_ms": 20.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 7200.0,
+          "es": 3
+        },
+        {
+          "num": "06",
+          "name": "Vocal Plate",
+          "decay_s": 1.5,
+          "predelay_ms": 24.0,
+          "vlf_db": -19.0,
+          "lateroll_hz": 6400.0,
+          "es": 15
+        },
+        {
+          "num": "07",
+          "name": "Old Plate",
+          "decay_s": 1.25,
+          "predelay_ms": 0,
+          "vlf_db": -8.0,
+          "lateroll_hz": 7600.0,
+          "es": 7
+        },
+        {
+          "num": "08",
+          "name": "Rich Plate",
+          "decay_s": 1.9,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 9200.0,
+          "es": 4
+        },
+        {
+          "num": "09",
+          "name": "Gold Plate",
+          "decay_s": 1.8,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5200.0,
+          "es": 2
+        },
+        {
+          "num": "10",
+          "name": "Dense Plate",
+          "decay_s": 1.7,
+          "predelay_ms": 0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 5600.0,
+          "es": 4
+        },
+        {
+          "num": "11",
+          "name": "Silver Plate",
+          "decay_s": 2.0,
+          "predelay_ms": 10.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 8800.0,
+          "es": 5
+        },
+        {
+          "num": "12",
+          "name": "Percussion Plate",
+          "decay_s": 1.1,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5200.0,
+          "es": 3
+        },
+        {
+          "num": "13",
+          "name": "Echo Plate",
+          "decay_s": 1.7,
+          "predelay_ms": 60.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 5600.0,
+          "es": 19
+        },
+        {
+          "num": "14",
+          "name": "CD Plate A",
+          "decay_s": 1.7,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 6400.0,
+          "es": 0
+        },
+        {
+          "num": "15",
+          "name": "CD Plate B",
+          "decay_s": 1.6,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 5600.0,
+          "es": 2
+        },
+        {
+          "num": "16",
+          "name": "Large Plate",
+          "decay_s": 2.2,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 4800.0,
+          "es": 7
+        },
+        {
+          "num": "17",
+          "name": "Small Plate",
+          "decay_s": 0.9,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5600.0,
+          "es": 4
+        },
+        {
+          "num": "18",
+          "name": "Fat Plate",
+          "decay_s": 0.95,
+          "predelay_ms": 0,
+          "vlf_db": -2.0,
+          "lateroll_hz": 6000.0,
+          "es": 2
+        },
+        {
+          "num": "19",
+          "name": "Crystal Plate",
+          "decay_s": 1.35,
+          "predelay_ms": 18.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 12000.0,
+          "es": 4
+        },
+        {
+          "num": "20",
+          "name": "Sun Plate A",
+          "decay_s": 2.55,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 10000.0,
+          "es": 15
+        },
+        {
+          "num": "21",
+          "name": "Sun Plate B",
+          "decay_s": 2.55,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 10400.0,
+          "es": 15
+        },
+        {
+          "num": "22",
+          "name": "Sun Plate C",
+          "decay_s": 2.15,
+          "predelay_ms": 0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 8400.0,
+          "es": 6
+        },
+        {
+          "num": "23",
+          "name": "Vocal Plate B",
+          "decay_s": 2.3,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 10000.0,
+          "es": 15
+        },
+        {
+          "num": "24",
+          "name": "Repro Plate",
+          "decay_s": 1.9,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 6000.0,
+          "es": 9
+        }
+      ]
+    },
+    {
+      "bank": "Rooms 1",
+      "algo": "V1",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Studio A",
+          "decay_s": 0.7,
+          "predelay_ms": 4.0,
+          "vlf_db": -3.0,
+          "lateroll_hz": 8400.0,
+          "es": 4
+        },
+        {
+          "num": "02",
+          "name": "Studio B Close",
+          "decay_s": 0.75,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 8000.0,
+          "es": 7
+        },
+        {
+          "num": "03",
+          "name": "Studio B Far",
+          "decay_s": 0.65,
+          "predelay_ms": 0,
+          "vlf_db": -3.0,
+          "lateroll_hz": 9200.0,
+          "es": 12
+        },
+        {
+          "num": "04",
+          "name": "Studio C",
+          "decay_s": 0.55,
+          "predelay_ms": 0,
+          "vlf_db": -2.0,
+          "lateroll_hz": 7200.0,
+          "es": 4
+        },
+        {
+          "num": "05",
+          "name": "Studio D",
+          "decay_s": 0.45,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 7200.0,
+          "es": 2
+        },
+        {
+          "num": "06",
+          "name": "Studio E",
+          "decay_s": 1.0,
+          "predelay_ms": 0,
+          "vlf_db": -1.0,
+          "lateroll_hz": 4800.0,
+          "es": 4
+        },
+        {
+          "num": "07",
+          "name": "Deep Stone",
+          "decay_s": 1.2,
+          "predelay_ms": 20.0,
+          "vlf_db": -8.0,
+          "lateroll_hz": 5600.0,
+          "es": 9
+        },
+        {
+          "num": "08",
+          "name": "Music Room",
+          "decay_s": 1.0,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 7600.0,
+          "es": 17
+        },
+        {
+          "num": "09",
+          "name": "Heavy Room",
+          "decay_s": 0.6,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 9600.0,
+          "es": 9
+        },
+        {
+          "num": "10",
+          "name": "Large Wooden",
+          "decay_s": 1.2,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 8000.0,
+          "es": 9
+        },
+        {
+          "num": "11",
+          "name": "Small Wooden",
+          "decay_s": 0.6,
+          "predelay_ms": 0,
+          "vlf_db": -7.0,
+          "lateroll_hz": 9600.0,
+          "es": 9
+        },
+        {
+          "num": "12",
+          "name": "Large Tiled",
+          "decay_s": 1.2,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 9600.0,
+          "es": 18
+        },
+        {
+          "num": "13",
+          "name": "Medium Tiled",
+          "decay_s": 1.0,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 9600.0,
+          "es": 9
+        },
+        {
+          "num": "14",
+          "name": "Small Tiled",
+          "decay_s": 0.7,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 9600.0,
+          "es": 9
+        },
+        {
+          "num": "15",
+          "name": "Drum & Chamber",
+          "decay_s": 1.2,
+          "predelay_ms": 60.0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 6400.0,
+          "es": 9
+        },
+        {
+          "num": "16",
+          "name": "Djangos Room",
+          "decay_s": 0.8,
+          "predelay_ms": 4.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5200.0,
+          "es": 6
+        },
+        {
+          "num": "17",
+          "name": "Small Vox Room",
+          "decay_s": 0.95,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 7200.0,
+          "es": 1
+        },
+        {
+          "num": "18",
+          "name": "Glass Room",
+          "decay_s": 0.8,
+          "predelay_ms": 0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 6400.0,
+          "es": 19
+        },
+        {
+          "num": "19",
+          "name": "Percussion",
+          "decay_s": 0.7,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 7200.0,
+          "es": 18
+        },
+        {
+          "num": "20",
+          "name": "Marble Foyer",
+          "decay_s": 1.25,
+          "predelay_ms": 10.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 6400.0,
+          "es": 19
+        },
+        {
+          "num": "21",
+          "name": "Large Q Room",
+          "decay_s": 2.6,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 4800.0,
+          "es": 19
+        },
+        {
+          "num": "22",
+          "name": "Small Q Room",
+          "decay_s": 1.2,
+          "predelay_ms": 10.0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 5600.0,
+          "es": 15
+        },
+        {
+          "num": "23",
+          "name": "Large Red Room",
+          "decay_s": 1.0,
+          "predelay_ms": 0,
+          "vlf_db": -7.0,
+          "lateroll_hz": 9600.0,
+          "es": 9
+        },
+        {
+          "num": "24",
+          "name": "Red Room",
+          "decay_s": 0.4,
+          "predelay_ms": 0,
+          "vlf_db": -7.0,
+          "lateroll_hz": 10400.0,
+          "es": 9
+        },
+        {
+          "num": "25",
+          "name": "Blue Room",
+          "decay_s": 0.6,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 9600.0,
+          "es": 8
+        },
+        {
+          "num": "26",
+          "name": "Large Room",
+          "decay_s": 1.1,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 6000.0,
+          "es": 7
+        },
+        {
+          "num": "27",
+          "name": "Small Room",
+          "decay_s": 0.6,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 6800.0,
+          "es": 6
+        },
+        {
+          "num": "28",
+          "name": "Front Room",
+          "decay_s": 0.4,
+          "predelay_ms": 0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 6000.0,
+          "es": 3
+        },
+        {
+          "num": "29",
+          "name": "Center Room",
+          "decay_s": 0.5,
+          "predelay_ms": 2.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 5600.0,
+          "es": 5
+        },
+        {
+          "num": "30",
+          "name": "Back Room",
+          "decay_s": 0.55,
+          "predelay_ms": 4.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5600.0,
+          "es": 7
+        },
+        {
+          "num": "31",
+          "name": "Studio K",
+          "decay_s": 0.2,
+          "predelay_ms": 6.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 6800.0,
+          "es": 5
+        },
+        {
+          "num": "32",
+          "name": "Waits Room",
+          "decay_s": 0.85,
+          "predelay_ms": 10.0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 8400.0,
+          "es": 9
+        },
+        {
+          "num": "33",
+          "name": "Corn Room",
+          "decay_s": 2.3,
+          "predelay_ms": 24.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 4800.0,
+          "es": 8
+        },
+        {
+          "num": "34",
+          "name": "Oakland Room",
+          "decay_s": 1.45,
+          "predelay_ms": 20.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5600.0,
+          "es": 15
+        },
+        {
+          "num": "35",
+          "name": "SF Perf Room",
+          "decay_s": 1.5,
+          "predelay_ms": 20.0,
+          "vlf_db": -17.0,
+          "lateroll_hz": 5200.0,
+          "es": 15
+        },
+        {
+          "num": "36",
+          "name": "Long Wood Room",
+          "decay_s": 1.2,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 7600.0,
+          "es": 9
+        }
+      ]
+    },
+    {
+      "bank": "Spaces 1",
+      "algo": "V1",
+      "presets": [
+        {
+          "num": "01",
+          "name": "North Church",
+          "decay_s": 3.2,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 5600.0,
+          "es": 15
+        },
+        {
+          "num": "02",
+          "name": "East Church",
+          "decay_s": 3.3,
+          "predelay_ms": 0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 8000.0,
+          "es": 19
+        },
+        {
+          "num": "03",
+          "name": "South Church",
+          "decay_s": 3.9,
+          "predelay_ms": 0,
+          "vlf_db": -4.0,
+          "lateroll_hz": 5200.0,
+          "es": 19
+        },
+        {
+          "num": "04",
+          "name": "West Church",
+          "decay_s": 5.4,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 4800.0,
+          "es": 16
+        },
+        {
+          "num": "05",
+          "name": "Cinema Room",
+          "decay_s": 0.45,
+          "predelay_ms": 4.0,
+          "vlf_db": -4.0,
+          "lateroll_hz": 4800.0,
+          "es": 9
+        },
+        {
+          "num": "06",
+          "name": "Scoring Stage",
+          "decay_s": 2.2,
+          "predelay_ms": 0,
+          "vlf_db": -5.0,
+          "lateroll_hz": 7600.0,
+          "es": 19
+        },
+        {
+          "num": "07",
+          "name": "Bath House",
+          "decay_s": 3.9,
+          "predelay_ms": 6.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 8800.0,
+          "es": 19
+        },
+        {
+          "num": "08",
+          "name": "Car Park",
+          "decay_s": 3.5,
+          "predelay_ms": 48.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 2000.0,
+          "es": 4
+        },
+        {
+          "num": "09",
+          "name": "Arena",
+          "decay_s": 2.3,
+          "predelay_ms": 80.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 5600.0,
+          "es": 19
+        },
+        {
+          "num": "10",
+          "name": "Redwood Valley",
+          "decay_s": 1.9,
+          "predelay_ms": 220.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 3200.0,
+          "es": 19
+        },
+        {
+          "num": "11",
+          "name": "Tanglewood",
+          "decay_s": 3.0,
+          "predelay_ms": 20.0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 4800.0,
+          "es": 18
+        },
+        {
+          "num": "12",
+          "name": "Academy Yard",
+          "decay_s": 3.5,
+          "predelay_ms": 300.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 3200.0,
+          "es": 19
+        },
+        {
+          "num": "13",
+          "name": "Hillside",
+          "decay_s": 8.0,
+          "predelay_ms": 300.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 1600.0,
+          "es": 5
+        },
+        {
+          "num": "14",
+          "name": "Cavern",
+          "decay_s": 4.0,
+          "predelay_ms": 0,
+          "vlf_db": -5.0,
+          "lateroll_hz": 3600.0,
+          "es": 19
+        },
+        {
+          "num": "15",
+          "name": "Stone Quarry",
+          "decay_s": 5.1,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 3600.0,
+          "es": 19
+        },
+        {
+          "num": "16",
+          "name": "Europa",
+          "decay_s": 25.0,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 5200.0,
+          "es": 19
+        },
+        {
+          "num": "17",
+          "name": "Gated Space",
+          "decay_s": 1.5,
+          "predelay_ms": 32.0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 7600.0,
+          "es": 10
+        },
+        {
+          "num": "18",
+          "name": "Reflect Chapel",
+          "decay_s": 3.8,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 5600.0,
+          "es": 20
+        },
+        {
+          "num": "19",
+          "name": "Reflect Church",
+          "decay_s": 4.0,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 5600.0,
+          "es": 20
+        }
+      ]
+    },
+    {
+      "bank": "SM Interiors",
+      "algo": "V1",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Adjacent Floor",
+          "decay_s": 0.55,
+          "predelay_ms": 0,
+          "vlf_db": -2.0,
+          "lateroll_hz": 800.0,
+          "es": 14
+        },
+        {
+          "num": "02",
+          "name": "Adjacent Room",
+          "decay_s": 0.55,
+          "predelay_ms": 0,
+          "vlf_db": -2.0,
+          "lateroll_hz": 280.0,
+          "es": 19
+        },
+        {
+          "num": "03",
+          "name": "Backstage",
+          "decay_s": 0.55,
+          "predelay_ms": 0,
+          "vlf_db": -2.0,
+          "lateroll_hz": 280.0,
+          "es": 19
+        },
+        {
+          "num": "04",
+          "name": "Bedroom",
+          "decay_s": 0.3,
+          "predelay_ms": 0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 11200.0,
+          "es": 6
+        },
+        {
+          "num": "05",
+          "name": "Small Tunnel",
+          "decay_s": 1.7,
+          "predelay_ms": 92.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 8800.0,
+          "es": 13
+        },
+        {
+          "num": "06",
+          "name": "Closet",
+          "decay_s": 0.35,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 720.0,
+          "es": 0
+        },
+        {
+          "num": "07",
+          "name": "Deep Well",
+          "decay_s": 4.2,
+          "predelay_ms": 332.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 3600.0,
+          "es": 18
+        },
+        {
+          "num": "08",
+          "name": "Dining Room",
+          "decay_s": 0.4,
+          "predelay_ms": 4.0,
+          "vlf_db": -1.0,
+          "lateroll_hz": 4800.0,
+          "es": 9
+        },
+        {
+          "num": "09",
+          "name": "Factory Floor",
+          "decay_s": 1.6,
+          "predelay_ms": 96.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 8800.0,
+          "es": 16
+        },
+        {
+          "num": "10",
+          "name": "Gym Bleachers",
+          "decay_s": 0.95,
+          "predelay_ms": 88.0,
+          "vlf_db": -7.0,
+          "lateroll_hz": 9600.0,
+          "es": 2
+        },
+        {
+          "num": "11",
+          "name": "Kitchen",
+          "decay_s": 0.4,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 15600.0,
+          "es": 4
+        },
+        {
+          "num": "12",
+          "name": "Locker Room",
+          "decay_s": 1.2,
+          "predelay_ms": 38.0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 6400.0,
+          "es": 19
+        },
+        {
+          "num": "13",
+          "name": "Parking Garage",
+          "decay_s": 2.7,
+          "predelay_ms": 172.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 4800.0,
+          "es": 5
+        },
+        {
+          "num": "14",
+          "name": "Small Office",
+          "decay_s": 0.3,
+          "predelay_ms": 0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 480.0,
+          "es": 4
+        }
+      ]
+    },
+    {
+      "bank": "Halls 2",
+      "algo": "V2",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Large Hall",
+          "decay_s": 2.35,
+          "predelay_ms": 24.0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 3600.0,
+          "es": 21
+        },
+        {
+          "num": "02",
+          "name": "Large & Stage",
+          "decay_s": 2.3,
+          "predelay_ms": 24.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 3600.0,
+          "es": 28
+        },
+        {
+          "num": "03",
+          "name": "Medium Hall",
+          "decay_s": 1.75,
+          "predelay_ms": 24.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 4800.0,
+          "es": 13
+        },
+        {
+          "num": "04",
+          "name": "Med & Stage",
+          "decay_s": 1.75,
+          "predelay_ms": 24.0,
+          "vlf_db": -8.0,
+          "lateroll_hz": 4000.0,
+          "es": 23
+        },
+        {
+          "num": "05",
+          "name": "Small Hall",
+          "decay_s": 1.15,
+          "predelay_ms": 24.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 4400.0,
+          "es": 6
+        },
+        {
+          "num": "06",
+          "name": "Small & Stage",
+          "decay_s": 1.15,
+          "predelay_ms": 24.0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 4400.0,
+          "es": 23
+        },
+        {
+          "num": "07",
+          "name": "Large Church",
+          "decay_s": 4.1,
+          "predelay_ms": 0,
+          "vlf_db": -8.0,
+          "lateroll_hz": 2800.0,
+          "es": 24
+        },
+        {
+          "num": "08",
+          "name": "Small Church",
+          "decay_s": 2.5,
+          "predelay_ms": 0,
+          "vlf_db": -17.0,
+          "lateroll_hz": 3600.0,
+          "es": 20
+        },
+        {
+          "num": "09",
+          "name": "Jazz Church",
+          "decay_s": 1.35,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 8800.0,
+          "es": 20
+        },
+        {
+          "num": "10",
+          "name": "West Hall",
+          "decay_s": 2.2,
+          "predelay_ms": 0,
+          "vlf_db": -5.0,
+          "lateroll_hz": 3600.0,
+          "es": 13
+        },
+        {
+          "num": "11",
+          "name": "Concert A",
+          "decay_s": 2.0,
+          "predelay_ms": 64.0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 5200.0,
+          "es": 25
+        },
+        {
+          "num": "12",
+          "name": "Concert B",
+          "decay_s": 1.9,
+          "predelay_ms": 26.0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 4800.0,
+          "es": 19
+        },
+        {
+          "num": "13",
+          "name": "Live Hall",
+          "decay_s": 2.6,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 3200.0,
+          "es": 23
+        },
+        {
+          "num": "14",
+          "name": "Koncert Piano",
+          "decay_s": 2.0,
+          "predelay_ms": 24.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 4800.0,
+          "es": 17
+        }
+      ]
+    },
+    {
+      "bank": "Plates 2",
+      "algo": "V2",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Plate A",
+          "decay_s": 2.0,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 10000.0,
+          "es": 9
+        },
+        {
+          "num": "02",
+          "name": "Small Plate",
+          "decay_s": 1.5,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 8800.0,
+          "es": 9
+        },
+        {
+          "num": "03",
+          "name": "Snare Plate",
+          "decay_s": 1.2,
+          "predelay_ms": 20.0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 9200.0,
+          "es": 11
+        },
+        {
+          "num": "04",
+          "name": "Dark Plate",
+          "decay_s": 2.0,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 3600.0,
+          "es": 8
+        },
+        {
+          "num": "05",
+          "name": "Rich Plate A",
+          "decay_s": 2.0,
+          "predelay_ms": 0,
+          "vlf_db": -17.0,
+          "lateroll_hz": 7200.0,
+          "es": 8
+        },
+        {
+          "num": "06",
+          "name": "Rich Plate B",
+          "decay_s": 2.0,
+          "predelay_ms": 0,
+          "vlf_db": -17.0,
+          "lateroll_hz": 7200.0,
+          "es": 20
+        },
+        {
+          "num": "07",
+          "name": "Thin Plate",
+          "decay_s": 1.4,
+          "predelay_ms": 0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 17600.0,
+          "es": 9
+        },
+        {
+          "num": "08",
+          "name": "Vocal Plate A",
+          "decay_s": 1.7,
+          "predelay_ms": 30.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 8800.0,
+          "es": 8
+        },
+        {
+          "num": "08",
+          "name": "Vocal Plate B",
+          "decay_s": 1.5,
+          "predelay_ms": 20.0,
+          "vlf_db": -14.0,
+          "lateroll_hz": 6400.0,
+          "es": 8
+        },
+        {
+          "num": "09",
+          "name": "Drum Plate",
+          "decay_s": 1.35,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 6800.0,
+          "es": 9
+        },
+        {
+          "num": "10",
+          "name": "Large Plate",
+          "decay_s": 2.2,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 7200.0,
+          "es": 9
+        },
+        {
+          "num": "11",
+          "name": "Fat Plate",
+          "decay_s": 0.95,
+          "predelay_ms": 0,
+          "vlf_db": -2.0,
+          "lateroll_hz": 5200.0,
+          "es": 5
+        },
+        {
+          "num": "12",
+          "name": "Alpha Plate",
+          "decay_s": 1.9,
+          "predelay_ms": 0,
+          "vlf_db": -14.0,
+          "lateroll_hz": 6800.0,
+          "es": 15
+        },
+        {
+          "num": "13",
+          "name": "Vocal Shimmer",
+          "decay_s": 1.8,
+          "predelay_ms": 20.0,
+          "vlf_db": -14.0,
+          "lateroll_hz": 8000.0,
+          "es": 8
+        }
+      ]
+    },
+    {
+      "bank": "Rooms 2",
+      "algo": "V2",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Music Club",
+          "decay_s": 1.05,
+          "predelay_ms": 0,
+          "vlf_db": -16.0,
+          "lateroll_hz": 5200.0,
+          "es": 20
+        },
+        {
+          "num": "02",
+          "name": "Large Room",
+          "decay_s": 0.7,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 4800.0,
+          "es": 10
+        },
+        {
+          "num": "03",
+          "name": "Med Room",
+          "decay_s": 0.55,
+          "predelay_ms": 0,
+          "vlf_db": -9.0,
+          "lateroll_hz": 5200.0,
+          "es": 8
+        },
+        {
+          "num": "04",
+          "name": "Small Room",
+          "decay_s": 0.4,
+          "predelay_ms": 0,
+          "vlf_db": -7.0,
+          "lateroll_hz": 5200.0,
+          "es": 6
+        },
+        {
+          "num": "05",
+          "name": "Lg Wood Room",
+          "decay_s": 1.2,
+          "predelay_ms": 0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 6000.0,
+          "es": 21
+        },
+        {
+          "num": "06",
+          "name": "Sm Wood Room",
+          "decay_s": 0.8,
+          "predelay_ms": 10.0,
+          "vlf_db": -18.0,
+          "lateroll_hz": 4800.0,
+          "es": 10
+        },
+        {
+          "num": "07",
+          "name": "Large Chamber",
+          "decay_s": 2.0,
+          "predelay_ms": 10.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 4800.0,
+          "es": 9
+        },
+        {
+          "num": "08",
+          "name": "Small Chamber",
+          "decay_s": 1.5,
+          "predelay_ms": 6.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 5200.0,
+          "es": 4
+        },
+        {
+          "num": "09",
+          "name": "Bright Chamber",
+          "decay_s": 1.85,
+          "predelay_ms": 10.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 5600.0,
+          "es": 9
+        },
+        {
+          "num": "10",
+          "name": "Tiled Room",
+          "decay_s": 1.1,
+          "predelay_ms": 10.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 6400.0,
+          "es": 10
+        },
+        {
+          "num": "11",
+          "name": "Fat Chamber",
+          "decay_s": 1.35,
+          "predelay_ms": 10.0,
+          "vlf_db": -4.0,
+          "lateroll_hz": 2800.0,
+          "es": 11
+        },
+        {
+          "num": "12",
+          "name": "Studio 1",
+          "decay_s": 0.75,
+          "predelay_ms": 0,
+          "vlf_db": -3.0,
+          "lateroll_hz": 8400.0,
+          "es": 11
+        },
+        {
+          "num": "13",
+          "name": "Studio 2",
+          "decay_s": 0.6,
+          "predelay_ms": 0,
+          "vlf_db": -3.0,
+          "lateroll_hz": 6800.0,
+          "es": 5
+        },
+        {
+          "num": "14",
+          "name": "Studio 3",
+          "decay_s": 0.7,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 5200.0,
+          "es": 7
+        },
+        {
+          "num": "15",
+          "name": "Studio 4",
+          "decay_s": 1.05,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 4800.0,
+          "es": 8
+        },
+        {
+          "num": "16",
+          "name": "Guitar Room",
+          "decay_s": 1.2,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 5200.0,
+          "es": 25
+        },
+        {
+          "num": "17",
+          "name": "Marble Room",
+          "decay_s": 1.3,
+          "predelay_ms": 0,
+          "vlf_db": -11.0,
+          "lateroll_hz": 6000.0,
+          "es": 22
+        },
+        {
+          "num": "18",
+          "name": "Deep Chamber",
+          "decay_s": 1.9,
+          "predelay_ms": 10.0,
+          "vlf_db": -14.0,
+          "lateroll_hz": 4400.0,
+          "es": 9
+        },
+        {
+          "num": "19",
+          "name": "Dark Chamber",
+          "decay_s": 2.0,
+          "predelay_ms": 10.0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 3600.0,
+          "es": 12
+        },
+        {
+          "num": "20",
+          "name": "Vocal Chamber",
+          "decay_s": 1.7,
+          "predelay_ms": 20.0,
+          "vlf_db": -17.0,
+          "lateroll_hz": 6800.0,
+          "es": 4
+        },
+        {
+          "num": "21",
+          "name": "Wide Room",
+          "decay_s": 1.0,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 4000.0,
+          "es": 15
+        },
+        {
+          "num": "22",
+          "name": "Lush Room",
+          "decay_s": 0.9,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 4000.0,
+          "es": 19
+        }
+      ]
+    },
+    {
+      "bank": "Spaces 2",
+      "algo": "V2",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Open Space",
+          "decay_s": 2.1,
+          "predelay_ms": 180.0,
+          "vlf_db": -14.0,
+          "lateroll_hz": 1800.0,
+          "es": 24
+        },
+        {
+          "num": "02",
+          "name": "Med Space",
+          "decay_s": 1.4,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 2800.0,
+          "es": 7
+        },
+        {
+          "num": "03",
+          "name": "Small Space",
+          "decay_s": 0.6,
+          "predelay_ms": 0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 2800.0,
+          "es": 4
+        },
+        {
+          "num": "04",
+          "name": "Vox Ambience",
+          "decay_s": 1.7,
+          "predelay_ms": 0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 6800.0,
+          "es": 12
+        },
+        {
+          "num": "05",
+          "name": "Big Bottom",
+          "decay_s": 1.45,
+          "predelay_ms": 0,
+          "vlf_db": 0.0,
+          "lateroll_hz": 6800.0,
+          "es": 18
+        },
+        {
+          "num": "06",
+          "name": "Cathedral",
+          "decay_s": 5.5,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 4000.0,
+          "es": 15
+        },
+        {
+          "num": "07",
+          "name": "Grand Stage",
+          "decay_s": 2.45,
+          "predelay_ms": 0,
+          "vlf_db": -4.0,
+          "lateroll_hz": 4800.0,
+          "es": 2
+        },
+        {
+          "num": "08",
+          "name": "Lush Church",
+          "decay_s": 5.0,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 4000.0,
+          "es": 24
+        },
+        {
+          "num": "09",
+          "name": "Grand Church",
+          "decay_s": 5.0,
+          "predelay_ms": 0,
+          "vlf_db": -13.0,
+          "lateroll_hz": 4000.0,
+          "es": 14
+        },
+        {
+          "num": "10",
+          "name": "Concert Wave",
+          "decay_s": 5.0,
+          "predelay_ms": 0,
+          "vlf_db": -12.0,
+          "lateroll_hz": 3200.0,
+          "es": 24
+        },
+        {
+          "num": "11",
+          "name": "Long Vox Space",
+          "decay_s": 2.4,
+          "predelay_ms": 0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 7200.0,
+          "es": 31
+        },
+        {
+          "num": "12",
+          "name": "Dark Warm Room",
+          "decay_s": 1.0,
+          "predelay_ms": 10.0,
+          "vlf_db": -10.0,
+          "lateroll_hz": 3600.0,
+          "es": 11
+        },
+        {
+          "num": "13",
+          "name": "Live Room",
+          "decay_s": 1.5,
+          "predelay_ms": 10.0,
+          "vlf_db": -15.0,
+          "lateroll_hz": 4000.0,
+          "es": 22
+        },
+        {
+          "num": "14",
+          "name": "Shimmering Sky",
+          "decay_s": 8.4,
+          "predelay_ms": 0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 3600.0,
+          "es": 22
+        },
+        {
+          "num": "15",
+          "name": "Oak Ballroom",
+          "decay_s": 7.0,
+          "predelay_ms": 0,
+          "vlf_db": -5.0,
+          "lateroll_hz": 2000.0,
+          "es": 27
+        },
+        {
+          "num": "16",
+          "name": "Ice House",
+          "decay_s": 8.0,
+          "predelay_ms": 0,
+          "vlf_db": -4.0,
+          "lateroll_hz": 7600.0,
+          "es": 20
+        },
+        {
+          "num": "17",
+          "name": "Ice Beads",
+          "decay_s": 5.5,
+          "predelay_ms": 24.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 16000.0,
+          "es": 16
+        },
+        {
+          "num": "18",
+          "name": "Music Forest",
+          "decay_s": 2.6,
+          "predelay_ms": 34.0,
+          "vlf_db": -6.0,
+          "lateroll_hz": 2000.0,
+          "es": 31
+        },
+        {
+          "num": "19",
+          "name": "Waving Bloom",
+          "decay_s": 5.8,
+          "predelay_ms": 236.0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 1800.0,
+          "es": 31
+        },
+        {
+          "num": "20",
+          "name": "Brick Chamber",
+          "decay_s": 0.7,
+          "predelay_ms": 0,
+          "vlf_db": -18.0,
+          "lateroll_hz": 7600.0,
+          "es": 29
+        }
+      ]
+    },
+    {
+      "bank": "Nonlinear",
+      "algo": "Nonlinear",
+      "presets": [
+        {
+          "num": "01",
+          "name": "Nonlin A",
+          "decay_s": 0.2,
+          "predelay_ms": 0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 6000.0,
+          "es": 0
+        },
+        {
+          "num": "02",
+          "name": "Nonlin B",
+          "decay_s": 0.2,
+          "predelay_ms": 0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 6400.0,
+          "es": 9
+        },
+        {
+          "num": "03",
+          "name": "Nonlin C",
+          "decay_s": 0.2,
+          "predelay_ms": 0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 4800.0,
+          "es": 20
+        },
+        {
+          "num": "04",
+          "name": "Nonlin D",
+          "decay_s": 0.2,
+          "predelay_ms": 0,
+          "vlf_db": -20.0,
+          "lateroll_hz": 8000.0,
+          "es": 23
+        }
+      ]
+    }
+  ],
+  "by_genre_memo": {
+    "classical": [
+      {
+        "use": "Main hall - full ensemble",
+        "bank": "Halls 1",
+        "num": "10",
+        "name": "Concert Hall",
+        "factory": "2.20s",
+        "memo_target": "1.3-1.4s",
+        "notes": "Low modulation, stable. VLF off or -20dB. Late Rolloff 4-5kHz."
+      },
+      {
+        "use": "Solo instrument / small chamber",
+        "bank": "Halls 1",
+        "num": "18",
+        "name": "Boston Hall A",
+        "factory": "2.10s",
+        "memo_target": "1.2-1.3s",
+        "notes": "Brighter, empty-hall character. Factory VLF only -2dB - cut aggressively."
+      },
+      {
+        "use": "Piano solo",
+        "bank": "Halls 1",
+        "num": "32",
+        "name": "Piano Hall",
+        "factory": "2.00s",
+        "memo_target": "1.2s",
+        "notes": "24ms pre-delay built in. VLF to -18dB+. Stereo send."
+      },
+      {
+        "use": "Vocal (classical)",
+        "bank": "Chambers 1",
+        "num": "17",
+        "name": "Sunset Chamber",
+        "factory": "2.15s",
+        "memo_target": "1.3-1.5s",
+        "notes": "Factory VLF already -20dB. Low diffusion keeps character. Min 20ms pre-delay."
+      },
+      {
+        "use": "Strings (close-mic'd)",
+        "bank": "Chambers 1",
+        "num": "11",
+        "name": "A&M Chamber",
+        "factory": "2.20s",
+        "memo_target": "1.4s",
+        "notes": "'70s smoothness. Pre-delay 20ms factory."
+      },
+      {
+        "use": "Ensemble air / glue",
+        "bank": "Ambiences 1",
+        "num": "01",
+        "name": "Large Ambience",
+        "factory": "0.80s",
+        "memo_target": "0.5-0.6s",
+        "notes": "Very short - space without obvious tail. VLF down from -10dB."
+      }
+    ],
+    "jazz": [
+      {
+        "use": "Drum bus / overheads",
+        "bank": "Rooms 1",
+        "num": "02",
+        "name": "Studio B Close",
+        "factory": "0.75s",
+        "memo_target": "0.5-0.6s",
+        "notes": "VLF 0dB factory - cut to -12dB."
+      },
+      {
+        "use": "Acoustic instruments",
+        "bank": "Rooms 1",
+        "num": "16",
+        "name": "Djangos Room",
+        "factory": "0.80s",
+        "memo_target": "0.55s",
+        "notes": "Small jazz-club feel. VLF to -15dB."
+      },
+      {
+        "use": "Upright bass / ac. guitar",
+        "bank": "Rooms 1",
+        "num": "10",
+        "name": "Large Wooden",
+        "factory": "1.20s",
+        "memo_target": "0.75s",
+        "notes": "Natural air."
+      },
+      {
+        "use": "Lead vocal",
+        "bank": "Chambers 1",
+        "num": "10",
+        "name": "Vocal Chamber",
+        "factory": "1.60s",
+        "memo_target": "1.0s",
+        "notes": "Classic chamber. Pre-delay 20-40ms. Ducker on (Reverb mode)."
+      },
+      {
+        "use": "Snare",
+        "bank": "Plates 1",
+        "num": "04",
+        "name": "Snare Plate A",
+        "factory": "1.20s",
+        "memo_target": "0.8s",
+        "notes": "Bright and dense."
+      }
+    ],
+    "celtic": [
+      {
+        "use": "Acoustic instruments",
+        "bank": "Rooms 1",
+        "num": "10",
+        "name": "Large Wooden",
+        "factory": "1.20s",
+        "memo_target": "0.75s",
+        "notes": "Natural, airy. VLF to -15dB."
+      },
+      {
+        "use": "Flute / whistles",
+        "bank": "Chambers 1",
+        "num": "03",
+        "name": "Small Chamber",
+        "factory": "1.00s",
+        "memo_target": "0.65s",
+        "notes": "Compact, warm."
+      },
+      {
+        "use": "Uilleann pipes",
+        "bank": "Chambers 1",
+        "num": "02",
+        "name": "Medium Chamber",
+        "factory": "1.25s",
+        "memo_target": "0.8s",
+        "notes": "Tight enough to stay clean."
+      },
+      {
+        "use": "Bodhran",
+        "bank": "Rooms 1",
+        "num": "02",
+        "name": "Studio B Close",
+        "factory": "0.75s",
+        "memo_target": "0.5s",
+        "notes": "Short, dense. Cut VLF from 0dB factory."
+      },
+      {
+        "use": "Vocals",
+        "bank": "Chambers 1",
+        "num": "17",
+        "name": "Sunset Chamber",
+        "factory": "2.15s",
+        "memo_target": "1.3-1.5s",
+        "notes": "Warm. Factory VLF already -20dB."
+      },
+      {
+        "use": "Fiddle / strings",
+        "bank": "Chambers 1",
+        "num": "11",
+        "name": "A&M Chamber",
+        "factory": "2.20s",
+        "memo_target": "1.4s",
+        "notes": "Smooth, mid-forward."
+      }
+    ],
+    "gospel": [
+      {
+        "use": "Main hall / choir wash",
+        "bank": "Halls 1",
+        "num": "12",
+        "name": "Sandors Hall",
+        "factory": "2.60s",
+        "memo_target": "1.6-1.8s",
+        "notes": "Factory VLF -14dB - can bring to -10dB for gospel weight."
+      },
+      {
+        "use": "Lead vocal (traditional)",
+        "bank": "Chambers 1",
+        "num": "10",
+        "name": "Vocal Chamber",
+        "factory": "1.60s",
+        "memo_target": "1.0-1.1s",
+        "notes": "V1 warmth. Ducker on."
+      },
+      {
+        "use": "Lead vocal (contemporary)",
+        "bank": "Plates 2",
+        "num": "13",
+        "name": "Vocal Shimmer",
+        "factory": "1.80s",
+        "memo_target": "1.1-1.3s",
+        "notes": "V2 bloom. Baked delay 236ms - part of the shimmer."
+      },
+      {
+        "use": "BG / choir vocals",
+        "bank": "Plates 1",
+        "num": "08",
+        "name": "Rich Plate",
+        "factory": "1.90s",
+        "memo_target": "1.2-1.3s",
+        "notes": "Warmth and density."
+      },
+      {
+        "use": "Snare",
+        "bank": "Plates 1",
+        "num": "04",
+        "name": "Snare Plate A",
+        "factory": "1.20s",
+        "memo_target": "0.8s",
+        "notes": "Standard."
+      },
+      {
+        "use": "Drum bus",
+        "bank": "Rooms 1",
+        "num": "02",
+        "name": "Studio B Close",
+        "factory": "0.75s",
+        "memo_target": "0.5s",
+        "notes": "Keep tight. Cut VLF from 0dB."
+      },
+      {
+        "use": "Keys / synth pads",
+        "bank": "Halls 2",
+        "num": "01",
+        "name": "Large Hall",
+        "factory": "2.35s",
+        "memo_target": "1.5-1.7s",
+        "notes": "V2 bloom. Factory VLF -13dB."
+      }
+    ],
+    "rock": [
+      {
+        "use": "Snare (crack)",
+        "bank": "Plates 1",
+        "num": "04",
+        "name": "Snare Plate A",
+        "factory": "1.20s",
+        "memo_target": "0.8s",
+        "notes": "Bright, aggressive."
+      },
+      {
+        "use": "Snare (vintage / British)",
+        "bank": "Chambers 1",
+        "num": "09",
+        "name": "Snare Chamber",
+        "factory": "1.20s",
+        "memo_target": "0.8s",
+        "notes": "Dense chamber. VLF -19dB factory."
+      },
+      {
+        "use": "Snare (dark)",
+        "bank": "Plates 1",
+        "num": "02",
+        "name": "Dark Plate",
+        "factory": "1.50s",
+        "memo_target": "1.0s",
+        "notes": "Factory Late Rolloff 4800Hz - already dark."
+      },
+      {
+        "use": "Drum bus",
+        "bank": "Rooms 1",
+        "num": "02",
+        "name": "Studio B Close",
+        "factory": "0.75s",
+        "memo_target": "0.5s",
+        "notes": "Dense, dry-ish."
+      },
+      {
+        "use": "Electric guitar (British)",
+        "bank": "Rooms 2",
+        "num": "16",
+        "name": "Guitar Room",
+        "factory": "1.20s",
+        "memo_target": "0.8s",
+        "notes": "V2. Baked-in 300ms slap - leave it."
+      },
+      {
+        "use": "Vocal (plate)",
+        "bank": "Plates 1",
+        "num": "06",
+        "name": "Vocal Plate",
+        "factory": "1.50s",
+        "memo_target": "1.0s",
+        "notes": "Dense plate, forward. VLF -19dB factory."
+      },
+      {
+        "use": "Vocal (hall - ballads)",
+        "bank": "Halls 1",
+        "num": "11",
+        "name": "Gold Hall",
+        "factory": "1.80s",
+        "memo_target": "1.1-1.3s",
+        "notes": "VLF 0dB factory - cut to -12dB."
+      },
+      {
+        "use": "Overall glue",
+        "bank": "Rooms 1",
+        "num": "01",
+        "name": "Studio A",
+        "factory": "0.70s",
+        "memo_target": "0.5s",
+        "notes": "Mod 0, transparent. Very low send."
+      }
+    ]
+  },
+  "fsq_logic": {
+    "default": "minimal-to-none — most FSQ shows take no reverb send",
+    "when_used": "short and bright; Rooms/Plates over long Halls; decay near factory",
+    "vlf": "nearer factory (no 60-315Hz room buildup to fight)",
+    "early_late": "Late carries more work outdoors — Equal to about -6 dB; Early still MAX",
+    "lateroll": "brighter, 8-10kHz (no audience HF absorption)"
+  },
+  "memo_tweak_priorities": [
+    "Decay — pull 30-40% from factory",
+    "VLF — cut hard from factory (room reinforces 60-315Hz)",
+    "Pre-delay — 10ms min, 20-30ms on vocals",
+    "Late Rolloff — 4-6kHz classical/acoustic, 6-9kHz jazz/folk, 8-10kHz contemporary",
+    "Early/Late — Early MAX, pull Late down toward -20/OFF",
+    "Ducker (Reverb mode) on vocals"
+  ]
+}

@@ -1,0 +1,12 @@
+=== Tue Jun 16 22:48:18 EDT 2026 — locating spl-monitor guest ===
+### VMs (qm):
+      VMID NAME                 STATUS     MEM(MB)    BOOTDISK(GB) PID       
+       100 n8n                  running    4096              40.00 14044     
+### Containers (pct):
+VMID       Status     Lock         Name                
+101        running                 wikijs              
+
+### Guest IPs:
+VM 100 (n8n): 192.168.200.84 172.18.0.1 172.17.0.1 
+CT 101 (wikijs): 192.168.200.126 172.17.0.1 172.18.0.1 2600:2b00:8741:c700:be24:11ff:fec8:a74 
+=== done ===

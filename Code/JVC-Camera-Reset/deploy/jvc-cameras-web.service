@@ -1,0 +1,15 @@
+[Unit]
+Description=JVC Cameras web button (reboot all PZ100s from the portal)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=brian
+WorkingDirectory=/opt/jvc-reset
+ExecStart=/opt/jvc-reset/.venv/bin/python /opt/jvc-reset/web.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,816 @@
+{
+ "venue": "fsq",
+ "show_name": "Izzy Escobar",
+ "artist": "Izzy Escobar",
+ "genre": "Pop-soul / indie-R&B (jazz-tinged)",
+ "show_date": "2026-06-26",
+ "foh_engineer": "Brian Lloyd",
+ "mon_engineer": "Sam Carpender",
+ "show_time": "9:00pm",
+ "rev": "Rev 2.0 Deep Think",
+ "eq_on": true,
+ "comp_on": true,
+ "app_version": "deep-think-1.0",
+ "channels": [
+  {
+   "ch": 1,
+   "name": "Kick In",
+   "instrument": "Kick",
+   "mic": "Shure Beta 91A",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Boom",
+   "notes": "Beta 91A/52A kick blend \u2014 91A is the attack/click layer. Treat the pair as ONE: same VCA, pan together, blend constant. Polarity: sum in mono, flip on one mic if thinner. Bus: notch -2/-3 dB @300-500 if it builds.",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 4,
+     "freq": 3000,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 600,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 250,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 80,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "Boundary mic inside the kick \u2014 the attack engine; let it own the click, keep its lows tucked under the 52A.",
+   "eq_summary": "+4@3k beater definition that travels outdoors (eased from +5 \u2014 pop-soul punch, not a metal click). Lows modest so they don't stack with the 52A. 250 box cut eased to -3: open air has far less low-mid buildup than a room."
+  },
+  {
+   "ch": 2,
+   "name": "Kick Out",
+   "instrument": "Kick",
+   "mic": "Shure Beta 52A",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Boom",
+   "notes": "Beta 91A/52A kick blend \u2014 52A is the body/punch core. Treat the pair as one; pan together, same VCA.",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 3000,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 600,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 250,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 5,
+     "freq": 80,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "Body/punch engine at the port.",
+   "eq_summary": "+5@80 supports the weight open air swallows; small 3k snap (the 91A carries the real click). Mud cut eased for outdoors."
+  },
+  {
+   "ch": 3,
+   "name": "Snare Top",
+   "instrument": "Snare",
+   "mic": "Audix i5",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Boom",
+   "notes": "",
+   "hpf": 120,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 2,
+     "freq": 7000,
+     "q": 0.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 5500,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": 3,
+     "freq": 1000,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -5,
+     "freq": 300,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "i5 has a built-in ~3.5k presence peak + scooped mids; more body, less boxy than an SM57.",
+   "eq_summary": "Crack boost small (+3@1k) and box cut -5 not -7 \u2014 the capsule isn't boxy, don't gut it. +2@7k snap to cut outdoors; -2@5.5k tames ring."
+  },
+  {
+   "ch": 5,
+   "name": "Hat",
+   "instrument": "Hi-Hat",
+   "mic": "Shure SM81",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Boom",
+   "notes": "",
+   "hpf": 500,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 2000,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -6,
+     "freq": 800,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "SM81 \u2014 smooth, un-hyped highs.",
+   "eq_summary": "No HF boost needed; just clear the low bleed (800) and the 2k clang so it sparkles without harshness."
+  },
+  {
+   "ch": 6,
+   "name": "Rack 1",
+   "instrument": "Rack Tom",
+   "mic": "Audix D2",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Boom",
+   "notes": "",
+   "hpf": 90,
+   "lpf": 12000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 4,
+     "freq": 2800,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 450,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 135,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "D2 is tuned to control tom resonance; articulate with little EQ.",
+   "eq_summary": "Attack lift eased to +4 \u2014 trust the capsule; gentle body, modest mud cut."
+  },
+  {
+   "ch": 7,
+   "name": "Rack 2",
+   "instrument": "Rack Tom",
+   "mic": "Audix D2",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Boom",
+   "notes": "",
+   "hpf": 80,
+   "lpf": 12000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 4,
+     "freq": 2525,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 405,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 120,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "As Rack 1, shifted down for the larger drum.",
+   "eq_summary": "Let the D2 do the work."
+  },
+  {
+   "ch": 8,
+   "name": "Floor",
+   "instrument": "Floor Tom",
+   "mic": "Audix D4",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Boom",
+   "notes": "",
+   "hpf": 55,
+   "lpf": 10000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 4,
+     "freq": 1800,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 405,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 4,
+     "freq": 70,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "D4 reaches an octave lower than the D2 natively.",
+   "eq_summary": "Body shelf stays modest (+4) \u2014 support, not a big lift; ride the sub outdoors. Attack at 1.8k for stick definition."
+  },
+  {
+   "ch": 9,
+   "name": "OH HL",
+   "instrument": "Overhead L",
+   "mic": "Shure SM81",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Boom",
+   "notes": "",
+   "hpf": 180,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": 3,
+     "freq": 5000,
+     "q": 0.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -5,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "Cymbal sheen + kit glue.",
+   "eq_summary": "+3@5k eased from +5 \u2014 SM81 is already detailed; a big lift gets brittle over a long outdoor throw. 300 clears low wash."
+  },
+  {
+   "ch": 10,
+   "name": "OH HR",
+   "instrument": "Overhead R",
+   "mic": "Shure SM81",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Boom",
+   "notes": "",
+   "hpf": 180,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": 3,
+     "freq": 5000,
+     "q": 0.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -5,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "Matched to OH HL \u2014 keep the stereo pair identical.",
+   "eq_summary": "Same as OH HL."
+  },
+  {
+   "ch": 11,
+   "name": "Bass DI",
+   "instrument": "Bass",
+   "mic": "XLR (DI)",
+   "section": "RHYTHM",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "notes": "Bass DI + SM57 cab blend: DI = weight + low-mid warmth, 57 = punch + air. Group to one VCA, polarity-check against the 57.",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -5,
+     "freq": 1500,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": 5,
+     "freq": 600,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 250,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 5,
+     "freq": 80,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "DI carries the lows the cab mic can't.",
+   "eq_summary": "Soul/Motown bass = dark, round, low-mid forward, top rolled. +5@600 is the Motown 'wool'; -5@1.5k tames string clank; -6@250 keeps it off the kick/cab; +5@80 foundation."
+  },
+  {
+   "ch": 12,
+   "name": "Bass Mic",
+   "instrument": "Bass Cab",
+   "mic": "Shure SM57",
+   "section": "RHYTHM",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "notes": "Blend with the DI \u2014 see Bass DI note.",
+   "hpf": 60,
+   "lpf": 5000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 5,
+     "freq": 900,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 5,
+     "freq": 100,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "57 rolls off below ~200 \u2014 not a low source; it's the punch/air mid layer over the DI.",
+   "eq_summary": "+5@900 grind; -7@400 carves a pocket so it doesn't double the DI mud. LPF 5k keeps the dark soul character."
+  },
+  {
+   "ch": 13,
+   "name": "Guitar 57",
+   "instrument": "Electric Gtr",
+   "mic": "Shure SM57",
+   "section": "RHYTHM",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "notes": "SM57/Beta 27 blend \u2014 57 owns mids, 27 owns air + body. Don't double the 2.5k. Same VCA, polarity-check.",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 4,
+     "freq": 2500,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": 3,
+     "freq": 800,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 450,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -4,
+     "freq": 200,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "57 owns the mid grit + presence core.",
+   "eq_summary": "Dreamy/supportive guitar (not a rock wall): mid boosts eased so it sits under the vocal. Box at 450; 200 cleared so it doesn't stack with the 27's body."
+  },
+  {
+   "ch": 14,
+   "name": "Guitar 27",
+   "instrument": "Electric Gtr",
+   "mic": "Shure Beta 27",
+   "section": "RHYTHM",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "DI",
+   "notes": "SM57/Beta 27 blend \u2014 27 carries the air + clean body the 57 lacks.",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 4,
+     "freq": 9000,
+     "q": 0.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": 1,
+     "freq": 800,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -2,
+     "freq": 450,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 2,
+     "freq": 120,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "Bright detailed condenser \u2014 value is the air + clean low body the 57 lacks.",
+   "eq_summary": "Re-thought from a KB default: instead of doubling the 57 at 2.5k, give it air at 9k + clean body at 120 and stay out of the mids. 57 owns mids, 27 owns air+body \u2014 no doubling."
+  },
+  {
+   "ch": 15,
+   "name": "Acoustic Guitar",
+   "instrument": "Acoustic Gtr",
+   "mic": "BSS AR-133",
+   "section": "RHYTHM",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "notes": "",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 8000,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -6,
+     "freq": 2000,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": {
+      "thr": -12,
+      "atk_ms": 5,
+      "rel_ms": 80
+     }
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 4,
+     "freq": 200,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "AR-133 is clean/transparent; the source is a piezo \u2014 quack at 1-3k, brassy at ~5k.",
+   "eq_summary": "Biggest fix vs the KB default: air moved OFF 5k (that's the brassy piezo zone you cut) up to 8k. The -6@2k quack cut made DYNAMIC so it only bites on loud strums without gutting sustain; -5@400 box; +4@200 body the piezo lacks."
+  },
+  {
+   "ch": 17,
+   "name": "Keys",
+   "instrument": "Keys",
+   "mic": "Whirlwind IMP (DI)",
+   "section": "RHYTHM",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "notes": "",
+   "hpf": 60,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 4,
+     "freq": 2500,
+     "q": 0.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": 3,
+     "freq": 300,
+     "q": 0.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -5,
+     "freq": 200,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "Piano is central to her writing.",
+   "eq_summary": "Warmth (+3@300) + a little clarity (+4@2.5k, eased) without hype; -5@200 clears mud so it doesn't crowd the bass + vocal low-mids."
+  },
+  {
+   "ch": 18,
+   "name": "Click",
+   "instrument": "Click",
+   "mic": "Whirlwind IMP (DI)",
+   "section": "RHYTHM",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "notes": "",
+   "hpf": 80,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 315,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -2,
+     "freq": 200,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "Utility / cue.",
+   "eq_summary": "Mud trimmed so it's clean in the players' ears. CONFIRM: monitors / IEM only \u2014 never assigned to FOH."
+  },
+  {
+   "ch": 19,
+   "name": "Guide",
+   "instrument": "Guide Vocal",
+   "mic": "Whirlwind IMP (DI)",
+   "section": "RHYTHM",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "notes": "",
+   "hpf": 80,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 315,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -2,
+     "freq": 200,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "Guide vocal / cue track.",
+   "eq_summary": "Same utility treatment. CONFIRM: monitors / IEM only \u2014 not in FOH."
+  },
+  {
+   "ch": 20,
+   "name": "Tracks",
+   "instrument": "Playback",
+   "mic": "Whirlwind IMP (DI)",
+   "section": "RHYTHM",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "notes": "",
+   "hpf": 30,
+   "lpf": null,
+   "bands": [],
+   "is_crowd": false,
+   "mic_notes": "Mastered, full-range stem (her lush strings/synths/BGV bed).",
+   "eq_summary": "Re-thought: it's already balanced \u2014 EQ'ing it like a mic'd source thins the production. Left near-flat (HPF 30 only). Add a small 315 trim live ONLY if it clouds the band."
+  },
+  {
+   "ch": 25,
+   "name": "Izzy",
+   "instrument": "Female Vocal",
+   "mic": "Neumann KMS 105",
+   "section": "VOCALS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Tall",
+   "notes": "",
+   "hpf": 110,
+   "lpf": 15000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 7500,
+     "q": 3.0,
+     "type": "BELL",
+     "deq": {
+      "thr": -18,
+      "atk_ms": 3,
+      "rel_ms": 120
+     }
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 1600,
+     "q": 1.4,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 300,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "is_crowd": false,
+   "mic_notes": "KMS 105 \u2014 transparent, smooth 7-12k presence, NOT a sibilant mic. Wired handheld on a stand (not the wireless system).",
+   "eq_summary": "The show lives here. Killed the static -5@8k for a DYNAMIC de-ess that only acts on sibilant peaks \u2014 keep the air a soul voice wants. HPF pulled to 110 (mic compensates proximity, won't boom) to protect the throaty Winehouse chest body. -3@1.6k gentle nasal; -4@300 box for outdoor intelligibility. Protective + subtractive, not aggressive. NOTE: this overrides the template's wireless vocal baseline (removes its -18@5k feedback notch) \u2014 watch for feedback at soundcheck; reach for the Mustard comp + a touch of plate before any more EQ."
+  }
+ ],
+ "artist_profile": "Cuban-Italian pop-soul / indie-R&B singer-songwriter (debut EP 'Sunny in London', 2025). Classically trained on violin, piano-forward writing, lush but RESTRAINED production. Voice is the show: Amy-Winehouse throaty grit meets Adele-style soulful power, wide dynamic range from intimate/breathy to commanding belt. FOH implication: protect the low-mid chest body, ride/compress for the intimate->belt swing, keep EQ subtractive and musical, de-ess dynamically rather than statically cutting the air.",
+ "research_summary": "Artist: Billboard, Atwood Magazine, commfailure EP review, izzyescobarmusic.com -> pop-soul/indie-R&B, restraint over maximalism, Winehouse+Adele vocal reference. Per-source EQ: live forum/maker consensus (Sound on Sound, Gearspace, Pro Sound Web, Shure, Premier Guitar, Harman) cross-checked vs the KB eq-starting-points + each mic's profile. Venue: open-air Fountain Square \u2014 no room gain, low end + HF dissipate, facade slap but no reverb tail.",
+ "reverb_note": "FSQ is outdoors \u2014 default is no reverb send. Vocal: short, forward plate only if the song calls for it."
+}

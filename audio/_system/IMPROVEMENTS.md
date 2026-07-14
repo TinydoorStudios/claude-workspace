@@ -1,0 +1,206 @@
+# IMPROVEMENTS — self-improvement log
+
+*Append-only. Dated entries describing structural/workflow changes to the audio project and why. Newest at the bottom.*
+
+---
+
+## 2026-05-30 — Single-project migration
+
+**Context:** Brian moved to an Opus workflow — one project for all venues, a new conversation per show, venue named at the start. The old setup had drifted into 3–5 competing copies of every reference, which produced inconsistent results.
+
+**Direction set this session:**
+- `Live Sound KB/` is the single source of truth for all knowledge (venues, consoles, mics, EQ, reverb, pipeline/workflow). Every show conversation pulls its pipeline + specs from the KB.
+- The KB grows by reinforcement: when an output lands well, the reusable part gets written back into the KB so the next conversation inherits it.
+- Project state lives in `Live Sound KB/Wiki/active-projects.md` (canonical). Cowork auto-memory holds operational preferences/feedback. `about-me/memory.md` keeps session history.
+- **Full consolidation approved** (not phased): duplicates move to `_ARCHIVE/`, patchers to `_templates/`, pipeline specs fold into the KB, CLAUDE.md slims to routing + pointers.
+
+**Built this session:**
+- `_system/ROUTING.md` — venue → folder · console · base .ses · patcher · PA · Tempest · KB specs to load.
+- `_system/NEW-SHOW.md` — deterministic show-conversation flow.
+- `_system/IMPROVEMENTS.md` — this log.
+
+**Fixes this session:**
+- CLAUDE.md startup path corrected: about-me is at `~/Documents/Claude/audio/about-me/`, not `~/Documents/Claude/about-me/` (the old path never existed, so startup reads were silently failing).
+- CLAUDE.md startup block now points at `_system/ROUTING.md` + `NEW-SHOW.md` first.
+- about-me/memory.md banner added: project state now canonical in the KB.
+
+**Verified (no change needed):**
+- Memo crowd-mic FOH EQ and the Royer AxeMount blend guide are already in KB `venue-memorial-hall`, referenced from `eq-starting-points`. The KB is internally consistent here. The duplicate is the inline copy in CLAUDE.md, which gets removed in the CLAUDE.md slim-down.
+
+**In progress:**
+- Memory meld: reconciling `about-me/memory.md`, KB `active-projects.md`, and Cowork auto-memory. Differences surfaced to Brian as questions before merging so nothing is lost.
+
+**Next (consolidation manifest — pending memory-meld answers):**
+- Fold the Memo + FSQ "Show Paperwork Pipeline Spec" into KB articles (`show-processing-pipeline` is Memo-centric; add an FSQ variant / generalize). These are the richest pipeline docs and currently live outside the KB.
+- `_ARCHIVE/`: `Memo Work/`, `workflow start files/` (≈90% duplicate startup kits), `Fountain Square Knowledge/` (merge into `Fountain Square/` + KB), `Seals and Crofts 2 BACKUP/`, scattered `venue-notes.md` (after diffing against KB venue articles), redundant Seventh Heaven PDFs.
+- `_templates/`: `apply_show_TEMPLATE.py`, `apply_show_TEMPLATE_FSQ.py`, `digico_ses_editor.py`, `show-packet-builder-template.py` — then update every path reference in lockstep.
+- Strip embedded EQ/console/mic tables from CLAUDE.md once the KB is confirmed complete.
+
+**EQ-table convention — RESOLVED 2026-05-30.** Brian confirmed the Q225 EQ: HPF + LPF + 4 bands; each band Shelf or Bell; any Bell band can be Dynamic; no separate low shelf. Canonical display order locked high→low (`HPF · LPF · Band 4 · Band 3 · Band 2 · Band 1`) with band numbers matching the console (Band 1 = LF, Band 4 = HF). The prior channel-card standard had the numbering backwards (Band 1 = High Shelf) — corrected across `pipeline-spec-memo`, `pipeline-spec-fsq`, CLAUDE.md, and the channel-card auto-memory. Note: the legacy EQ-starting-point data tables in CLAUDE.md still use the old column layout (flagged inline); they get remapped during the CLAUDE.md slim-down.
+
+## 2026-06-12 — SOP routing correction + WP ClearCom SOP
+
+**Mistake surfaced:** Claude created `Memorial Hall/SOP Stuff/` instead of using the canonical `audio/SOP Stuff/` root. Brian caught it. Files moved after gaining access to the audio root folder.
+
+**Rule reinforced:** `SOP Stuff/` is a function folder at `audio/SOP Stuff/<venue>/` — parallel to `N8n/` and `Other/`, not nested inside any venue. Already stated in ROUTING.md "Where things live" and CLAUDE.md FILE STRUCTURE. Added to Cowork auto-memory (feedback_sop_routing.md) so it persists across sessions.
+
+**Deliverable:** `SOP Stuff/WP/WP-SOP-ClearCom-Main-Stage.{md,html,pdf}` — Clear-Com intercom setup, 4-part SOP, 5 extracted photos, weasyprint-rendered PDF. Same .md+.html+.pdf format as FSQ Smaart SOP.
+
+## 2026-06-03 — Reusable web-image-to-PDF workflow
+- Web image binaries can't be fetched in-session (web tools return text; screenshots don't persist). Workaround built: a drop-folder + embed helper instead of scraping.
+- `Live Sound KB/_tools/embed_refs.py` — scans a drop folder, EXIF-corrects, reads captions.tsv / sidecars, emits a captioned photo grid (standalone contact sheet or injectable flowables). Empty-state shows drop instructions.
+- Convention: drop images in `Live Sound KB/_refs/<topic>/`, optional `captions.tsv` (filename TAB caption TAB credit), prefix 01_/02_ for order. Ask to rebuild → photos embed.
+- Wired into the C3 deep-dive (`_tools/c3-build/make_c3_pdf.py`, self-locating, regenerates diagrams, writes to Outputs). New "Real-world reference photos" page auto-fills from `_refs/dpa-4099-c3/`.
+
+## 2026-06-16 — ShowBuilder app (guided .ses + paperwork front end)
+
+**Context:** Brian wanted a dashboard to customize Q225 `.ses` files end to end — pick a venue, lay out channels, choose instruments/mics, get genre/venue/mic-aware EQ + comp + Seventh Heaven Pro reverb suggestions, approve, and produce consistent show paperwork + a console-ready `.ses`, with the whole thing self-improving and wiki-synced.
+
+**Built:** `Code/ShowBuilder/` — a Python/aiohttp web wizard that is a **front end to the existing pipeline**, not a reimplementation. It renders the locked `FOH Channel Processing.md` and calls the calibrated `apply_show_TEMPLATE*.py` patchers + `show-packet-builder-template.py`; it never re-derives the `.ses` byte format. Knowledge layer is KB-sourced (`reverb_presets.json` parsed from `reverb-reference-memo` by `build_knowledge.py`; `eq_rules.json` from CLAUDE.md starting points; `mics.json` from `mic-library`). Self-improves via `harvest.py` (new mics → library + KB queue; `learning/` log; KB write-back suggestions).
+
+**Phase boundary in code:** everything except `build.py` runs on both Mac and the future Proxmox instance. Phase 2 = a package-only instance on the n8n VM behind cloudflared + a passcode on the TDS dashboard that emits the `*.spec.json` package; the Mac builds the `.ses` + final paperwork from it. Package format = `ShowSpec.to_dict()`, so phase 2 is wiring/auth/transport only.
+
+**Verified:** Blue Eighty-Eight rebuilds byte-identical from its MD; Memo/FSQ fresh builds PASS at exact sizes (1,543,866 / 2,466,215); engine output sorts bands low→high so MDs satisfy the send-it B1<B4 gate.
+
+**Finding:** the existing Memo MDs (Seals/Brit Pack/Gospel) are pre-2026-05-30 backwards B-numbering — logged in QUESTIONS for conversion.
+
+## 2026-06-23 — eq-advisor skill + wired into the show flow
+
+**Context:** Brian wanted a reusable EQ-decision skill that mirrors how he reasons (instrument → mic → community research → genre → room), usable across workflows, and self-improving.
+
+**Built:** `eq-advisor` skill (installed plugin + source `_skills/eq-advisor/`). Searches the live-sound forums (PSW LAB, Gearspace) first, then cross-checks `eq-starting-points`/`mic-library` so the two verify each other; stops and asks on any uncertainty (Brian's rule: an unsure answer is ~3× worse than a pause). Cuts-first / whole-dB, inline + PDF in the console band layout.
+
+**Wired into the show flow (the "always used" requirement):** `_system/NEW-SHOW.md` Stage 1 + harvest, `showbuilder`, `show-processing-pipeline`, pointer in `eq-starting-points`. The reachable surface is the workflow/KB layer — the ShowBuilder Python app (`Code/ShowBuilder/`) is outside the mounted folder and was **not** modified; app engine + skill both target the KB to stay consistent.
+
+**Self-improving:** logs to `Live Sound KB/_learning/eq-advisor-log.md`, proposes write-backs to `mic-library`/`eq-starting-points` (a Brian override = ground truth), published via wiki-publish.
+
+**Scope:** Q225 (Memo/FSQ) + Wing only by default; CL3/M32 only when Brian explicitly names that desk.
+
+**Open:** KB edits are local — push on the next wiki-publish run. Optional follow-up: feed eq-advisor's output into ShowBuilder's app engine directly (needs Mac-side code access).
+
+---
+
+## 2026-06-24 — Deep research is the EQ standard + EQ Rationale PDF added to the pipeline
+
+**Context:** Brian flagged that show paperwork was coming back instantly — a tell that the "research artist → mic vs instrument → forum check → genre → venue" flow wasn't actually running; it was inheriting KB/CLAUDE.md defaults. Evidence: the 2026-06-26 Izzy spec.json had kick notes referencing a "D6/Beta 91A blend" — there's no D6 in that show; a KB template bled in. Brian: "I'd much rather wait 1–2 minutes while the research is done than have you assume."
+
+**Direction set this session:**
+- **Deep research is now the standard EQ method for every show** (no KB-only mode). Artist + genre research **always** runs first; then every source is researched mic × instrument × genre × venue against the KB *floor*, with the searches actually run (visible), stopping to ask on uncertainty. KB is the floor, research is the point.
+- **New required Stage-1 deliverable: the EQ Rationale PDF** — per-channel *why* (the notes Brian reads to learn the moves) plus a "what changed from the KB default / prior rev — and why" box.
+
+**Built this session (proof-of-concept, kept as the reference):**
+- `Fountain Square/Izzy 2.0 Deep Think/` — full deep-research rebuild of the Izzy Escobar show: `FOH EQ Reasoning.pdf` (the Rationale), `FOH Channel Processing.md`, `Izzy Escobar.ses` (patcher PASS, byte-identical to template), `Input List.xlsx`, `Show Packet.pdf`, `spec.json` (app_version `deep-think-1.0`). One driver script holds the channel data as the single source of truth → emits md/xlsx/spec/packet; patcher builds the .ses.
+- Notable reasoned changes vs the KB-default Rev 2.0: vocal static −5@8k → dynamic de-ess + HPF 130→110 (KMS 105 isn't sibilant, protect the soul-vocal air/chest body); acoustic air moved off the 5k piezo-harsh zone to 8k with the 2k quack cut made dynamic; Beta 27 air moved to 9k so it stops doubling the SM57's mids; self-present mics (i5/D2/SM81 OH) eased; Tracks left near-flat (mastered stem).
+
+**Pipeline docs updated:**
+- `NEW-SHOW.md` — Stage-1 EQ step rewritten to mandate deep research + artist/genre-first; EQ Rationale PDF added as a required deliverable; don't-forget rule updated.
+- `Fountain Square/Q225 SES Patcher SOP/FSQ SES Patcher - Claude Code Handoff.md` — "What you produce, per show" now lists the full packet incl. the Rationale PDF; note added that the patcher's input `.md` must be the deep-research output, not a KB default.
+
+**Next:** turn the deep-research EQ flow into a skill (Brian's next step) so it can be invoked here with web + KB write-back access. Then optionally wire the Rationale + deep-research engine into ShowBuilder (needs Mac-side code access).
+
+---
+
+## 2026-07-01 — Memo template swap: recalibration is now a structural-scan job, not only a save-diff
+
+The new Memo template (`brian memo june 2026.ses`) was calibrated without a console save-diff: the FSQ-format structure (stride-125 surface run carrying the real fader names + contiguous ~0x15A6 channel blocks with ~19 name copies each) is distinctive enough to locate by scan, and the tag semantics carry over between templates. The save-diff remains the gold standard — the first console load of a patched file is still the required proof — but a resave no longer blocks on Brian producing a ZZTOP edit pair first. Recorded in the patcher header + `pipeline-spec-memo`.
+
+Also: both venue templates now live under a consistent `<Venue>/_TEMPLATE/` folder, and both patchers share the same engine, CLI, and tripwire pattern — future fixes should be applied to both or the engine should be factored into one shared module (flagged as a pipeline improvement).
+
+---
+
+## 2026-07-01 (later) — Efficiency pass executed
+
+Brian approved the pipeline improvements list; all six items shipped the same night: (1) shared engine `_shared/q225_ses_engine.py` with both venue patchers as calibration wrappers — regression md5-identical incl. the console-verified Izzy build; (2) send-it KB mirror killed — skill reads the live KB; (3) `new-show` scaffold skill + `_system/scaffold_show.py`; (4) `_shared/md_lint.py` as an automatic hard gate in every patch run; (5) full every-channel readback built into every build + standalone `_shared/readback_verify.py`; (6) CLAUDE.md slim-down done in all three context files (legacy EQ tables + .docx format out, KB pointers + weasyprint rule in).
+
+Engine lesson worth keeping: in scan mode, block bounds MUST be resolved from the pristine template before any renames (the blocks are found by the template names). The first engine draft looked bounds up after `write_name`, which silently skipped every EQ write on FSQ — caught by the new automatic readback, which is exactly the failure class it exists for.
+
+## 2026-07-05 — Deep Think EQ flow: order locked + mic-locker loop
+
+Brian locked the per-input order of importance and process: **instrument → mic → genre → venue**. Written into eq-advisor (SKILL.md + decision-flow.md) and show-deep-build (SKILL.md frontmatter, Step 3, deep-research-workflow.md). Venue stays the last-applied filter and often the biggest dB bend, but ranks last in decision authority — trims and vetoes, never rewrites the instrument+mic foundation.
+
+Two new mechanics in the same pass:
+- **Mic locker loop (eq-advisor Step 2b):** every input's specified mic gets checked against `mic-library.md` for an owned alternative with a concrete win (less-EQ voicing, problem peak colliding with genre/room, rejection margin, SPL, kit coherence). One alt max per channel with a one-line why; never on TOUR gear; suggestions batch to the review stop; EQ always targets the specified mic; accepted swap re-enters at Step 2. Alts land in `mic_notes` + `Locker alt —` lines in the spec `changes` so they ride the Rationale PDF — no build_packet.py change needed.
+- **Research dedupe:** deep build now collapses N channels into M unique instrument × mic research units, shows the plan table before searching, researches once per unit, fans results back out. Genre once per show; venue constant loaded once.
+
+Open recommendations (Brian's call, not yet implemented): KB-verified cache skip of the web pass for established+dated pairings; single batched stop-and-ask round after the plan pass; post-show "what did you actually move" harvest question; optional per-channel role field.
+
+## 2026-07-05 (later) — Brian's rulings on the open recommendations + artist layer
+
+- **Cross-show research cache: REJECTED.** Web research runs fresh every show — artists never repeat. Written into eq-advisor Step 3. Within-show dedupe (one search per unique instrument × mic unit) stays.
+- **Per-channel role field: rejected** — role and any other per-channel context arrive via the free-text `notes`; note-mining table got a "role in the mix" row.
+- **Artist layer added to the chain (Brian directive):** the artist_profile from show-deep-build step 2 now feeds every channel's Step 4 in eq-advisor ("Layer the genre + the artist"). Artist-specific evidence outranks the generic genre profile where they differ. Chain per input: instrument → mic → web+KB baseline → genre+artist → venue.
+- Batched stop-and-ask round and post-show harvest question: explained to Brian, awaiting his call.
+
+## 2026-07-05 (final) — Batched question round adopted; post-show harvest rejected
+
+Brian's rulings on the last two open items: **batched stop-and-ask ADOPTED** — the deep build's plan pass (dedupe + locker loop + note mining) now collects every stop-and-ask trigger and asks them, together with the locker alternatives, in ONE question round before any EQ commits; mid-build stops remain only for forks the scan missed; standalone (non-show) questions still ask immediately. Written into eq-advisor (Stop-and-ask protocol + Step 2b) and show-deep-build (Step 3 + deep-research-workflow.md). **Post-show harvest question: rejected** — no close-out "what did you move" step.
+
+Deep Think flow spec is now settled: instrument → mic (+ locker loop) → fresh web+KB baseline every show → genre refined by artist_profile → venue as final constraint filter; within-show dedupe; one up-front question round.
+
+## 2026-07-06 — memory-consolidation skill, running daily
+
+**Context:** Brian pointed at a public GitHub skill ("dream-skill") replicating Anthropic's unreleased Claude Code auto-memory-consolidation feature — 4-phase pass over memory, triggered every 24hrs via a Claude Code Stop hook, signal-gathered by grepping local JSONL session transcripts. Neither the Stop hook nor the JSONL files exist in Cowork, so it couldn't be installed as-is; asked to build the equivalent instead.
+
+**Built:** `_skills/memory-consolidation/SKILL.md` — orient → gather signal → consolidate → prune/index, same shape as the reference skill, adapted to this project:
+- Gather-signal phase uses Cowork's `list_sessions`/`read_transcript` instead of JSONL grep (best-effort — won't reach every session, treated as a supplement not the source of truth).
+- Targets the real two-tier memory here: `active-projects.md` (canonical project state) and `about-me/memory.md` (session history) — not a single flat memory file.
+- Ported in from the reference skill: explicit contradiction format (`Updated YYYY-MM-DD, previously: X`), source attribution on merged facts, dry-run-and-confirm on the very first run, never-delete-without-replacement.
+- Logs a one-line run summary to `memory.md` Session Notes each time, which doubles as the watermark for the next run's gather-signal phase.
+
+**Trigger:** Cowork scheduled task, once a day (see schedule tool for the exact time — set at build time, adjustable). This replaces the CLI Stop-hook mechanism the reference skill used.
+
+**Relationship to `consolidate-memory`:** that generic Cowork skill still exists for manual/ad-hoc runs. This one is the Brian-specific, scheduled version — it doesn't replace it, it automates it and adds the transcript-scan step.
+
+## 2026-07-06 — Deep Think pipeline audit + hardening (Brian: "cornerstone of my business")
+
+**build_packet.py hardened (regression-verified against the Izzy 2.0 reference — byte-identical .md):**
+- Spec validation before anything is written: ribbon + phantom = error; a boost on a VOCALS channel = error unless the band carries `"approved": true` after Brian's explicit OK; duplicate channel numbers = error; band/freq/gain range errors; whole-dB, high-shelf-boost, fader-length, section-grouping warnings. A failed validation writes nothing.
+- The written .md is auto-linted with `_shared/md_lint.py` inside the build (errors abort) — the patcher's lint gate now runs twice, once at authoring time.
+- Ribbon (`⚠ RIBBON — NO 48V`, red) and new `tour` (`⚑ TOUR — confirm at load-in`) flags auto-prepend to the input list xlsx, the Show Packet rows, and the Rationale channel headers. Previously the spec's `ribbon` field was carried but never surfaced anywhere.
+- Input List xlsx now puts the actual `instrument` in the Instrument column (was the fader label — "Kick In" instead of "Kick"); venue restored to the .md header line (matches the reference build).
+- New optional spec fields, all rendered: `decisions` (the answered question round → its own box on the Rationale PDF), `monitors` + `reverbs` (xlsx sheets + Rationale header lines; reverb presets verbatim from the KB).
+- User text is now escaped for reportlab — an `&` or `<` in a note/eq_summary would previously have crashed or mangled the Rationale PDF.
+- Environment fix: `openpyxl` was missing from the Mac's python3 — every future xlsx build would have crashed. Installed `--user` alongside the existing reportlab.
+
+**New evidence channels written into the skill (SKILL.md + deep-research-workflow.md + NEW-SHOW.md + eq-advisor):**
+- Step 2 listening pass: recent live videos + setlists over press copy; lineup mismatches vs. the input list go in the question round.
+- Prior-verified-show check: same artist / weekly series / twin act at the venue → Brian's own console-verified build is highest-trust evidence BESIDE the fresh research (the fresh-web lock stands; this is not caching). Added to eq-advisor's trust ladder too.
+- Tech rider / stage plot: ask for it when one plausibly exists.
+- Outdoor shows: pull show-window weather (Open-Meteo / Tempest) into `room_context` — wind, HF air loss, rain contingency.
+- Question-round answers now persist in `spec.decisions` and ride the Rationale PDF.
+
+**Respected:** the 2026-07-05 post-show-harvest rejection — no "what did you move" step added. A lower-friction variant (diff a post-show console .ses save against the built .ses via the engine) was re-suggested for Brian's ruling; not implemented.
+
+---
+
+## 2026-07-08 — Show-feedback loop: five FSQ corrections landed as code
+
+First console pass on a shared-engine FSQ build (Hot Magnolias) came back with five corrections; all five are now enforced in the pipeline rather than remembered: deeper outdoor cuts (docs + eq-advisor), FSQ ch 10 / stereo-OH protection (validator + patcher `protected` calibration — a template channel map mistake can no longer reach the console), band-provided stage plots (no generation), the MASTER PDF (pypdf merge in build_packet), and the always-on Seventh Heaven reverb section with settings/plugin-EQ/why/pairing (validator-enforced). Pattern worth keeping: every console-pass correction should land as a validator rule or patcher guard the same day, not as a note.
+
+---
+
+## 2026-07-08 — build_packet.py: plugin cache vs canonical copy (Rev 3 reverb miss)
+
+The hot-mag 3 blind rebuild first shipped WITHOUT the reverb section because the session ran the show-deep-build *plugin cache* copy of `build_packet.py` (stale, predates the same-day reverb/MASTER hardening) instead of the canonical `audio/_skills/show-deep-build/scripts/build_packet.py`. Brian caught it. The canonical script validates reverbs as required, expects `reverb_pairing` (not `reverb_note`), emits the MASTER itself, and adds Monitors/Reverbs xlsx sheets. Standing rule: the `_skills/` copy in the audio folder is the source of truth — check its mtime against the plugin cache before any packet build, and re-install the plugin when the source moves.
+
+---
+
+## 2026-07-09 — ONE skill: eq-advisor merged into show-deep-build; A/B guardrails applied; stale-install fight fixed
+
+Brian asked for an evaluation of eq-advisor + show-deep-build + NEW-SHOW.md ("combine if possible, give me a single skill"). Findings and actions:
+
+**Redundancy removed.** The two SKILL.mds restated each other's locked rules (order, locker loop, batched round, venue filters) — two copies = drift risk, the same failure that killed the CLAUDE.md EQ tables. NEW-SHOW.md step 4 duplicated the whole deep-build flow a third time. Now: `_skills/show-deep-build/` is the single skill (Part I = show pipeline, Part II = the EQ method, formerly eq-advisor — standalone EQ questions run Part II alone); NEW-SHOW.md is a thin router + don't-forgets; eq-advisor archived to `_skills/_ARCHIVE/eq-advisor-retired-2026-07-09/`. Harvest detail moved INTO the skill (step 7) so it's self-contained.
+
+**Fights found.** (1) The Cowork-INSTALLED copies were stale snapshots — eq-advisor plugin from 06-23, show-deep-build skill from 06-25 — missing every July locked rule (order lock, locker loop, batched round, FSQ deeper cuts, required reverbs, MASTER PDF, decisions list). Live sessions were running pre-July behavior while the `_skills/` sources were current. Fresh `show-deep-build.skill` zip built; Brian must delete both installed copies in Cowork and upload the new one. (2) NEW-SHOW.md still claimed the packet ships ".md + .html + PDF via weasyprint" — the locked engine (`build_packet.py`, 2026-07-06) is reportlab and emits no HTML; docs aligned to reality. (3) `PIPELINE-UPGRADE-FOR-OPUS-4.8.md` (hot-mag A/B) was queued but unapplied — all 11 edits folded into the merged skill + NEW-SHOW.md + the KB pipeline article during the merge; acceptance test = the next deep build vs `hot-mag 3`.
+
+Files: `_skills/show-deep-build/SKILL.md` (rewritten, +4 references +1 script from eq-advisor), `_system/NEW-SHOW.md` (rewritten), `show-processing-pipeline.md` (quality-floor section), all three CLAUDE.md files (merged-skill phrasing), auto-memory `deep-think-default`, `active-projects.md`, KB CHANGELOG.
+
+---
+
+## 2026-07-12 — Fable-parity evaluation: discipline merged into the master skill, heavy scaffolding split to an overlay
+
+Brian asked for an evaluation of how Fable 5 executes the deep build vs. the written skill, then a prompt/skill to bring Opus 4.8 (high) to parity. The evaluation found the skill's audio content already hardened (the 07-08 A/B patches), with the real Fable delta being execution discipline: constraint retention over long builds, honest web↔KB reconciliation, genuine self-audit, calibrated question rounds, cross-channel coherence.
+
+Eight mechanics were drafted; Brian chose "discipline only" for the merge. **Into `show-deep-build/SKILL.md` (all models):** the pacing rule (final numbers never in the same message as the research), the constraint card written at build start and re-read before the question round and before spec.json, the one-word AGREE/DISAGREE/THIN reconcile verdict (kills the false-agreement paraphrase), the consolidated 13-line evidence-quoting pre-commit audit (new `references/pre-commit-audit.md`), the zero-questions-is-suspicious heuristic, and the failure-mode catalog (appended to `references/deep-research-workflow.md`). **Kept in the new `_skills/fable-parity/` overlay (non-Fable models only):** per-unit worksheet files in `_worksheets/` + strict one-unit-at-a-time serialization — real overhead, redundant on Fable. Master SKILL.md now points at the overlay for non-Fable sessions.
+
+Both `.skill` zips rebuilt (`show-deep-build.skill`, `fable-parity.skill`); Cowork installs are snapshots — delete the installed show-deep-build copy and upload both fresh.

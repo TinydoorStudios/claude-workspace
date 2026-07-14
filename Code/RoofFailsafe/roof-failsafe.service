@@ -1,0 +1,15 @@
+[Unit]
+Description=Roof Display VDCP Failsafe (DMP-8000 trigger)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=brian
+WorkingDirectory=/opt/roof-failsafe
+ExecStart=/opt/roof-failsafe/.venv/bin/python /opt/roof-failsafe/server.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

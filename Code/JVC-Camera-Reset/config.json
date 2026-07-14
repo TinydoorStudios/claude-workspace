@@ -1,0 +1,14 @@
+{
+  "_comment": "Camera web login + static IPs. KY-PZ100 factory default is jvc/0000. CAM 2/3 use non-default HTTP ports (5002/5003). off_seconds = how long video is held off before turning back on.",
+  "username": "jvc",
+  "password": "0000",
+  "web_port": 80,
+  "off_seconds": 5,
+  "probe_timeout": 14,
+  "command_timeout": 20,
+  "cameras": [
+    { "name": "CAM 1", "ip": "192.168.200.11", "web_port": 80,   "enabled": true },
+    { "name": "CAM 2", "ip": "192.168.200.12", "web_port": 5002, "enabled": true },
+    { "name": "CAM 3", "ip": "192.168.200.13", "web_port": 5003, "enabled": true }
+  ]
+}

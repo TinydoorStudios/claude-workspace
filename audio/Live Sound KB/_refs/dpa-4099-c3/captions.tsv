@@ -1,0 +1,15 @@
+# filename<TAB>caption<TAB>credit   (lines starting with # are ignored)
+# Save the images with these exact names and captions/credits auto-apply on rebuild.
+# Missing files are simply skipped — safe to leave rows here before you drop them.
+
+01_dpa_stereo_setups.png	DPA's four most successful stereo set-ups inside a grand — the spaced-pair logic this deep-dive follows	DPA Microphones
+02_dpa_4099P_in_frame.jpg	4099P magnet mounts seated in the piano frame	DPA Microphones
+03_sos_magnet_on_frame.jpg	Real gig: 4099P magnet clip on the gold plate, by the bass/treble crossover	Mike Crofts / Sound On Sound
+04_sos_positioning.jpg	Engineer dialing in mic position inside the open grand	Mike Crofts / Sound On Sound
+05_sos_windsock_shockmount.jpg	4099 foam windscreen + shockmount on the gooseneck	Mike Crofts / Sound On Sound
+06_sos_grand_on_stage.jpg	The miked grand on stage — discreet, low-profile rig	Mike Crofts / Sound On Sound
+# --- your own shots are the best of all (no copyright question, your actual C3): ---
+07_myC3_pair_topdown.jpg	My C3 with the 4099P pair in place — top down	Brian Lloyd
+08_myC3_bass_mic.jpg	Bass mic position over C2–G2, ~1/3 down the strings	Brian Lloyd
+09_myC3_treble_mic.jpg	Treble mic position ~G5	Brian Lloyd
+10_myC3_lid_closed.jpg	Pair under the closed lid — low-profile on the plate	Brian Lloyd

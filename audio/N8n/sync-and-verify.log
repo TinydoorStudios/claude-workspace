@@ -1,0 +1,21 @@
+=== sync-and-verify Thu Jun 11 09:53:20 EDT 2026 ===
+[1] Rsync renamed assets → VM (removes old-named files)…
+   files now on VM:
+     blue-eighty-eight.ses
+     foh-channel-processing.html
+     foh-channel-processing.md
+     foh-channel-processing.pdf
+     handoff.pdf
+     input-list.xlsx
+[2] Push markdown so the wiki page shows the new links…
+   pushed
+[3] Force Wiki.js to pull latest markdown…
+   sync triggered
+[4] Wait…
+[5] Verify NEW public download URLs (through Cloudflare):
+     404  foh-channel-processing.pdf
+     404  input-list.xlsx
+     404  blue-eighty-eight.ses
+     404  handoff.pdf
+
+Not all 200 — paste me the output and I'll finish it.

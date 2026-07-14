@@ -1,0 +1,3159 @@
+{
+  "_source": "Live Sound KB mic-library.md (character/EQ + use cases) + manufacturer published specifications. Generated pages via mic_page_gen.py. See NEW-MIC-WORKFLOW.md.",
+  "_note": "owned:false = reference/EQ page only, not in the locker (faded gallery ring). Existing hand-built pages (audio-technica-pro-6l, dpa-4099) are listed for the gallery but must NOT be regenerated — build new mics with --slug, then run mic_wire.py once.",
+  "mics": [
+    {
+      "slug": "audio-technica-pro-6l",
+      "name": "Audio-Technica PRO 6L",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "_page": "hand-built — do not regenerate",
+      "photo_source_url": "https://www.audio-technica.com/en-us/pro6l"
+    },
+    {
+      "slug": "dpa-4099",
+      "name": "DPA 4099 CORE+",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "_page": "hand-built — do not regenerate",
+      "photo_source_url": "https://www.dpamicrophones.com/instrument/4099-instrument-microphone/"
+    },
+    {
+      "slug": "shure-sm57",
+      "name": "Shure SM57",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "cardioid",
+        "shure",
+        "owned"
+      ],
+      "description": "Cardioid dynamic — the industry-standard snare and guitar-cab workhorse.",
+      "summary": "The reference instrument dynamic: mid-forward, tough, and predictable. Primary snare top and guitar cab, utility anywhere.",
+      "sources": "Shure published specifications (SM57); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.shure.com/en-US/shop/microphones/sm57",
+      "intro": "The mic every input list falls back on. A cardioid dynamic with a forward 3–5 kHz presence hump, tight low end, and enough SPL handling to sit in front of anything. It builds box and honk in the 300–500 Hz range on close sources, which is the one move it almost always needs — otherwise it takes EQ cleanly and behaves the same night after night.",
+      "specs": {
+        "Type": "Dynamic",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "40 Hz – 15 kHz",
+        "Impedance": "310 Ω (rated 150 Ω)",
+        "Sensitivity": "−56 dBV/Pa (1.6 mV)",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Weight": "284 g (10 oz)",
+        "Status": "Current"
+      },
+      "sound": "Mid-forward and proximity-prone, with a presence lift through 3–5 kHz that cuts snare and amp grit through a mix. Thin below ~100 Hz, so it stays out of the way of the kick. On cabs and snare it builds 300–500 Hz box — find and cut that first.",
+      "bestfit": [
+        "Snare top — the default; ~1 in over the rim angled at the center, tame ~400 Hz box.",
+        "Guitar cab — on-axis to the dust cap for bite, edge of cone for warmth; pair with an R-121 for the AxeMount blend at Memo.",
+        "Utility — horns, perc, anything loud that needs a rugged, honest mic."
+      ],
+      "notes": [
+        "Proximity-prone — back off or HPF if it gets chesty up close.",
+        "AxeMount blend at Memo: SM57 primary (CH13) + R-121 (CH15), ribbon 6–10 dB under. Sum in mono and polarity-check.",
+        "Cut box ~400 Hz before boosting anything."
+      ],
+      "comparable": [
+        [
+          "Sennheiser MD421",
+          "Step up for toms and low-mid girth on cabs"
+        ],
+        [
+          "Audix i5",
+          "More open, more body, slightly scooped mids"
+        ],
+        [
+          "Audio-Technica PRO 6L",
+          "Smoother-mid SM57-class alternative (owned)"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ]
+      ]
+    },
+    {
+      "slug": "shure-sm58",
+      "name": "Shure SM58",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "cardioid",
+        "vocal",
+        "shure",
+        "owned"
+      ],
+      "description": "Cardioid dynamic vocal mic — the handheld standard for typical gigs.",
+      "summary": "The SM57 capsule behind a ball grille and pop filter. Consistent, roadproof handheld vocal for the everyday show.",
+      "sources": "Shure published specifications (SM58); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.shure.com/en-US/shop/microphones/sm58",
+      "intro": "The default handheld. Same essential capsule as the 57 with a built-in pop filter and a gentle low rolloff to tame proximity. A ~4–6 kHz presence lift gives vocals cut without hype. It's muddy if eaten and short on air up top, but it's tough, feedback-resistant, and utterly predictable.",
+      "specs": {
+        "Type": "Dynamic",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "50 Hz – 15 kHz",
+        "Impedance": "300 Ω (rated 150 Ω)",
+        "Sensitivity": "−54.5 dBV/Pa (1.85 mV)",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Weight": "298 g (10.5 oz)",
+        "Windscreen": "Integral spherical pop filter",
+        "Status": "Current"
+      },
+      "sound": "Warm, midrange-centered, with a presence rise ~4–6 kHz and a controlled low end. Proximity gives it body up close; back off for a more even tone. Cut box around 500 Hz if it piles up.",
+      "bestfit": [
+        "Lead and backing vocals — typical gigs where you want zero surprises.",
+        "Spoken word / MC — rugged and forgiving of technique.",
+        "Utility handheld — the one you hand anyone."
+      ],
+      "notes": [
+        "Muddy if the singer eats it — coach distance or add a small HPF.",
+        "Limited air above ~12 kHz; reach for a KMS 105 when you want detail."
+      ],
+      "comparable": [
+        [
+          "Shure Beta 58A",
+          "Brighter, tighter supercardioid — louder stages"
+        ],
+        [
+          "Neumann KMS 105",
+          "Stage condenser step-up for detail and air"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "shure-beta-58a",
+      "name": "Shure Beta 58A",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "supercardioid",
+        "vocal",
+        "shure",
+        "owned"
+      ],
+      "description": "Supercardioid dynamic vocal — brighter and tighter than an SM58 for loud stages.",
+      "summary": "Supercardioid vocal dynamic with more bite, more air, and more gain-before-feedback than a 58. The loud-stage handheld.",
+      "sources": "Shure published specifications (Beta 58A); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.shure.com/en-US/shop/microphones/beta-58a",
+      "intro": "When the stage is loud and rejection matters, this is the handheld. A tighter supercardioid pattern with two presence peaks — around 4 kHz and again near 10 kHz — makes it brighter and more cutting than an SM58, with more gain-before-feedback. Those same peaks can turn strident or sibilant on a bright voice, so it wants a little presence restraint.",
+      "specs": {
+        "Type": "Dynamic",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "50 Hz – 16 kHz",
+        "Impedance": "290 Ω (rated 150 Ω)",
+        "Sensitivity": "−51.5 dBV/Pa (2.6 mV)",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Weight": "278 g (9.8 oz)",
+        "Status": "Current"
+      },
+      "sound": "Brighter and more forward than a 58 with a tighter null. The low end is attenuated below ~500 Hz for proximity control. Ease off the presence peaks and tame ~600 Hz box on close, chesty voices.",
+      "bestfit": [
+        "Lead vocals on loud stages — better rejection, more cut.",
+        "Aggressive/rock vocals that need to slice through.",
+        "Any spot fighting monitor bleed where the tight null helps."
+      ],
+      "notes": [
+        "Supercardioid rejects at the sides, nulls at ~126° — aim wedges into the rear null, not straight behind.",
+        "Watch sibilance from the ~10 kHz peak — a gentle de-ess or shelf tame helps."
+      ],
+      "comparable": [
+        [
+          "Shure SM58",
+          "Warmer, less bright, wider cardioid pattern"
+        ],
+        [
+          "Neumann KMS 105",
+          "Condenser detail with a smoother top"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "shure-beta-52a",
+      "name": "Shure Beta 52A",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "kick",
+        "supercardioid",
+        "shure",
+        "owned"
+      ],
+      "description": "Tailored supercardioid kick dynamic — scooped low-mids, big lows, voiced click.",
+      "summary": "Purpose-built kick mic with the thump and beater click baked in. Body layer inside the drum; pairs with a Beta 91A on the head.",
+      "sources": "Shure published specifications (Beta 52A); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.shure.com/en-US/shop/microphones/beta-52a",
+      "intro": "A kick specialist voiced so you barely have to touch it: deep lows, a scooped low-mid to clear the mud, and a presence lift around 4 kHz for beater click. High SPL handling and an integral stand mount make it a fast, roadproof inside-the-drum body mic.",
+      "specs": {
+        "Type": "Dynamic",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "20 Hz – 10 kHz",
+        "Impedance": "150 Ω",
+        "Max SPL": "174 dB SPL (est., 1 kHz)",
+        "Output connector": "3-pin XLRM (integral stand mount)",
+        "Phantom power": "Not required",
+        "Status": "Current"
+      },
+      "sound": "Big, scooped kick voicing — thump plus click with a hole in the low-mids. Ease off the built-in scoop rather than adding to it; if you want more knock, nudge 3–4 kHz, and clear any box around 300–400 Hz.",
+      "bestfit": [
+        "Kick — body/thump layer inside the drum, aimed at the beater zone.",
+        "Two-mic kick — pair with a Beta 91A boundary on the head for click; blend and EQ differently.",
+        "Floor tom or large low sources in a pinch."
+      ],
+      "notes": [
+        "The voicing is aggressive out of the box — subtractive tweaks beat piling on more.",
+        "Standard two-mic kick at Memo: Beta 52A + Beta 91A."
+      ],
+      "comparable": [
+        [
+          "Audix D6",
+          "Similar scooped kick voicing, a touch clickier"
+        ],
+        [
+          "Shure Beta 91A",
+          "Boundary partner for the head/click layer"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "audix-d6",
+      "name": "Audix D6",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "kick",
+        "cardioid",
+        "audix",
+        "owned"
+      ],
+      "description": "Pre-scooped cardioid kick dynamic — thump and click baked in, needs almost no EQ.",
+      "summary": "The 'smiley-curve' kick mic: peaks around 63 Hz and 5 kHz with a deep mid scoop. Attack and click layer; plug in and go.",
+      "sources": "Audix published specifications (D6); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://audixusa.com/products/d6/",
+      "intro": "A one-trick mic that does its one trick perfectly. The D6 is voiced with a big low peak near 63 Hz, a deep scoop around 600 Hz, and a presence spike near 5 kHz — modern kick, no EQ required. It has essentially no midrange body, which is exactly the point when you pair it or want click-forward attack.",
+      "specs": {
+        "Type": "Dynamic (VLM capsule)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "30 Hz – 15 kHz",
+        "Impedance": "200 Ω",
+        "Sensitivity": "1.3 mV/Pa",
+        "Max SPL": "144 dB",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Status": "Current"
+      },
+      "sound": "Scooped, hyped, modern — thump plus click with the mids carved out. Ease off attack, boom, box and mud since they're already dialed; it needs almost nothing.",
+      "bestfit": [
+        "Kick — attack/click layer inside; the 'sounds finished' kick mic.",
+        "Pair with a Beta 52A or DM6 when you want more body underneath.",
+        "Floor tom for a punchy, scooped low tom."
+      ],
+      "notes": [
+        "No mid body by design — don't try to EQ warmth back in, layer a body mic instead.",
+        "Fast to deploy: often usable flat."
+      ],
+      "comparable": [
+        [
+          "Shure Beta 52A",
+          "Similar scooped kick, slightly less click-forward"
+        ],
+        [
+          "Earthworks DM6",
+          "Flat, honest kick condenser — the opposite philosophy"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "audix-i5",
+      "name": "Audix i5",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "cardioid",
+        "snare",
+        "audix",
+        "owned"
+      ],
+      "description": "Cardioid dynamic instrument mic — a more open, fuller-bodied SM57 alternative.",
+      "summary": "Punchy cardioid instrument dynamic with more body and a more open top than a 57. Snare, cabs, brass.",
+      "sources": "Audix published specifications (i5); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://audixusa.com/products/i5/",
+      "intro": "Audix's answer to the 57, and a good one. A body lift around 150 Hz and a presence peak near 5.5 kHz give it more weight and a more open sound than a 57, with slightly less scooped mids. That 5.5 kHz peak can get harsh on a cracky snare, so it's the move to watch.",
+      "specs": {
+        "Type": "Dynamic (VLM capsule)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "50 Hz – 16 kHz",
+        "Impedance": "150 Ω",
+        "Sensitivity": "1.6 mV/Pa",
+        "Max SPL": "140 dB+",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Status": "Current"
+      },
+      "sound": "Fuller and more open than a 57, with real body and a forward presence peak. Ease off body, crack and snap; tame the harsh ~5.5 kHz if the snare cracks hard.",
+      "bestfit": [
+        "Snare top — when you want more body than a 57.",
+        "Guitar cab — punchy and open.",
+        "Brass and perc utility."
+      ],
+      "notes": [
+        "Watch the 5.5 kHz peak on bright/cracky snares.",
+        "Rugged VLM capsule — fast recovery, high SPL."
+      ],
+      "comparable": [
+        [
+          "Shure SM57",
+          "The reference — i5 is fuller and more open"
+        ],
+        [
+          "sE V7 X",
+          "Another snare-capable instrument dynamic"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "audix-d2",
+      "name": "Audix D2",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "hypercardioid",
+        "toms",
+        "audix",
+        "owned"
+      ],
+      "description": "Hypercardioid dynamic tom mic — punchy and articulate on rack toms.",
+      "summary": "Rack-tom hypercardioid with a 150 Hz body bump and articulate upper mids. Punchy, tight rejection, part of the DP8 pack.",
+      "sources": "Audix published specifications (D2); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://audixusa.com/products/d2/",
+      "intro": "The mid-tom of the D-series. A hypercardioid with a lift around 150 Hz, a dip through 500 Hz–1 kHz, and a subtle upper-mid rise — punchy and articulate with tight off-axis rejection. Leaner in the deep lows than a D4, which is exactly right for rack toms.",
+      "specs": {
+        "Type": "Dynamic (VLM capsule)",
+        "Polar pattern": "Hypercardioid",
+        "Frequency response": "68 Hz – 18 kHz",
+        "Impedance": "200 Ω",
+        "Max SPL": "144 dB",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Status": "Current"
+      },
+      "sound": "Punchy and articulate with a defined attack. Ease off boom and mud; it's already voiced for tom clarity.",
+      "bestfit": [
+        "Rack / small-mid toms — the D-series default.",
+        "Congas and hand perc where the tight pattern helps."
+      ],
+      "notes": [
+        "Hypercardioid — mind the rear lobe when placing near cymbals.",
+        "Leaner lows than a D4; use D4 on the floor tom."
+      ],
+      "comparable": [
+        [
+          "Audix D4",
+          "More low-end extension for the floor tom"
+        ],
+        [
+          "Sennheiser MD421",
+          "Bigger, more girth — the standalone tom step-up"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "audix-d4",
+      "name": "Audix D4",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "hypercardioid",
+        "floor-tom",
+        "audix",
+        "owned"
+      ],
+      "description": "Hypercardioid dynamic for low sources — deep, resonant floor toms.",
+      "summary": "Low-source hypercardioid reaching down to ~35 Hz with a smooth low-mid. Deep and resonant on floor toms and low percussion.",
+      "sources": "Audix published specifications (D4); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://audixusa.com/products/d4/",
+      "intro": "The floor-tom and low-source member of the D-series. Nearly flat to ~63 Hz with a rise near 80 Hz and reach down toward 35 Hz, plus a smooth (not scooped) 800 Hz–1 kHz. Deep and resonant, with a little less upper-mid attack than a D2 — so it may want a touch of click.",
+      "specs": {
+        "Type": "Dynamic (VLM capsule)",
+        "Polar pattern": "Hypercardioid",
+        "Frequency response": "40 Hz – 18 kHz",
+        "Impedance": "200 Ω",
+        "Max SPL": "144 dB",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Status": "Current"
+      },
+      "sound": "Deep and full with a natural low-mid. Ease off boom and mud; add a touch of upper-mid attack if the tom needs more stick.",
+      "bestfit": [
+        "Floor toms — the D-series low mic.",
+        "Low congas, cajon, djembe and similar low percussion."
+      ],
+      "notes": [
+        "More low reach than a D2 — keep it on the floor tom.",
+        "May want a small attack lift where the D2 doesn't."
+      ],
+      "comparable": [
+        [
+          "Audix D2",
+          "Punchier, leaner lows — rack toms"
+        ],
+        [
+          "Sennheiser MD421",
+          "Larger-diaphragm girth alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "se-v-kick",
+      "name": "sE V-Kick",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "kick",
+        "supercardioid",
+        "se-electronics",
+        "owned"
+      ],
+      "description": "Compact supercardioid kick dynamic with four voicing settings.",
+      "summary": "sE's kick mic from the V Pack Arena — dynamic supercardioid reaching to 20 Hz, with switchable voicings and an adjustable swivel mount.",
+      "sources": "sE Electronics published specifications (V Kick); thomannmusic.com; Live Sound KB mic-library notes",
+      "photo_source_url": "https://seelectronics.com/products/v-kick/",
+      "intro": "The kick mic in the V Pack Arena kit. A compact dynamic supercardioid that reaches down to 20 Hz, with four selectable sound settings so you can dial the balance of thump and click at the mic and an adjustable swivel mount for precise placement inside the drum.",
+      "specs": {
+        "Type": "Dynamic",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "20 Hz – 19 kHz",
+        "Voicing": "4 selectable sound settings",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Mount": "Integrated adjustable swivel",
+        "Status": "Current"
+      },
+      "sound": "Modern kick voicing with the tone shaped at the mic via the four settings. Start from the setting closest to the sound you want, then trim rather than fight it on the desk.",
+      "bestfit": [
+        "Kick — compact dynamic alternative, easy to place inside the drum.",
+        "Situations where the swivel mount and voicings speed up setup."
+      ],
+      "notes": [
+        "Pick the voicing setting first, then EQ.",
+        "Part of the sE V Pack Arena drum kit."
+      ],
+      "comparable": [
+        [
+          "Audix D6",
+          "Fixed scooped voicing — no settings"
+        ],
+        [
+          "Shure Beta 52A",
+          "Tailored kick standard"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "se-v-beat",
+      "name": "sE V-Beat",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "toms",
+        "supercardioid",
+        "se-electronics",
+        "owned"
+      ],
+      "description": "Clip-mount supercardioid tom dynamic from the V Pack Arena.",
+      "summary": "Dynamic supercardioid tom mic on a clamp mount — shares the V7 X capsule voicing. Fast to rig, tight rejection.",
+      "sources": "sE Electronics published specifications (V Beat); thomannmusic.com; Live Sound KB mic-library notes",
+      "photo_source_url": "https://seelectronics.com/products/v-beat/",
+      "intro": "The tom mic of the V Pack Arena, on a clip/clamp mount for quick rigging on the rim. It shares its capsule and response with the V7 X — a supercardioid with a full range up to 19 kHz and tight off-axis rejection, so it isolates well in a busy kit.",
+      "specs": {
+        "Type": "Dynamic",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "30 Hz – 19 kHz",
+        "Sensitivity": "2.0 mV/Pa",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Mount": "Clamp / clip",
+        "Status": "Current"
+      },
+      "sound": "Full-range and articulate with tight rejection — the same voicing as the V7 X. Shape toms as usual; the tight pattern keeps cymbal bleed down.",
+      "bestfit": [
+        "Rack and floor toms — clip-mounted, fast setup.",
+        "Busy kits where isolation matters."
+      ],
+      "notes": [
+        "Same capsule as the V7 X — expect matched tone across the kit.",
+        "Part of the sE V Pack Arena drum kit."
+      ],
+      "comparable": [
+        [
+          "Sennheiser e604",
+          "Other clip-on tom dynamic"
+        ],
+        [
+          "Audix D2 / D4",
+          "Stand-mounted D-series toms"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "se-v7-x",
+      "name": "sE V7 X",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "supercardioid",
+        "instrument",
+        "se-electronics",
+        "owned"
+      ],
+      "description": "Supercardioid dynamic instrument mic — snare and cab, with an aluminium voice coil.",
+      "summary": "The instrument version of sE's V7. Supercardioid dynamic with an aluminium voice coil for detail, wide 30 Hz–19 kHz response. Snare, cabs, perc.",
+      "sources": "sE Electronics published specifications (V7 X); thomannmusic.com; Live Sound KB mic-library notes",
+      "photo_source_url": "https://seelectronics.com/products/v7-x/",
+      "intro": "An instrument-voiced supercardioid dynamic with an aluminium voice coil for extra top-end detail. Wide response to 19 kHz and a tight pattern make it a capable snare and cab mic — a modern alternative to a 57 with a little more openness and reach.",
+      "specs": {
+        "Type": "Dynamic (aluminium voice coil)",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "30 Hz – 19 kHz",
+        "Impedance": "300 Ω",
+        "Sensitivity": "2.0 mV/Pa (−54 dB)",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Status": "Current"
+      },
+      "sound": "Detailed and open for a dynamic, with a tight supercardioid null. Shape like a 57 but expect a bit more air; watch presence on bright sources.",
+      "bestfit": [
+        "Snare top — supercardioid rejection helps on loud stages.",
+        "Guitar cab and general amplified-instrument duty.",
+        "Percussion utility."
+      ],
+      "notes": [
+        "Shares its capsule with the V-Beat tom mic.",
+        "Tight null — aim it to reject the nearest bleed source."
+      ],
+      "comparable": [
+        [
+          "Shure SM57",
+          "The reference — V7 X is more open up top"
+        ],
+        [
+          "Audix i5",
+          "Fuller-bodied instrument dynamic"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "sennheiser-md421",
+      "name": "Sennheiser MD 421-U (Silver Tail)",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker (vintage 1970s)",
+      "tags": [
+        "mic",
+        "dynamic",
+        "cardioid",
+        "toms",
+        "brass",
+        "sennheiser",
+        "vintage",
+        "owned"
+      ],
+      "description": "Vintage 1970s MD 421-U 'Silver Tail' — the XLR large-diaphragm cardioid dynamic with the chrome connector base. Toms, brass, cabs; 5-position bass rolloff.",
+      "summary": "Brian's are the 1970s MD 421-U — the 'Silver Tail': black body, native XLR, and the chrome/silver connector base that names it. One generation on from the cream Delrin originals and distinct from the all-black 90s -U and the 2002 MD 421-II. Same legendary 421 element.",
+      "sources": "Wikipedia — Sennheiser MD 421 (version history); Sennheiser MD 421 heritage; owner identification (Brian Lloyd — 1970s Silver Tail U-series); Live Sound KB mic-library character notes",
+      "photo_source_url": "owner photo (Brian's units) — see PHOTO-MANIFEST.md",
+      "intro": "Not the modern MD 421-II — these are the vintage 1970s **MD 421-U**, the ones collectors call the 'Silver Tail' for the chrome connector base at the butt of the mic. The -U was the first 421 to run a native XLR output (the earlier -2, -N and -HL used the small Tuchel/DIN connector, so no adapter here), and it sits a generation on from the light cream Delrin originals but before the all-black 90s bodies and the economical 2002 MD 421-II. Same 27 mm large-diaphragm element that has run essentially unchanged since 1960 — a genuinely different vintage from the black II, which is Brian's point.",
+      "specs": {
+        "Type": "Dynamic (large diaphragm, 27 mm)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "30 Hz – 17 kHz",
+        "Impedance": "200 Ω",
+        "Bass rolloff": "5-position M–S rotary (detented, since the 1970s)",
+        "Output connector": "3-pin XLRM — chrome/silver connector base (the 'Silver Tail')",
+        "Phantom power": "Not required",
+        "Stand clip": "MZA quick-release (U5 = fixed 3/8\" US thread; U4 = interchangeable)",
+        "Era": "1970s MD 421-U (pre all-black)",
+        "Weight": "≈385 g",
+        "Status": "Vintage — discontinued; element continues in the MD 421-II"
+      },
+      "sound": "The classic 421 voice: near-linear lows up to ~1 kHz, real low-mid girth, and a smooth upper-mid presence rise — 'an SM57 on steroids.' That low-mid can bloat 200–400 Hz up close; pull the M–S rotary toward S or notch ~300 Hz. Ease off boom and presence to taste.",
+      "bestfit": [
+        "Toms — first choice, rack and floor.",
+        "Brass — trombone, sax, trumpet section.",
+        "Guitar cabs — pairs with a 57 for low-mid weight (watch the 200–400 Hz stack)."
+      ],
+      "notes": [
+        "These are the 1970s 'Silver Tail' MD 421-U — chrome connector base, native XLR — NOT the all-black 90s -U or the 2002 MD 421-II. The element is the same lineage; the vintage build is prized.",
+        "No Tuchel adapter needed — the -U is already XLR (unlike the -2 / -N / -HL).",
+        "Use the M–S bass rolloff before reaching for the desk HPF.",
+        "The MZA quick-release clip is notorious for dropping the mic — seat it fully (a zip tie on the latch is the classic fix)."
+      ],
+      "comparable": [
+        [
+          "Sennheiser MD 421-II",
+          "The 2002 all-black production version — same element, economical build"
+        ],
+        [
+          "Shure SM57",
+          "Smaller, thinner — the 421 adds girth and weight"
+        ],
+        [
+          "Audix D4",
+          "Alternative low-tom voicing"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "sennheiser-e609",
+      "name": "Sennheiser e609 Silver",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "supercardioid",
+        "guitar-cab",
+        "sennheiser",
+        "owned"
+      ],
+      "description": "Flat side-address supercardioid dynamic — hang it over a guitar cab.",
+      "summary": "Side-address cab dynamic you drape over the grille — no stand needed. Bright upper-mid presence, supercardioid rejection.",
+      "sources": "Sennheiser published specifications (e609 Silver); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.sennheiser.com/en-us/catalog/products/microphones/e-609-silver/",
+      "intro": "A flat-faced, side-address dynamic built to hang over the front of a guitar cab by its own cable — no stand, no fuss. A bright upper-mid/presence lift around 4–5 kHz and a supercardioid pattern give it cut and isolation, though it can get edgy on already-bright amps.",
+      "specs": {
+        "Type": "Dynamic",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "40 Hz – 15 kHz",
+        "Impedance": "350 Ω",
+        "Sensitivity": "1.5 mV/Pa",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Form": "Flat side-address",
+        "Status": "Current"
+      },
+      "sound": "Bright and forward through the upper mids, supercardioid tight. Ease off presence and tame ~2.8 kHz edge on bright cabs; position over the cone edge for less fizz.",
+      "bestfit": [
+        "Guitar cab — draped over the grille, fast to deploy.",
+        "Any spot where you want a stand-free cab mic."
+      ],
+      "notes": [
+        "Position over the grille changes tone a lot — cone edge = warmer, dust cap = brighter.",
+        "Can get edgy on bright amps; blend with a ribbon if needed."
+      ],
+      "comparable": [
+        [
+          "Shure SM57",
+          "Stand-mounted cab standard"
+        ],
+        [
+          "Royer R-121",
+          "Ribbon blend partner to tame brightness"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "sennheiser-e604",
+      "name": "Sennheiser e604",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "cardioid",
+        "toms",
+        "clip",
+        "sennheiser",
+        "owned"
+      ],
+      "description": "Clip-on cardioid dynamic for toms — fast setup, voiced attack.",
+      "summary": "Lightweight clip-on tom dynamic with scooped low-mids and a voiced attack. Quick to rig, thinner than a D-series.",
+      "sources": "Sennheiser published specifications (e604); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.sennheiser.com/en-us/catalog/products/microphones/e-604/",
+      "intro": "A small clip-on cardioid dynamic built for fast tom setups — it clamps to the rim and stays out of the drummer's way. Scooped low-mids and a voiced attack give it punch, though it's thinner and a touch boxier than a stand-mounted D-series and modest in the deep lows.",
+      "specs": {
+        "Type": "Dynamic",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "40 Hz – 18 kHz",
+        "Impedance": "350 Ω",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Mount": "Integrated rim clip",
+        "Status": "Current"
+      },
+      "sound": "Punchy and quick with scooped low-mids. Ease off attack and mud; add low-end body if the tom sounds thin.",
+      "bestfit": [
+        "Toms — clip-on, quick setup, tidy stage.",
+        "Fast changeovers and festival kits."
+      ],
+      "notes": [
+        "Thinner/boxier than a D-series — worth it for the speed.",
+        "Modest deep lows; the D4 wins on a big floor tom."
+      ],
+      "comparable": [
+        [
+          "sE V-Beat",
+          "Other clip-on tom dynamic"
+        ],
+        [
+          "Audix D2 / D4",
+          "Stand-mounted, fuller D-series toms"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "shure-beta-27",
+      "name": "Shure Beta 27",
+      "category": "Large Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "ldc",
+        "supercardioid",
+        "shure",
+        "owned"
+      ],
+      "description": "Supercardioid large-diaphragm condenser — open, clean, flatter than a 57 on cabs and instruments.",
+      "summary": "Side-address supercardioid LDC. Flat through the low-mids with small, tasteful presence peaks — an open, clean alternative to a dynamic on cabs, brass and acoustic sources.",
+      "sources": "Shure published specifications (Beta 27); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.shure.com/en-US/shop/microphones/beta27",
+      "intro": "A side-address supercardioid condenser that trades a dynamic's color for openness. Essentially flat from 60 Hz to 3 kHz with small +2 dB peaks near 5.5 kHz and 9 kHz — flatter and cleaner than a 57 — plus a −15 dB pad for loud sources. The one thing to watch is a little 9 kHz fizz on already-bright amps.",
+      "specs": {
+        "Type": "Condenser (large diaphragm, externally biased)",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Pad": "−15 dB switchable",
+        "High-pass filter": "Switchable low-cut",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "48 V required",
+        "Status": "Current"
+      },
+      "sound": "Open and clean with an honest low-mid and gentle presence. Ease off box and honk; tame the ~9 kHz fizz on bright cabs. Engage the pad on loud amps and the HPF on close, boomy sources.",
+      "bestfit": [
+        "Guitar cab — a cleaner, flatter alternative to a 57; pairs well with one.",
+        "Brass and acoustic instruments needing detail without hype.",
+        "Loud percussion and utility instrument duty (use the pad)."
+      ],
+      "notes": [
+        "Needs 48 V phantom — it's a condenser, unlike the dynamics it often sits beside.",
+        "Blends nicely with an SM57 on a cab (57 grit + Beta 27 clean body/air)."
+      ],
+      "comparable": [
+        [
+          "Shure SM57",
+          "The dynamic reference — Beta 27 is flatter and more open"
+        ],
+        [
+          "AKG C414",
+          "More versatile multipattern LDC step-up"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "schoeps-cmc6-mk4",
+      "name": "Schoeps CMC6 + MK4",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "sdc",
+        "cardioid",
+        "schoeps",
+        "classical",
+        "owned"
+      ],
+      "description": "Reference cardioid SDC (CMC6 amp + MK4 capsule) — the classical spot/main standard.",
+      "summary": "The reference small-diaphragm cardioid: transparent, flat with a gentle ~10 kHz rise that compensates room HF loss. Classical spots and mains.",
+      "sources": "Schoeps published specifications (CMC6 / MK4); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://schoeps.de/en/products/mk-4.html",
+      "intro": "The Colette-system workhorse: a CMC6 amplifier body with an MK4 cardioid capsule. Ruler-flat and transparent with a slight ~10 kHz lift that quietly compensates for a room's high-frequency loss, a constant polar pattern, and a natural, uncolored sound. It's the classical spot and main-pair reference — pricey and fragile, but honest.",
+      "specs": {
+        "Type": "Condenser (small diaphragm, Colette CMC6 + MK4)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "40 Hz – 20 kHz",
+        "Sensitivity": "≈13 mV/Pa",
+        "Impedance": "<35 Ω",
+        "Max SPL": "≈132 dB",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Transparent and natural with a whisper of top-end air. Barely needs EQ; ease off presence only if a bright room over-airs it. Subtractive, minimal — this is a classical blend mic.",
+      "bestfit": [
+        "Classical spots — soloists, sections, close detail.",
+        "Main pair — ORTF/NOS on the Memo wire array.",
+        "Acoustic instruments needing an honest, uncolored capture."
+      ],
+      "notes": [
+        "Fragile and expensive — handle and store with care.",
+        "Capsule swaps: MK5 (omni/cardioid), MK41 (supercardioid) share the CMC6 body."
+      ],
+      "comparable": [
+        [
+          "Schoeps CMC6 + MK41",
+          "Supercardioid sibling for tighter rejection"
+        ],
+        [
+          "Sennheiser MKH 40",
+          "RF-condenser main-pair alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ],
+        [
+          "Classical Recording",
+          "/multitrack-recording-workflow"
+        ]
+      ]
+    },
+    {
+      "slug": "schoeps-cmc6-mk5",
+      "name": "Schoeps CMC6 + MK5",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "sdc",
+        "omni",
+        "cardioid",
+        "schoeps",
+        "classical",
+        "owned"
+      ],
+      "description": "Switchable omni/cardioid SDC (CMC6 + MK5) — classical room, Decca tree, wide ambient.",
+      "summary": "CMC6 body with the MK5 capsule: switchable omni/cardioid, both patterns carrying an HF lift (brighter than an MK4). Omni mode is natural with extended lows.",
+      "sources": "Schoeps published specifications (CMC6 / MK5); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://schoeps.de/en/products/mk-5.html",
+      "intro": "The flexible member of the set: an MK5 capsule that switches between omni and cardioid. Both patterns carry a slight HF lift — a touch brighter than an MK4 — and the omni mode is beautifully natural with extended low end. First call for room, Decca-tree, and wide ambient on classical dates.",
+      "specs": {
+        "Type": "Condenser (small diaphragm, Colette CMC6 + MK5)",
+        "Polar pattern": "Switchable omni / cardioid",
+        "Frequency response": "20 Hz – 20 kHz (omni extends low)",
+        "Sensitivity": "≈13 mV/Pa",
+        "Impedance": "<35 Ω",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Natural with an airy top; omni mode adds warmth and low extension. That top lift can over-air a bright room — ease off presence/air if needed.",
+      "bestfit": [
+        "Classical main pair / room — omni for warmth and width.",
+        "Decca tree center and flanks.",
+        "Wide ambient capture where the MK4 would be too tight."
+      ],
+      "notes": [
+        "Switch pattern at the capsule; omni for reverberant halls, cardioid for tighter blend.",
+        "Preferred main pair on the Memo wire array (cardioid ORTF; omni for more warmth)."
+      ],
+      "comparable": [
+        [
+          "Schoeps CMC6 + MK4",
+          "Flatter cardioid-only sibling"
+        ],
+        [
+          "Sennheiser MKH 40",
+          "Low-noise RF alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ],
+        [
+          "Classical Recording",
+          "/multitrack-recording-workflow"
+        ]
+      ]
+    },
+    {
+      "slug": "schoeps-cmc6-mk41",
+      "name": "Schoeps CMC6 + MK41",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "sdc",
+        "supercardioid",
+        "schoeps",
+        "classical",
+        "owned"
+      ],
+      "description": "Supercardioid SDC (CMC6 + MK41) — tight classical spot with strong rejection.",
+      "summary": "CMC6 body with the MK41 supercardioid capsule: tight, natural, with gentle presence and excellent off-axis rejection. Classical spot where isolation matters.",
+      "sources": "Schoeps published specifications (CMC6 / MK41); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://schoeps.de/en/products/mk-41.html",
+      "intro": "The tight one. An MK41 supercardioid capsule on the CMC6 body — natural with a gentle presence rise and the strong rejection you want when a spot has to stay out of its neighbors. Slight off-axis coloration at extreme angles is the only trade against an MK4.",
+      "specs": {
+        "Type": "Condenser (small diaphragm, Colette CMC6 + MK41)",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "40 Hz – 20 kHz",
+        "Sensitivity": "≈13 mV/Pa",
+        "Impedance": "<35 Ω",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Tight and natural with a light presence lift. Minimal EQ; ease off presence only if needed. The supercardioid null is the tool — aim it at the bleed.",
+      "bestfit": [
+        "Classical spot mics needing tight isolation.",
+        "Soloist coverage in a busy stage.",
+        "Sections where an MK4's wider pattern picks up too much neighbor."
+      ],
+      "notes": [
+        "Watch extreme off-axis coloration when aiming the null.",
+        "Shares the CMC6 body with the MK4 and MK5 capsules."
+      ],
+      "comparable": [
+        [
+          "Schoeps CMC6 + MK4",
+          "Wider cardioid reference"
+        ],
+        [
+          "DPA 4099",
+          "Clip-on supercardioid alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ],
+        [
+          "Classical Recording",
+          "/multitrack-recording-workflow"
+        ]
+      ]
+    },
+    {
+      "slug": "sennheiser-mkh40",
+      "name": "Sennheiser MKH 40",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "sdc",
+        "cardioid",
+        "rf",
+        "sennheiser",
+        "classical",
+        "owned"
+      ],
+      "description": "RF-condenser cardioid — pristine, extremely low noise. Classical main pair, flute, detail.",
+      "summary": "The low-noise classical main-pair mic. RF-bias cardioid, near-flat with a slight airy presence, and one of the quietest capsules made.",
+      "sources": "Sennheiser published specifications (MKH 40); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.sennheiser.com/en-us/catalog/products/microphones/mkh-40/",
+      "intro": "An RF-bias condenser that stays quiet where others hiss. Near-flat with a slight airy presence, extremely low self-noise, and pristine detail on flute, strings and classical mains. It's clinical and can bloom on proximity, which is exactly why it flatters a well-placed main pair.",
+      "specs": {
+        "Type": "Condenser (RF bias, small diaphragm)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "40 Hz – 20 kHz",
+        "Sensitivity": "25 mV/Pa",
+        "Self-noise": "12 dB(A)",
+        "Max SPL": "142 dB",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Clean, quiet, airy. Ease off presence only if it gets clinical; otherwise let it be — it's a blend/main mic, not a shaping tool.",
+      "bestfit": [
+        "Classical main pair — ORTF, NOS, spaced omni arrays.",
+        "Flute and woodwind detail (Brian's go-to).",
+        "Any quiet, high-detail acoustic capture."
+      ],
+      "notes": [
+        "The low self-noise is the whole point on quiet passages.",
+        "Proximity if placed close — back off for the natural tone."
+      ],
+      "comparable": [
+        [
+          "Schoeps CMC6 + MK4",
+          "Reference cardioid alternative"
+        ],
+        [
+          "Neumann KM 184",
+          "Common SDC comparison"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ],
+        [
+          "Classical Recording",
+          "/multitrack-recording-workflow"
+        ]
+      ]
+    },
+    {
+      "slug": "shure-sm81",
+      "name": "Shure SM81",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "sdc",
+        "cardioid",
+        "shure",
+        "owned"
+      ],
+      "description": "Ruler-flat cardioid SDC — hat, overheads, acoustic. Takes EQ cleanly.",
+      "summary": "The clean, flat SDC standard. Detailed highs with no harsh fizz and a switchable HPF; accurate on hat, overheads and acoustic instruments.",
+      "sources": "Shure published specifications (SM81); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.shure.com/en-US/shop/microphones/sm81",
+      "intro": "A flat, honest cardioid condenser with clean, detailed highs and no built-in flattery. Switchable HPF (flat / 6 / 18 dB/oct) and a wide, even response make it accurate on hi-hat, overheads and acoustic instruments — it takes EQ cleanly and reveals a source honestly, so it needs care on cymbal wash.",
+      "specs": {
+        "Type": "Condenser (small diaphragm)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Sensitivity": "−45 dBV/Pa (5.6 mV)",
+        "Max SPL": "136 dB (146 dB with pad)",
+        "High-pass filter": "Flat / 6 / 18 dB per octave",
+        "Pad": "−10 dB switchable",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Flat and detailed — apply the template as-is. Watch cymbal wash and sibilance since nothing is hyped; use the HPF on close acoustic sources.",
+      "bestfit": [
+        "Hi-hat — clean and detailed.",
+        "Overheads — accurate, honest cymbals.",
+        "Acoustic guitar and instruments — takes EQ well."
+      ],
+      "notes": [
+        "Use the onboard HPF before the desk filter.",
+        "No hype — flatters nothing, which is the point."
+      ],
+      "comparable": [
+        [
+          "Earthworks SR20sp Gen 2",
+          "Faster, more extended flat SDC"
+        ],
+        [
+          "Neumann KM 184",
+          "Brighter SDC alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "shure-beta-91a",
+      "name": "Shure Beta 91A",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "boundary",
+        "kick",
+        "piano",
+        "shure",
+        "owned"
+      ],
+      "description": "Half-cardioid boundary condenser — kick attack layer, piano. Contour switch.",
+      "summary": "Boundary condenser for kick (on the head, inside) and piano. Solid boundary lows plus pronounced beater click; a contour switch tames shell boxiness.",
+      "sources": "Shure published specifications (Beta 91A); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.shure.com/en-US/shop/microphones/beta-91a",
+      "intro": "A half-cardioid boundary condenser built to lie inside the kick on the resonant head. Solid boundary low end plus a pronounced beater click, nominally flat with a contour switch that cuts ~7 dB at 400 Hz to clear shell boxiness. Standard partner to a Beta 52A for a two-mic kick.",
+      "specs": {
+        "Type": "Condenser (half-cardioid boundary)",
+        "Polar pattern": "Half-cardioid",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Contour switch": "Flat / −7 dB at 400 Hz",
+        "Max SPL": "155 dB",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM (integral preamp)",
+        "Status": "Current"
+      },
+      "sound": "Boundary lows plus click; picks up shell box ~300–500 Hz — engage the contour or notch. Ease off boom to taste.",
+      "bestfit": [
+        "Kick — attack/click layer inside on the resonant head; pair with a Beta 52A.",
+        "Piano — boundary under the lid.",
+        "Low boundary pickup where a stand mic won't fit."
+      ],
+      "notes": [
+        "Standard two-mic kick at Memo: Beta 52A (body) + Beta 91A (click).",
+        "Contour switch first, desk EQ second."
+      ],
+      "comparable": [
+        [
+          "Shure Beta 52A",
+          "Body/thump partner for the two-mic kick"
+        ],
+        [
+          "Earthworks DM6",
+          "Flat kick condenser alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "audix-m1280b",
+      "name": "Audix M1280B",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "mini",
+        "cardioid",
+        "audix",
+        "overheads",
+        "owned"
+      ],
+      "description": "Miniature cardioid condenser with integrated preamp — overheads, cymbals, ensemble.",
+      "summary": "Compact cardioid condenser, RF-immune with an integrated preamp and generous front pickup. Overheads, cymbals and ensemble — thin lows, room-sensitive.",
+      "sources": "Audix published specifications (M1280B); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://audixusa.com/products/m1280b",
+      "intro": "A miniaturized cardioid condenser with a fully integrated preamp and complete RF immunity — no phantom-hungry electronics dangling on the stand. Extended response and a generous front pickup make it a tidy overhead and ensemble mic; the lows are thin and it's room-sensitive, so placement matters.",
+      "specs": {
+        "Type": "Condenser (miniature, integrated preamp)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "40 Hz – 20 kHz",
+        "Impedance": "150 Ω",
+        "Phantom power": "18–48 V required",
+        "Output connector": "3-pin XLRM (detachable cable)",
+        "Included": "25 ft cable, clip, windscreen",
+        "Status": "Current"
+      },
+      "sound": "Clean with a slightly forward presence — ease off presence. Thin lows; HPF and lean on placement to control room.",
+      "bestfit": [
+        "Overheads / cymbals — matched pair, compact.",
+        "Ensemble and choral pickup.",
+        "Tight spaces where a full SDC won't fit."
+      ],
+      "notes": [
+        "RF-immune — safe near wireless and phones.",
+        "Part of the Audix DP8 pack."
+      ],
+      "comparable": [
+        [
+          "Audix M1280BHC",
+          "Hypercardioid sibling for tighter isolation"
+        ],
+        [
+          "Shure SM81",
+          "Full-size flat SDC alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "audix-m1280bhc",
+      "name": "Audix M1280BHC",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "mini",
+        "hypercardioid",
+        "audix",
+        "hi-hat",
+        "owned"
+      ],
+      "description": "Miniature hypercardioid condenser — hi-hat, tight overhead, podium.",
+      "summary": "Hypercardioid version of the M1280 — extended response, integrated preamp, RF-immune, tight isolation. Hi-hat and tight overhead duty.",
+      "sources": "Audix published specifications (M1280BHC); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://audixusa.com/products/m1280bhc",
+      "intro": "The hypercardioid M1280 — same compact, RF-immune, integrated-preamp build with a tighter pattern for isolation. Ideal on hi-hat and as a tight overhead or podium mic; the lows are thin and the upper mids run a touch forward.",
+      "specs": {
+        "Type": "Condenser (miniature hypercardioid, integrated preamp)",
+        "Polar pattern": "Hypercardioid",
+        "Frequency response": "40 Hz – 20 kHz",
+        "Impedance": "150 Ω",
+        "Phantom power": "18–48 V required",
+        "Output connector": "3-pin XLRM (detachable cable)",
+        "Status": "Current"
+      },
+      "sound": "Tight and clean with forward upper mids — ease off presence. Thin lows; the tight pattern keeps bleed down.",
+      "bestfit": [
+        "Hi-hat — tight isolation from snare/cymbals.",
+        "Tight overhead or spot.",
+        "Podium/lectern where rejection matters."
+      ],
+      "notes": [
+        "Hypercardioid — mind the rear lobe.",
+        "Part of the Audix DP8 pack."
+      ],
+      "comparable": [
+        [
+          "Audix M1280B",
+          "Cardioid sibling"
+        ],
+        [
+          "Shure SM81",
+          "Full-size flat SDC alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "earthworks-dm6",
+      "name": "Earthworks DM6",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "kick",
+        "earthworks",
+        "owned"
+      ],
+      "description": "SeisMic flat/extended-LF kick condenser — honest, huge sub reach, takes full shaping.",
+      "summary": "An uncolored, extended-low-frequency kick condenser with fast transients. Captures everything honestly, so it takes full EQ shaping to a modern kick.",
+      "sources": "Earthworks published specifications (DM6); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://earthworksaudio.com/product/dm6/",
+      "intro": "Earthworks' honest kick mic. A flat, extended-low-frequency condenser with fast transient response and huge sub reach — the opposite of a pre-scooped kick mic. It captures the drum truthfully (including bleed), which means it takes full EQ shaping to whatever modern kick you want.",
+      "specs": {
+        "Type": "Condenser (SeisMic, extended LF)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "Extended low frequency (flat/uncolored)",
+        "Max SPL": "High (drum-rated)",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Flat and honest — apply the template fully; it needs EQ to get a 'modern' kick. Captures everything, so mind bleed.",
+      "bestfit": [
+        "Kick — inside, when you want to shape from a true source.",
+        "Low percussion needing honest sub reach.",
+        "Pair with a scooped dynamic for blend."
+      ],
+      "notes": [
+        "Part of the Earthworks DK-6 kit.",
+        "Uncolored — flatters nothing; the shaping is yours."
+      ],
+      "comparable": [
+        [
+          "Audix D6",
+          "Pre-scooped, opposite philosophy"
+        ],
+        [
+          "Shure Beta 91A",
+          "Boundary click partner"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "earthworks-dm17",
+      "name": "Earthworks DM17",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "snare",
+        "toms",
+        "earthworks",
+        "owned"
+      ],
+      "description": "Flat rim-mount snare/tom condenser — fast, detailed, high SPL.",
+      "summary": "Rim-mount snare and tom condenser: flat, fast and detailed, high SPL. Honest — needs EQ for character.",
+      "sources": "Earthworks published specifications (DM17); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://earthworksaudio.com/product/dm17/",
+      "intro": "A rim-mount condenser for snare and toms — flat, fast, detailed and happy at high SPL. Like the rest of the Earthworks kit it's honest rather than voiced, so it takes EQ for character and stays out of the drummer's way on the RM rim mount.",
+      "specs": {
+        "Type": "Condenser (rim-mount)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "Flat, extended (drum-rated)",
+        "Max SPL": "High",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Mount": "RM rim mount",
+        "Status": "Current"
+      },
+      "sound": "Flat and honest — apply the template as-is and shape for character. Fast transients reveal the true drum.",
+      "bestfit": [
+        "Snare — detailed, clean, rim-mounted.",
+        "Rack and floor toms.",
+        "Any drum where you want a true, fast capture."
+      ],
+      "notes": [
+        "Rim mount keeps stands off the kit.",
+        "Part of the Earthworks DK-6 kit."
+      ],
+      "comparable": [
+        [
+          "Sennheiser MD 421-U (Silver Tail)",
+          "Voiced dynamic tom alternative"
+        ],
+        [
+          "Audix D2 / D4",
+          "Dynamic tom voicings"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "earthworks-sr20sp",
+      "name": "Earthworks SR20sp Gen 2",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "sdc",
+        "overheads",
+        "earthworks",
+        "owned"
+      ],
+      "description": "Flat, fast cardioid SDC — accurate overheads and room, very high SPL.",
+      "summary": "Matched-pair cardioid SDC: flat, fast, extended top, very accurate on overheads and room. Reveals harshness honestly — no hype.",
+      "sources": "Earthworks published specifications (SR20 series); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://earthworksaudio.com/product/sr20/",
+      "intro": "A flat, fast cardioid small-diaphragm condenser with extended top and very high SPL handling — Earthworks' accurate overhead and room capture. It reveals a source (and any harshness) honestly, so it flatters nothing and rewards good placement.",
+      "specs": {
+        "Type": "Condenser (small diaphragm, matched pair)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "Flat, extended top",
+        "Max SPL": "≈155 dB",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Flat and fast — apply the template as-is. Reveals harshness honestly; fix it at the source, not by hyping the mic.",
+      "bestfit": [
+        "Drum overheads — matched stereo pair.",
+        "Room and ensemble.",
+        "Guitar cabs, cymbals, brass at high SPL."
+      ],
+      "notes": [
+        "Very high SPL headroom — safe on loud sources.",
+        "Part of the Earthworks DK-6 kit."
+      ],
+      "comparable": [
+        [
+          "Shure SM81",
+          "Flat SDC alternative"
+        ],
+        [
+          "Earthworks SR25",
+          "Supercardioid Earthworks sibling"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "earthworks-sr25",
+      "name": "Earthworks SR25",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "sdc",
+        "overheads",
+        "earthworks",
+        "owned"
+      ],
+      "description": "Flat cardioid SDC — natural top for hat/overheads; also kick single.",
+      "summary": "Flat cardioid SDC with fast transients and a natural top end for hi-hat and overheads; works as a single kick mic too. Uncolored.",
+      "sources": "Earthworks published specifications (SR25); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://earthworksaudio.com/product/sr25/",
+      "intro": "A flat cardioid small-diaphragm condenser with fast transients and a natural top end — clean on hi-hat and overheads, and capable as a single kick mic. Uncolored, so it flatters nothing and takes EQ cleanly.",
+      "specs": {
+        "Type": "Condenser (small diaphragm)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "Flat, natural top",
+        "Max SPL": "≈145 dB",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Flat and natural — apply the template as-is. Fast and honest on cymbals and hat.",
+      "bestfit": [
+        "Overheads (×2) — matched pair.",
+        "Hi-hat.",
+        "Kick (×1) as a single flat capture."
+      ],
+      "notes": [
+        "Part of the Earthworks DK-25 kit.",
+        "Uncolored — shape to taste."
+      ],
+      "comparable": [
+        [
+          "Earthworks SR20sp Gen 2",
+          "Higher-SPL Earthworks sibling"
+        ],
+        [
+          "Shure SM81",
+          "Flat SDC alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "se-se8",
+      "name": "sE Electronics sE8",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "sdc",
+        "overheads",
+        "se-electronics",
+        "owned"
+      ],
+      "description": "Cardioid SDC — matched-pair overheads, pads and HPF, very high SPL.",
+      "summary": "A well-regarded cardioid small-diaphragm condenser: clean and detailed with switchable pads and HPF and very high SPL headroom. Drum overheads.",
+      "sources": "sE Electronics published specifications (sE8); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://seelectronics.com/products/se8/",
+      "intro": "sE's small-diaphragm cardioid condenser — clean, detailed and quiet, with switchable pads and a high-pass filter and very high SPL headroom. A matched pair makes tidy, honest drum overheads; the pads keep it happy on loud sources.",
+      "specs": {
+        "Type": "Condenser (small diaphragm)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Pad": "−10 / −20 dB switchable",
+        "High-pass filter": "80 / 160 Hz switchable",
+        "Max SPL": "≈159 dB (with pad)",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Clean and detailed — apply the template as-is. Use pad/HPF on loud, close sources.",
+      "bestfit": [
+        "Drum overheads — matched stereo pair.",
+        "Acoustic instruments and room.",
+        "Percussion and cymbals at high SPL."
+      ],
+      "notes": [
+        "Part of the sE V Pack Arena kit.",
+        "Pads and HPF onboard — use before the desk."
+      ],
+      "comparable": [
+        [
+          "Shure SM81",
+          "Flat SDC alternative"
+        ],
+        [
+          "Earthworks SR20sp Gen 2",
+          "Faster, more extended flat SDC"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "line-audio-om1",
+      "name": "Line Audio OM1",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "omni",
+        "crowd",
+        "ambient",
+        "line-audio",
+        "owned"
+      ],
+      "description": "Omni pressure condenser — very flat, low noise. Memo flown crowd/ambient pair.",
+      "summary": "A very flat, low-noise omnidirectional condenser. Flown ambient pair at Memorial Hall; omni means lots of room and LF, so it wants an HPF and mud cuts.",
+      "sources": "Line Audio published specifications (OM1); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.lineaudio.se/OM1.html",
+      "intro": "A Swedish-made omnidirectional condenser that's remarkably flat and quiet for the money. As a flown ambient pair at Memorial Hall it captures natural room and crowd; being omni, it takes in plenty of low end and room, so it wants an HPF and the room's mud cuts.",
+      "specs": {
+        "Type": "Condenser (10 mm permanently biased)",
+        "Polar pattern": "Omnidirectional",
+        "Frequency response": "20 Hz – 20 kHz ±1 dB",
+        "Sensitivity": "8 mV/Pa (−42 dB)",
+        "Impedance": "<100 Ω",
+        "Self-noise": "18 dB(A)",
+        "Max SPL": "133 dB",
+        "Phantom power": "12–48 V (P48 recommended)",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Very flat and natural — apply the crowd-rig template. Omni = lots of room/LF: HPF and cut the Memo mud (200–400 Hz) hard.",
+      "bestfit": [
+        "Crowd / ambient — flown 18' above stage, 12' apart at Memo.",
+        "Room and audience capture for broadcast/recording color.",
+        "Wide natural ambient where an omni's evenness helps."
+      ],
+      "notes": [
+        "Part of the Memorial Hall crowd rig — EQ is fixed (see the venue page).",
+        "Omni picks up everything; aggressive HPF is standard."
+      ],
+      "comparable": [
+        [
+          "Line Audio CM4",
+          "Cardioid balcony crowd sibling"
+        ],
+        [
+          "DPA 4060",
+          "Omni lav/measurement alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ]
+      ]
+    },
+    {
+      "slug": "line-audio-cm4",
+      "name": "Line Audio CM4",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "cardioid",
+        "crowd",
+        "ortf",
+        "line-audio",
+        "owned"
+      ],
+      "description": "Flat cardioid SDC — Memo balcony ORTF crowd pair.",
+      "summary": "A flat, natural (slightly wide) cardioid condenser. Balcony ORTF crowd pair at Memorial Hall; distance = boomy LF + room mud, so it needs aggressive HPF.",
+      "sources": "Line Audio published specifications (CM4); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.lineaudio.se/CM4.html",
+      "intro": "The cardioid sibling to the OM1 — flat, natural, slightly wide-cardioid, and Swedish-made. Runs as the balcony ORTF crowd pair at Memorial Hall, 34' from the Deity pair; the distance builds boomy LF and room mud, so it takes an aggressive HPF.",
+      "specs": {
+        "Type": "Condenser (permanently biased)",
+        "Polar pattern": "Cardioid (slightly wide)",
+        "Frequency response": "20 Hz – 20 kHz (100 Hz–16 kHz ±1 dB)",
+        "Sensitivity": "8 mV/Pa (−42 dB)",
+        "Impedance": "<100 Ω",
+        "Self-noise": "16 dB(A)",
+        "Max SPL": "140 dB",
+        "Phantom power": "12–48 V (P48 recommended)",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Flat and natural — apply the crowd-rig template. Balcony distance = boomy LF + room mud; HPF aggressively.",
+      "bestfit": [
+        "Crowd ORTF — balcony, rear-facing into the room at Memo.",
+        "Room ambience for recording.",
+        "Natural cardioid ambient where an omni takes in too much."
+      ],
+      "notes": [
+        "Part of the Memorial Hall crowd rig — EQ is fixed (see the venue page).",
+        "34' from the Deity pair; mind time alignment in post."
+      ],
+      "comparable": [
+        [
+          "Line Audio OM1",
+          "Omni flown crowd sibling"
+        ],
+        [
+          "Deity S2",
+          "Under-PA crowd pair"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ]
+      ]
+    },
+    {
+      "slug": "deity-s2",
+      "name": "Deity S-Mic 2",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "shotgun",
+        "supercardioid",
+        "crowd",
+        "deity",
+        "owned"
+      ],
+      "description": "Supercardioid shotgun — smooth, low-coloration. Memo under-PA crowd pair.",
+      "summary": "A smooth, warm supercardioid shotgun with no presence-peak hype and low off-axis coloration. Under-PA crowd mic at Memorial Hall; fair rear rejection, so tame PA HF with the crowd-rig LPF.",
+      "sources": "Deity published specifications (S-Mic 2); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://deitymic.com/products/s-mic-2/",
+      "intro": "A brass-bodied supercardioid shotgun that's smooth and warm with none of the presence hype of an MKH416, plus low off-axis coloration and strong RF/moisture resistance. It sits under the main-floor PA aimed into the audience at Memorial Hall; rear rejection is only fair, so it does pick up PA HF — the crowd-rig LPF tames it.",
+      "specs": {
+        "Type": "Condenser (shotgun, brass body)",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "50 Hz – 20 kHz",
+        "Off-axis rejection": "≈18 dB",
+        "Self-noise": "12 dB(A)",
+        "Max SPL": "130 dB",
+        "Phantom power": "24 / 48 V",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Smooth, warm, low-coloration — apply the crowd-rig template as-is. Rear rejection is fair, so LPF the PA HF it catches.",
+      "bestfit": [
+        "Crowd — under the main-floor PA, aimed into the audience at Memo.",
+        "Ambient capture needing a warm, honest shotgun.",
+        "Speech/dialogue where an un-hyped shotgun helps."
+      ],
+      "notes": [
+        "Part of the Memorial Hall crowd rig — EQ is fixed (see the venue page).",
+        "Moisture- and RF-resistant brass build."
+      ],
+      "comparable": [
+        [
+          "Line Audio CM4",
+          "Balcony ORTF crowd pair"
+        ],
+        [
+          "Sennheiser MKH 416",
+          "Hyped shotgun the S2 deliberately isn't"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ]
+      ]
+    },
+    {
+      "slug": "shure-beta-98hc",
+      "name": "Shure Beta 98H/C",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "clip",
+        "cardioid",
+        "horns",
+        "percussion",
+        "shure",
+        "owned"
+      ],
+      "description": "Clip-on cardioid condenser — horns, sax, drum rim. Voiced presence, tight pattern.",
+      "summary": "Gooseneck clip-on cardioid condenser voiced for open, natural horn and percussion pickup. Tight pattern; thin lows and the voiced presence can get edgy up close.",
+      "sources": "Shure published specifications (Beta 98H/C); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.shure.com/en-US/shop/microphones/beta-98h-c",
+      "intro": "A gooseneck clip-on cardioid condenser built for horns and percussion — voiced for an open, natural sound with a tight pattern and a clamp that gets it right on the bell or rim. The lows are thin (it's a clip mic) and the voiced presence can get edgy very close, so back it off the bell a touch.",
+      "specs": {
+        "Type": "Condenser (clip-on, gooseneck)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Max SPL": "≈155 dB",
+        "Phantom power": "48 V required (via preamp)",
+        "Output connector": "3-pin XLRM (inline preamp)",
+        "Status": "Current"
+      },
+      "sound": "Open and natural with a voiced presence — ease off presence. Thin lows; add low warmth if it sounds small.",
+      "bestfit": [
+        "Horns — sax, trumpet, trombone bells (clip-on).",
+        "Drum rim / percussion.",
+        "Any brass/perc spot where a stand won't fit."
+      ],
+      "notes": [
+        "Voiced presence can get edgy close to the bell — back off slightly.",
+        "Tight cardioid helps on loud, crowded stages."
+      ],
+      "comparable": [
+        [
+          "DPA 4099",
+          "Higher-fidelity clip-on supercardioid"
+        ],
+        [
+          "Audio-Technica Pro 35",
+          "Budget clip-on condenser"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "audio-technica-pro35",
+      "name": "Audio-Technica Pro 35",
+      "category": "Small Diaphragm Condenser",
+      "owned": false,
+      "status": "Reference — not in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "clip",
+        "cardioid",
+        "audio-technica",
+        "reference"
+      ],
+      "description": "Clip-on cardioid condenser (reference) — drums/brass, limited top, voiced presence.",
+      "summary": "Reference entry: a clip-on cardioid condenser with a voiced presence and rolled-off extreme top. Documented here for EQ context, not owned.",
+      "sources": "Audio-Technica published specifications (PRO 35); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.audio-technica.com/en-us/pro35",
+      "intro": "A clip-on cardioid condenser with a clamp mount, a voiced presence lift and a rolled-off extreme top (50 Hz – 15 kHz). Documented here as an EQ reference — it's a budget alternative to a Beta 98H/C on drums and brass, thin in the lows and a touch plasticky in the upper mids up close.",
+      "specs": {
+        "Type": "Condenser (clip-on, cardioid)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "50 Hz – 15 kHz",
+        "Phantom power": "48 V (or battery)",
+        "Output connector": "3-pin XLRM (inline)",
+        "Status": "Reference — not owned"
+      },
+      "sound": "Voiced presence, limited top — ease off presence. Thin lows; keep it slightly off the source to avoid plastic upper-mid.",
+      "bestfit": [
+        "(Reference) Drums and brass clip-on duty.",
+        "Budget alternative where a Beta 98H/C or DPA isn't available."
+      ],
+      "notes": [
+        "Reference only — not in Brian's locker (faded gallery ring).",
+        "Rolled-off top vs a Beta 98H/C or DPA 4099."
+      ],
+      "comparable": [
+        [
+          "Shure Beta 98H/C",
+          "Owned clip-on condenser step-up"
+        ],
+        [
+          "DPA 4099",
+          "High-fidelity clip-on"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "neumann-kms-105",
+      "name": "Neumann KMS 105",
+      "category": "Large Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "supercardioid",
+        "vocal",
+        "neumann",
+        "owned"
+      ],
+      "description": "Supercardioid stage condenser — smooth, airy lead vocal with detail beyond a dynamic.",
+      "summary": "The stage-condenser lead vocal: flat mids with a gentle 12 kHz air lift, an always-on HPF and partial proximity compensation. Smooth, airy, detailed.",
+      "sources": "Neumann published specifications (KMS 105); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.neumann.com/en-us/products/microphones/kms-105/",
+      "intro": "When a vocal wants detail and air a dynamic can't give, this is the handheld. A supercardioid condenser that's flat from 500 Hz to 7 kHz with a gentle ~+5 dB lift near 12 kHz for clarity without sibilance, an always-on HPF (−3 dB at 120 Hz) and partial proximity compensation. It's feedback-sensitive and that 12 k air can turn harsh on a loud PA.",
+      "specs": {
+        "Type": "Condenser (large diaphragm, stage)",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Sensitivity": "4.5 mV/Pa",
+        "Max SPL": "150 dB",
+        "High-pass filter": "Internal, −3 dB at 120 Hz",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Smooth, airy, detailed — ease off air/presence and proximity; tame nasal ~1.6 kHz and sibilance ~8 kHz on a hot PA.",
+      "bestfit": [
+        "Lead vocals — when you want condenser detail live.",
+        "Featured singers on a controlled stage.",
+        "Any vocal needing air a dynamic lacks."
+      ],
+      "notes": [
+        "Feedback-sensitive — mind gain and monitor angles.",
+        "The 12 kHz air can get sibilant on a loud PA — de-ess if needed."
+      ],
+      "comparable": [
+        [
+          "Shure Beta 58A",
+          "Dynamic alternative with less air"
+        ],
+        [
+          "Neumann KMS 104",
+          "Cardioid sibling"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "neumann-tlm-102",
+      "name": "Neumann TLM 102",
+      "category": "Large Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "cardioid",
+        "ldc",
+        "studio",
+        "neumann",
+        "owned"
+      ],
+      "description": "Compact cardioid LDC — bright, modern; studio vocal, acoustic, overheads.",
+      "summary": "A fast, compact cardioid LDC with a presence/air boost above 6 kHz peaking ~10–12 kHz. Bright and modern; that HF lift can get sibilant on vocals and cymbals.",
+      "sources": "Neumann published specifications (TLM 102); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.neumann.com/en-us/products/microphones/tlm-102/",
+      "intro": "Neumann's compact studio LDC — fast, cardioid, with a presence/air boost above 6 kHz that peaks around 10–12 kHz for a bright, modern sheen. Great on studio/recording vocals, acoustic instruments and overheads; that HF lift is the thing to watch for sibilance.",
+      "specs": {
+        "Type": "Condenser (large diaphragm)",
+        "Polar pattern": "Cardioid",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Sensitivity": "11 mV/Pa",
+        "Max SPL": "144 dB",
+        "Self-noise": "12 dB(A)",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Bright and modern — ease off air/presence and tame sibilance ~8 kHz. Otherwise fast and clean.",
+      "bestfit": [
+        "Studio/recording vocals.",
+        "Acoustic instruments — guitar, strings.",
+        "Overheads and room where a bright LDC flatters."
+      ],
+      "notes": [
+        "Watch sibilance on bright voices and cymbals.",
+        "Compact — easy to place."
+      ],
+      "comparable": [
+        [
+          "Neumann U87",
+          "Smoother, pricier multipattern LDC"
+        ],
+        [
+          "AKG C414",
+          "Multipattern utility alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "akg-c414",
+      "name": "AKG C414",
+      "category": "Large Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "ldc",
+        "multipattern",
+        "akg",
+        "owned"
+      ],
+      "description": "Multipattern LDC — the do-anything utility: room, OH, vocals, brass, strings.",
+      "summary": "The versatile multipattern LDC with a slight presence + air lift, pads and HPF. Do-anything utility; can get edgy on bright sources.",
+      "sources": "AKG published specifications (C414 XLII/XLS); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.akg.com/microphones/condenser-microphones/C414XLII.html",
+      "intro": "The Swiss-army LDC. Nine selectable patterns, switchable pads and HPF, and a slight presence-plus-air lift make it a room, overhead, vocal, brass and string utility all in one. Detailed and forward — which means it can get edgy on already-bright sources and wants a little taming.",
+      "specs": {
+        "Type": "Condenser (large diaphragm, multipattern)",
+        "Polar pattern": "9 patterns (omni → figure-8)",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Sensitivity": "≈23 mV/Pa",
+        "Pad": "−6 / −12 / −18 dB",
+        "High-pass filter": "40 / 80 / 160 Hz",
+        "Max SPL": "158 dB (with pad)",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Detailed and slightly forward — ease off presence on bright sources. Pattern, pad and HPF cover most situations before the desk.",
+      "bestfit": [
+        "Room and overheads.",
+        "Vocals, brass, strings.",
+        "Utility wherever a pattern choice helps."
+      ],
+      "notes": [
+        "Nine patterns — pick before reaching for EQ.",
+        "Can be edgy/forward; tame on bright sources."
+      ],
+      "comparable": [
+        [
+          "AKG C422",
+          "Stereo twin-capsule sibling"
+        ],
+        [
+          "Neumann U87",
+          "Smoother multipattern alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "akg-c422",
+      "name": "AKG C422",
+      "category": "Large Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "ldc",
+        "stereo",
+        "akg",
+        "owned"
+      ],
+      "description": "Vintage stereo LDC — two CK12 capsules in one body, M/S or XY. Piano, OH, horns.",
+      "summary": "A stereo LDC with two twin-diaphragm CK12 capsules in one body (classic AKG brilliance), remote pattern control, M/S or XY. Smooth, full, airy top.",
+      "sources": "AKG published specifications (C422); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.akg.com/",
+      "intro": "A single body holding two stacked CK12 capsules — the classic AKG brilliance rise around 6–12 kHz — with remote pattern control for coincident stereo. Smooth and full with an airy top, it does XY on horns and coincident stereo on piano and overheads. Large and delicate, and that CK12 top can get bright.",
+      "specs": {
+        "Type": "Condenser (stereo, twin CK12 capsules)",
+        "Polar pattern": "Remote-selectable per capsule (9 patterns)",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Stereo modes": "XY / M-S (top capsule rotates)",
+        "Channels on patch": "2 (XY = two console channels)",
+        "Phantom power": "48 V required",
+        "Output connector": "5-pin → dual XLRM",
+        "Status": "Vintage/current"
+      },
+      "sound": "Smooth and full with an airy CK12 top — ease off air/presence. Coincident, so mono-compatible.",
+      "bestfit": [
+        "Stereo overheads — coincident XY.",
+        "Acoustic piano — one body, true stereo.",
+        "Horns — XY (two channels on the patch)."
+      ],
+      "notes": [
+        "Single body, two capsules — XY uses two console channels.",
+        "Top capsule rotates 45° for XY/MS; smoother/fuller than a C414."
+      ],
+      "comparable": [
+        [
+          "AKG C414",
+          "Single-capsule multipattern sibling"
+        ],
+        [
+          "Neumann U87 (pair)",
+          "LDC stereo alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "warm-audio-wa-87",
+      "name": "Warm Audio WA-87",
+      "category": "Large Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker (\"87 JR\")",
+      "tags": [
+        "mic",
+        "condenser",
+        "ldc",
+        "warm-audio",
+        "trombone",
+        "owned"
+      ],
+      "description": "U87-style FET LDC clone (\"U87 Jr\") — smooth top, slightly more lower-mid. Trombone.",
+      "summary": "Brian's '87 JR' — his only 87-family mic (there is no Neumann U87 in the kit). A U87-style FET LDC clone with a ~5–9 kHz presence, smooth top and slightly more lower-mid than a real 87. Primary use: trombone.",
+      "sources": "Warm Audio published specifications (WA-87); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://warmaudio.com/wa-87",
+      "intro": "The 'U87 Jr' — a U87-inspired FET large-diaphragm condenser with a ~5–9 kHz presence, a smooth top and a touch more lower-mid weight than a genuine 87. Brian's primary trombone mic; proximity warmth and modest off-axis are the trade for the price.",
+      "specs": {
+        "Type": "Condenser (large diaphragm, FET)",
+        "Polar pattern": "Cardioid (multipattern on later revs)",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Pad": "−10 dB",
+        "High-pass filter": "Switchable low-cut",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Smooth top with a slightly fuller lower-mid — ease off air/presence. Warm on proximity.",
+      "bestfit": [
+        "Trombone (Brian's primary use).",
+        "Studio vocals and acoustic on a budget.",
+        "Brass and room where a U87 voice helps."
+      ],
+      "notes": [
+        "Brian's shorthand: '87 JR' — this is his only 87. There is no Neumann U87 in the kit; any '87'/'U87' reference means this WA-87.",
+        "Proximity warmth — mind distance on close brass."
+      ],
+      "comparable": [
+        [
+          "Neumann U87",
+          "The classic LDC it emulates (not owned)"
+        ],
+        [
+          "AKG C414",
+          "Owned multipattern utility alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "lauten-ls-408",
+      "name": "Lauten LS-408",
+      "category": "Large Diaphragm Condenser",
+      "owned": false,
+      "status": "Reference — not in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "ldc",
+        "snare",
+        "lauten",
+        "reference"
+      ],
+      "description": "FET LDC voiced for snare (reference) — ultra-high SPL, onboard HPF/LPF, tight rejection.",
+      "summary": "Reference entry: a FET large-diaphragm condenser voiced specifically for snare — pressure-gradient, ultra-high SPL, onboard filters and tight rejection. Detailed, controlled crack.",
+      "sources": "Lauten Audio published specifications (LS-408); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://lautenaudio.com/products/ls-408/",
+      "intro": "A specialist: a FET large-diaphragm condenser voiced specifically for snare, with pressure-gradient design, ultra-high SPL and dynamic range, onboard HPF (80/140 Hz) and LPF (5/12 kHz) switches and tight rejection for a detailed, controlled crack. Documented here as an EQ reference — it's snare-specialized, not a general vocal/room mic.",
+      "specs": {
+        "Type": "Condenser (FET, large diaphragm, pressure-gradient)",
+        "Polar pattern": "Cardioid",
+        "High-pass filter": "80 / 140 Hz",
+        "Low-pass filter": "5 / 12 kHz",
+        "Max SPL": "Ultra-high",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Status": "Reference — not owned"
+      },
+      "sound": "Detailed, controlled snare crack — ease off body/crack/snap. Onboard HPF/LPF do most of the shaping.",
+      "bestfit": [
+        "(Reference) Snare — top, for a detailed, controlled crack.",
+        "High-SPL close sources needing onboard filtering."
+      ],
+      "notes": [
+        "Reference only — not in Brian's locker (faded gallery ring).",
+        "Snare-specialized voicing; not a general-purpose LDC."
+      ],
+      "comparable": [
+        [
+          "Shure SM57",
+          "Dynamic snare reference"
+        ],
+        [
+          "Earthworks DM17",
+          "Flat condenser snare alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "shure-beta-56a",
+      "name": "Shure Beta 56A",
+      "category": "Dynamic",
+      "owned": false,
+      "status": "Reference — not in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "supercardioid",
+        "snare",
+        "toms",
+        "shure",
+        "reference"
+      ],
+      "description": "Supercardioid dynamic (reference) — snare/toms, presence peak ~4–6 kHz, tight pattern.",
+      "summary": "Reference entry: a supercardioid dynamic with a ~4–6 kHz presence peak and a tight pattern, good on snare and toms. Presence can get spiky; box ~400 Hz.",
+      "sources": "Shure published specifications (Beta 56A); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.shure.com/en-US/shop/microphones/beta-56a",
+      "intro": "A supercardioid dynamic with a presence peak around 4–6 kHz and a tight pattern — good on snare and toms with a swivel mount. Documented here as an EQ reference; the presence can get spiky and it builds box around 400 Hz.",
+      "specs": {
+        "Type": "Dynamic",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "50 Hz – 16 kHz",
+        "Phantom power": "Not required",
+        "Output connector": "3-pin XLRM (integral swivel)",
+        "Status": "Reference — not owned"
+      },
+      "sound": "Punchy with a forward presence — ease off presence; tame box ~400 Hz.",
+      "bestfit": [
+        "(Reference) Snare and toms — tight supercardioid.",
+        "Loud stage percussion needing rejection."
+      ],
+      "notes": [
+        "Reference only — not in Brian's locker (faded gallery ring).",
+        "Presence can get spiky on bright sources."
+      ],
+      "comparable": [
+        [
+          "Sennheiser e604",
+          "Owned clip-on tom dynamic"
+        ],
+        [
+          "Audix D2",
+          "Owned rack-tom dynamic"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "royer-r-121",
+      "name": "Royer R-121 Live (red label)",
+      "category": "Ribbon",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "ribbon",
+        "figure-8",
+        "live",
+        "royer",
+        "owned"
+      ],
+      "description": "Brian's only Royer — the ruggedized 'Live' R-121 (red label, 4µm ribbon). Cabs, brass. NO 48V.",
+      "summary": "The one Royer in the locker: the road-tough 'Live' R-121, marked by its red logo badge and a thicker 4-micron ribbon. Every 'R-121' on Brian's paperwork = this Live unit. Figure-8, 135 dB SPL, a hair softer up top than the studio 121. ⚠ NO 48V.",
+      "sources": "Royer published specifications (R-121 / R-121 Live); owner ID (Brian Lloyd — single Live red-label unit); Live Sound KB mic-library character notes",
+      "photo_source_url": "owner photo (Brian's unit) — see PHOTO-MANIFEST.md",
+      "intro": "Brian's only Royer, and it's the **Live** — the red-badge R-121 built for the road. The ribbon is thickened from 2.5 to 4 microns for durability (which rolls the extreme top off slightly — no bad thing at FOH, where you'd trim it anyway), on the same figure-8 element rated to 135 dB SPL. At Memo it's the ribbon half of the AxeMount blend on SR guitar (CH15), sitting 6–10 dB under the SM57. Any 'R-121' in Brian's paperwork means this Live unit — there is no separate studio 121 in the kit. Passive: never send phantom.",
+      "specs": {
+        "Type": "Ribbon (passive, figure-8, live-ruggedized)",
+        "Polar pattern": "Figure-8",
+        "Frequency response": "30 Hz – 15 kHz (top slightly softer than the studio 121)",
+        "Ribbon": "4-micron (road-tough; studio 121 is 2.5-micron)",
+        "Max SPL": "135 dB",
+        "Identifier": "Red logo badge = the 'Live'",
+        "Phantom power": "⚠ NO 48V — passive ribbon; phantom can destroy the element",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Smooth, full, never edgy — a hair darker up top than a studio 121, which usually flatters live. Ease off air/presence/top; tame proximity ~200 Hz. The rear side is brighter — flip it around for more top.",
+      "bestfit": [
+        "Guitar cab — the ribbon half of the Memo AxeMount (CH15), 6–10 dB under the SM57.",
+        "Brass — trombone, trumpet, sax section warmth.",
+        "Room and overheads where a dark, smooth top helps."
+      ],
+      "notes": [
+        "⚠ NO 48V under any circumstances — phantom can destroy the ribbon.",
+        "Red badge = the Live; 4µm ribbon for durability. Brian's sole Royer — every 'R-121' reference means this unit.",
+        "AxeMount: sum in mono and flip polarity on the Royer if thinner; group to the SM57 VCA.",
+        "Rear side is brighter — use it if you want more top."
+      ],
+      "comparable": [
+        [
+          "Shure SM57",
+          "Bright partner in the AxeMount blend"
+        ],
+        [
+          "Royer R-10",
+          "Cheaper roadworthy ribbon alternative"
+        ],
+        [
+          "AEA R88",
+          "Stereo ribbon for room/classical"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ]
+      ]
+    },
+    {
+      "slug": "royer-r-10",
+      "name": "Royer R-10",
+      "category": "Ribbon",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "ribbon",
+        "figure-8",
+        "guitar-cab",
+        "royer",
+        "owned"
+      ],
+      "description": "Roadworthy passive ribbon — cabs, brass, room. A touch brighter than the R-121. NO 48V.",
+      "summary": "The road-tough Royer: less throaty lows than the R-121, a touch brighter, smooth top. Great on cabs and brass. Offset ribbon (rear side brighter). ⚠ NO 48V.",
+      "sources": "Royer published specifications (R-10); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://royerlabs.com/r-10/",
+      "intro": "The roadworthy Royer — built tougher and priced lower than the R-121, with slightly less throaty lows, a touch more brightness and the same smooth, un-edgy top. The ribbon is offset so the rear side is brighter. Great on guitar cabs and brass; passive, so never phantom it.",
+      "specs": {
+        "Type": "Ribbon (passive, figure-8)",
+        "Polar pattern": "Figure-8",
+        "Frequency response": "30 Hz – 15 kHz",
+        "Max SPL": "≈160 dB",
+        "Phantom power": "⚠ NO 48V — passive ribbon; phantom can destroy the element",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Smooth with a touch more top than a 121 — ease off air/presence; tame proximity ~200 Hz. Rear side brighter.",
+      "bestfit": [
+        "Guitar cab — road-tough ribbon, alone or blended.",
+        "Brass and horns.",
+        "Room and acoustic instruments where a smooth top helps."
+      ],
+      "notes": [
+        "⚠ NO 48V — passive ribbon.",
+        "Offset ribbon: rear side is brighter — flip it around for more top.",
+        "Proximity-prone like all ribbons."
+      ],
+      "comparable": [
+        [
+          "Royer R-121",
+          "Deeper, slightly darker studio sibling"
+        ],
+        [
+          "Sennheiser e609",
+          "Bright dynamic cab alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "aea-r88",
+      "name": "AEA R88",
+      "category": "Ribbon",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "ribbon",
+        "stereo",
+        "blumlein",
+        "classical",
+        "aea",
+        "owned"
+      ],
+      "description": "Passive stereo ribbon (Blumlein/MS) — big smooth bass, never harsh. Classical room. NO 48V.",
+      "summary": "Passive stereo ribbon for room and ensemble: 20 Hz–20 kHz with a gentle ribbon HF rolloff, big smooth bass, never harsh. MS or Blumlein. ⚠ NO 48V — disengage phantom before plugging.",
+      "sources": "AEA published specifications (R88); Live Sound KB mic-library character notes; classical recording geometry",
+      "photo_source_url": "https://www.aearibbonmics.com/products/r88mkii/",
+      "intro": "A passive stereo ribbon — two ribbons in one body for Blumlein or MS — with 20 Hz–20 kHz response tapering with a natural ribbon HF rolloff (~−10 dB at 18 k), big smooth bass and a sound that's never harsh. Brian's classical room mic. Low output, so it needs 60 dB+ of quiet gain and 1.5 kΩ+ impedance. Passive: disengage phantom before you plug or unplug it.",
+      "specs": {
+        "Type": "Ribbon (passive, stereo — MS / Blumlein)",
+        "Polar pattern": "Figure-8 pair (Blumlein) or MS",
+        "Frequency response": "20 Hz – 20 kHz (HF rolloff ~−10 dB at 18 kHz)",
+        "Preamp needs": "60 dB+ quiet gain, 1.5 kΩ+ input impedance",
+        "Phantom power": "⚠ NO 48V — passive; disengage phantom before plugging/unplugging",
+        "Output connector": "5-pin → dual XLRM",
+        "Status": "Current"
+      },
+      "sound": "Big, smooth, never harsh — ease off air/presence. Run MS in reverberant rooms for width control via the Side channel.",
+      "bestfit": [
+        "Classical room and ensemble — MS or Blumlein from center.",
+        "Overheads and orchestral capture.",
+        "Any large acoustic source wanting a smooth, warm stereo image."
+      ],
+      "notes": [
+        "⚠ CRITICAL: disengage phantom before plugging/unplugging the passive R88.",
+        "MS mode for reverberant rooms; Blumlein only when no player sits at the side nulls.",
+        "Needs a quiet, high-gain, high-impedance pre."
+      ],
+      "comparable": [
+        [
+          "Royer R-121",
+          "Mono figure-8 ribbon"
+        ],
+        [
+          "Schoeps CMC6 + MK5",
+          "Condenser stereo room alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Classical Recording",
+          "/multitrack-recording-workflow"
+        ],
+        [
+          "AEA TRP2 (The Ribbon Pre)",
+          "/mic-aea-trp2"
+        ]
+      ]
+    },
+    {
+      "slug": "radial-j48",
+      "name": "Radial J48",
+      "category": "DI",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "di",
+        "active",
+        "radial",
+        "bass",
+        "keys",
+        "owned"
+      ],
+      "description": "Active phantom DI — clean, transparent, tight lows, high headroom. Bass DI.",
+      "summary": "The workhorse active DI: clean and transparent with tight lows and high headroom. Bass, keys, acoustic, playback. Clinical (no color) — which is the point.",
+      "sources": "Radial published specifications (J48); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.radialeng.com/product/j48",
+      "intro": "The active DI you reach for by default. Phantom-powered, clean and transparent with tight lows and high headroom — it passes the instrument honestly, so piezo quack passes through and gets treated at the source. Bass, keys, acoustic and playback all sit well through it.",
+      "specs": {
+        "Type": "DI (active)",
+        "Frequency response": "20 Hz – 20 kHz",
+        "Headroom": "High",
+        "Power": "48 V phantom required",
+        "Input": "Hi-Z instrument (1/4\")",
+        "Output": "3-pin XLRM (mic level)",
+        "Status": "Current"
+      },
+      "sound": "Clean and transparent — apply the instrument template as-is; treat piezo quack at the instrument, not the DI.",
+      "bestfit": [
+        "Bass DI — the default.",
+        "Keys, acoustic pickup, playback.",
+        "Any Hi-Z source needing a clean, high-headroom feed."
+      ],
+      "notes": [
+        "Needs 48 V phantom.",
+        "Clinical/transparent — no color added."
+      ],
+      "comparable": [
+        [
+          "Neve RNDI",
+          "Warmer, transformer-colored active DI"
+        ],
+        [
+          "BSS AR133",
+          "Other clean active DI"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "neve-rndi",
+      "name": "Neve RNDI",
+      "category": "DI",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "di",
+        "active",
+        "transformer",
+        "neve",
+        "bass",
+        "guitar",
+        "keys",
+        "owned"
+      ],
+      "description": "Active transformer DI — smooth musical top, gentle warmth, full lows. Bass, gtr, keys.",
+      "summary": "Active transformer DI with a smooth, musical top, gentle harmonic warmth and full lows. Bass, guitar and keys direct; a hair of HF softening vs a clean DI.",
+      "sources": "Rupert Neve Designs published specifications (RNDI); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://rupertneve.com/products/rndi/",
+      "intro": "The DI you reach for when you want a little Neve. An active class-A design with a custom transformer that adds a smooth, musical top, gentle harmonic warmth and full lows — bass, guitar and keys come through with body and character. The only trade is a slight HF softening versus a clinically clean DI.",
+      "specs": {
+        "Type": "DI (active, transformer, class-A)",
+        "Frequency response": "Full-range, transformer-coupled",
+        "Headroom": "High",
+        "Power": "48 V phantom required",
+        "Input": "Hi-Z instrument",
+        "Output": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Smooth, warm, full — ease off presence slightly if needed; otherwise let the transformer do the work.",
+      "bestfit": [
+        "Electric bass — body and warmth direct.",
+        "Electric guitar and synth direct.",
+        "Keys and playback wanting a touch of color."
+      ],
+      "notes": [
+        "Needs 48 V phantom.",
+        "Gentle HF softening vs a clean DI — usually flattering."
+      ],
+      "comparable": [
+        [
+          "Radial J48",
+          "Cleaner, transparent active DI"
+        ],
+        [
+          "Whirlwind IMP",
+          "Passive, neutral DI"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "bss-ar133",
+      "name": "BSS AR133",
+      "category": "DI",
+      "owned": false,
+      "status": "Reference — not in locker",
+      "tags": [
+        "di",
+        "active",
+        "bss",
+        "reference"
+      ],
+      "description": "Active DI (reference) — clean full-range with a slight high-mid air. Acoustic, bass, keys.",
+      "summary": "Reference entry: a clean full-range active DI with a slight high-mid air and solid lows. Minimal color — piezo quack passes through, treat at the instrument.",
+      "sources": "BSS published specifications (AR-133); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://bssaudio.com/en/products/ar-133",
+      "intro": "An industry-standard active DI documented here as a reference — clean and full-range with a slight high-mid air and solid low end. Minimal color, so piezo quack passes straight through and gets handled at the instrument.",
+      "specs": {
+        "Type": "DI (active)",
+        "Frequency response": "Full-range",
+        "Power": "48 V phantom or battery",
+        "Input": "Hi-Z instrument",
+        "Output": "3-pin XLRM",
+        "Status": "Reference — not owned"
+      },
+      "sound": "Clean with a hint of high-mid air — apply the instrument template as-is; treat piezo quack at the source.",
+      "bestfit": [
+        "(Reference) Acoustic, bass, keys direct.",
+        "House-standard DI on provided packages."
+      ],
+      "notes": [
+        "Reference only — not in Brian's locker (faded gallery ring).",
+        "Minimal color — clean feed."
+      ],
+      "comparable": [
+        [
+          "Radial J48",
+          "Owned clean active DI"
+        ],
+        [
+          "Neve RNDI",
+          "Owned warm transformer DI"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "whirlwind-imp",
+      "name": "Whirlwind IMP",
+      "category": "DI",
+      "owned": false,
+      "status": "Reference — not in locker",
+      "tags": [
+        "di",
+        "passive",
+        "whirlwind",
+        "reference"
+      ],
+      "description": "Passive DI (reference) — neutral, honest, reliable. Bass/keys direct, no power.",
+      "summary": "Reference entry: a passive transformer DI — neutral, honest and reliable, no power needed. Slight HF/level loss into low-Z; no active sparkle.",
+      "sources": "Whirlwind published specifications (IMP 2); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://whirlwindusa.com/catalog/direct-boxes-splitters/direct-boxes/imp-2-standard-direct-box/",
+      "intro": "The reliable passive box — a transformer DI that's neutral and honest with no power required. Documented here as a reference; passive means a slight HF and level loss into a low-impedance input and none of an active DI's sparkle, but it's bulletproof.",
+      "specs": {
+        "Type": "DI (passive, transformer)",
+        "Frequency response": "Full-range (slight HF loss into low-Z)",
+        "Power": "None (passive)",
+        "Input": "Hi-Z instrument",
+        "Output": "3-pin XLRM",
+        "Status": "Reference — not owned"
+      },
+      "sound": "Neutral and honest — apply the instrument template as-is; expect a touch less top than an active DI.",
+      "bestfit": [
+        "(Reference) Bass and keys direct where no phantom is available.",
+        "Bulletproof passive utility."
+      ],
+      "notes": [
+        "Reference only — not in Brian's locker (faded gallery ring).",
+        "Passive — slight HF/level loss, no active sparkle."
+      ],
+      "comparable": [
+        [
+          "Radial J48",
+          "Owned active DI with more headroom"
+        ],
+        [
+          "Neve RNDI",
+          "Owned transformer DI with color"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "countryman-b3",
+      "name": "Countryman B3",
+      "category": "Lavalier",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "lavalier",
+        "omni",
+        "strings",
+        "clip",
+        "countryman",
+        "owned"
+      ],
+      "description": "Omni lavalier — string/instrument clip. Selectable HF caps (+0/+4/+8 dB).",
+      "summary": "A tiny omni lavalier for clipping to strings and instruments, with selectable protective HF caps (+0/+4/+8 dB) that set brightness. Omni = feedback/bleed risk.",
+      "sources": "Countryman published specifications (B3); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://countryman.com/product/b3-lavalier/",
+      "intro": "A rugged little omni lavalier that clips to a string or instrument body when a DPA 4099 isn't the pick. The selectable protective caps (+0/+4/+8 dB) double as a brightness control. Being omni, it's the feedback and bleed risk in a string section — the cap choice and placement do the taming. On Brian's kit the section runs B3 through B10 (physical mic numbers, all B3s).",
+      "specs": {
+        "Type": "Condenser (omni lavalier)",
+        "Polar pattern": "Omnidirectional",
+        "HF caps": "+0 / +4 / +8 dB selectable (set brightness)",
+        "Power": "Bias/phantom via connector",
+        "Output connector": "Per wireless/hardwire adapter",
+        "Status": "Current"
+      },
+      "sound": "Small and smooth — ease off presence; pick the HF cap for brightness. Omni, so mind feedback and bleed.",
+      "bestfit": [
+        "Strings — clip-on for violin/viola/cello sections (B3–B10).",
+        "Instrument clip where a DPA 4099 isn't available.",
+        "Any small acoustic source needing a discreet omni."
+      ],
+      "notes": [
+        "Omni = feedback/bleed risk — cap choice and placement are the controls.",
+        "Section numbering B3–B10 are physical mic numbers; all are Countryman B3s.",
+        "Don't over-EQ — it's a clip designed for the instrument."
+      ],
+      "comparable": [
+        [
+          "DPA 4099",
+          "Higher-fidelity supercardioid clip (first choice)"
+        ],
+        [
+          "Shure Beta 98H/C",
+          "Clip-on condenser for horns/perc"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "deity-s3",
+      "name": "Deity S-Mic 3",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "shotgun",
+        "supercardioid",
+        "weather-resistant",
+        "deity",
+        "owned"
+      ],
+      "description": "Supercardioid shotgun — weather-resistant, low-noise. Ambient, spot and outdoor dialogue.",
+      "summary": "Deity's newer full-size supercardioid shotgun: smooth, low-noise (12 dB A), and weather-resistant — a step up from the S-Mic 2 for ambient, spot and outdoor capture.",
+      "sources": "Deity published specifications (S-Mic 3); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://deitymic.com/products/s-mic-3/",
+      "intro": "The bigger sibling to the S-Mic 2 crowd shotgun — a full-size supercardioid shotgun that's smooth and low-noise (12 dB A self-noise) with a genuinely weather-resistant build, which makes it a real tool for the outdoor plazas (FSQ, WP) as well as indoor ambient and spot duty. Tight off-axis rejection (>18 dB at 180°) and 130 dB SPL handling. A short-barrel S-Mic 3S also exists.",
+      "specs": {
+        "Type": "Condenser (shotgun, weather-resistant)",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "50 Hz – 20 kHz",
+        "Sensitivity": "−32 ±2 dB re 1V/Pa",
+        "Self-noise": "12 dB(A)",
+        "Max SPL": "130 dB",
+        "THD": "<0.5%",
+        "Load impedance": "800 Ω",
+        "Off-axis rejection": "6 dB @ 60°, 14 dB @ 120°, >18 dB @ 180°",
+        "Phantom power": "24 / 48 V",
+        "Output connector": "3-pin XLRM",
+        "Status": "Current"
+      },
+      "sound": "Smooth and low-coloration with tight rejection — apply the template as-is. Reaches further and quieter than the S-Mic 2; LPF any PA HF it catches from the rear.",
+      "bestfit": [
+        "Ambient / crowd capture — indoor and outdoor.",
+        "Spot and distance pickup where the tight lobe helps.",
+        "Outdoor dialogue / speech at FSQ and WP (weather-resistant)."
+      ],
+      "notes": [
+        "Weather-resistant build — safe for the outdoor plazas.",
+        "Newer, longer-reach sibling to the S-Mic 2; short S-Mic 3S variant also exists.",
+        "Runs on 24 V or 48 V phantom."
+      ],
+      "comparable": [
+        [
+          "Deity S-Mic 2",
+          "Shorter shotgun, Memo under-PA crowd pair"
+        ],
+        [
+          "Sennheiser MKH 416",
+          "Hyped shotgun reference"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "Fountain Square",
+          "/venue-fountain-square"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ]
+      ]
+    },
+    {
+      "slug": "telefunken-m60",
+      "name": "Telefunken M60 FET",
+      "category": "Small Diaphragm Condenser",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "condenser",
+        "sdc",
+        "fet",
+        "cardioid",
+        "telefunken",
+        "owned"
+      ],
+      "description": "Class-A FET pencil condenser — ultra-low noise, interchangeable capsules. Acoustic, OH, brass.",
+      "summary": "A hand-built class-A FET small-diaphragm condenser with interchangeable capsules (TK60 cardioid). Ultra-low 5 dB A self-noise, airy 8 kHz presence, very high SPL. Acoustic, overheads, brass.",
+      "sources": "Telefunken published specifications (M60 FET / TK60); Live Sound KB mic-library character notes",
+      "photo_source_url": "https://www.telefunken-elektroakustik.com/product/m60-fet/",
+      "intro": "Telefunken's class-A FET pencil condenser — hand-built with an American transformer and an ultra-quiet 5 dB A self-noise. The TK60 cardioid capsule is flat from 150 Hz to 7 kHz with a smooth, airy presence peak at 8 kHz; interchangeable capsules cover omni and hypercardioid. Fast, detailed, and happy at very high SPL — a premium alternative to an SM81 on acoustic sources, overheads and brass.",
+      "specs": {
+        "Type": "Condenser (small diaphragm, class-A FET, interchangeable capsule)",
+        "Polar pattern": "Cardioid (TK60); omni / hypercardioid capsules available",
+        "Frequency response": "20 Hz – 20 kHz (±3 dB); circuit linear ±2 dB 20 Hz–50 kHz",
+        "Sensitivity": "8.6 mV/Pa",
+        "Self-noise": "5 dB(A)",
+        "Max SPL": ">135 dB (1% THD)",
+        "Phantom power": "48 V required",
+        "Output connector": "3-pin XLRM",
+        "Weight": "110 g (140 × 20 mm)",
+        "Status": "Current"
+      },
+      "sound": "Fast, detailed, airy — ease off presence/air if a bright room over-airs the 8 kHz peak. Very quiet, so it flatters soft acoustic passages.",
+      "bestfit": [
+        "Acoustic guitar and instruments — detailed, airy.",
+        "Drum overheads and cymbals (very high SPL headroom).",
+        "Brass and woodwind spot; classical detail."
+      ],
+      "notes": [
+        "Ultra-low self-noise (5 dB A) — excellent on quiet sources.",
+        "Interchangeable capsules: TK60 cardioid (default), plus omni/hyper.",
+        "Premium step up from an SM81 in fidelity."
+      ],
+      "comparable": [
+        [
+          "Shure SM81",
+          "Flat SDC workhorse alternative"
+        ],
+        [
+          "Sennheiser MKH 40",
+          "Low-noise RF classical alternative"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ]
+      ]
+    },
+    {
+      "slug": "aea-trp2",
+      "name": "AEA TRP2 (The Ribbon Pre)",
+      "category": "Preamp",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "preamp",
+        "ribbon",
+        "aea",
+        "classical",
+        "owned"
+      ],
+      "description": "2-channel JFET ribbon preamp — 85 dB of quiet, high-impedance gain. Brian's dedicated R88 front end.",
+      "summary": "The quiet, high-impedance preamp passive ribbons need. 85 dB of clean JFET gain and a 63 kΩ input let the R88 open up. Brian runs it almost exclusively on the R88.",
+      "sources": "AEA published specifications (TRP2 — The Ribbon Pre); Live Sound KB — classical recording chain",
+      "photo_source_url": "https://aearibbonmics.com/audio-products/trp2-2/",
+      "intro": "Not a mic — the preamp Brian pairs almost exclusively with the AEA R88. Passive ribbons are quiet and love a high-impedance load, and the TRP2 delivers both: up to 85 dB of clean JFET gain and an extra-high 63 kΩ input impedance that lets the R88's ribbon sound full and open instead of loaded-down and dark. Two channels (perfect for the R88's two ribbons), switchable 100 Hz high-pass and polarity reverse per channel, plus phantom for non-ribbon mics.",
+      "specs": {
+        "Type": "Microphone preamplifier (2-channel, JFET)",
+        "Designed for": "Ribbon microphones",
+        "Gain": "Up to 85 dB",
+        "Input impedance": "63 kΩ (extra-high, for ribbons)",
+        "High-pass filter": "100 Hz, 12 dB/oct (switchable per channel)",
+        "Polarity": "Reverse switch per channel",
+        "Phantom power": "48 V available (for non-ribbon mics)",
+        "Format": "1/2-rack",
+        "Status": "Current"
+      },
+      "sound": "Rich and natural with plenty of clean, quiet gain — the high input impedance is the point, opening up the R88's top and dynamics. Use the 100 Hz HPF to tame ribbon proximity; flip polarity to keep the chain aligned.",
+      "bestfit": [
+        "AEA R88 — Brian's near-exclusive pairing; two channels for the two ribbons.",
+        "Any passive ribbon (R-121, R-10) needing quiet, high-Z gain.",
+        "Low-output sources that need clean gain without noise."
+      ],
+      "notes": [
+        "Two channels = a natural fit for the R88's stereo ribbons (Blumlein/MS).",
+        "The 63 kΩ input is what makes a passive ribbon sound open rather than dark.",
+        "Has phantom on board — but the R88 is passive, so keep 48V OFF for ribbon work."
+      ],
+      "comparable": [
+        [
+          "AEA RPQ2",
+          "AEA preamp with added EQ/filtering"
+        ],
+        [
+          "Radial J48",
+          "Active DI — different job (instruments, not ribbons)"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "AEA R88",
+          "/mic-aea-r88"
+        ],
+        [
+          "Classical Recording",
+          "/multitrack-recording-workflow"
+        ]
+      ]
+    }
+  ]
+}

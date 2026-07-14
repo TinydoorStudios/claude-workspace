@@ -1,0 +1,144 @@
+{
+  "day": "2026-07-01",
+  "rolloverHour": 5,
+  "venues": {
+    "Fountain Square": {
+      "maxInstant": 99.0,
+      "maxInstantAt": "2026-07-01T16:54:49-04:00",
+      "maxLAeq10s": 97.7,
+      "maxLAeq10sAt": "2026-07-01T16:56:53-04:00",
+      "maxLAeq6": 96.4,
+      "maxLAeq6At": "2026-07-01T16:52:52-04:00",
+      "maxLCeq6": 99.9,
+      "maxLCeq6At": "2026-07-01T16:52:52-04:00",
+      "maxPeakC": 116.4,
+      "maxPeakCAt": "2026-07-01T17:02:45-04:00",
+      "redLimit": 90,
+      "yellowLimit": 80,
+      "firstSeen": "2026-07-01T05:00:00-04:00",
+      "lastSeen": "2026-07-01T17:13:23-04:00",
+      "samples": 116873
+    }
+  },
+  "violations": [
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:52:39-04:00",
+      "end": "2026-07-01T16:53:08-04:00",
+      "durationSec": 29.4,
+      "peak": 97.3
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:53:21-04:00",
+      "end": "2026-07-01T16:53:48-04:00",
+      "durationSec": 26.9,
+      "peak": 97.3
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:54:01-04:00",
+      "end": "2026-07-01T16:54:28-04:00",
+      "durationSec": 26.5,
+      "peak": 97.2
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:54:41-04:00",
+      "end": "2026-07-01T16:55:07-04:00",
+      "durationSec": 26.2,
+      "peak": 97.4
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:55:21-04:00",
+      "end": "2026-07-01T16:55:47-04:00",
+      "durationSec": 26.5,
+      "peak": 97.4
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:56:01-04:00",
+      "end": "2026-07-01T16:56:27-04:00",
+      "durationSec": 26.3,
+      "peak": 97.3
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:56:41-04:00",
+      "end": "2026-07-01T16:57:07-04:00",
+      "durationSec": 26.6,
+      "peak": 97.7
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:57:21-04:00",
+      "end": "2026-07-01T16:57:47-04:00",
+      "durationSec": 26.3,
+      "peak": 97.6
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:58:01-04:00",
+      "end": "2026-07-01T16:58:28-04:00",
+      "durationSec": 27.1,
+      "peak": 97.2
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:58:41-04:00",
+      "end": "2026-07-01T16:59:07-04:00",
+      "durationSec": 26.5,
+      "peak": 97.5
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T16:59:21-04:00",
+      "end": "2026-07-01T16:59:47-04:00",
+      "durationSec": 26.1,
+      "peak": 97.4
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T17:00:01-04:00",
+      "end": "2026-07-01T17:00:27-04:00",
+      "durationSec": 26.8,
+      "peak": 97.5
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T17:00:41-04:00",
+      "end": "2026-07-01T17:01:08-04:00",
+      "durationSec": 26.3,
+      "peak": 97.2
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T17:01:21-04:00",
+      "end": "2026-07-01T17:01:47-04:00",
+      "durationSec": 26.1,
+      "peak": 97.3
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T17:02:01-04:00",
+      "end": "2026-07-01T17:02:27-04:00",
+      "durationSec": 26.2,
+      "peak": 97.5
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T17:02:41-04:00",
+      "end": "2026-07-01T17:03:08-04:00",
+      "durationSec": 27.0,
+      "peak": 97.4
+    },
+    {
+      "venue": "Fountain Square",
+      "start": "2026-07-01T17:03:20-04:00",
+      "end": "2026-07-01T17:03:47-04:00",
+      "durationSec": 27.1,
+      "peak": 97.6
+    }
+  ]
+}

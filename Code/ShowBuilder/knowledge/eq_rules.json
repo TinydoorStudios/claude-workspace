@@ -1,0 +1,1598 @@
+{
+  "_source": "CLAUDE.md EQ Starting Points + KB eq-starting-points.md (2026-06-16)",
+  "_note": "Instrument templates are Brian's documented aggressive starting points in the locked B-frequency form (bands get sorted low->high into B1..B4 by the engine). Genres carry the scaling flags. Venue + mic layering live in eq_engine.py. Whole-dB only; shelves use Q 0.71. deq_memo=true means add DiGiCo Dynamic EQ on that band only at Memo (room interaction). gain is +boost/-cut in dB.",
+  "genres": {
+    "classical": {
+      "aliases": [
+        "classical",
+        "chamber",
+        "orchestral",
+        "orchestra",
+        "symphony",
+        "string quartet",
+        "art song"
+      ],
+      "aggressive": false,
+      "cuts_only": true,
+      "cut_scale": 0.5,
+      "boost_cap": 0,
+      "comp_attack_min_ms": 15,
+      "gate_sustained": false,
+      "reverb_genre": "classical",
+      "note": "Minimal, cuts-only. Spots blend; trust the mics.",
+      "cuts_only_vocals": false
+    },
+    "acoustic": {
+      "aliases": [
+        "acoustic",
+        "folk",
+        "singer-songwriter",
+        "americana",
+        "bluegrass",
+        "country"
+      ],
+      "aggressive": false,
+      "cuts_only": false,
+      "cut_scale": 0.7,
+      "boost_cap": 3,
+      "comp_attack_min_ms": 10,
+      "gate_sustained": false,
+      "reverb_genre": "celtic",
+      "note": "Conservative. Watch piezo quack at 1.5-2kHz on acoustic DIs.",
+      "cuts_only_vocals": false
+    },
+    "celtic": {
+      "aliases": [
+        "celtic",
+        "irish",
+        "trad",
+        "traditional"
+      ],
+      "aggressive": false,
+      "cuts_only": false,
+      "cut_scale": 0.7,
+      "boost_cap": 3,
+      "comp_attack_min_ms": 5,
+      "gate_sustained": false,
+      "reverb_genre": "celtic",
+      "note": "5ms+ comp attack. Never gate sustained instruments (fiddle, pipes, accordion, bouzouki). Bodhran 200Hz DEQ at Memo.",
+      "cuts_only_vocals": false
+    },
+    "jazz": {
+      "aliases": [
+        "jazz",
+        "swing",
+        "bebop",
+        "big band",
+        "fusion"
+      ],
+      "aggressive": false,
+      "cuts_only": false,
+      "cut_scale": 0.8,
+      "boost_cap": 4,
+      "comp_attack_min_ms": 8,
+      "gate_sustained": true,
+      "reverb_genre": "jazz",
+      "note": "Context-dependent. Small combo = acoustic-forward; big band brass = treat like a dense mix.",
+      "cuts_only_vocals": false
+    },
+    "gospel": {
+      "aliases": [
+        "gospel",
+        "contemporary",
+        "praise",
+        "worship",
+        "ccm",
+        "r&b",
+        "rnb",
+        "soul",
+        "neo-soul"
+      ],
+      "aggressive": true,
+      "cuts_only": false,
+      "cut_scale": 1.0,
+      "boost_cap": 6,
+      "comp_attack_min_ms": 5,
+      "gate_sustained": true,
+      "reverb_genre": "gospel",
+      "note": "Dense and loud. Aggressive separation, tight gates, cuts-only on vocals non-negotiable.",
+      "cuts_only_vocals": true
+    },
+    "rock": {
+      "aliases": [
+        "rock",
+        "blues",
+        "pop",
+        "funk",
+        "reggae",
+        "punk",
+        "metal",
+        "indie",
+        "alt",
+        "alternative",
+        "dance",
+        "electronic",
+        "hip-hop",
+        "rap",
+        "tribute",
+        "variety",
+        "salsa",
+        "latin",
+        "cover"
+      ],
+      "aggressive": true,
+      "cuts_only": false,
+      "cut_scale": 1.0,
+      "boost_cap": 6,
+      "comp_attack_min_ms": 5,
+      "gate_sustained": true,
+      "reverb_genre": "rock",
+      "note": "Aggressive by default. Cuts -4 to -7 tight Q, boosts +3 to +6, whole-dB.",
+      "cuts_only_vocals": false
+    }
+  },
+  "instrument_aliases": {
+    "kick": "kick",
+    "bd": "kick",
+    "kik": "kick",
+    "snare": "snare",
+    "snr": "snare",
+    "sd": "snare",
+    "snare top": "snare",
+    "snare bottom": "snare_bottom",
+    "snare bot": "snare_bottom",
+    "under snare": "snare_bottom",
+    "hat": "hihat",
+    "hi-hat": "hihat",
+    "hihat": "hihat",
+    "hh": "hihat",
+    "underhat": "underhat",
+    "underhead": "underhat",
+    "under hat": "underhat",
+    "rack": "tom_rack",
+    "rack tom": "tom_rack",
+    "tom": "tom_rack",
+    "rack 1": "tom_rack",
+    "rack 2": "tom_rack",
+    "tom 1": "tom_rack",
+    "tom 2": "tom_rack",
+    "floor tom": "tom_floor",
+    "floor": "tom_floor",
+    "ft": "tom_floor",
+    "oh": "overhead",
+    "overhead": "overhead",
+    "overheads": "overhead",
+    "oh l": "overhead",
+    "oh r": "overhead",
+    "oh left": "overhead",
+    "oh right": "overhead",
+    "perc": "perc",
+    "percussion": "perc",
+    "conga": "perc",
+    "bongo": "perc",
+    "timbale": "perc",
+    "timbales": "perc",
+    "shaker": "perc",
+    "tambourine": "perc",
+    "quinto": "perc",
+    "tumba": "perc",
+    "ekit": "ekit",
+    "e-kit": "ekit",
+    "edrums": "ekit",
+    "spd": "ekit",
+    "ekit l": "ekit",
+    "ekit r": "ekit",
+    "bass": "bass_di",
+    "bass di": "bass_di",
+    "bass guitar": "bass_di",
+    "upright": "bass_di",
+    "upright bass": "bass_di",
+    "bass cab": "bass_cab",
+    "bass amp": "bass_cab",
+    "bass mic": "bass_cab",
+    "bass keys": "synth_bass",
+    "synth bass": "synth_bass",
+    "moog": "synth_bass",
+    "gtr": "egtr",
+    "guitar": "egtr",
+    "elec gtr": "egtr",
+    "electric guitar": "egtr",
+    "gtr 1": "egtr",
+    "gtr 2": "egtr",
+    "egtr": "egtr",
+    "egtr l": "egtr",
+    "egtr r": "egtr",
+    "elec gtr l": "egtr",
+    "elec gtr r": "egtr",
+    "ribbon gtr": "egtr_ribbon",
+    "royer": "egtr_ribbon",
+    "r-121": "egtr_ribbon",
+    "acoustic": "agtr",
+    "ac gtr": "agtr",
+    "ac guitar": "agtr",
+    "acoustic guitar": "agtr",
+    "agtr": "agtr",
+    "cuatro": "agtr",
+    "mandolin": "agtr",
+    "bouzouki": "agtr",
+    "banjo": "agtr",
+    "keys": "keys_di",
+    "key": "keys_di",
+    "keyboard": "keys_di",
+    "keys 1": "keys_di",
+    "keys 2": "keys_di",
+    "keys 3": "keys_di",
+    "keys 4": "keys_di",
+    "synth": "keys_di",
+    "organ": "keys_di",
+    "rhodes": "keys_di",
+    "wurli": "keys_di",
+    "nord": "keys_di",
+    "piano": "piano",
+    "grand": "piano",
+    "grand piano": "piano",
+    "piano low": "piano_low",
+    "piano lo": "piano_low",
+    "pno low": "piano_low",
+    "piano hi": "piano_high",
+    "piano high": "piano_high",
+    "pno hi": "piano_high",
+    "violin": "violin",
+    "fiddle": "violin",
+    "vln": "violin",
+    "viola": "viola",
+    "vla": "viola",
+    "cello": "cello",
+    "vcl": "cello",
+    "trumpet": "trumpet",
+    "tpt": "trumpet",
+    "cornet": "trumpet",
+    "flugel": "trumpet",
+    "trombone": "trombone",
+    "tbn": "trombone",
+    "bone": "trombone",
+    "sax": "sax",
+    "saxophone": "sax",
+    "alto": "sax",
+    "tenor": "sax",
+    "bari": "sax",
+    "soprano sax": "sax",
+    "sax 1": "sax",
+    "sax 2": "sax",
+    "flute": "flute",
+    "fl": "flute",
+    "whistle": "flute",
+    "piccolo": "flute",
+    "clarinet": "sax",
+    "harmonica": "sax",
+    "harp": "sax",
+    "pipes": "pipes",
+    "uilleann": "pipes",
+    "uilleann pipes": "pipes",
+    "bagpipes": "pipes",
+    "bodhran": "bodhran",
+    "vocal": "vocal_lead",
+    "vox": "vocal_lead",
+    "lead vox": "vocal_lead",
+    "lead vocal": "vocal_lead",
+    "ld vox": "vocal_lead",
+    "bg vox": "vocal_bg",
+    "bgv": "vocal_bg",
+    "bg vocal": "vocal_bg",
+    "backing vocal": "vocal_bg",
+    "harmony": "vocal_bg",
+    "bass vox": "vocal_bg",
+    "drummer vox": "vocal_bg",
+    "md": "vocal_lead",
+    "spoken": "vocal_spoken",
+    "mc": "vocal_spoken",
+    "emcee": "vocal_spoken",
+    "announce": "vocal_spoken",
+    "speech": "vocal_spoken",
+    "podium": "vocal_spoken",
+    "lectern": "vocal_spoken",
+    "tracks": "tracks",
+    "track": "tracks",
+    "tracks l": "tracks",
+    "tracks r": "tracks",
+    "playback": "tracks",
+    "backing track": "tracks",
+    "click": "click",
+    "video": "video",
+    "audio": "tracks",
+    "di": "di_generic",
+    "spare": "spare"
+  },
+  "instruments": {
+    "kick": {
+      "label": "Kick",
+      "section": "DRUMS",
+      "default_mic": "Earthworks DM6",
+      "hpf": 40,
+      "lpf": null,
+      "gate": true,
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 80
+      },
+      "bands": [
+        {
+          "freq": 80,
+          "gain": 4,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "boom"
+        },
+        {
+          "freq": 250,
+          "gain": -6,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "mud",
+          "deq_memo": true
+        },
+        {
+          "freq": 600,
+          "gain": -4,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "box"
+        },
+        {
+          "freq": 3000,
+          "gain": 4,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "attack"
+        }
+      ],
+      "summary": "Body vs attack — serve the genre. Two-mic kick: blend inside body with boundary attack. Gate tight."
+    },
+    "snare": {
+      "label": "Snare",
+      "section": "DRUMS",
+      "default_mic": "Shure SM57",
+      "hpf": 120,
+      "lpf": null,
+      "gate": true,
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 80
+      },
+      "bands": [
+        {
+          "freq": 180,
+          "gain": 3,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "body"
+        },
+        {
+          "freq": 300,
+          "gain": -6,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud",
+          "deq_memo": true
+        },
+        {
+          "freq": 1000,
+          "gain": 5,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "crack"
+        },
+        {
+          "freq": 7000,
+          "gain": 4,
+          "q": 0.8,
+          "type": "BELL",
+          "role": "snap"
+        }
+      ],
+      "summary": "Crack vs body vs ring — genre picks the target. Gate to reject hat/kick bleed without chopping ghost notes."
+    },
+    "snare_bottom": {
+      "label": "Snare Bottom",
+      "section": "DRUMS",
+      "default_mic": "Shure SM57",
+      "hpf": 200,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 600,
+          "gain": -6,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 1800,
+          "gain": 5,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "snap"
+        },
+        {
+          "freq": 7000,
+          "gain": 5,
+          "q": 0.8,
+          "type": "BELL",
+          "role": "snap"
+        }
+      ],
+      "summary": "Sizzle/snares. Polarity-check against snare top."
+    },
+    "hihat": {
+      "label": "Hi-Hat",
+      "section": "DRUMS",
+      "default_mic": "Audix M1280BHC",
+      "hpf": 500,
+      "lpf": 16000,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 800,
+          "gain": -5,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "clank"
+        },
+        {
+          "freq": 2000,
+          "gain": -4,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "harsh"
+        }
+      ],
+      "summary": "HPF aggressively; manage bleed. Ducker over a hard gate on acoustic-forward shows."
+    },
+    "underhat": {
+      "label": "Underhat",
+      "section": "DRUMS",
+      "default_mic": "Audix M1280BHC",
+      "hpf": 200,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 315,
+          "gain": -5,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud",
+          "deq_memo": true
+        },
+        {
+          "freq": 600,
+          "gain": -3,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "box"
+        },
+        {
+          "freq": 6000,
+          "gain": 4,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "air"
+        }
+      ],
+      "summary": "Broadcast underhat/underhead — reduced air, different bleed. Ducker not gate; polarity check. Reverb send +2-3dB."
+    },
+    "tom_rack": {
+      "label": "Rack Tom",
+      "section": "DRUMS",
+      "default_mic": "Earthworks DM17",
+      "hpf": 80,
+      "lpf": 12000,
+      "gate": true,
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 100
+      },
+      "bands": [
+        {
+          "freq": 120,
+          "gain": 4,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "boom"
+        },
+        {
+          "freq": 400,
+          "gain": -6,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "mud",
+          "deq_memo": true
+        },
+        {
+          "freq": 2500,
+          "gain": 4,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "attack"
+        }
+      ],
+      "summary": "Mud control + attack. Gate release matches the kit's decay."
+    },
+    "tom_floor": {
+      "label": "Floor Tom",
+      "section": "DRUMS",
+      "default_mic": "Earthworks DM17",
+      "hpf": 60,
+      "lpf": 10000,
+      "gate": true,
+      "comp": {
+        "thr": -12,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 100
+      },
+      "bands": [
+        {
+          "freq": 80,
+          "gain": 5,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "boom"
+        },
+        {
+          "freq": 450,
+          "gain": -6,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "mud",
+          "deq_memo": true
+        },
+        {
+          "freq": 2000,
+          "gain": 4,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "attack"
+        }
+      ],
+      "summary": "Low extension + ring control. Slow release on ballads."
+    },
+    "overhead": {
+      "label": "Overhead",
+      "section": "DRUMS",
+      "default_mic": "Earthworks SR20sp Gen 2",
+      "hpf": 180,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 300,
+          "gain": -4,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 5000,
+          "gain": 4,
+          "q": 0.8,
+          "type": "BELL",
+          "role": "air"
+        }
+      ],
+      "summary": "Cymbal air; HPF to taste. Gate fine if the kit allows."
+    },
+    "perc": {
+      "label": "Percussion",
+      "section": "DRUMS",
+      "default_mic": "Shure SM57",
+      "hpf": 150,
+      "lpf": null,
+      "gate": false,
+      "comp": {
+        "thr": -18,
+        "ratio": 3,
+        "atk_ms": 10,
+        "rel_ms": 120
+      },
+      "bands": [
+        {
+          "freq": 200,
+          "gain": -4,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "low"
+        },
+        {
+          "freq": 400,
+          "gain": -4,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 3000,
+          "gain": 3,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "presence"
+        },
+        {
+          "freq": 10000,
+          "gain": -2,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "top"
+        }
+      ],
+      "summary": "Hand/aux percussion. Tame low-mid bleed; presence for cut."
+    },
+    "ekit": {
+      "label": "Electronic Kit",
+      "section": "DRUMS",
+      "default_mic": "DI",
+      "hpf": 40,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 250,
+          "gain": -3,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 3000,
+          "gain": -3,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "harsh"
+        },
+        {
+          "freq": 8000,
+          "gain": -2,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "top"
+        }
+      ],
+      "summary": "Clean DI source — carve space, don't correct a mic."
+    },
+    "bass_di": {
+      "label": "Bass DI",
+      "section": "RHYTHM",
+      "default_mic": "Radial J48",
+      "hpf": 40,
+      "lpf": null,
+      "gate": false,
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 20,
+        "rel_ms": 120
+      },
+      "bands": [
+        {
+          "freq": 80,
+          "gain": 4,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "sub"
+        },
+        {
+          "freq": 250,
+          "gain": -5,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 600,
+          "gain": 4,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "definition"
+        },
+        {
+          "freq": 1500,
+          "gain": -4,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "clank"
+        }
+      ],
+      "summary": "Fundamental vs upper harmonics for definition on small speakers. Gentle comp. Memo: 125Hz mode in the fundamental."
+    },
+    "bass_cab": {
+      "label": "Bass Cab",
+      "section": "RHYTHM",
+      "default_mic": "Earthworks DM6",
+      "hpf": 60,
+      "lpf": 5000,
+      "gate": false,
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 20,
+        "rel_ms": 120
+      },
+      "bands": [
+        {
+          "freq": 100,
+          "gain": 4,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "sub"
+        },
+        {
+          "freq": 400,
+          "gain": -6,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 900,
+          "gain": 4,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "definition"
+        }
+      ],
+      "summary": "Cab body; blend with DI for definition."
+    },
+    "synth_bass": {
+      "label": "Synth Bass",
+      "section": "RHYTHM",
+      "default_mic": "Neve RNDI",
+      "hpf": 40,
+      "lpf": null,
+      "gate": false,
+      "comp": {
+        "thr": -18,
+        "ratio": 3,
+        "atk_ms": 20,
+        "rel_ms": 120
+      },
+      "bands": [
+        {
+          "freq": 250,
+          "gain": -3,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 1000,
+          "gain": -2,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "box"
+        },
+        {
+          "freq": 6000,
+          "gain": -2,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "top"
+        }
+      ],
+      "summary": "Clean DI; carve against the kick and bass guitar."
+    },
+    "egtr": {
+      "label": "Electric Guitar",
+      "section": "RHYTHM",
+      "default_mic": "Shure SM57",
+      "hpf": 100,
+      "lpf": null,
+      "gate": false,
+      "comp": {
+        "thr": -18,
+        "ratio": 4,
+        "atk_ms": 10,
+        "rel_ms": 80
+      },
+      "bands": [
+        {
+          "freq": 200,
+          "gain": -4,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "low"
+        },
+        {
+          "freq": 450,
+          "gain": -5,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "box"
+        },
+        {
+          "freq": 800,
+          "gain": 4,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "body"
+        },
+        {
+          "freq": 2500,
+          "gain": 4,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "presence"
+        }
+      ],
+      "summary": "Mud at 300-500Hz almost always. Upper-mid harshness varies by amp/player."
+    },
+    "egtr_ribbon": {
+      "label": "Guitar (Ribbon)",
+      "section": "RHYTHM",
+      "default_mic": "Royer R-121",
+      "hpf": null,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 150,
+          "gain": 3,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "warmth"
+        },
+        {
+          "freq": 350,
+          "gain": -4,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "box"
+        }
+      ],
+      "summary": "AxeMount blend mic under the SM57, 6-10dB below. NO 48V. Polarity-check in mono."
+    },
+    "agtr": {
+      "label": "Acoustic Guitar",
+      "section": "RHYTHM",
+      "default_mic": "Neve RNDI",
+      "hpf": 100,
+      "lpf": null,
+      "gate": false,
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 15,
+        "rel_ms": 120
+      },
+      "bands": [
+        {
+          "freq": 200,
+          "gain": 4,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "body"
+        },
+        {
+          "freq": 400,
+          "gain": -5,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "boom"
+        },
+        {
+          "freq": 2000,
+          "gain": -5,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "quack"
+        },
+        {
+          "freq": 5000,
+          "gain": 4,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "air"
+        }
+      ],
+      "summary": "Piezo quack at 1.5-2kHz is the primary target on DI'd acoustics. Conservative for acoustic genres."
+    },
+    "keys_di": {
+      "label": "Keys",
+      "section": "RHYTHM",
+      "default_mic": "Neve RNDI",
+      "hpf": 60,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 200,
+          "gain": -4,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 300,
+          "gain": 3,
+          "q": 0.8,
+          "type": "BELL",
+          "role": "body"
+        },
+        {
+          "freq": 2500,
+          "gain": 4,
+          "q": 0.8,
+          "type": "BELL",
+          "role": "presence"
+        }
+      ],
+      "summary": "Depends on the patch. Clean DI — carve space in the mix."
+    },
+    "piano": {
+      "label": "Piano",
+      "section": "PIANO",
+      "default_mic": "DPA 4099 CORE+",
+      "hpf": 60,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 200,
+          "gain": -3,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 315,
+          "gain": -3,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 800,
+          "gain": -2,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "box"
+        }
+      ],
+      "summary": "Carve low-mid buildup; trust the mics. Check phase between the pair. Don't touch the DPA 10-12kHz boost."
+    },
+    "piano_low": {
+      "label": "Piano Low",
+      "section": "PIANO",
+      "default_mic": "DPA 4099 CORE+",
+      "hpf": 60,
+      "lpf": 8000,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 100,
+          "gain": 2,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "body"
+        },
+        {
+          "freq": 300,
+          "gain": -3,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 800,
+          "gain": -2,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "box"
+        },
+        {
+          "freq": 3000,
+          "gain": 2,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "presence"
+        }
+      ],
+      "summary": "Low-strings DPA. Conservative; check phase with the hi mic."
+    },
+    "piano_high": {
+      "label": "Piano High",
+      "section": "PIANO",
+      "default_mic": "DPA 4099 CORE+",
+      "hpf": 150,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 400,
+          "gain": -2,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 5000,
+          "gain": 2,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "presence"
+        },
+        {
+          "freq": 10000,
+          "gain": 2,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "air"
+        }
+      ],
+      "summary": "High-strings DPA. Don't touch the DPA 10-12kHz boost."
+    },
+    "violin": {
+      "label": "Violin",
+      "section": "STRINGS",
+      "default_mic": "Countryman B3",
+      "hpf": 180,
+      "lpf": null,
+      "gate": false,
+      "comp": {
+        "thr": -18,
+        "ratio": 3,
+        "atk_ms": 20,
+        "rel_ms": 200
+      },
+      "bands": [
+        {
+          "freq": 400,
+          "gain": -2,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 3000,
+          "gain": -3,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "harsh"
+        }
+      ],
+      "summary": "Bowing harshness 2-4kHz. Clip-on designed for the instrument — light touch. Gate off."
+    },
+    "viola": {
+      "label": "Viola",
+      "section": "STRINGS",
+      "default_mic": "Countryman B3",
+      "hpf": 120,
+      "lpf": null,
+      "gate": false,
+      "comp": {
+        "thr": -18,
+        "ratio": 3,
+        "atk_ms": 20,
+        "rel_ms": 200
+      },
+      "bands": [
+        {
+          "freq": 350,
+          "gain": -2,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 2500,
+          "gain": -2,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "harsh"
+        },
+        {
+          "freq": 5000,
+          "gain": 2,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "air"
+        }
+      ],
+      "summary": "Light touch; clip-on. Gate off."
+    },
+    "cello": {
+      "label": "Cello",
+      "section": "STRINGS",
+      "default_mic": "Countryman B3",
+      "hpf": 60,
+      "lpf": 10000,
+      "gate": false,
+      "comp": {
+        "thr": -18,
+        "ratio": 3,
+        "atk_ms": 20,
+        "rel_ms": 200
+      },
+      "bands": [
+        {
+          "freq": 120,
+          "gain": 2,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "body"
+        },
+        {
+          "freq": 300,
+          "gain": -2,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 800,
+          "gain": 1,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "definition"
+        }
+      ],
+      "summary": "Body + definition; light. Gate off."
+    },
+    "trumpet": {
+      "label": "Trumpet",
+      "section": "HORNS",
+      "default_mic": "Shure Beta 98H/C",
+      "hpf": 80,
+      "lpf": 12000,
+      "gate": false,
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 5,
+        "rel_ms": 80
+      },
+      "bands": [
+        {
+          "freq": 300,
+          "gain": -4,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 1000,
+          "gain": -4,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "bark"
+        },
+        {
+          "freq": 5000,
+          "gain": 4,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "presence"
+        }
+      ],
+      "summary": "Bark at 1-1.5kHz close-miked. Fast-attack comp — brass transients jump."
+    },
+    "trombone": {
+      "label": "Trombone",
+      "section": "HORNS",
+      "default_mic": "Warm Audio WA-87",
+      "hpf": 60,
+      "lpf": 10000,
+      "gate": false,
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 5,
+        "rel_ms": 80
+      },
+      "bands": [
+        {
+          "freq": 100,
+          "gain": 3,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "body"
+        },
+        {
+          "freq": 400,
+          "gain": -4,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 1500,
+          "gain": -4,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "bark"
+        }
+      ],
+      "summary": "Body + bark control. Fast comp."
+    },
+    "sax": {
+      "label": "Sax",
+      "section": "HORNS",
+      "default_mic": "Shure Beta 98H/C",
+      "hpf": 80,
+      "lpf": 10000,
+      "gate": false,
+      "comp": {
+        "thr": -16,
+        "ratio": 4,
+        "atk_ms": 8,
+        "rel_ms": 80
+      },
+      "bands": [
+        {
+          "freq": 300,
+          "gain": -4,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 800,
+          "gain": -4,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "honk"
+        },
+        {
+          "freq": 5000,
+          "gain": 4,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "presence"
+        }
+      ],
+      "summary": "Honk at 800Hz, upper harmonics for cut in a dense mix."
+    },
+    "flute": {
+      "label": "Flute",
+      "section": "HORNS",
+      "default_mic": "Sennheiser MKH40",
+      "hpf": 200,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 400,
+          "gain": -4,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud",
+          "deq_memo": true
+        },
+        {
+          "freq": 4000,
+          "gain": 5,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "air"
+        }
+      ],
+      "summary": "High HPF (nothing useful below the fundamental). Breath noise up top on close mics."
+    },
+    "pipes": {
+      "label": "Uilleann Pipes",
+      "section": "HORNS",
+      "default_mic": "Sennheiser MKH40",
+      "hpf": 100,
+      "lpf": null,
+      "gate": false,
+      "comp": {
+        "thr": -18,
+        "ratio": 3,
+        "atk_ms": 8,
+        "rel_ms": 110
+      },
+      "bands": [
+        {
+          "freq": 300,
+          "gain": -3,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 1500,
+          "gain": -3,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "reed"
+        },
+        {
+          "freq": 4000,
+          "gain": 2,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "chanter"
+        }
+      ],
+      "summary": "Continuous drone — DEQ needs extended release (100-120ms). Never gate. Chanter vs bag/bellows balance."
+    },
+    "bodhran": {
+      "label": "Bodhran",
+      "section": "DRUMS",
+      "default_mic": "Shure SM57",
+      "hpf": 50,
+      "lpf": null,
+      "gate": false,
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 8,
+        "rel_ms": 100
+      },
+      "bands": [
+        {
+          "freq": 200,
+          "gain": -5,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud",
+          "deq_memo": true
+        },
+        {
+          "freq": 500,
+          "gain": -3,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "box"
+        },
+        {
+          "freq": 3000,
+          "gain": 3,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "slap"
+        }
+      ],
+      "summary": "Highest-risk channel at Memo — 200Hz mode interacts with the fundamental. DEQ on Band 1 usually active."
+    },
+    "vocal_lead": {
+      "label": "Lead Vocal",
+      "section": "VOCALS",
+      "default_mic": "Shure Beta 58A",
+      "hpf": 130,
+      "lpf": 15000,
+      "gate": false,
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 10,
+        "rel_ms": 80
+      },
+      "bands": [
+        {
+          "freq": 200,
+          "gain": -4,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "proximity"
+        },
+        {
+          "freq": 300,
+          "gain": -4,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "box",
+          "deq_memo": true
+        },
+        {
+          "freq": 3000,
+          "gain": 3,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "presence"
+        },
+        {
+          "freq": 8000,
+          "gain": 3,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "air"
+        }
+      ],
+      "summary": "HPF first and aggressive. Low-mid box (300-600) is where feedback builds — cut. Presence/air boosts come down if cuts-only is enforced."
+    },
+    "vocal_bg": {
+      "label": "BG Vocal",
+      "section": "VOCALS",
+      "default_mic": "Shure SM58",
+      "hpf": 140,
+      "lpf": 15000,
+      "gate": false,
+      "comp": {
+        "thr": -16,
+        "ratio": 3,
+        "atk_ms": 10,
+        "rel_ms": 80
+      },
+      "bands": [
+        {
+          "freq": 250,
+          "gain": -4,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "proximity"
+        },
+        {
+          "freq": 350,
+          "gain": -5,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "box",
+          "deq_memo": true
+        },
+        {
+          "freq": 3000,
+          "gain": 2,
+          "q": 1.2,
+          "type": "BELL",
+          "role": "presence"
+        }
+      ],
+      "summary": "Sit behind the lead. Cuts-only bias; pull nasality from massed voices. Gate usually off."
+    },
+    "vocal_spoken": {
+      "label": "Spoken / MC",
+      "section": "VOCALS",
+      "default_mic": "Shure SM58",
+      "hpf": 120,
+      "lpf": 12000,
+      "gate": false,
+      "comp": {
+        "thr": -18,
+        "ratio": 3,
+        "atk_ms": 10,
+        "rel_ms": 120
+      },
+      "bands": [
+        {
+          "freq": 250,
+          "gain": -3,
+          "q": 1.5,
+          "type": "BELL",
+          "role": "mud"
+        },
+        {
+          "freq": 400,
+          "gain": -3,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "box"
+        },
+        {
+          "freq": 4000,
+          "gain": 2,
+          "q": 1.0,
+          "type": "BELL",
+          "role": "intelligibility"
+        }
+      ],
+      "summary": "Intelligibility over tone. Aggressive HPF; tame proximity and box."
+    },
+    "tracks": {
+      "label": "Tracks / Playback",
+      "section": "RHYTHM",
+      "default_mic": "Radial DI",
+      "hpf": 80,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 200,
+          "gain": -2,
+          "q": 0.71,
+          "type": "SHELF",
+          "role": "low"
+        },
+        {
+          "freq": 315,
+          "gain": -3,
+          "q": 2.0,
+          "type": "BELL",
+          "role": "mud"
+        }
+      ],
+      "summary": "Stereo playback. Light — already mixed."
+    },
+    "click": {
+      "label": "Click",
+      "section": "RHYTHM",
+      "default_mic": "Radial DI",
+      "hpf": 80,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [],
+      "summary": "To IEM/monitors only — flat."
+    },
+    "video": {
+      "label": "Video",
+      "section": "RHYTHM",
+      "default_mic": "Radial DI",
+      "hpf": 80,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [],
+      "summary": "Video audio feed — flat unless it needs help."
+    },
+    "di_generic": {
+      "label": "DI",
+      "section": "RHYTHM",
+      "default_mic": "Radial J48",
+      "hpf": 80,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [
+        {
+          "freq": 315,
+          "gain": -2,
+          "q": 1.8,
+          "type": "BELL",
+          "role": "mud"
+        }
+      ],
+      "summary": "Generic DI — set at soundcheck once source is confirmed."
+    },
+    "spare": {
+      "label": "SPARE",
+      "section": "SPARE",
+      "default_mic": "",
+      "hpf": null,
+      "lpf": null,
+      "gate": false,
+      "comp": null,
+      "bands": [],
+      "summary": ""
+    }
+  },
+  "blends": {
+    "_note": "Two mics on one source, blended as ONE signal. The engine detects same-source mic pairs (shared name stem + same section) and shapes the complement mic to stay out of the primary's midrange, then emits polarity/bus/VCA guidance. Add known pairs below for tailored text.",
+    "overlap_roles": [
+      "body",
+      "mud",
+      "box",
+      "honk",
+      "presence",
+      "warmth",
+      "proximity",
+      "crack"
+    ],
+    "complement_scale": 0.5,
+    "pairs": {
+      "Shure SM57|Shure Beta 27": "57 = midrange grit + presence core; Beta 27 = clean low-end body and the airy top (5.5k/9k) the 57 lacks. Keep the 57 owning mids — don't double them.",
+      "Shure SM57|Royer R-121": "AxeMount: 57 is primary for level/grit; the R-121 ribbon blends up from zero to tame 57 brittleness (sits 6-10dB under; 3-5dB for warm GD/Allmans tones). NO 48V on the ribbon. Group both to one VCA.",
+      "Shure SM57|Sennheiser MD421": "57 = bite/presence; 421 = low-mid girth + weight. Thick and powerful — watch the 200-400Hz stack.",
+      "Shure SM57|Royer R-10": "57 = grit/presence; R-10 ribbon = body + smooth top, tames 57 fizz. NO 48V on the ribbon."
+    },
+    "generic": "Treat the pair as one signal: pan together, group to a VCA, keep the blend constant. Polarity: sum in mono and flip the polarity on one mic if the sum is thinner than either alone. Watch 300-500Hz buildup on the bus — notch -2 to -3dB if it stacks."
+  }
+}

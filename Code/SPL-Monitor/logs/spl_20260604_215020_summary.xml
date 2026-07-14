@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<splSession>
+  <venue>Memorial Hall</venue>
+  <start>2026-06-04T21:50:20</start>
+  <end>2026-06-04T21:51:39</end>
+  <durationSeconds>78</durationSeconds>
+  <limits>
+    <yellow>90</yellow>
+    <red>95</red>
+  </limits>
+  <peaks>
+    <laeq6minMax>89.7</laeq6minMax>
+    <instantMax>93.3</instantMax>
+    <peakCMax>106.78</peakCMax>
+  </peaks>
+  <violationSamples>0</violationSamples>
+  <overloadSamples>0</overloadSamples>
+  <result>WITHIN LIMIT</result>
+  <csvFile>spl_20260604_215020.csv</csvFile>
+</splSession>

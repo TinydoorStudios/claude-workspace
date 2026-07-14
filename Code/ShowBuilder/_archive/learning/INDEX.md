@@ -1,0 +1,4 @@
+- 2026-06-20 · test · fsq ·  · 32 ch · SES OK
+- 2026-06-21 · Izzy Escobar · fsq · Pop and R&B/Soul · 18 ch · SES n/a
+- 2026-06-22 · Izzy Escobar · fsq · Pop and R&B/Soul · 19 ch · SES OK
+- 2026-06-24 · Izzy Escobar · fsq · pop and soul · 19 ch · SES OK

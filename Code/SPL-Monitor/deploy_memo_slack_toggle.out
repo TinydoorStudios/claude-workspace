@@ -1,0 +1,19 @@
+===== Slack toggle deploy  Fri Jul 10 19:01:47 EDT 2026 =====
+----- rsync source -----
+rsync OK
+----- push updated env (adds SPL_ALERT_WEBHOOK) -----
+----- restart -----
+active
+----- verify: local curl -----
+local 8091 = HTTP 200
+----- fresh logs -----
+Jul 10 19:02:07 n8n python[1492903]: [session] summary written: /opt/spl-monitor-memo/logs/spl_20260710_185443_summary.xml
+Jul 10 19:02:07 n8n systemd[1]: spl-monitor-memo.service: Deactivated successfully.
+Jul 10 19:02:07 n8n systemd[1]: Stopped spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 19:02:07 n8n systemd[1]: spl-monitor-memo.service: Consumed 7.365s CPU time.
+Jul 10 19:02:07 n8n systemd[1]: Started spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 19:02:07 n8n python[1494143]: [spl-monitor] source=smaart  dashboard=http://127.0.0.1:8091/
+Jul 10 19:02:07 n8n python[1494143]: [smaart] streaming Dante Virtual Soundcard / SPL
+Jul 10 19:02:07 n8n python[1494143]: /opt/spl-monitor-memo/backend/app.py:209: DeprecationWarning: Changing state of started or joined application is deprecated
+Jul 10 19:02:07 n8n python[1494143]:   app["last_frame_ts"] = time.time()
+===== end =====

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grow Tent Control</title>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+<header>
+  <h1>Grow Tent Control</h1>
+  <div class="meta">
+    <span id="updated">—</span>
+    <button id="refresh">Refresh</button>
+  </div>
+</header>
+
+<main id="devices"><p class="loading">Loading controllers…</p></main>
+
+<!-- per-port settings drawer -->
+<div id="drawer" class="drawer hidden">
+  <div class="drawer-card">
+    <div class="drawer-head">
+      <h2 id="d-title">Port</h2>
+      <button id="d-close">✕</button>
+    </div>
+    <div id="d-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js?v=3"></script>
+</body>
+</html>

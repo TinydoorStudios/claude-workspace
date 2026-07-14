@@ -1,0 +1,13 @@
+[Unit]
+Description=Periodically heal wedged JVC PZ100 cameras
+
+[Timer]
+# Every 30 minutes while the system is up. Only wedged cameras get reset
+# (the service uses --if-wedged), so this is safe to leave running.
+# To pause during a show:  sudo systemctl stop jvc-reset.timer
+OnBootSec=10min
+OnUnitActiveSec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,19 @@
+===== SPL show-info diagnostic  Thu Jul  2 21:56:41 EDT 2026 =====
+
+----- 1) Public API: what the live server currently reports -----
+404: Not Found
+
+----- 2) VM config.json: showInfo block (enabled?) -----
+'NO showInfo KEY'
+
+----- 3) VM service: recent [showinfo] log lines -----
+(if blank above: no showinfo log activity at all)
+
+----- 4) VM outbound reachability to docs.google.com -----
+HTTP 307 in 0.183105s
+
+----- 5) VM service status -----
+active
+Wed 2026-06-24 14:50:54 EDT
+
+===== end =====

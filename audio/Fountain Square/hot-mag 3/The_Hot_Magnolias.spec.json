@@ -1,0 +1,317 @@
+{
+  "venue": "fsq",
+  "venue_label": "Fountain Square (outdoor)",
+  "console_label": "DiGiCo Quantum 225",
+  "show_name": "The Hot Magnolias",
+  "artist": "The Hot Magnolias",
+  "genre": "New Orleans party band — trad-jazz / 2nd-line / NOLA funk",
+  "show_date": "2026-07-11",
+  "foh_engineer": "Brian Lloyd",
+  "mon_engineer": "TBD",
+  "show_time": "TBD",
+  "rev": "Rev 3.0 Deep Think (hot-mag 3 — blind rebuild)",
+  "eq_on": true,
+  "comp_on": true,
+  "app_version": "deep-think-1.0",
+
+  "artist_profile": "The Hot Magnolias — Cincinnati 8-piece New Orleans party band, formed summer 2013, CCM students/alumni plus scene vets. Repertoire runs 1920s trad-jazz standards through Mardi Gras 2nd-line to 1970s NOLA funk. Core live lineup: Jason Burkett (lead vocals), David Sharkey (sax), Chapman Sowash (trombone), Michael Cruse (trumpet), Kevin McClellan (bass), Jamarco Thomas (keys/piano), Bennett Kottler (banjo/guitar — one player doubling), Ryan Mitchell (drums). The three-horn front line and the party energy ARE the show: mix horn-forward, warm and danceable — never a scooped rock sound. Second-line snare and bass/keys pocket carry the dance floor.",
+
+  "research_summary": "Artist: CincyMusic, Bandcamp, NKyTribune. Per-source: Shure docs + PSW 91A/B52-combo thread (91A box 300–500, click up high); Gearspace/RecordingHacks D6 (pre-scooped −15 dB @ 600, needs almost no EQ); SOS/Gearspace i5 (+9 dB @ 5.5k baked peak); e609 capsule character (bright 4–5k presence, edgy 2.5–4k) from Gearspace/maker docs; DFO/Gearspace D2/D4 (D2 scooped+lean lows, D4 smooth mids/soft attack); PSW/TapeOp/Gearspace SM57-as-overheads (dark top, box 300–500, engineers open them with low-mid cuts + top lift); funk bass DI definition 700 Hz–2k (Gearspace + engineer write-ups); Banjo Hangout piezo quack 0.8–1.6k + ~5–6k brittleness; A-T Pro 35 maker/reviews (subtly rounded treble, voiced presence, thin lows, 145 dB); NOLA horn slotting — bone ~1k, sax ~2k, tpt ~3k+ (audiorecording.me, RoastYourMix); Beta 58A dual presence peaks 4k/10k (Shure spec sheet). All cross-checked against KB mic-library + eq-starting-points — no web↔KB disagreements. Show-day weather: high ~86°F, ~74% RH, scattered-shower risk (weather25/AccuWeather).",
+
+  "room_context": "Fountain Square open-air: no room gain, nothing comes back from the plaza — L-Acoustics A15 mains / KS21 arch carry everything. FSQ cuts run DEEPER than indoor (−6 to −9 typical, up to −10 on mud/box); clarity is the whole game. Cuts-first everywhere, vocals cuts-only, feedback margins tight with downtown noise floor underneath. Mid-July show window: warm humid evening (~74% RH, high 86°F, scattered-shower risk) — humid air carries HF a touch better than dry, so protect presence rather than over-boosting it, and watch wind gusts on the open mics if weather moves in.",
+
+  "style_note": "Horn-forward New Orleans party band — warm, danceable, three-horn front line carries the show.",
+
+  "decisions": [
+    "Rev 3 = BLIND comparison build vs hot-mag 2 (Brian, 2026-07-08): full deep build from the uploaded sheet, no values reused from Rev 2.",
+    "Overheads: stereo pair on fader 9; fader 10 stays the SNARE PL8 return (Brian ruled, question round).",
+    "Vocals: V1 lead (Jason) + V2 backing on Beta 58A; Vocals 3–8 stay template spares (Brian).",
+    "No mic-locker swaps — build exactly to the sheet (Brian).",
+    "Blank-mic channels (4, 7, 12, 16, 21–24) stay patched spares; show date 2026-07-11 confirmed."
+  ],
+
+  "changes": [
+    "Blind Rev 3 rebuild for A/B against hot-mag 2 — values derived fresh from this session's research only.",
+    "Kick layers split explicitly: 91A owns the attack (+4 @ 5k); the D6's baked 5k click is trimmed −4 so the two mics don't stack the same peak.",
+    "91A contour switch assumed FLAT — the 400 Hz box cut lives on the desk. If the switch is engaged, halve the desk cut.",
+    "D4 floor gets +2 @ 4k click — KB flags the D4's soft upper-mid attack, and open air needs the definition.",
+    "OH 57s get +3 @ 10k as a WIDE BELL (no shelf per house rule) — justified boost on a dark dynamic outdoors with no room HF to lean on.",
+    "Three-horn slotting: trombone owns ~1k (its box cut sits at 600), sax owns ~2k (honk cut at 1k), trumpet owns 3k+ (honk cut at 1.1k, only a −3 trim at 3.5k for PA harshness) — section separation instead of three identical horn EQs.",
+    "Banjo quack centered at 1.2k (research consensus 0.8–1.6k) with the brittle zing cut at 5k; +2 @ 220 puts back the wood the pickup misses.",
+    "Vocal 25/26: DEQ on the 58A's baked 4k peak + deep −8 @ 600 box cut — this OVERRIDES the FSQ template wireless curve / feedback notch on those faders. Confirm at the console.",
+    "FSQ deeper-cut rule applied throughout: mud/box cuts sit −6 to −8.",
+    "Hi-hat on e609 honored as specified (cab mic on a hat): HPF 500 + capsule-edge cut at 3.5k to keep it from spitting on cymbal wash."
+  ],
+
+  "monitors": [
+    {"mix": "MIX 1", "who": "Lead Vocal — Jason", "type": "wedge", "note": "verb-lite; feedback-tight outdoors"},
+    {"mix": "MIX 2", "who": "Horns — Sax/Tbn/Tpt front line", "type": "wedge", "note": "shared horn wedge(s)"},
+    {"mix": "MIX 3", "who": "Drums", "type": "wedge", "note": ""},
+    {"mix": "MIX 4", "who": "Bass + Keys", "type": "wedge", "note": ""},
+    {"mix": "MIX 5", "who": "Guitar/Banjo", "type": "wedge", "note": ""},
+    "Counts/splits confirm at soundcheck — 8× L-Acoustics X12 on the M32."
+  ],
+
+  "reverbs": [
+    {
+      "role": "vocal",
+      "preset": "Plates 1 / #06 Vocal Plate",
+      "settings": "Decay 1.5s (factory) · PreDelay 24ms · VLF −16 · E/L Max Early · Late −5 · Late Rolloff 9k · 100% wet",
+      "plugin_eq": "LC 180 Hz on the return; keep the top bright — outdoors there's no room HF to lose",
+      "why": "The everyday lead send — dense forward plate that places Jason without wash on the up-tempo 2nd-line tunes."
+    },
+    {
+      "role": "vocal",
+      "preset": "Chambers 1 / #10 Vocal Chamber",
+      "settings": "Decay 1.5s (from 1.6 factory) · PreDelay 10ms · VLF −10 · E/L Max Early · Late −6 · Late Rolloff 8k · 100% wet",
+      "plugin_eq": "LC 160 Hz; Ducker in Reverb mode, Thr −22 dB, Release 250 ms",
+      "why": "Characterful chamber for the slower/torch numbers; the ducker clears it between phrases."
+    },
+    {
+      "role": "vocal",
+      "preset": "Chambers 1 / #17 Sunset Chamber",
+      "settings": "Decay 1.9s (from 2.15 factory) · PreDelay 20ms · VLF −18 (near factory −20) · E/L Max Early · Late −6 · Late Rolloff 8k · 100% wet",
+      "plugin_eq": "LC 180 Hz on the return",
+      "why": "The works-on-anything big-moment send — save it for the one ballad; too long for the dance material."
+    },
+    {
+      "role": "instrument",
+      "preset": "Halls 1 / #15 Brass Hall",
+      "settings": "Decay 1.7s (from 2.0 factory) · PreDelay 20ms · VLF −11 · E/L Max Early · Late −6 · Late Rolloff 8.4k (factory) · 100% wet",
+      "plugin_eq": "Master Filter HS −2 @ 8k (three close clip mics feed it); LC 120 Hz",
+      "why": "One shared horn-section hall so sax/bone/trumpet read as a single front line — feature moments only; 2nd-line drive stays dry."
+    },
+    {
+      "role": "instrument",
+      "preset": "Chambers 1 / #09 Snare Chamber",
+      "settings": "Decay 1.0s (from 1.2 factory) · PreDelay 10ms · VLF −19 (factory) · E/L Max Early · Late −6 · Late Rolloff 5.6k (factory) · 100% wet",
+      "plugin_eq": "LC 200 Hz on the return",
+      "why": "Short splash for the backbeat on the funk tunes — keeps the second-line snare fat without smearing the rolls."
+    },
+    {
+      "role": "general",
+      "preset": "Rooms 1 / #01 Studio A",
+      "settings": "Decay factory · Mod 0 · E/L Max Early · Late −6 · 100% wet",
+      "plugin_eq": "None — run the send low (3–5% equivalent), it's glue not an effect",
+      "why": "Transparent glue across kit/banjo when the plaza feels too dry — zero modulation, disappears into the sources."
+    }
+  ],
+  "reverb_pairing": "Using them together: Vocal Plate is the default lead send all night; switch to Vocal Chamber for the slow numbers and Sunset Chamber for the one big ballad. Brass Hall only on horn features. Snare Chamber rides the funk tunes; Studio A sits low as glue. FSQ posture per KB: near-factory decay, Late Equal to −6, bright rolloff — the plaza adds nothing.",
+
+  "channels": [
+    {
+      "ch": 1, "name": "Kick In", "instrument": "Kick (attack layer)", "mic": "Shure Beta 91A",
+      "section": "DRUMS", "phantom": true, "ribbon": false, "tour": false, "stand": "Bar",
+      "notes": "91A/D6 two-mic kick — 91A inside on the batter, the attack/click layer. Treat the pair as ONE: same VCA, pan together, sum in mono and flip one if thinner. Contour switch FLAT (box cut is on the desk).",
+      "hpf": 50, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": 4, "freq": 5000, "q": 1.4, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -7, "freq": 400, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 2, "gain": -5, "freq": 200, "q": 1.8, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Boundary on the head — beater snap plus known shell boxiness at 300–500 (KB + PSW). Contour switch would cut 400 by 7 dB; assumed flat.",
+      "eq_summary": "+4 @ 5k gives the beater the definition that survives open air; −7 @ 400 kills the shell box deep per the FSQ rule; −5 @ 200 keeps its lows tucked so the D6 owns the body. HPF 50 for the same reason — this channel is the click engine, not the weight."
+    },
+    {
+      "ch": 2, "name": "Kick Out", "instrument": "Kick (body layer)", "mic": "Audix D6",
+      "section": "DRUMS", "phantom": false, "ribbon": false, "tour": false, "stand": "Short",
+      "notes": "91A/D6 two-mic kick — D6 at the port, the body/thump core. Same VCA as CH1, pan together, polarity-check the pair in mono.",
+      "hpf": 30, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -4, "freq": 5000, "q": 1.6, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -4, "freq": 350, "q": 2.0, "type": "BELL", "deq": null},
+        {"b": 1, "gain": 3, "freq": 60, "q": 1.2, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Pre-scooped smiley voicing — peaks ~60 Hz and ~5k, −15 dB mid scoop at 600 baked in (Gearspace/RecordingHacks + KB agree: needs almost no EQ).",
+      "eq_summary": "−4 @ 5k trims the D6's baked click so it doesn't stack on the 91A's +4 — the layers stay split. −4 @ 350 is a light touch on what the capsule didn't already scoop. +3 @ 60 feeds the KS21s: outdoors there's no room gain, the subs carry all the weight."
+    },
+    {
+      "ch": 3, "name": "Snare Top", "instrument": "Snare", "mic": "Audix i5",
+      "section": "DRUMS", "phantom": false, "ribbon": false, "tour": false, "stand": "Clip",
+      "notes": "Second-line snare is the motor of this band — gate light or not at all; ghost notes and press rolls must live. Release to tempo.",
+      "hpf": 100, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -3, "freq": 5500, "q": 2.5, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -7, "freq": 500, "q": 1.8, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "i5 bakes in +9 dB @ 5.5k presence and a +5 dB body lift ~150 (SOS/Gearspace + KB). The crack is already in the capsule.",
+      "eq_summary": "The baked 5.5k peak IS the cut-through — just −3 @ 5.5k to take its harsh edge off the A15s. −7 @ 500 dumps the box deep per FSQ. The 150 body lift stays untouched: second-line snare wants that fatness. Ring gets handled live if the head speaks."
+    },
+    {
+      "ch": 5, "name": "Hi-Hat", "instrument": "Hi-Hat", "mic": "Sennheiser e609",
+      "section": "DRUMS", "phantom": false, "ribbon": false, "tour": false, "stand": "Boom",
+      "notes": "e609 on a hat is a cab mic doing hat duty — spec'd deliberately. Supercardioid rejection is the win; aim the null at the snare.",
+      "hpf": 500, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -6, "freq": 3500, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -6, "freq": 900, "q": 2.0, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Bright 4–5k presence voiced for guitar cabs, edgy 2.5–4k on bright sources, thin lows (helpful here). Rolled top vs a condenser — don't chase air that isn't in the capsule.",
+      "eq_summary": "HPF 500 per the hat rule — everything below is bleed. −6 @ 3.5k tames the capsule's cab-voiced edge before it turns cymbal wash spitty; −6 @ 900 clears snare-bleed clank. In a trad-jazz set the hat rides the time — it needs to be clean, not loud."
+    },
+    {
+      "ch": 6, "name": "Rack 1", "instrument": "Rack Tom", "mic": "Audix D2",
+      "section": "DRUMS", "phantom": false, "ribbon": false, "tour": false, "stand": "Clip",
+      "notes": "Gate release matched to the kit's decay.",
+      "hpf": 80, "lpf": null,
+      "bands": [
+        {"b": 3, "gain": -6, "freq": 500, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 1, "gain": 2, "freq": 120, "q": 1.2, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Scooped mids and voiced attack baked in; leaner deep lows than the D4 (DFO/Gearspace + KB).",
+      "eq_summary": "−6 @ 500 finishes the cardboard the capsule's scoop started — deep per FSQ. +2 @ 120 puts back the body the D2 runs lean on. Attack is already voiced in; no top boost."
+    },
+    {
+      "ch": 8, "name": "Floor Tom", "instrument": "Floor Tom", "mic": "Audix D4",
+      "section": "DRUMS", "phantom": false, "ribbon": false, "tour": false, "stand": "Clip",
+      "notes": "Gate release long enough to keep the natural decay.",
+      "hpf": 40, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": 2, "freq": 4000, "q": 1.4, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -7, "freq": 450, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 1, "gain": 3, "freq": 80, "q": 1.2, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Reaches 35 Hz, smooth unscooped mids, less upper-mid attack than the D2 (KB flags it may need a touch of click).",
+      "eq_summary": "The D4 doesn't scoop its own mids, so the −7 @ 450 mud cut does the work here. +3 @ 80 for weight into the subs, +2 @ 4k adds the click the capsule undersells — a funk floor tom outdoors disappears without it."
+    },
+    {
+      "ch": 9, "name": "OH", "instrument": "Overheads (stereo pair)", "mic": "Shure SM57 (pair)",
+      "section": "DRUMS", "phantom": false, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "STEREO pair on fader 9 — fader 10 is the reserved SNARE PL8 return, leave it alone (Brian ruled). Cymbals + kit glue, not the primary kit sound.",
+      "hpf": 250, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": 3, "freq": 10000, "q": 1.0, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -5, "freq": 3000, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 2, "gain": -6, "freq": 400, "q": 1.6, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "57s as overheads = deliberately dark, mid-forward cymbals (TapeOp/PSW consensus); box 300–500 and presence clang 3–5k are the known problems, top end rolls off early.",
+      "eq_summary": "+3 @ 10k as a wide bell (not a shelf) opens the top the 57 doesn't have — outdoors the air dies over the throw and these are the only cymbal mics. −5 @ 3k pulls the clang the 57's presence bump makes of crash wash; −6 @ 400 dumps the kit box. HPF 250: everything below lives in the close mics."
+    },
+    {
+      "ch": 11, "name": "Bass DI", "instrument": "Electric Bass", "mic": "Whirlwind IMP (passive DI)",
+      "section": "BASS", "phantom": false, "ribbon": false, "tour": false, "stand": "DI",
+      "notes": "Passive DI — neutral but slightly soft on top. Gentle comp to even note-to-note; the pocket with keys LH is the dance floor.",
+      "hpf": 35, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": 2, "freq": 800, "q": 1.4, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -7, "freq": 350, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 1, "gain": 3, "freq": 80, "q": 1.2, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "IMP is honest with a slight passive HF/level loss (KB) — no active sparkle to lean on.",
+      "eq_summary": "+3 @ 80 is the funk punch into the KS21s; −7 @ 350 clears the mud lane deep per FSQ so keys and guitar can live there; +2 @ 800 is the definition/growl (research: 700 Hz–2k is where bass reads past the subs on a plaza). Fundamental-plus-harmonics, not just weight."
+    },
+    {
+      "ch": 13, "name": "Guitar Dyn", "instrument": "Electric Guitar (cab) — 57/27 blend", "mic": "Shure SM57",
+      "section": "GUITAR", "phantom": false, "ribbon": false, "tour": false, "stand": "Short",
+      "notes": "57/27 blended on the SAME amp — 57 is the primary (grit/presence). Same VCA as CH14, pan together, keep the blend constant. Polarity-check the pair in mono.",
+      "hpf": 100, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -4, "freq": 3200, "q": 2.0, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -8, "freq": 400, "q": 1.8, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Mid-forward workhorse: presence 3–5k, box/honk builds 300–500 on cabs (KB + every forum thread ever).",
+      "eq_summary": "NOLA funk guitar is clean chank, not high-gain wall — the 57's presence is the scratch, so only −4 @ 3.2k to keep the A15s from getting scratchy. −8 @ 400 dumps the cab box hard (FSQ deep rule); the Beta 27 fills the body cleanly instead."
+    },
+    {
+      "ch": 14, "name": "Guitar CON", "instrument": "Electric Guitar (cab) — 57/27 blend", "mic": "Shure Beta 27",
+      "section": "GUITAR", "phantom": true, "ribbon": false, "tour": false, "stand": "Short",
+      "notes": "57/27 blend, SAME amp — Beta 27 is the bright complement. Same VCA as CH13, pan together. POLARITY CHECK vs CH13 is critical: sum in mono, flip if thinner. Notch 300–500 on the bus if it builds.",
+      "hpf": 150, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -3, "freq": 9000, "q": 2.5, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -7, "freq": 500, "q": 1.2, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Flat 60–3k with small peaks at 5.5k and 9k — the clean open top the 57 lacks; slight 9k fizz on bright amps (KB).",
+      "eq_summary": "Complement rule: its low-mids come down so it can't stack on the 57's midrange — −7 @ 500 at a wide Q1.2 covers the 150–800 dump. −3 @ 9k takes the fizz off before the open air exposes it. Its job is body and top; the 57 owns the middle."
+    },
+    {
+      "ch": 15, "name": "Banjo", "instrument": "Banjo (pickup)", "mic": "Whirlwind IMP (passive DI)",
+      "section": "GUITAR", "phantom": false, "ribbon": false, "tour": false, "stand": "DI",
+      "notes": "Same player as CH13/14 guitar — one live at a time. DI off the banjo pickup, piezo-type character.",
+      "hpf": 120, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -7, "freq": 5000, "q": 1.6, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -6, "freq": 1200, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 2, "gain": 2, "freq": 220, "q": 1.4, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Banjo pickups carry far more HF zing than a guitar pickup plus the piezo quack; the IMP passes it all through honestly (KB: treat at the desk).",
+      "eq_summary": "−6 @ 1.2k centers the nasal quack (Banjo Hangout consensus: 0.8–1.6k); −7 @ 5k kills the brittle zing before it ice-picks the plaza. +2 @ 220 puts back the wood/head body the pickup misses — trad-jazz banjo is a rhythm chank, it should sound like an instrument, not a transducer."
+    },
+    {
+      "ch": 17, "name": "Keys", "instrument": "Keys / Piano (DI)", "mic": "DI (XLR)",
+      "section": "KEYS", "phantom": false, "ribbon": false, "tour": false, "stand": "DI",
+      "notes": "Direct out via XLR. FLAG: confirm mono vs stereo at load-in (single fader assumed).",
+      "hpf": 40, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -3, "freq": 3000, "q": 2.0, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -6, "freq": 300, "q": 1.6, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Clean line source — EQ is mix carving, not correction (KB).",
+      "eq_summary": "NOLA piano (the Longhair/Booker rolls) lives in the mids, so the work is making room around it: −6 @ 300 clears DI low-mid warmth against the PA, −3 @ 3k bows to the horns in their lane. HPF 40 keeps the left hand — the piano bass matters when the band drops to keys and snare."
+    },
+    {
+      "ch": 18, "name": "Sax", "instrument": "Saxophone", "mic": "Audio-Technica Pro 35",
+      "section": "HORNS", "phantom": true, "ribbon": false, "tour": false, "stand": "Clip",
+      "notes": "Clip-on; player roams (2nd-line). Fast-attack comp (10–20 ms, 3:1) — brass transients jump.",
+      "hpf": 80, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -4, "freq": 6000, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -6, "freq": 1000, "q": 1.6, "type": "BELL", "deq": null},
+        {"b": 2, "gain": 2, "freq": 400, "q": 1.2, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Pro 35: voiced presence lift, subtly rounded treble, thin lows, plasticky upper-mid when close (maker + KB agree). 145 dB — level is never the problem.",
+      "eq_summary": "Sax owns the ~2k slot in the three-horn line, so its cut sits at 1k (−6, clears the bone's lane and its own honk). −4 @ 6k takes the clip-mic plastic glare; +2 @ 400 warms the thin capsule so the sax reads full, not reedy. Overtones stay — NOLA horns cut with harmonics, not volume."
+    },
+    {
+      "ch": 19, "name": "Trombone", "instrument": "Trombone", "mic": "Audio-Technica Pro 35",
+      "section": "HORNS", "phantom": true, "ribbon": false, "tour": false, "stand": "Clip",
+      "notes": "Clip on the bell; player roams. Fast-attack comp same as sax.",
+      "hpf": 60, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -4, "freq": 5000, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -6, "freq": 600, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 2, "gain": 2, "freq": 250, "q": 1.2, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Same Pro 35 character — rounded treble, voiced presence, thin lows.",
+      "eq_summary": "Bone owns the ~1k slot (research: it differentiates there), so nothing is cut at 1k — the blat/box comes out below it at −6 @ 600. −4 @ 5k for the clip glare, +2 @ 250 for the low warmth that makes a trombone sound like brass plumbing instead of a kazoo. HPF 60 keeps the pedal-range weight."
+    },
+    {
+      "ch": 20, "name": "Trumpet", "instrument": "Trumpet", "mic": "Audio-Technica Pro 35",
+      "section": "HORNS", "phantom": true, "ribbon": false, "tour": false, "stand": "Clip",
+      "notes": "Clip on the bell; player roams. Fast-attack comp; trumpet is the loudest thing on stage.",
+      "hpf": 150, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -3, "freq": 3500, "q": 2.0, "type": "BELL", "deq": null},
+        {"b": 3, "gain": -5, "freq": 1100, "q": 1.8, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Pro 35 on a trumpet bell: the voiced presence plus trumpet's natural 1–4k aggression is the thing to manage, not encourage.",
+      "eq_summary": "Trumpet owns 3k-and-up in the slotting, so only a −3 trim at 3.5k keeps it from dominating the A15s while the brilliance above stays intact. −5 @ 1.1k clears its honk out of the bone's lane. HPF 150 per the research consensus — nothing useful below. It'll still lead the section; that's the job."
+    },
+    {
+      "ch": 25, "name": "Vocal 1", "instrument": "Lead Vocal", "mic": "Shure Beta 58A",
+      "section": "VOCALS", "phantom": false, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "Jason Burkett — lead. CUTS ONLY (feedback rule). Comp to even the shout-to-croon range; expander opens on breath. OVERRIDES the FSQ template wireless curve/notch on this fader — confirm on console.",
+      "hpf": 120, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -4, "freq": 4000, "q": 2.0, "type": "BELL", "deq": {"thr": -18, "atk_ms": 3, "rel_ms": 120}},
+        {"b": 3, "gain": -8, "freq": 600, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 2, "gain": -5, "freq": 250, "q": 1.6, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Beta 58A: two baked presence peaks (4k and 10k), sub-500 attenuated for proximity control, supercardioid = the gain-before-feedback pick outdoors (Shure spec + KB).",
+      "eq_summary": "Cuts only. −8 @ 600 is the box cut where feedback builds first — deep per FSQ. −5 @ 250 handles the proximity mud when he eats the mic on the shouters. The 4k peak gets a DYNAMIC −4 (thr −18, 3 ms/120 ms): it only clamps when he leans in hot, so intelligibility stays the rest of the time. The 10k peak is left alone — that's the only air a cuts-only channel gets."
+    },
+    {
+      "ch": 26, "name": "Vocal 2", "instrument": "Backing Vocal", "mic": "Shure Beta 58A",
+      "section": "VOCALS", "phantom": false, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "Backing / shared — horn players sing gang vocals. Matched to Vocal 1 so it's a working SPARE for the lead. Same template-override flag as CH25.",
+      "hpf": 120, "lpf": null,
+      "bands": [
+        {"b": 4, "gain": -4, "freq": 4000, "q": 2.0, "type": "BELL", "deq": {"thr": -18, "atk_ms": 3, "rel_ms": 120}},
+        {"b": 3, "gain": -8, "freq": 600, "q": 1.8, "type": "BELL", "deq": null},
+        {"b": 2, "gain": -5, "freq": 250, "q": 1.6, "type": "BELL", "deq": null}
+      ],
+      "mic_notes": "Matched to CH25.",
+      "eq_summary": "Identical to Vocal 1 — gang vocals hit it loose and off-axis, and matching means it doubles as the lead spare without a rebuild mid-show."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tempest-preview",
+      "runtimeExecutable": "/usr/bin/python3",
+      "runtimeArgs": ["-m", "http.server", "4321", "--directory", "tempest-dashboard/public"],
+      "port": 4321
+    },
+    {
+      "name": "spl-monitor-live",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd SPL-Monitor && SPL_SOURCE=smaart SMAART_HOST=192.24.143.121 SPL_PORT=8081 exec ./.venv/bin/python -m backend.app"],
+      "port": 8081
+    },
+    {
+      "name": "spl-monitor-sim",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd SPL-Monitor && SPL_SOURCE=simulator SPL_PORT=8083 exec ./.venv/bin/python -m backend.app"],
+      "port": 8083
+    }
+  ]
+}

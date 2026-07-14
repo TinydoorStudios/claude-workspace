@@ -1,0 +1,27 @@
+=== Tue Jun 16 22:49:15 EDT 2026 — SPL Monitor TZ fix (n8n VM via tds) ===
+--- 0. confirm VM + current timezone ---
+host: n8n  user: brian
+VM date now: Wed Jun 17 02:49:15 UTC 2026
+system TZ:
+                Time zone: Etc/UTC (UTC, +0000)
+spl-monitor: active
+/opt/spl-monitor: present
+--- 1. rsync source (frontend clock fix) ---
+--- 2a. set VM system timezone to America/New_York ---
+set ->                 Time zone: America/New_York (EDT, -0400)
+--- 2b. rewrite /etc/spl-monitor.env with TZ=America/New_York (full var set) ---
+env written:
+SPL_SOURCE=smaart
+SMAART_HOST=192.24.143.121
+SMAART_PORT=26000
+SPL_PORT=8090
+SPL_ALERT_WEBHOOK=http://localhost:5678/webhook/spl-violation
+TZ=America/New_York
+--- 3. restart service ---
+active
+--- 4. verify process is on Eastern time ---
+VM date: Tue Jun 16 22:49:20 EDT 2026
+spl-monitor PID: 1161471
+process TZ env: TZ=America/New_York
+daily generatedAt: 2026-06-16T22:49:20-04:00
+=== done Tue Jun 16 22:49:20 EDT 2026 ===

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "showbuilder",
+      "runtimeExecutable": "./.venv/bin/python",
+      "runtimeArgs": ["-m", "backend.app"],
+      "port": 8095
+    }
+  ]
+}

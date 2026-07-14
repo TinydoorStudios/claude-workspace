@@ -1,0 +1,39 @@
+===== Memo SPL fix redeploy  Fri Jul 10 18:30:21 EDT 2026 =====
+----- rsync source -----
+rsync OK
+----- restart -----
+active
+----- verify: local curl -----
+local 8091 = HTTP 200
+----- verify: journal -----
+Jul 10 18:30:18 n8n python[1488740]:   File "/opt/spl-monitor-memo/backend/showinfo.py", line 89, in __init__
+Jul 10 18:30:18 n8n python[1488740]:     self.schedule_url = _export_url(si["scheduleSheetId"], si["scheduleGid"])
+Jul 10 18:30:18 n8n python[1488740]:                                     ~~^^^^^^^^^^^^^^^^^^^
+Jul 10 18:30:18 n8n python[1488740]: KeyError: 'scheduleSheetId'
+Jul 10 18:30:18 n8n systemd[1]: spl-monitor-memo.service: Main process exited, code=exited, status=1/FAILURE
+Jul 10 18:30:18 n8n systemd[1]: spl-monitor-memo.service: Failed with result 'exit-code'.
+Jul 10 18:30:21 n8n systemd[1]: spl-monitor-memo.service: Scheduled restart job, restart counter is at 98.
+Jul 10 18:30:21 n8n systemd[1]: Stopped spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:30:21 n8n systemd[1]: Started spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:30:22 n8n python[1488744]: Traceback (most recent call last):
+Jul 10 18:30:22 n8n python[1488744]:   File "<frozen runpy>", line 198, in _run_module_as_main
+Jul 10 18:30:22 n8n python[1488744]:   File "<frozen runpy>", line 88, in _run_code
+Jul 10 18:30:22 n8n python[1488744]:   File "/opt/spl-monitor-memo/backend/app.py", line 327, in <module>
+Jul 10 18:30:22 n8n python[1488744]:     main()
+Jul 10 18:30:22 n8n python[1488744]:   File "/opt/spl-monitor-memo/backend/app.py", line 317, in main
+Jul 10 18:30:22 n8n python[1488744]:     app, cfg = build_app()
+Jul 10 18:30:22 n8n python[1488744]:                ^^^^^^^^^^^
+Jul 10 18:30:22 n8n python[1488744]:   File "/opt/spl-monitor-memo/backend/app.py", line 302, in build_app
+Jul 10 18:30:22 n8n python[1488744]:     app["showinfo"] = ShowInfoTracker(cfg)
+Jul 10 18:30:22 n8n python[1488744]:                       ^^^^^^^^^^^^^^^^^^^^
+Jul 10 18:30:22 n8n python[1488744]:   File "/opt/spl-monitor-memo/backend/showinfo.py", line 89, in __init__
+Jul 10 18:30:22 n8n python[1488744]:     self.schedule_url = _export_url(si["scheduleSheetId"], si["scheduleGid"])
+Jul 10 18:30:22 n8n python[1488744]:                                     ~~^^^^^^^^^^^^^^^^^^^
+Jul 10 18:30:22 n8n python[1488744]: KeyError: 'scheduleSheetId'
+Jul 10 18:30:22 n8n systemd[1]: spl-monitor-memo.service: Main process exited, code=exited, status=1/FAILURE
+Jul 10 18:30:22 n8n systemd[1]: spl-monitor-memo.service: Failed with result 'exit-code'.
+Jul 10 18:30:22 n8n systemd[1]: Stopped spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:30:22 n8n systemd[1]: Started spl-monitor-memo.service - SPL Monitor — Memorial Hall (Smaart live dashboard).
+Jul 10 18:30:23 n8n python[1488781]: /opt/spl-monitor-memo/backend/app.py:190: DeprecationWarning: Changing state of started or joined application is deprecated
+Jul 10 18:30:23 n8n python[1488781]:   app["last_frame_ts"] = time.time()
+===== end =====

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Verve Pipe — Show Packet</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 11pt; color: #111; background: #fff; margin: 36px; }
+  h1 { font-size: 18pt; margin-bottom: 2px; }
+  .subtitle { font-size: 10.5pt; color: #555; margin-bottom: 24px; border-bottom: 2px solid #1c3558; padding-bottom: 8px; }
+  h2 { font-size: 13pt; background: #1c3558; color: #fff; padding: 5px 10px; margin-top: 28px; margin-bottom: 0; }
+  h3 { font-size: 11pt; color: #1c3558; margin-top: 14px; margin-bottom: 4px; border-bottom: 1px solid #ccc; }
+  p { margin: 6px 0; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 18px 0; font-size: 10pt; }
+  th { background: #1c3558; color: #fff; padding: 5px 8px; text-align: left; }
+  td { border: 1px solid #ccc; padding: 4px 8px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f4f6f9; }
+  .warn { color: #c00; font-weight: bold; }
+  .note-block { background: #f4f6f9; border-left: 4px solid #1c3558; padding: 8px 12px; margin: 10px 0; font-size: 10pt; line-height: 1.5; }
+  .reverb-card { border: 1px solid #ccc; margin-bottom: 12px; page-break-inside: avoid; }
+  .reverb-header { background: #2a4a7a; color: #fff; padding: 5px 10px; font-weight: bold; font-size: 10.5pt; }
+  .reverb-params { font-family: monospace; font-size: 9.5pt; padding: 5px 10px; background: #f0f3f8; }
+  .reverb-note { padding: 5px 10px; font-size: 10pt; font-style: italic; color: #444; }
+  ol, ul { margin: 6px 0; padding-left: 20px; font-size: 10.5pt; line-height: 1.8; }
+  .file-index td:first-child { font-family: monospace; font-size: 9.5pt; }
+  .eq-summary td { font-size: 9.5pt; }
+</style>
+</head>
+<body>
+
+<h1>The Verve Pipe</h1>
+<div class="subtitle">Venue: Fountain Square (FSQ) &nbsp;|&nbsp; Console: DiGiCo Q225 &nbsp;|&nbsp; Date: 2026-05-29 &nbsp;|&nbsp; Engineer: Brian Lloyd</div>
+
+<!-- SHOW OVERVIEW -->
+<h2>Show Overview</h2>
+<p>The Verve Pipe — original 90s alt-rock band at Fifth Third Center Stage, Fountain Square, Cincinnati OH. Dense guitar-forward mix: two guitar positions each running dual-mic rigs (SM57 + Beta 27), two-mic kick (Beta 91 + Beta 52), and four channels of electronics/loops. Vocals arriving via Dante/wireless — not in this patch. Reverb via Seventh Heaven Pro (6 presets below).</p>
+
+<div class="note-block">
+  <strong>PA:</strong> L-Acoustics A15 (4× per side, flown) + 8× KS21 subs (delayed arch). System tuned — do not adjust processor settings.<br>
+  <strong>Monitors:</strong> Midas M32 (dedicated — does not rotate to FOH at FSQ).<br>
+  <strong>RF:</strong> Tempest unit #215217. Dante/wireless vocals on separate route — confirm feed is live before show.<br>
+  <strong>Outdoor note:</strong> No natural room — reverb does all the work. Pre-delay is critical for intelligibility. Don't pull decay down as aggressively as Memo.
+</div>
+
+<!-- INPUT LIST SUMMARY -->
+<h2>Input List — Active Channels</h2>
+<table>
+  <tr><th>Ch</th><th>Instrument</th><th>Console Name</th><th>Mic / DI</th><th>Notes</th></tr>
+  <tr><td>1</td><td>Kick In</td><td>Kick In</td><td>Shure Beta 91</td><td>Attack layer — boundary inside batter head</td></tr>
+  <tr><td>2</td><td>Kick Out</td><td>Kick Out</td><td>Shure Beta 52</td><td>Body/thump layer</td></tr>
+  <tr><td>3</td><td>Snare Top</td><td>Snare Top</td><td>Shure SM57</td><td></td></tr>
+  <tr><td>4</td><td>Snare Bottom</td><td>Snare Bot</td><td>Shure SM57</td><td><span class="warn">Polarity check vs Ch 3</span></td></tr>
+  <tr><td>5</td><td>Hat</td><td>Hat</td><td>Shure SM81</td><td></td></tr>
+  <tr><td>6</td><td>Rack 1</td><td>Rack 1</td><td>Audix D2</td><td></td></tr>
+  <tr><td>7</td><td>Floor</td><td>Floor</td><td>Audix D4</td><td></td></tr>
+  <tr><td>8</td><td>Ride</td><td>Ride</td><td>Shure SM81</td><td></td></tr>
+  <tr><td>9</td><td>Overhead Left</td><td>OH Left</td><td>Shure SM81</td><td><span class="warn">Polarity check — mono sum</span></td></tr>
+  <tr><td>10</td><td>Overhead Right</td><td>OH Right</td><td>Shure SM81</td><td><span class="warn">Polarity check vs Ch 9</span></td></tr>
+  <tr><td>11</td><td>Bass DI</td><td>Bass DI</td><td>Radial ProDI (passive)</td><td>Low-end owner in bass blend</td></tr>
+  <tr><td>12</td><td>Bass Mic</td><td>Bass Mic</td><td>Shure SM57</td><td><span class="warn">Polarity check vs Ch 11</span></td></tr>
+  <tr><td>13</td><td>Guitar Center (SM57)</td><td>GTR C 57</td><td>Shure SM57</td><td>Lead mic in center cab blend</td></tr>
+  <tr><td>14</td><td>Guitar Center (Beta27)</td><td>GTR C B27</td><td>Shure Beta 27</td><td><span class="warn">Polarity check vs Ch 13 — CRITICAL</span></td></tr>
+  <tr><td>15</td><td>Guitar Right (SM57)</td><td>GTR R 57</td><td>Shure SM57</td><td>Lead mic in right cab blend</td></tr>
+  <tr><td>16</td><td>Guitar Right (Beta27)</td><td>GTR R B27</td><td>Shure Beta 27</td><td><span class="warn">Polarity check vs Ch 15 — CRITICAL</span></td></tr>
+  <tr><td>17</td><td>Acoustic</td><td>Acoustic</td><td>Radial ProDI (passive)</td><td>Onboard pickup assumed</td></tr>
+  <tr><td>18</td><td>Keys</td><td>Keys</td><td>Radial ProDI (passive)</td><td></td></tr>
+  <tr><td>19</td><td>SPDX</td><td>SPDX</td><td>Radial ProDI (passive)</td><td>Roland SPD-SX — get all pads at soundcheck</td></tr>
+  <tr><td>20</td><td>Looper</td><td>Looper</td><td>Radial ProDI (passive)</td><td>Monitor level as loops stack</td></tr>
+  <tr><td>21–32</td><td colspan="4"><em>No mic — vocals via Dante/wireless on separate route.</em></td></tr>
+</table>
+
+<!-- EQ SUMMARY -->
+<h2>EQ Summary</h2>
+<table class="eq-summary">
+  <tr><th>Ch</th><th>Name</th><th>HPF / LPF</th><th>Key EQ Moves</th></tr>
+  <tr><td>1</td><td>Kick In</td><td>40 Hz / Off</td><td>HS −3 @ 8k · Bell −3 @ 3.5k · Bell −4 @ 300 Hz · B4 flat</td></tr>
+  <tr><td>2</td><td>Kick Out</td><td>25 Hz / Off</td><td>HS −4 @ 8k · Bell −4 @ 2.5k · Bell −3 @ 350 Hz · LS +3 @ 60 Hz</td></tr>
+  <tr><td>3</td><td>Snare Top</td><td>100 Hz / Off</td><td>HS +2 @ 10k · Bell −2 @ 1.2k · Bell −4 @ 400 Hz · Bell −6 @ 200 Hz</td></tr>
+  <tr><td>4</td><td>Snare Bot</td><td>200 Hz / Off</td><td>HS +3 @ 8k · Bell −3 @ 2k · Bell −5 @ 400 Hz · LS −8 @ 200 Hz</td></tr>
+  <tr><td>5</td><td>Hat</td><td>450 Hz / Off</td><td>HS −2 @ 12k · Bell −3 @ 6k · Bell −3 @ 800 Hz · Bell −5 @ 350 Hz</td></tr>
+  <tr><td>6</td><td>Rack 1</td><td>80 Hz / Off</td><td>HS −2 @ 10k · Bell −3 @ 2k · Bell −4 @ 500 Hz · LS +2 @ 80 Hz</td></tr>
+  <tr><td>7</td><td>Floor</td><td>50 Hz / Off</td><td>HS −2 @ 8k · Bell −3 @ 2k · Bell −4 @ 400 Hz · LS +3 @ 80 Hz</td></tr>
+  <tr><td>8</td><td>Ride</td><td>500 Hz / Off</td><td>HS −3 @ 12k · Bell −2 @ 4k · Bell −4 @ 800 Hz · Bell −5 @ 400 Hz</td></tr>
+  <tr><td>9</td><td>OH Left</td><td>200 Hz / Off</td><td>HS −1 @ 12k · Bell −2 @ 5k · Bell −3 @ 250 Hz · Bell −4 @ 150 Hz</td></tr>
+  <tr><td>10</td><td>OH Right</td><td>200 Hz / Off</td><td>Matched to Ch 9</td></tr>
+  <tr><td>11</td><td>Bass DI</td><td>35 Hz / Off</td><td>HS −3 @ 8k · Bell +2 @ 1.5k · Bell −4 @ 250 Hz · LS +2 @ 80 Hz</td></tr>
+  <tr><td>12</td><td>Bass Mic</td><td>60 Hz / Off</td><td>HS −4 @ 6k · Bell −2 @ 2.5k · Bell −3 @ 400 Hz · Bell −6 @ 100 Hz</td></tr>
+  <tr><td>13</td><td>GTR C 57</td><td>100 Hz / Off</td><td>HS −2 @ 8k · Bell −3 @ 3k · Bell −4 @ 400 Hz · Bell −6 @ 150 Hz</td></tr>
+  <tr><td>14</td><td>GTR C B27</td><td>120 Hz / Off</td><td>HS −1 @ 10k · Bell −2 @ 2.5k · Bell −3 @ 350 Hz · LS −4 @ 150 Hz</td></tr>
+  <tr><td>15</td><td>GTR R 57</td><td>100 Hz / Off</td><td>Matched to Ch 13</td></tr>
+  <tr><td>16</td><td>GTR R B27</td><td>120 Hz / Off</td><td>Matched to Ch 14</td></tr>
+  <tr><td>17</td><td>Acoustic</td><td>80 Hz / Off</td><td>HS −2 @ 10k · Bell −3 @ 3k · Bell −4 @ 400 Hz · LS −3 @ 120 Hz</td></tr>
+  <tr><td>18</td><td>Keys</td><td>40 Hz / Off</td><td>HS −2 @ 12k · Bell −3 @ 3k · Bell −3 @ 250 Hz · LS −3 @ 100 Hz</td></tr>
+  <tr><td>19</td><td>SPDX</td><td>35 Hz / Off</td><td>HS −3 @ 10k · Bell −3 @ 3k · Bell −3 @ 300 Hz · B4 flat</td></tr>
+  <tr><td>20</td><td>Looper</td><td>60 Hz / Off</td><td>HS −2 @ 10k · Bell −3 @ 3k · Bell −3 @ 400 Hz · Bell −4 @ 150 Hz</td></tr>
+</table>
+
+<!-- REVERB -->
+<h2>Reverb — Seventh Heaven Pro (6 Presets)</h2>
+
+<div class="note-block">FSQ is outdoor — no natural room decay. Keep decay at or near factory; the reverb carries all the space. Pre-delay is critical for intelligibility. Early/Late and Late Rolloff at factory unless noted.</div>
+
+<div class="reverb-card">
+  <div class="reverb-header">① Vocal Hall &nbsp;|&nbsp; Halls 1 / Concert Hall &nbsp;✓ verified</div>
+  <div class="reverb-params">Preset: Halls 1 / Concert Hall | Decay 2.2s • PreDelay 18ms • VLF −10dB • Early/Late: factory • Late Rolloff: factory • Mix 12%</div>
+  <div class="reverb-note">2.2s factory decay is appropriate for outdoor — the room isn't adding anything here. Primary vocal hall send. VLF at −10dB factory is already conservative; leave it unless the low end gets muddy outdoors.</div>
+</div>
+
+<div class="reverb-card">
+  <div class="reverb-header">② Vocal Plate &nbsp;|&nbsp; Plates 1 / Vocal Plate &nbsp;✓ verified (#06)</div>
+  <div class="reverb-params">Preset: Plates 1 / Vocal Plate | Decay 1.5s • PreDelay 24ms • VLF −19dB • Equal Mix • Late Rolloff: factory • Mix 15%</div>
+  <div class="reverb-note">Factory settings throughout. VLF at −19dB keeps the low end clean. Good workhorse when the hall gets too big outdoors, or as the primary on backgrounds. Pulls back behind the voice without washing it.</div>
+</div>
+
+<div class="reverb-card">
+  <div class="reverb-header">③ Vocal — Something Nice &nbsp;|&nbsp; Chambers 1 / Sunset Chamber &nbsp;✓ verified</div>
+  <div class="reverb-params">Preset: Chambers 1 / Sunset Chamber | Decay 2.15s • PreDelay 20ms • VLF −20dB • Early/Late: factory • Late Rolloff: factory • Mix 10%</div>
+  <div class="reverb-note">Long, warm chamber. At Memo you'd pull decay back — at FSQ let it run at factory 2.15s; the room adds nothing underneath it. The Verve Pipe's catalog suits this quality. Keep mix conservative; it's an enveloping send, not a slapback.</div>
+</div>
+
+<div class="reverb-card">
+  <div class="reverb-header">④ Guitar Room &nbsp;|&nbsp; Rooms 2 / Guitar Room &nbsp;✓ verified (#16)</div>
+  <div class="reverb-params">Preset: Rooms 2 / Guitar Room | Decay 1.2s • PreDelay 0ms • VLF −11dB • Equal Mix • Late Rolloff: factory • Mix 8%</div>
+  <div class="reverb-note">300ms hardware delay baked in at −14dB — leave it. That's the point of this preset. Feed the SM57 channels (Ch 13, 15); Beta27 blend at lower send level. Mix low; the delay provides depth without wash.</div>
+</div>
+
+<div class="reverb-card">
+  <div class="reverb-header">⑤ Snare &nbsp;|&nbsp; Plates 1 / Snare Plate A &nbsp;✓ verified</div>
+  <div class="reverb-params">Preset: Plates 1 / Snare Plate A | Decay 1.2s • PreDelay: factory • VLF −9dB • Early/Late: factory • Late Rolloff: factory • Mix 20%</div>
+  <div class="reverb-note">Run it hotter than you would at Memo — outdoors the snare crack has nothing to bounce off. Dense and fast. Watch feedback with open mics; outdoor gain margins are tighter.</div>
+</div>
+
+<div class="reverb-card">
+  <div class="reverb-header">⑥ Acoustic / Keys &nbsp;|&nbsp; Rooms 1 / Large Wooden &nbsp;✓ verified</div>
+  <div class="reverb-params">Preset: Rooms 1 / Large Wooden | Decay 1.2s • PreDelay: factory • VLF −9dB • Early/Late: factory • Late Rolloff: factory • Mix 10%</div>
+  <div class="reverb-note">Shared send for acoustic (Ch 17) and keys (Ch 18). Natural, airy room — seats those cleaner DI sources in the same space without over-processing. Good foil to the denser vocal sends.</div>
+</div>
+
+<!-- MIC CHOICES -->
+<h2>Mic Choices &amp; Notes</h2>
+
+<h3>Kick — Two-Mic Rig</h3>
+<p>Beta 91 (Ch 1) inside on batter head — attack/click. Beta 52 (Ch 2) for body. Start Ch 1 at unity, bring Ch 2 up for weight. +3 dB low shelf at 60 Hz on Ch 2 feeds the KS21 subs.</p>
+
+<h3>Snare</h3>
+<p>SM57 top and bottom. Polarity check on Ch 4 vs Ch 3 before advancing fader — almost always needs flipping.</p>
+
+<h3>Hat / Ride</h3>
+<p>SM81 on both. Aggressive HPF (450 / 500 Hz). Duckers rather than hard gates on both.</p>
+
+<h3>Overheads</h3>
+<p>SM81 pair, true overhead position. Stereo linked. Check mono sum before advancing.</p>
+
+<h3>Bass</h3>
+<p>Radial ProDI (Ch 11) for fundamental; SM57 on cab (Ch 12) for grit. Polarity check Ch 12 vs Ch 11. DI owns the bottom.</p>
+
+<h3>Guitars — Dual-Mic Rigs</h3>
+<p>Each cab: SM57 (attack, lead) + Beta 27 (warmth, blend). Center = Ch 13/14, Right = Ch 15/16. Start SM57 at unity, Beta 27 6–8 dB below. Polarity check each Beta 27 before blending. Check mono sum for comb filtering around 300–500 Hz.</p>
+
+<h3>Acoustic / Keys / Electronics</h3>
+<p>All passive Radial ProDI. Acoustic EQ assumes onboard piezo — adjust at soundcheck. SPDX: Band 4 flat until you hear the patches. Looper: monitor level as layers build; comp threshold may need live adjustment.</p>
+
+<!-- PATCHING -->
+<h2>Patching &amp; Routing</h2>
+<table>
+  <tr><th>Group</th><th>Channels</th><th>VCA</th><th>Reverb Sends</th></tr>
+  <tr><td>Drums</td><td>1–10</td><td>Drums</td><td>Snare → ⑤ Snare Plate · OH → ④ Guitar Room (light)</td></tr>
+  <tr><td>Bass</td><td>11–12</td><td>Bass</td><td>—</td></tr>
+  <tr><td>Guitars</td><td>13–16</td><td>Guitars</td><td>Ch 13/15 SM57 → ④ Guitar Room</td></tr>
+  <tr><td>Keys/Electronics</td><td>17–20</td><td>Keys/Elec</td><td>Acoustic/Keys → ⑥ Large Wooden</td></tr>
+  <tr><td>Vocals</td><td>21–32</td><td>Vocals</td><td>Lead → ①②③ to taste · Bgvox → ① Hall</td></tr>
+</table>
+
+<!-- SOUNDCHECK -->
+<h2>Soundcheck Order</h2>
+<ol>
+  <li>Confirm Dante/wireless vocal feed routing to Q225 Ch 21–32</li>
+  <li>Kick Ch 1 solo → blend Ch 2</li>
+  <li>Bass DI Ch 11 → blend Ch 12 (polarity check)</li>
+  <li>Full drum kit — gates/duckers, snare polarity</li>
+  <li>GTR C 57 (Ch 13) → blend B27 (Ch 14, polarity check)</li>
+  <li>GTR R 57 (Ch 15) → blend B27 (Ch 16, polarity check)</li>
+  <li>Acoustic Ch 17 — tune EQ to actual pickup</li>
+  <li>Keys Ch 18 · SPDX all pads Ch 19 · Looper Ch 20</li>
+  <li>Set reverb levels against vocal feed</li>
+  <li>Band pass</li>
+</ol>
+
+<!-- FILE INDEX -->
+<h2>File Index</h2>
+<table class="file-index">
+  <tr><th>File</th><th>Description</th></tr>
+  <tr><td>The Verve Pipe - FOH Channel Processing.pdf</td><td>Full per-channel EQ/dynamics cards with Quick Summaries</td></tr>
+  <tr><td>The Verve Pipe - FOH Channel Processing.html</td><td>HTML source</td></tr>
+  <tr><td>The Verve Pipe - FOH Channel Processing.md</td><td>Machine-readable patcher source</td></tr>
+  <tr><td>The Verve Pipe - Show Packet.pdf</td><td>This document</td></tr>
+  <tr><td>apply_vervepipe.py</td><td>Q225 patcher script (Stage 2 pending — strip structure investigation in progress)</td></tr>
+</table>
+
+<div class="note-block" style="margin-top:20px; font-size:9.5pt;">Generated 2026-05-29 · Stage 1 complete · Stage 2 in investigation · Stage 3 complete</div>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+=== fix-downloads-path 20260611-095800 ===
+[1] Backup current nginx.conf…
+[2] Write exact nginx.conf (adds /downloads/)…
+[3] Validate + reload nginx…
+   reloaded (container: landing)
+[4] Push markdown + force wiki sync…
+   pushed
+   wiki sync triggered
+[5] Verify /downloads/ through Cloudflare:
+     404  /downloads/shows/2026-06-20-blue-eighty-eight/foh-channel-processing.pdf
+     404  /downloads/shows/2026-06-20-blue-eighty-eight/input-list.xlsx
+     404  /downloads/shows/2026-06-20-blue-eighty-eight/blue-eighty-eight.ses
+     404  /downloads/shows/2026-06-20-blue-eighty-eight/handoff.pdf
+
+Still failing — then the Cloudflare intercept also covers /downloads/,
+and only removing that route in the Cloudflare dashboard will fix it.

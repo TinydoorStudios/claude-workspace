@@ -1,0 +1,211 @@
+{
+  "name": "Weather Station Heartbeat Monitor",
+  "nodes": [
+    {
+      "id": "f3a1e9b2-4c7d-4e8f-9012-3a5b6c7d8e9f",
+      "name": "Receive Heartbeat",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 340],
+      "webhookId": "weather-heartbeat",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "weather-heartbeat",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "a2b3c4d5-e6f7-8901-2345-6789abcdef01",
+      "name": "Register Heartbeat",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 340],
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst body = $input.first().json.body ?? $input.first().json;\n\n// Normalize station ID — lowercase, spaces to underscores\nconst stationId = String(body.station_id ?? body.id ?? 'unknown')\n  .toLowerCase()\n  .replace(/\\s+/g, '_');\nconst stationName = body.station_name ?? body.name ?? stationId;\n\nif (!staticData.stations) {\n  staticData.stations = {};\n}\n\n// Stamp last_seen; preserve last_alerted if it exists\nstaticData.stations[stationId] = {\n  ...( staticData.stations[stationId] || {} ),\n  id: stationId,\n  name: stationName,\n  last_seen: new Date().toISOString()\n};\n\nreturn [{\n  json: {\n    success: true,\n    station_id: stationId,\n    station_name: stationName,\n    recorded_at: staticData.stations[stationId].last_seen\n  }\n}];"
+      }
+    },
+    {
+      "id": "b3c4d5e6-f7a8-9012-3456-789abcdef012",
+      "name": "Heartbeat Payload Format",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [200, 100],
+      "parameters": {
+        "content": "## 📡 Heartbeat Endpoint\n\nOnce active, each station POSTs JSON here:\n```\n{\n  \"station_id\": \"roof\",\n  \"station_name\": \"Roof Station\"\n}\n```\n_station\\_name is optional — defaults to station\\_id_\n\nStations must check in at least once before the monitor will watch them.",
+        "height": 210,
+        "width": 380,
+        "color": 6
+      }
+    },
+    {
+      "id": "c4d5e6f7-a8b9-0123-4567-89abcdef0123",
+      "name": "Every 5 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 600],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "d5e6f7a8-b9c0-1234-5678-9abcdef01234",
+      "name": "Check Station Health",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 600],
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst now = new Date();\nconst THRESHOLD_MS = 30 * 60 * 1000;  // alert after 30 min silence\nconst COOLDOWN_MS  = 30 * 60 * 1000;  // re-alert at most once per 30 min\n\nif (!staticData.stations || Object.keys(staticData.stations).length === 0) {\n  return [{ json: { overdueStations: [] } }];\n}\n\nconst overdueStations = [];\n\nfor (const [id, station] of Object.entries(staticData.stations)) {\n  const lastSeen  = new Date(station.last_seen);\n  const elapsed   = now - lastSeen;\n  const minutesAgo = Math.floor(elapsed / 60000);\n\n  if (elapsed > THRESHOLD_MS) {\n    const lastAlerted  = station.last_alerted ? new Date(station.last_alerted) : null;\n    const shouldAlert  = !lastAlerted || (now - lastAlerted >= COOLDOWN_MS);\n\n    if (shouldAlert) {\n      overdueStations.push({\n        id,\n        name: station.name,\n        last_seen: station.last_seen,\n        minutes_ago: minutesAgo\n      });\n      staticData.stations[id].last_alerted = now.toISOString();\n    }\n  }\n}\n\nreturn [{ json: { overdueStations, check_time: now.toISOString() } }];"
+      }
+    },
+    {
+      "id": "e6f7a8b9-c0d1-2345-6789-abcdef012345",
+      "name": "Any Stations Overdue?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [720, 600],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-overdue-check",
+              "leftValue": "={{ $json.overdueStations.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f7a8b9c0-d1e2-3456-789a-bcdef0123456",
+      "name": "Format Alert Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [980, 520],
+      "parameters": {
+        "jsCode": "const stations = $input.first().json.overdueStations;\n\nconst lines = stations.map(s => {\n  const h = Math.floor(s.minutes_ago / 60);\n  const m = s.minutes_ago % 60;\n  const timeStr = h > 0 ? `${h}h ${m}m` : `${m}m`;\n  const lastSeenStr = new Date(s.last_seen).toLocaleString('en-US', {\n    timeZone: 'America/New_York',\n    month: 'short',\n    day: 'numeric',\n    hour: 'numeric',\n    minute: '2-digit'\n  });\n  return `:warning: *${s.name}* — last seen ${timeStr} ago (${lastSeenStr} ET)`;\n});\n\nconst count = stations.length;\nconst message = `:satellite: *Weather Station Alert*\\n${\n  count === 1 ? 'A station has' : `${count} stations have`\n} not reported in over 30 minutes:\\n\\n${lines.join('\\n')}`;\n\nreturn [{ json: { message } }];"
+      }
+    },
+    {
+      "id": "a8b9c0d1-e2f3-4567-89ab-cdef01234567",
+      "name": "Send Slack DM",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1240, 520],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": {
+          "__rl": true,
+          "value": "UHSLD08SV",
+          "mode": "id"
+        },
+        "text": "={{ $json.message }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "id": "b9c0d1e2-f3a4-5678-9abc-def012345678",
+      "name": "Setup Instructions",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [980, 280],
+      "parameters": {
+        "content": "## 🔧 Before You Activate\n\n**1. Slack credential**\nOpen the *Send Slack DM* node → select your Slack credential (or create one in Credentials). The app needs the `chat:write` scope.\n\n**2. Your Slack User ID**\nIn the *Send Slack DM* node, replace `YOUR_SLACK_USER_ID` with your member ID.\nIn Slack: click your profile photo → *View full profile* → ⋯ → *Copy member ID*\nFormat: `U0XXXXXXXXX`\n\n**3. Alert logic**\n- Checks every 5 min\n- Alerts after 30 min of silence\n- Re-alerts at most once per 30 min per station\n- Timestamps shown in Eastern Time",
+        "height": 230,
+        "width": 460,
+        "color": 4
+      }
+    }
+  ],
+  "connections": {
+    "Receive Heartbeat": {
+      "main": [
+        [
+          {
+            "node": "Register Heartbeat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every 5 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Check Station Health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Station Health": {
+      "main": [
+        [
+          {
+            "node": "Any Stations Overdue?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Stations Overdue?": {
+      "main": [
+        [
+          {
+            "node": "Format Alert Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Format Alert Message": {
+      "main": [
+        [
+          {
+            "node": "Send Slack DM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": ""
+  }
+}

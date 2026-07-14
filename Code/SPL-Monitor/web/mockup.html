@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPL Monitor — design draft</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c232d; --line:#2a323d; --ink:#e6edf3; --dim:#8b97a6;
+    --green:#2ecc71; --yellow:#f1c40f; --red:#e74c3c; --idle:#46505d; --blue:#4aa3ff; --amber:#ff8c1a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  .app{max-width:1480px;margin:0 auto;padding:12px 16px 16px;}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;}
+  .brand{font-weight:800;letter-spacing:3px;font-size:16px;}
+  .tctr{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--dim);}
+  .sel{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:13px;}
+  .chip{padding:3px 10px;border-radius:999px;font-weight:800;font-size:11px;letter-spacing:.5px;}
+  .chip.night{background:rgba(255,140,26,.16);color:var(--amber);border:1px solid rgba(255,140,26,.4);}
+  .chip.live{background:rgba(46,204,113,.15);color:var(--green);}
+  .clock{font-variant-numeric:tabular-nums;}
+
+  /* policy strip */
+  .policy{margin-top:10px;display:flex;align-items:center;gap:14px;padding:9px 16px;background:linear-gradient(90deg,rgba(255,140,26,.10),var(--panel));border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:10px;font-size:13px;}
+  .policy b{color:var(--ink);}
+  .policy .seg{color:var(--dim);}
+  .policy .seg strong{color:var(--ink);font-weight:700;}
+  .policy .cal{margin-left:auto;color:var(--dim);font-size:12px;}
+
+  /* location grid */
+  .grid{margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;position:relative;overflow:hidden;}
+  .card.green{border-color:rgba(46,204,113,.45);background:linear-gradient(180deg,rgba(46,204,113,.10),var(--panel));}
+  .card.yellow{border-color:rgba(241,196,15,.5);background:linear-gradient(180deg,rgba(241,196,15,.12),var(--panel));}
+  .card.red{border-color:rgba(231,76,60,.6);background:linear-gradient(180deg,rgba(231,76,60,.16),var(--panel));}
+  .card.muted{opacity:.55;}
+  .lhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+  .lname{font-weight:700;font-size:15px;}
+  .tag{font-size:10px;font-weight:800;letter-spacing:.4px;padding:2px 7px;border-radius:5px;white-space:nowrap;}
+  .tag.real{background:rgba(46,204,113,.16);color:var(--green);}
+  .tag.virtual{background:rgba(74,163,255,.16);color:var(--blue);}
+  .lmain{display:flex;align-items:center;gap:12px;}
+  .lamp{width:26px;height:26px;border-radius:50%;background:#222a33;border:2px solid #000;flex:none;}
+  .lamp.green{background:var(--green);box-shadow:0 0 14px var(--green);}
+  .lamp.yellow{background:var(--yellow);box-shadow:0 0 14px var(--yellow);}
+  .lamp.red{background:var(--red);box-shadow:0 0 14px var(--red);}
+  .lamp.idle{background:#2a323d;}
+  .lnum{font-weight:800;font-size:42px;line-height:1;font-variant-numeric:tabular-nums;}
+  .lnum .u{font-size:15px;color:var(--dim);margin-left:4px;}
+  .lsub{margin-top:7px;color:var(--dim);font-size:12px;}
+  .lsub b{color:var(--ink);}
+  .bass{margin-top:8px;display:flex;align-items:center;gap:7px;font-size:12.5px;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:7px;}
+  .mlamp{width:11px;height:11px;border-radius:50%;flex:none;}
+  .mlamp.green{background:var(--green);} .mlamp.yellow{background:var(--yellow);} .mlamp.red{background:var(--red);} .mlamp.idle{background:#39424d;}
+  .bass .lab{color:var(--dim);} .bass .val{font-weight:700;margin-left:auto;font-variant-numeric:tabular-nums;}
+  .lpred{margin-top:8px;font-size:12px;color:var(--dim);}
+  .lpred .crit{color:var(--red);font-weight:700;} .lpred .warn{color:var(--yellow);font-weight:700;}
+  .lflag{margin-top:8px;font-size:11.5px;color:var(--amber);}
+  .lflag.floor{color:var(--dim);}
+
+  /* bottom row */
+  .bottom{margin-top:10px;display:grid;grid-template-columns:360px 1fr;gap:10px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+  .ptitle{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+  .strikes{display:flex;align-items:baseline;gap:10px;}
+  .strikes .n{font-size:54px;font-weight:800;line-height:1;color:var(--amber);font-variant-numeric:tabular-nums;}
+  .strikes .of{font-size:20px;color:var(--dim);font-weight:700;}
+  .strikes .lab{font-size:12px;color:var(--dim);margin-left:4px;}
+  .vstats{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;font-size:13px;}
+  .vstats .k{color:var(--dim);} .vstats .v{font-weight:700;}
+  .escal{margin-top:12px;padding:9px 11px;background:rgba(255,140,26,.10);border:1px solid rgba(255,140,26,.3);border-radius:8px;font-size:12.5px;color:#ffd9ad;}
+  .escal b{color:var(--amber);}
+  .vbtns{margin-top:12px;display:flex;gap:8px;}
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 12px;font-size:12.5px;cursor:pointer;}
+  .btn.alarm{margin-left:auto;color:var(--dim);}
+
+  .chartbox{position:relative;height:300px;}
+  .chartbox svg{display:block;width:100%;height:100%;}
+  .clegend{position:absolute;top:0;right:6px;display:flex;gap:14px;font-size:12px;color:var(--dim);white-space:nowrap;}
+  .clegend .lg::before{content:"";display:inline-block;width:14px;height:3px;margin-right:5px;vertical-align:middle;border-radius:2px;}
+  .lg.a::before{background:var(--blue);} .lg.bass::before{background:var(--amber);}
+  .lg.lim::before{background:var(--red);} .lg.warn::before{background:var(--yellow);}
+  .ctitle{position:absolute;top:2px;left:6px;font-size:12px;color:var(--dim);}
+
+  .footer{margin-top:10px;display:flex;justify-content:space-between;color:var(--dim);font-size:12px;padding:0 4px;}
+  .draft{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(74,163,255,.14);color:var(--blue);border:1px solid rgba(74,163,255,.4);padding:3px 12px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">SPL&nbsp;MONITOR</div>
+    <div class="tctr">
+      <span>Venue</span>
+      <select class="sel"><option>Fountain Square</option></select>
+      <span class="chip night">● NIGHT TIER</span>
+      <span>Smaart v8</span>
+      <span class="chip live">live</span>
+      <span class="clock">10:14:32 PM</span>
+    </div>
+  </div>
+
+  <div class="policy">
+    <b>Fountain Square</b>
+    <span class="seg">Compliance: <strong>6-min rolling LAeq (A)</strong></span>
+    <span class="seg">Day ≤ 95 · <strong>Night ≤ 90 dBA</strong></span>
+    <span class="seg">Bass LCeq night ≤ <strong>70</strong></span>
+    <span class="seg">Curfew <strong>11:00 PM</strong></span>
+    <span class="cal">⚑ Night tier active since 10:00 PM · calibrated 2026-06-04 (pink noise, v9)</span>
+  </div>
+
+  <div class="grid">
+
+    <!-- FOH: real reference, enforced proxy -->
+    <div class="card green">
+      <div class="lhead"><span class="lname">FOH</span><span class="tag real">REAL · reference</span></div>
+      <div class="lmain"><span class="lamp green"></span><div class="lnum">88.2<span class="u">dBA</span></div></div>
+      <div class="lsub">6-min LAeq · limit <b>90</b> (night) · head <b>1.8</b></div>
+      <div class="bass"><span class="mlamp green"></span><span class="lab">Bass LCeq</span><span class="val">86 / 95</span></div>
+      <div class="lpred">→60s 88.5 · to limit —</div>
+      <div class="lflag">&nbsp;</div>
+    </div>
+
+    <!-- Front of stage: virtual, loud, audience limit -->
+    <div class="card green">
+      <div class="lhead"><span class="lname">Front of Stage</span><span class="tag virtual">VIRTUAL · +5A / +6C</span></div>
+      <div class="lmain"><span class="lamp green"></span><div class="lnum">93.2<span class="u">dBA</span></div></div>
+      <div class="lsub">6-min LAeq · limit <b>100</b> (audience) · head <b>6.8</b></div>
+      <div class="bass"><span class="mlamp green"></span><span class="lab">Bass LCeq</span><span class="val">92 / 105</span></div>
+      <div class="lpred">→60s 93.6 · to limit —</div>
+      <div class="lflag">&nbsp;</div>
+    </div>
+
+    <!-- Jeff Ruby's: virtual, residential, near limit, weather flagged -->
+    <div class="card yellow">
+      <div class="lhead"><span class="lname">Jeff Ruby's</span><span class="tag virtual">VIRTUAL · −10A / −7C</span></div>
+      <div class="lmain"><span class="lamp yellow"></span><div class="lnum">78.6<span class="u">dBA</span></div></div>
+      <div class="lsub">6-min LAeq · limit <b>80</b> (night) · head <b>1.4</b></div>
+      <div class="bass"><span class="mlamp yellow"></span><span class="lab">Bass LCeq</span><span class="val">68 / 70</span></div>
+      <div class="lpred">→60s 79.2 · to limit <span class="warn">3:10</span></div>
+      <div class="lflag">⛅ weather-sensitive estimate (distant)</div>
+    </div>
+
+    <!-- Plaza café: below ambient floor -->
+    <div class="card muted">
+      <div class="lhead"><span class="lname">Plaza Café</span><span class="tag virtual">VIRTUAL · −18A / −14C</span></div>
+      <div class="lmain"><span class="lamp idle"></span><div class="lnum">~52<span class="u">dBA</span></div></div>
+      <div class="lsub">limit 65 (night) · head —</div>
+      <div class="bass"><span class="mlamp idle"></span><span class="lab">Bass LCeq</span><span class="val">~50 / 65</span></div>
+      <div class="lpred">below ambient floor (55) — PA not dominant</div>
+      <div class="lflag floor">estimate suppressed</div>
+    </div>
+
+  </div>
+
+  <div class="bottom">
+
+    <div class="panel">
+      <div class="ptitle">Violations — Jeff Ruby's (night 80 dBA)</div>
+      <div class="strikes"><span class="n">1</span><span class="of">/ 3</span><span class="lab">strikes this event</span></div>
+      <div class="vstats">
+        <span class="k">Time over limit</span><span class="v">0:42</span>
+        <span class="k">Peak during breach</span><span class="v">81.6 dBA</span>
+        <span class="k">Last violation</span><span class="v">9:58 PM</span>
+        <span class="k">Smaart alarms</span><span class="v">0</span>
+      </div>
+      <div class="escal">Escalation: <b>2 more strikes</b> → auto Slack + email to FOH &amp; venue mgmt (via n8n)</div>
+      <div class="vbtns"><button class="btn">Reset counter</button><span class="btn alarm">⚑ history</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="chartbox">
+        <div class="ctitle">Jeff Ruby's — last 30 min</div>
+        <div class="clegend"><span class="lg a">LAeq (A)</span><span class="lg bass">Bass LCeq</span><span class="lg lim">limit 80</span><span class="lg warn">warn 78</span></div>
+        <svg id="chart"></svg>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <span>6-min window full · 1 reading/sec logged → spl_20260604.csv</span>
+    <span>Source: Smaart v8 @ 10.0.0.21:26000 · ⛅ Wind SW 8 mph (Tempest #215217) — distant estimates flagged</span>
+  </div>
+
+</div>
+
+<div class="draft">DESIGN DRAFT · representative data</div>
+
+<script>
+// deterministic fake series for the history chart
+function draw(){
+  const box=document.querySelector('.chartbox');
+  const svg=document.getElementById('chart');
+  const W=box.clientWidth, H=box.clientHeight;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const NS='http://www.w3.org/2000/svg';
+  const padL=34,padR=12,padT=24,padB=18;
+  const lo=60, hi=84;
+  const yOf=v=> (H-padB) - (v-lo)/(hi-lo)*((H-padB)-padT);
+  const xOf=i=> padL + i/(N-1)*((W-padR)-padL);
+
+  // grid + y labels
+  for(let v=60; v<=84; v+=4){
+    const y=yOf(v);
+    const l=document.createElementNS(NS,'line');
+    l.setAttribute('x1',padL); l.setAttribute('x2',W-padR); l.setAttribute('y1',y); l.setAttribute('y2',y);
+    l.setAttribute('stroke','#222a34'); l.setAttribute('stroke-width','1'); svg.appendChild(l);
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',6); t.setAttribute('y',y+3); t.setAttribute('fill','#6b7686'); t.setAttribute('font-size','10'); t.textContent=v;
+    svg.appendChild(t);
+  }
+  function limit(v,color,label){
+    const y=yOf(v);
+    const l=document.createElementNS(NS,'line');
+    l.setAttribute('x1',padL); l.setAttribute('x2',W-padR); l.setAttribute('y1',y); l.setAttribute('y2',y);
+    l.setAttribute('stroke',color); l.setAttribute('stroke-width','1.5'); l.setAttribute('stroke-dasharray','6 5'); svg.appendChild(l);
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',padL+6); t.setAttribute('y',y-4); t.setAttribute('text-anchor','start'); t.setAttribute('fill',color); t.setAttribute('font-size','10'); t.textContent=label;
+    svg.appendChild(t);
+  }
+  const N=90;
+  // series: A around 76-81 with one excursion over 80; bass around 65-69
+  let a=[],b=[];
+  for(let i=0;i<N;i++){
+    const t=i/N;
+    const swell=2.2*Math.sin(t*7)+1.3*Math.sin(t*19+1);
+    const bump= i>58&&i<70 ? 3.2*Math.sin((i-58)/12*Math.PI) : 0; // the strike excursion
+    a.push(76.5+swell+bump+0.4*Math.sin(i*1.7));
+    b.push(65.5+1.6*Math.sin(t*9+2)+0.3*Math.sin(i*2.1)+(i>58&&i<70?1.6*Math.sin((i-58)/12*Math.PI):0));
+  }
+  limit(80,'#e74c3c','limit 80');
+  limit(78,'#f1c40f','warn 78');
+  function path(arr,color,w){
+    let d='';
+    for(let i=0;i<N;i++){ d+=(i?'L':'M')+xOf(i).toFixed(1)+' '+yOf(arr[i]).toFixed(1)+' '; }
+    const p=document.createElementNS(NS,'path');
+    p.setAttribute('d',d); p.setAttribute('fill','none'); p.setAttribute('stroke',color); p.setAttribute('stroke-width',w);
+    svg.appendChild(p);
+  }
+  path(b,'#ff8c1a',1.6);
+  path(a,'#4aa3ff',2.4);
+}
+draw();
+window.addEventListener('resize',draw);
+</script>
+</body>
+</html>

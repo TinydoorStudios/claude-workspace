@@ -1,0 +1,11 @@
+==> Creating /opt/jvc-reset on the VM
+==> Syncing code
+==> Building venv + installing requests
+==> Installing systemd timer
+Created symlink /etc/systemd/system/timers.target.wants/jvc-reset.timer → /etc/systemd/system/jvc-reset.timer.
+● jvc-reset.timer - Periodically heal wedged JVC PZ100 cameras
+     Loaded: loaded (/etc/systemd/system/jvc-reset.timer; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-06-21 15:47:38 EDT; 21ms ago
+    Trigger: n/a
+   Triggers: ● jvc-reset.service
+==> Done.

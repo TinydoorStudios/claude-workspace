@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smaart SPL Webviewer — Capture Guide</title>
+<style>
+  :root { --navy:#1A3A5C; --accent:#2E6DA4; --warn:#FFE4B5; --ink:#1f2937; --mut:#5b6470; }
+  * { box-sizing: border-box; }
+  body { font: 16px/1.55 -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: var(--ink);
+         margin: 0; background: #f4f6f9; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 24px 64px; }
+  header { background: var(--navy); color: #fff; padding: 22px 24px; border-radius: 10px; }
+  header h1 { margin: 0 0 4px; font-size: 22px; }
+  header p { margin: 0; color: #cfe0f0; font-size: 14px; }
+  h2 { color: var(--navy); margin: 34px 0 10px; font-size: 18px; border-bottom: 2px solid #e3e8ef; padding-bottom: 6px; }
+  ol { padding-left: 22px; } li { margin: 7px 0; }
+  code, kbd { background: #eef2f7; border: 1px solid #d7deea; border-radius: 5px; padding: 1px 6px; font-size: 14px;
+              font-family: ui-monospace, Consolas, monospace; }
+  kbd { background:#fff; box-shadow: 0 1px 0 #c7cfdb; }
+  .card { background: #fff; border: 1px solid #e3e8ef; border-radius: 10px; padding: 18px 20px; margin: 14px 0; }
+  .pill { display:inline-block; background: var(--accent); color:#fff; font-size:12px; font-weight:700;
+          padding: 3px 9px; border-radius: 999px; letter-spacing:.3px; }
+  .best { background:#1f7a44; }
+  .note { background: var(--warn); border:1px solid #e9c98a; border-radius: 8px; padding: 12px 14px; margin: 12px 0; font-size: 14px; }
+  .muted { color: var(--mut); font-size: 14px; }
+  hr { border:0; border-top:1px solid #e3e8ef; margin: 26px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Smaart SPL Webviewer — Capture Guide</h1>
+    <p>Goal: record a short sample of the live SPL/LEQ data so the dashboard can be built against the real format. Browser-only — nothing to install on the Smaart machine.</p>
+  </header>
+
+  <h2>Before you start (on the Smaart PC, over your remote session)</h2>
+  <div class="card">
+    <ol>
+      <li><strong>Confirm the version.</strong> Smaart <kbd>Help &gt; About</kbd> — I need it to be <strong>v8.3 or newer</strong> (that's when the WebSocket API arrived). Tell me the exact version.</li>
+      <li><strong>Have SPL logging running</strong> with real audio present (music or pink noise) so the meters are actually moving — a frozen reading captures nothing useful.</li>
+      <li><strong>Enable the API:</strong> <kbd>Options &gt; Preferences &gt; API</kbd> → check <strong>Enabled</strong>. The status indicator should go green. Note the <strong>port</strong> (default <code>26000</code>). Leave any password blank if you can, or tell me what you set.</li>
+      <li><strong>Open the webviewer in a browser on that same machine:</strong> go to <code>http://localhost:26000</code> (swap in your port if you changed it). You should see live SPL numbers. If you get a blank page or nothing loads, stop and tell me — your v8 build may not serve the browser webviewer and we'll switch tactics.</li>
+    </ol>
+    <div class="note"><strong>Use a private/incognito window</strong> for the webviewer — Rational recommends it, since extensions can interfere with the API.</div>
+  </div>
+
+  <h2><span class="pill best">Method A — recommended</span> &nbsp;DevTools → HAR (captures everything in one file)</h2>
+  <div class="card">
+    <ol>
+      <li>On the webviewer page, open DevTools: <kbd>F12</kbd> (or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd>).</li>
+      <li>Click the <strong>Network</strong> tab. Tick <strong>Preserve log</strong>. Click the <strong>WS</strong> filter so it only shows WebSocket traffic.</li>
+      <li><strong>Reload the page</strong> (<kbd>Ctrl</kbd>+<kbd>R</kbd>) with DevTools open — this captures the connection from the very start, including the first commands the page sends.</li>
+      <li>You should see one entry with status <code>101</code> (Switching Protocols). Click it → <strong>Messages</strong> tab to confirm frames are streaming (↑ sent, ↓ received).</li>
+      <li>Let it run <strong>~60 seconds</strong> with audio playing.</li>
+      <li>Right-click anywhere in the Network request list → <strong>Save all as HAR with content</strong> (Edge/Chrome). Save the <code>.har</code> file.</li>
+      <li><strong>Send me that <code>.har</code> file.</strong> It contains the full exchange — the subscribe commands and all the SPL/LEQ data frames.</li>
+    </ol>
+  </div>
+
+  <h2><span class="pill">Method B — fallback</span> &nbsp;Copy a handful of frames by hand</h2>
+  <div class="card">
+    <p class="muted">If "Save as HAR" doesn't include the WebSocket messages on your browser version, just copy a few frames manually.</p>
+    <ol>
+      <li>DevTools → <strong>Network</strong> → <strong>WS</strong> filter → reload → click the <code>101</code> entry → <strong>Messages</strong> tab.</li>
+      <li>Copy the <strong>first ~10 sent (↑)</strong> frames — these are the connect/subscribe commands.</li>
+      <li>Copy <strong>~20 received (↓)</strong> frames — these are the SPL/LEQ data. Click a frame to expand its full text.</li>
+      <li>Paste both sets back to me (a screenshot of the Messages list also works in a pinch).</li>
+    </ol>
+  </div>
+
+  <h2><span class="pill">Method C — optional</span> &nbsp;Console snippet (bulk data, auto-download)</h2>
+  <div class="card">
+    <p class="muted">Handy for grabbing lots of data frames as a clean JSON file. Catches the live data reliably; for the connect commands still use Method A or B.</p>
+    <ol>
+      <li>On the webviewer page: DevTools → <strong>Console</strong>.</li>
+      <li>Open <code>capture/smaart-capture-snippet.js</code>, paste the whole thing into the console, press <kbd>Enter</kbd>.</li>
+      <li>Wait ~60 seconds with audio, then type <code>splDump()</code> and press <kbd>Enter</kbd>. A <code>smaart-capture-*.json</code> downloads. Send it to me.</li>
+    </ol>
+  </div>
+
+  <hr>
+  <p class="muted">Whatever you send — HAR, pasted frames, or the JSON dump — I'll read the real message format from it and wire the dashboard to it exactly. While you do this, I'll build the dashboard against a simulator so there's a working UI waiting when the capture comes back.</p>
+</div>
+</body>
+</html>

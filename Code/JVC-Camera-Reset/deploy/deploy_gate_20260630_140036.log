@@ -1,0 +1,13 @@
+==> Syncing web.py + code to /opt/jvc-reset
+==> Restarting jvc-cameras-web
+active
+==> Removing auth_basic from the /cameras/ nginx block
+   backup: /opt/landing/nginx.conf.bak.20260630_140037
+   auth_basic removed from /cameras/ block
+   nginx container: landing
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+2026/06/30 18:00:38 [notice] 256#256: signal process started
+   nginx reloaded OK
+==> Done. Visit https://tinydoorstudios.com/cameras/
+    You should now get ONE password box. Passcode: lockdown

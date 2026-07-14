@@ -1,0 +1,196 @@
+{
+  "groups": [
+    {
+      "header": "Live Sound KB",
+      "links": [
+        {
+          "label": "Home",
+          "path": "/index"
+        }
+      ]
+    },
+    {
+      "header": "Venues",
+      "links": [
+        {
+          "label": "Memorial Hall (Memo)",
+          "path": "/venue-memorial-hall"
+        },
+        {
+          "label": "Fountain Square (FSQ)",
+          "path": "/venue-fountain-square"
+        },
+        {
+          "label": "Elm Street Plaza (ESP)",
+          "path": "/venue-elm-street-plaza"
+        },
+        {
+          "label": "Washington Park (WP)",
+          "path": "/venue-washington-park"
+        },
+        {
+          "label": "Court Street Plaza (CSP)",
+          "path": "/venue-court-street-plaza"
+        },
+        {
+          "label": "Zeigler Park (ZP)",
+          "path": "/venue-zeigler-park"
+        },
+        {
+          "label": "Imagination Alley (IA)",
+          "path": "/venue-imagination-alley"
+        },
+        {
+          "label": "Greaves Concert Hall (NKU)",
+          "path": "/venue-greaves-concert-hall"
+        }
+      ]
+    },
+    {
+      "header": "Consoles",
+      "links": [
+        {
+          "label": "DiGiCo Quantum 225",
+          "path": "/console-digico-q225"
+        },
+        {
+          "label": "Behringer Wing",
+          "path": "/console-behringer-wing"
+        },
+        {
+          "label": "Yamaha CL3",
+          "path": "/console-yamaha-cl3"
+        },
+        {
+          "label": "Midas M32",
+          "path": "/console-midas-m32"
+        }
+      ]
+    },
+    {
+      "header": "Kit & Technique",
+      "links": [
+        {
+          "label": "Mic Library",
+          "path": "/mic-library"
+        },
+        {
+          "label": "DPA 4099 Clip-On",
+          "path": "/mic-dpa-4099"
+        },
+        {
+          "label": "Audio-Technica PRO 6L",
+          "path": "/mic-audio-technica-pro-6l"
+        },
+        {
+          "label": "EQ Starting Points",
+          "path": "/eq-starting-points"
+        },
+        {
+          "label": "Reverb Reference (Memo)",
+          "path": "/reverb-reference-memo"
+        },
+        {
+          "label": "Echoes T7E mkII (FX)",
+          "path": "/fx-echoes-t7e"
+        }
+      ]
+    },
+    {
+      "header": "Workflows",
+      "links": [
+        {
+          "label": "Show Document Workflow",
+          "path": "/show-document-workflow"
+        },
+        {
+          "label": "Show Processing Pipeline",
+          "path": "/show-processing-pipeline"
+        },
+        {
+          "label": "Pipeline Spec \u2014 Memo",
+          "path": "/pipeline-spec-memo"
+        },
+        {
+          "label": "Pipeline Spec \u2014 FSQ",
+          "path": "/pipeline-spec-fsq"
+        },
+        {
+          "label": "Input List Design Spec",
+          "path": "/input-list-design-spec"
+        },
+        {
+          "label": "Multitrack Recording",
+          "path": "/multitrack-recording-workflow"
+        },
+        {
+          "label": "Post & Mastering",
+          "path": "/post-and-mastering-workflow"
+        },
+        {
+          "label": "SPL Monitor — Compliance Dashboard",
+          "path": "/spl-monitor"
+        }
+      ]
+    },
+    {
+      "header": "SOPs",
+      "links": [
+        {
+          "label": "All SOPs",
+          "path": "/sops"
+        },
+        {
+          "label": "FSQ \u2014 Hotshot Comms",
+          "path": "/sop-fsq-hotshot-comms"
+        },
+        {
+          "label": "FSQ \u2014 M32 Failover",
+          "path": "/sop-fsq-m32-failover"
+        },
+        {
+          "label": "FSQ: L-Acoustics Network Manager",
+          "path": "/sop-fsq-la-network-manager"
+        },
+        {
+          "label": "Memo \u2014 One-Button Record Chain",
+          "path": "/sop-memo-reaper-record-chain"
+        },
+        {
+          "label": "ESP \u2014 Magewell RX Recycle",
+          "path": "/sop-esp-magewell-rx-recycle"
+        },
+        {
+          "label": "ESP \u2014 NDI Bridge Keeper",
+          "path": "/sop-esp-ndi-bridge-keeper"
+        }
+      ]
+    },
+    {
+      "header": "Shows",
+      "links": [
+        {
+          "label": "All Shows",
+          "path": "/shows"
+        },
+        {
+          "label": "Active Projects",
+          "path": "/active-projects"
+        },
+        {
+          "label": "Open Questions",
+          "path": "/questions"
+        }
+      ]
+    },
+    {
+      "header": "Misc",
+      "links": [
+        {
+          "label": "Grow Tent \u2014 Propagation Reference",
+          "path": "/misc-grow-tent-propagation"
+        }
+      ]
+    }
+  ]
+}

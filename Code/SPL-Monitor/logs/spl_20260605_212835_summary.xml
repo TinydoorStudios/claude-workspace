@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<splSession>
+  <venue>Fountain Square</venue>
+  <start>2026-06-05T21:28:35</start>
+  <end>2026-06-05T21:30:23</end>
+  <durationSeconds>107</durationSeconds>
+  <limits>
+    <yellow>88</yellow>
+    <red>90</red>
+  </limits>
+  <peaks>
+    <laeq6minMax>80.4</laeq6minMax>
+    <instantMax>88.8</instantMax>
+    <peakCMax>104.84</peakCMax>
+  </peaks>
+  <violationSamples>0</violationSamples>
+  <overloadSamples>0</overloadSamples>
+  <result>WITHIN LIMIT</result>
+  <csvFile>spl_20260605_212835.csv</csvFile>
+</splSession>

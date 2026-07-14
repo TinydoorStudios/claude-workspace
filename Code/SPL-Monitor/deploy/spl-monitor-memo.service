@@ -1,0 +1,17 @@
+[Unit]
+Description=SPL Monitor — Memorial Hall (Smaart live dashboard)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/spl-monitor-memo
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/etc/spl-monitor-memo.env
+ExecStart=/opt/spl-monitor-memo/.venv/bin/python -m backend.app
+Restart=always
+RestartSec=3
+User=brian
+
+[Install]
+WantedBy=multi-user.target

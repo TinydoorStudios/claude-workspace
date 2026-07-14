@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Brit Pack — Show Packet</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #222; background: #fff; }
+.page { max-width: 870px; margin: 0 auto; padding: 36px 44px; }
+
+/* Cover */
+.cover-block { background: #1c3558; padding: 18px 20px 14px 20px; margin-bottom: 0; }
+.cover-block h1 { font-size: 24pt; color: #fff; letter-spacing: 1.5px; margin-bottom: 4px; }
+.cover-block .sub { font-size: 11pt; color: #c8a84b; font-weight: bold; margin-bottom: 6px; }
+.cover-block .meta { font-size: 8.5pt; color: #aab8cc; }
+.cover-rule { height: 3px; background: #c8a84b; margin-bottom: 14px; }
+
+/* Context card */
+.context-card { border: 1px solid #ccc; margin-bottom: 20px; }
+.context-card .context-header { background: #1c3558; color: #fff; padding: 6px 14px; font-size: 9pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; }
+.context-card .context-body { padding: 10px 14px; font-size: 8.5pt; line-height: 1.5; color: #333; }
+.context-card .context-body .sonic { font-style: italic; color: #555; margin-top: 6px; font-size: 8pt; }
+
+/* Section headers */
+.section-header { background: #1c3558; color: #fff; padding: 7px 14px; font-size: 10pt; font-weight: bold; margin: 22px 0 10px 0; letter-spacing: 0.5px; }
+
+/* Generic data tables */
+.data-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.data-table th { background: #1c3558; color: #fff; padding: 5px 10px; text-align: left; font-size: 8.5pt; }
+.data-table th.center { text-align: center; }
+.data-table td { padding: 4px 10px; border-bottom: 1px solid #e8e8e8; font-size: 8.5pt; vertical-align: top; }
+.data-table td.center { text-align: center; }
+.data-table td.mono { font-family: Courier, monospace; font-size: 8pt; }
+.data-table td.bold { font-weight: bold; }
+.data-table td.red { color: #b71c1c; font-weight: bold; text-align: center; }
+.data-table tr:nth-child(even) td { background: #f6f6f6; }
+
+/* 48V flag row */
+.phantom-row td { background: #fff0f0 !important; }
+
+/* Stage patch two-column */
+.patch-wrap { display: table; width: 100%; border-collapse: separate; border-spacing: 12px 0; margin-bottom: 6px; }
+.patch-col { display: table-cell; vertical-align: top; width: 50%; }
+.patch-label { font-size: 8.5pt; font-weight: bold; color: #1c3558; margin-bottom: 4px; }
+
+/* Group color dots in input column */
+.grp-drums  { background: #1c3558; color: #fff; padding: 1px 5px; border-radius: 2px; font-size: 7.5pt; }
+.grp-bass   { background: #1a3a2a; color: #fff; padding: 1px 5px; border-radius: 2px; font-size: 7.5pt; }
+.grp-keys   { background: #2a2a1a; color: #fff; padding: 1px 5px; border-radius: 2px; font-size: 7.5pt; }
+.grp-guitar { background: #2a1a1a; color: #fff; padding: 1px 5px; border-radius: 2px; font-size: 7.5pt; }
+.grp-vocals { background: #1a1a3a; color: #fff; padding: 1px 5px; border-radius: 2px; font-size: 7.5pt; }
+
+/* Watchpoints */
+.watchpoints { margin-bottom: 6px; }
+.watch-item { margin-bottom: 6px; border: 1px solid #e0e0e0; }
+.watch-title { padding: 5px 12px; font-size: 8pt; font-weight: bold; background: #eef2f7; }
+.watch-title.red { background: #fde8e8; color: #b71c1c; }
+.watch-title.blue { background: #e8f0fe; color: #1a56a0; }
+.watch-title.dark { background: #f0f0f0; color: #333; }
+.watch-body { padding: 6px 12px; font-size: 8.5pt; line-height: 1.5; color: #333; background: #fff; }
+
+/* VCA table */
+.vca-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+.vca-table th { background: #1c3558; color: #fff; padding: 5px 10px; text-align: left; font-size: 8.5pt; }
+.vca-table th.center { text-align: center; }
+.vca-table td { padding: 4px 10px; border-bottom: 1px solid #e8e8e8; font-size: 8.5pt; }
+.vca-table td.center { text-align: center; font-weight: bold; }
+.vca-table tr:nth-child(even) td { background: #f6f6f6; }
+
+/* File index */
+.file-index { margin-bottom: 6px; }
+.file-index .file-row { padding: 4px 0; border-bottom: 1px solid #eee; font-size: 8.5pt; }
+.file-index .file-row span.fname { font-family: Courier, monospace; font-size: 8pt; font-weight: bold; color: #1c3558; }
+.file-index .file-row span.fdesc { color: #555; margin-left: 8px; }
+
+.footnote { font-size: 8pt; color: #888; margin-top: 6px; font-style: italic; }
+
+@media print {
+  .section-header { page-break-after: avoid; }
+  .watch-item { page-break-inside: avoid; }
+  .patch-wrap { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ═══════════════════════════════════════════════════════ COVER -->
+<div class="cover-block">
+  <h1>THE BRIT PACK</h1>
+  <div class="sub">SHOW PACKET — DiGiCo Quantum 225 · Memorial Hall · 2026-05-28</div>
+  <div class="meta">20 input channels &nbsp;·&nbsp; 6 monitor sends &nbsp;·&nbsp; Cincinnati, OH</div>
+</div>
+<div class="cover-rule"></div>
+
+<div class="context-card">
+  <div class="context-header">Band Context</div>
+  <div class="context-body">
+    <strong>The Brit Pack</strong> — British-born session musicians performing a definitive survey of UK rock and pop, 60s through 90s: Beatles, Stones, Led Zeppelin, Queen, The Who, Kinks, Cream, David Bowie, Elton John, The Police, Oasis, Radiohead and more. Personnel: <strong>Matt Nakoa</strong> (lead vox / guitar / keys), <strong>Mark Johnson</strong> (guitar / vox), <strong>Bryan Percivall</strong> (bass / vox), <strong>Will Haywood Smith</strong> (drums / vox).
+    <div class="sonic">Sonic target: Warm, punchy, period-appropriate. Classic British rock tones — not modern hyper-compressed stadium sound. Think Bonham's room, Page's Les Paul through a Supro, Watts's loose snare, McCartney's Hofner. Let the dynamics breathe. The MD421s on guitar cabs will deliver exactly the midrange bite these tones need.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ STAGE PATCH -->
+<div class="section-header">STAGE PATCH</div>
+<p style="font-size:8.5pt; color:#555; margin-bottom:8px;">Two stage boxes. Box A covers drums, backline, and guitar cabs. Box B covers keys riser and Matt's vocal position.</p>
+
+<div class="patch-wrap">
+  <div class="patch-col">
+    <div class="patch-label">STAGE BOX A — Drums / Backline / Guitar Cabs</div>
+    <table class="data-table">
+      <tr>
+        <th class="center" style="width:38px;">DROP</th>
+        <th>SOURCE</th>
+        <th>MIC / DI</th>
+        <th class="center" style="width:46px;">→ CH</th>
+        <th class="center" style="width:36px;">48V</th>
+      </tr>
+      <tr class="phantom-row"><td class="center">1</td><td class="bold">Kick In</td><td>Beta 91A</td><td class="center mono">Ch 1</td><td class="red">48V</td></tr>
+      <tr><td class="center">2</td><td class="bold">Kick Out</td><td>Beta 52</td><td class="center mono">Ch 2</td><td class="center">—</td></tr>
+      <tr><td class="center">3</td><td class="bold">Snare</td><td>Beta 57A</td><td class="center mono">Ch 3</td><td class="center">—</td></tr>
+      <tr><td class="center">4</td><td class="bold">Hi-Hat</td><td>e609</td><td class="center mono">Ch 4</td><td class="center">—</td></tr>
+      <tr><td class="center">5</td><td class="bold">Rack Tom</td><td>e604</td><td class="center mono">Ch 5</td><td class="center">—</td></tr>
+      <tr><td class="center">6</td><td class="bold">Floor Tom</td><td>e604</td><td class="center mono">Ch 6</td><td class="center">—</td></tr>
+      <tr><td class="center">7</td><td class="bold">OH Left</td><td>SM57</td><td class="center mono">Ch 7</td><td class="center">—</td></tr>
+      <tr><td class="center">8</td><td class="bold">OH Right</td><td>SM57</td><td class="center mono">Ch 8</td><td class="center">—</td></tr>
+      <tr><td class="center">9</td><td class="bold">Bass DI</td><td>Radial ProDI</td><td class="center mono">Ch 9</td><td class="center">—</td></tr>
+      <tr><td class="center">10</td><td class="bold">Bass Amp</td><td>MD421</td><td class="center mono">Ch 10</td><td class="center">—</td></tr>
+      <tr><td class="center">11</td><td class="bold">Guitar Center</td><td>MD421</td><td class="center mono">Ch 13</td><td class="center">—</td></tr>
+      <tr><td class="center">12</td><td class="bold">Guitar Ctr DI</td><td>Radial ProDI</td><td class="center mono">Ch 14</td><td class="center">—</td></tr>
+      <tr><td class="center">13</td><td class="bold">Guitar HL</td><td>MD421</td><td class="center mono">Ch 15</td><td class="center">—</td></tr>
+    </table>
+  </div>
+
+  <div class="patch-col">
+    <div class="patch-label">STAGE BOX B — Keys Riser / Vocal Position</div>
+    <table class="data-table">
+      <tr>
+        <th class="center" style="width:38px;">DROP</th>
+        <th>SOURCE</th>
+        <th>MIC / DI</th>
+        <th class="center" style="width:46px;">→ CH</th>
+        <th class="center" style="width:36px;">48V</th>
+      </tr>
+      <tr><td class="center">B1</td><td class="bold">Keys Left</td><td>Radial ProDI</td><td class="center mono">Ch 11</td><td class="center">—</td></tr>
+      <tr><td class="center">B2</td><td class="bold">Keys Right</td><td>Radial ProDI</td><td class="center mono">Ch 12</td><td class="center">—</td></tr>
+      <tr><td class="center">B3</td><td class="bold">Matt Vocal</td><td>sE V7</td><td class="center mono">Ch 17</td><td class="center">—</td></tr>
+      <tr><td class="center">B4</td><td class="bold">Matt Vocal 2</td><td>sE V7</td><td class="center mono">Ch 18</td><td class="center">—</td></tr>
+    </table>
+    <p class="footnote" style="margin-top:8px;">Handheld vocals (Bryan Ch 16, Mark Ch 19, Will Ch 20) not in a stage box — confirm wireless receivers or direct XLR at load-in.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ MONITOR SENDS -->
+<div class="section-header">MONITOR SENDS</div>
+<table class="data-table">
+  <tr>
+    <th class="center" style="width:52px;">SEND</th>
+    <th>POSITION / DESCRIPTION</th>
+  </tr>
+  <tr><td class="center bold">1</td><td>Bass — Bryan Percivall, downstage bass position</td></tr>
+  <tr><td class="center bold">2</td><td>Keys — Keys riser</td></tr>
+  <tr><td class="center bold">3</td><td>Center — DUAL wedge, lead vocal / center stage (Matt / Bryan swap)</td></tr>
+  <tr><td class="center bold">4</td><td>Guitar HR — House-right guitar position</td></tr>
+  <tr><td class="center bold">5</td><td>Drums — Drum riser, kit wedge</td></tr>
+  <tr><td class="center bold">6</td><td>IEM — IEM Output 1 ⚑ confirm recipient at load-in</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ CONSOLE REFERENCE -->
+<div class="section-header">CONSOLE REFERENCE</div>
+
+<p style="font-size:8.5pt; color:#555; margin-bottom:8px; font-weight:bold;">Channel Labels</p>
+<table class="data-table" style="margin-bottom:14px;">
+  <tr>
+    <th class="center" style="width:36px;">CH</th>
+    <th style="width:72px;">SHORT LABEL</th>
+    <th>INSTRUMENT</th>
+    <th>MIC / DI</th>
+    <th class="center" style="width:38px;">48V</th>
+    <th class="center" style="width:52px;">HPF Hz</th>
+    <th style="width:60px;">GROUP</th>
+  </tr>
+  <tr class="phantom-row"><td class="center">1</td><td class="mono">KICK IN</td><td>Kick In</td><td>Beta 91A</td><td class="red">48V</td><td class="center">40</td><td>Drums</td></tr>
+  <tr><td class="center">2</td><td class="mono">KICK OUT</td><td>Kick Out</td><td>Beta 52</td><td class="center">—</td><td class="center">40</td><td>Drums</td></tr>
+  <tr><td class="center">3</td><td class="mono">SNARE</td><td>Snare</td><td>Beta 57A</td><td class="center">—</td><td class="center">100</td><td>Drums</td></tr>
+  <tr><td class="center">4</td><td class="mono">HAT</td><td>Hi-Hat</td><td>e609</td><td class="center">—</td><td class="center">400</td><td>Drums</td></tr>
+  <tr><td class="center">5</td><td class="mono">RACK</td><td>Rack Tom</td><td>e604</td><td class="center">—</td><td class="center">100</td><td>Drums</td></tr>
+  <tr><td class="center">6</td><td class="mono">FLOOR</td><td>Floor Tom</td><td>e604</td><td class="center">—</td><td class="center">60</td><td>Drums</td></tr>
+  <tr><td class="center">7</td><td class="mono">OH L</td><td>OH Left</td><td>SM57</td><td class="center">—</td><td class="center">180</td><td>Drums</td></tr>
+  <tr><td class="center">8</td><td class="mono">OH R</td><td>OH Right</td><td>SM57</td><td class="center">—</td><td class="center">180</td><td>Drums</td></tr>
+  <tr><td class="center">9</td><td class="mono">BASS DI</td><td>Bass DI</td><td>Radial ProDI</td><td class="center">—</td><td class="center">40</td><td>Bass</td></tr>
+  <tr><td class="center">10</td><td class="mono">BASS AMP</td><td>Bass Amp</td><td>MD421</td><td class="center">—</td><td class="center">60</td><td>Bass</td></tr>
+  <tr><td class="center">11</td><td class="mono">KEYS L</td><td>Keys Left</td><td>Radial ProDI</td><td class="center">—</td><td class="center">30</td><td>Keys</td></tr>
+  <tr><td class="center">12</td><td class="mono">KEYS R</td><td>Keys Right</td><td>Radial ProDI</td><td class="center">—</td><td class="center">30</td><td>Keys</td></tr>
+  <tr><td class="center">13</td><td class="mono">GTR CTR</td><td>Guitar Center (amp)</td><td>MD421</td><td class="center">—</td><td class="center">100</td><td>Guitar</td></tr>
+  <tr><td class="center">14</td><td class="mono">GTR C DI</td><td>Guitar Center (DI)</td><td>Radial ProDI</td><td class="center">—</td><td class="center">100</td><td>Guitar</td></tr>
+  <tr><td class="center">15</td><td class="mono">GTR HL</td><td>Guitar High Left (amp)</td><td>MD421</td><td class="center">—</td><td class="center">100</td><td>Guitar</td></tr>
+  <tr><td class="center">16</td><td class="mono">BRYAN</td><td>Bryan (vox)</td><td>Beta 58A</td><td class="center">—</td><td class="center">120</td><td>Vocals</td></tr>
+  <tr><td class="center">17</td><td class="mono">MATT</td><td>Matt (vox)</td><td>sE V7</td><td class="center">—</td><td class="center">120</td><td>Vocals</td></tr>
+  <tr><td class="center">18</td><td class="mono">MATT 2</td><td>Matt 2 (vox)</td><td>sE V7</td><td class="center">—</td><td class="center">120</td><td>Vocals</td></tr>
+  <tr><td class="center">19</td><td class="mono">MARK</td><td>Mark (vox)</td><td>Beta 58A</td><td class="center">—</td><td class="center">120</td><td>Vocals</td></tr>
+  <tr><td class="center">20</td><td class="mono">WILL</td><td>Will (vox)</td><td>Beta 58A</td><td class="center">—</td><td class="center">130</td><td>Vocals</td></tr>
+</table>
+
+<p style="font-size:8.5pt; color:#555; margin-bottom:8px; font-weight:bold;">VCA Groups</p>
+<table class="vca-table">
+  <tr>
+    <th class="center" style="width:52px;">VCA</th>
+    <th style="width:100px;">NAME</th>
+    <th>CHANNELS</th>
+  </tr>
+  <tr><td class="center">1</td><td><strong>DRUMS</strong></td><td>Ch 1, 2, 3, 4, 5, 6, 7, 8</td></tr>
+  <tr><td class="center">2</td><td><strong>BASS</strong></td><td>Ch 9, 10</td></tr>
+  <tr><td class="center">3</td><td><strong>KEYS</strong></td><td>Ch 11, 12</td></tr>
+  <tr><td class="center">4</td><td><strong>GUITARS</strong></td><td>Ch 13, 14, 15</td></tr>
+  <tr><td class="center">5</td><td><strong>VOCALS</strong></td><td>Ch 16, 17, 18, 19, 20</td></tr>
+  <tr><td class="center">6</td><td><strong>ALL</strong></td><td>VCA 1–5 master</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ SHOW NOTES & WATCHPOINTS -->
+<div class="section-header">SHOW NOTES &amp; WATCHPOINTS</div>
+<div class="watchpoints">
+
+  <div class="watch-item">
+    <div class="watch-title red">⚠ PHANTOM POWER</div>
+    <div class="watch-body">Only Ch 1 (Beta 91A boundary mic) requires 48V phantom. No other channel on this show needs phantom. All DIs are passive Radial ProDIs. Handheld vocals (Beta 58A, sE V7) are dynamics — no phantom. Verify before enabling phantom on any channel other than Ch 1.</div>
+  </div>
+
+  <div class="watch-item">
+    <div class="watch-title blue">GUITAR LAYER — Ch 13 + Ch 14</div>
+    <div class="watch-body">Guitar Center has both a MD421 (Ch 13, amp) and a Radial ProDI (Ch 14) on the same guitarist position. The DI is a parallel clean signal — confirm intended use with BIS at load-in (tone blend vs. backup). Both channels have independent EQ starting points in the channel processing doc. Group to the same VCA (VCA 4) and check for 300–500 Hz buildup on the guitar bus after both are in the mix.</div>
+  </div>
+
+  <div class="watch-item">
+    <div class="watch-title blue">DUAL VOCAL — Ch 17 + Ch 18 (Matt)</div>
+    <div class="watch-body">Two sE V7 mics assigned to Matt. These likely cover two different physical positions (center stage + keys/piano position) rather than simultaneous use. Confirm routing intent at production meeting. Treat as two independent vocal channels — do not sum to mono without a polarity check first. Both have identical EQ starting points in the channel processing doc.</div>
+  </div>
+
+  <div class="watch-item">
+    <div class="watch-title dark">OVERHEADS — SM57 x2 (Ch 7 + Ch 8)</div>
+    <div class="watch-body">Band is traveling with SM57s on overheads. Unconventional but will work — the 57's presence peak delivers a forward, defined cymbal picture suited to classic rock. Top-end air is limited compared to SDCs; EQ starting points in the channel processing doc compensate with a +2 dB shelf at 10 kHz. Link Ch 7 and Ch 8 as a stereo pair on the Q225. Polarity check both OHs against close drum mics in mono before soundcheck.</div>
+  </div>
+
+  <div class="watch-item">
+    <div class="watch-title dark">IEM FEED — Monitor Send 6</div>
+    <div class="watch-body">IEM Output 1 (Monitor Send 6) — confirm recipient at load-in. Likely Matt or Bryan based on vocal intensity of front-of-stage position. Confirm IEM make/model and whether they are using their own pack or house pack.</div>
+  </div>
+
+  <div class="watch-item">
+    <div class="watch-title dark">MONITOR CENTER — Send 3 DUAL WEDGE</div>
+    <div class="watch-body">Send 3 is a dual-wedge position at center stage shared between Matt and Bryan (lead vocal position). This is the highest-use monitor position on the stage. Budget extra gain-before-feedback headroom on Ch 17 (Matt) and Ch 16 (Bryan) — both will be open simultaneously at this position during shared-mic moments.</div>
+  </div>
+
+  <div class="watch-item">
+    <div class="watch-title dark">SPLIT PATCH TOPOLOGY</div>
+    <div class="watch-body">Stage Box B drops B3 and B4 (Matt's sE V7 mics) originate from the keys riser position — separate from the main drum/backline Box A. Confirm split chain continuity and that Box B feeds correctly to Ch 17 and Ch 18 at patch. The "B" numbering in the drop column distinguishes these from Box A's numeric drops.</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ FILE INDEX -->
+<div class="section-header">FILE INDEX</div>
+<p style="font-size:8pt; color:#555; margin-bottom:8px;">Folder: Memorial Hall / 2026-05-28 The Brit Pack /</p>
+<div class="file-index">
+  <div class="file-row"><span class="fname">The Brit Pack - FOH Channel Processing.md</span><span class="fdesc">Machine-readable EQ source — patcher input data, all 20 channels</span></div>
+  <div class="file-row"><span class="fname">The Brit Pack - FOH Channel Processing.html</span><span class="fdesc">Channel processing document — full EQ, DEQ, and dynamics starting points per channel</span></div>
+  <div class="file-row"><span class="fname">The Brit Pack - FOH Channel Processing.pdf</span><span class="fdesc">PDF render of channel processing document</span></div>
+  <div class="file-row"><span class="fname">apply_britpack.py</span><span class="fdesc">Q225 .ses patcher script — run against brian memo v2.ses to generate show file</span></div>
+  <div class="file-row"><span class="fname">The Brit Pack.ses</span><span class="fdesc">DiGiCo Quantum 225 show file — patched from master template, verification PASS</span></div>
+  <div class="file-row"><span class="fname">The Brit Pack - Show Packet.html</span><span class="fdesc">This document (source)</span></div>
+  <div class="file-row"><span class="fname">The Brit Pack - Show Packet.pdf</span><span class="fdesc">This document (PDF render) — master show reference for load-in</span></div>
+</div>
+
+</div><!-- /page -->
+</body>
+</html>

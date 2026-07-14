@@ -1,0 +1,91 @@
+===== KB TUNNEL FIX Sun Jun 14 09:36:21 EDT 2026 =====
+
+########## 1. backup current config -> _kb_config_backup_20260614-093621.json ##########
+saved: _kb_config_backup_20260614-093621.json
+current ingress:
+[
+  {
+    "service": "http://127.0.0.1:8088",
+    "hostname": "tinydoorstudios.com"
+  },
+  {
+    "service": "http://127.0.0.1:8088",
+    "hostname": "n8n.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:3001",
+    "hostname": "tempest.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:8090",
+    "hostname": "spl.tinydoorstudios.com"
+  },
+  {
+    "service": "http://192.168.200.126:3000",
+    "hostname": "kb.tinydoorstudios.com"
+  },
+  {
+    "service": "http_status:404"
+  }
+]
+version: 8
+
+########## 2. PUT new config ##########
+{"success":true,"errors":[],"messages":[],"result":{"tunnel_id":"b1e6581d-4384-4fbe-b960-a156760a2860","version":9,"config":{"ingress":[{"service":"http://127.0.0.1:8088","hostname":"tinydoorstudios.com"},{"service":"http://127.0.0.1:8088","hostname":"n8n.tinydoorstudios.com"},{"service":"http://localhost:3001","hostname":"tempest.tinydoorstudios.com"},{"service":"http://localhost:8090","hostname":"spl.tinydoorstudios.com"},{"path":"^/assets/","service":"http://127.0.0.1:8088","hostname":"kb.tinydoorstudios.com"},{"service":"http://192.168.200.126:3000","hostname":"kb.tinydoorstudios.com"},{"service":"http_status:404"}],"warp-routing":{"enabled":false}},"source":"cloudflare","created_at":"2026-06-14T13:36:21.970573Z"}}
+
+########## 3. re-read config to confirm ##########
+new version: 9
+[
+  {
+    "service": "http://127.0.0.1:8088",
+    "hostname": "tinydoorstudios.com"
+  },
+  {
+    "service": "http://127.0.0.1:8088",
+    "hostname": "n8n.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:3001",
+    "hostname": "tempest.tinydoorstudios.com"
+  },
+  {
+    "service": "http://localhost:8090",
+    "hostname": "spl.tinydoorstudios.com"
+  },
+  {
+    "path": "^/assets/",
+    "service": "http://127.0.0.1:8088",
+    "hostname": "kb.tinydoorstudios.com"
+  },
+  {
+    "service": "http://192.168.200.126:3000",
+    "hostname": "kb.tinydoorstudios.com"
+  },
+  {
+    "service": "http_status:404"
+  }
+]
+
+Waiting 8s for edge propagation...
+
+########## 4. LIVE TEST: asset PDF (expect HTTP 200 application/pdf) ##########
+HTTP/2 200 
+content-type: application/pdf
+content-length: 3284128
+content-disposition: attachment
+server: cloudflare
+cf-cache-status: DYNAMIC
+
+########## 5. LIVE TEST: download full bytes (expect a real PDF) ##########
+downloaded bytes:  3284128
+file type: PDF document, version 1.4
+first bytes: 00000000: 2550 4446 2d31 2e34                      %PDF-1.4
+
+########## 6. LIVE TEST: a normal wiki page still works (expect 200) ##########
+wiki /shows = HTTP 404
+wiki /     = HTTP 200
+
+########## 7. LIVE TEST: bogus asset (expect 404 from nginx) ##########
+bogus asset = HTTP 404
+
+===== END =====

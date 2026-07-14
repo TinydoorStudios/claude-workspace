@@ -1,0 +1,137 @@
+SHOW PAPERWORK PIPELINE — STEP BY STEP
+Memorial Hall / 3CDC Venues
+===============================================================
+
+
+BEFORE THE SESSION
+------------------
+1. Have the input list (.xlsx) ready to attach.
+2. Know: show name, venue, date.
+3. Have a one-sentence genre/influences description ready.
+4. Note any per-channel details not in the spreadsheet
+   (mic positions, broadcast restrictions, ribbon warnings, etc.).
+
+
+STARTING THE SESSION
+--------------------
+5. Open a new Cowork chat. Do not continue an old session.
+
+6. Connect this folder when Cowork asks:
+      ~/Documents/Claude/audio
+
+7. Send this message with the .xlsx attached:
+
+      Load up the show pipeline. New show: [Show Name], [Venue], [Date].
+      Input list attached. Genre/influences: [one sentence].
+      [Any per-channel notes not in the spreadsheet.]
+
+   Claude will:
+   - Request the about-me folder and read all startup docs
+   - Parse the input list
+   - Ask about any CONFIRM/TBD channels before proceeding
+   - Ask for genre if you forgot to include it
+
+
+STAGE 1 — FOH CHANNEL PROCESSING DOCUMENT
+------------------------------------------
+8. Claude delivers three files simultaneously:
+      ShowName - FOH Channel Processing.md
+      ShowName - FOH Channel Processing.html
+      ShowName - FOH Channel Processing.pdf
+
+   All three land in the show folder:
+      ~/Documents/Claude/audio/Memorial Hall/YYYY-MM-DD ShowName/
+
+9. Review the channel cards in the PDF:
+   - Check EQ decisions against what you know about the rig/room
+   - Check Quick Summary paragraphs — they should explain the reasoning
+   - Check Seventh Heaven Pro preset names and reverb settings
+   - Check that vocal channels are cuts-only (no boosts)
+   - Check cymbal channels: Gate vs. Ducker, overhead vs. underhat treatment
+
+10. Request any corrections. Claude revises and re-delivers all three files.
+
+11. When Stage 1 is approved, stop. Do not proceed to Stage 2 
+    unless you need the .ses file.
+
+
+STAGE 2 — .SES FILE (ON REQUEST ONLY)
+--------------------------------------
+12. When ready, send:
+
+      Build the .ses from the MD.
+
+13. Claude will:
+    - Copy the master template (brian memo v2.ses) — never edits it directly
+    - Copy apply_show_TEMPLATE.py into the show folder as apply_showname.py
+    - Fill the CHANNELS dict from the MD
+    - Run the script and verify:
+        File size matches template exactly (1,543,866 bytes)
+        Ch 1 name field copies: ~20 (never 0 or 1)
+        Do-not-write tag verification: PASS
+
+14. Claude delivers the .ses file path and verification output.
+    If any check fails, Claude stops and identifies the cause before redelivering.
+
+15. Load on console and report back. Claude does not iterate without 
+    your console feedback. One change at a time.
+
+
+STAGE 3 — SHOW PACKET PDF (SEPARATE REQUEST)
+---------------------------------------------
+16. When ready, request the show packet separately:
+
+      Build the show packet PDF.
+
+    This is a master reference PDF summarizing the show:
+    input list summary, EQ decisions, patching, mic choices,
+    stage plot reference, and a file index of everything in the show folder.
+
+
+EDGE CASES
+----------
+CONFIRM / TBD channels:
+   Claude stops and asks before generating EQ data. Do not skip this.
+
+SPARE channels:
+   Appear in the input list summary table only.
+   Omitted from EQ cards and the .ses.
+
+Manual-entry channels (beyond strip range or flagged):
+   Dark red card header with MANUAL ENTRY label.
+   Full EQ data still in the card — set on console before show.
+
+NAME_SEARCH_END warning (name fields found: 0 or 1):
+   Script was built against wrong template, or old *24 constant.
+   Fix: confirm old_name = str(strip_num), confirm src = brian memo v2.ses.
+
+Mustard plugin activating on console:
+   A DO-NOT-WRITE tag was written. Run the console-save-diff method.
+   See Q225 SES Patcher SOP/01_Q225_SES_REFERENCE.md.
+
+
+FILES PRODUCED PER SHOW
+-----------------------
+Show folder: ~/Documents/Claude/audio/Memorial Hall/YYYY-MM-DD ShowName/
+
+   ShowName - FOH Channel Processing.md      (Stage 1 — patcher source)
+   ShowName - FOH Channel Processing.html    (Stage 1 — human-readable cards)
+   ShowName - FOH Channel Processing.pdf     (Stage 1 — rendered from HTML)
+   apply_showname.py                         (Stage 2 — patcher script)
+   ShowName.ses                              (Stage 2 — patched session file)
+   ShowName - Show Packet.pdf                (Stage 3 — master reference)
+
+
+KEY FILE PATHS
+--------------
+Master template .ses:   ~/Documents/Claude/audio/Memorial Hall/brian memo v2.ses
+Patcher template:       ~/Documents/Claude/audio/Memorial Hall/Q225 SES Patcher SOP/apply_show_TEMPLATE.py
+Pipeline spec:          ~/Documents/Claude/audio/workflow start files/Show Paperwork Pipeline Spec.md
+Quick reference:        ~/Documents/Claude/audio/workflow start files/Show Processing Quick Reference.md
+EQ approach:            ~/Documents/Claude/audio/workflow start files/eq-starting-points.md
+Console reference:      ~/Documents/Claude/audio/workflow start files/console-reference.md
+3CDC venue notes:       ~/Documents/Claude/audio/workflow start files/venue-notes-3CDC.md
+Memo venue notes:       ~/Documents/Claude/audio/Memorial Hall/venue-notes.md
+Mic library:            ~/Documents/Claude/audio/Memorial Hall/mic-go-tos.md
+
+===============================================================

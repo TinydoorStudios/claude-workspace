@@ -1,0 +1,9 @@
+{
+  "_note": "ShowBuilder config. audio_root is the base for show folders (where <Show>.brief.json is written). On the Mac it's Brian's Claude/audio folder; the Proxmox package instance leaves it null (role=package), so /api/brief returns the brief as a download.",
+  "audio_root": "/Users/brianlloyd/Documents/Claude/audio",
+  "port": 8095,
+  "host": "0.0.0.0",
+  "default_foh_engineer": "Brian Lloyd",
+  "default_rev": "Rev 1.0",
+  "role": "mac"
+}

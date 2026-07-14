@@ -1,0 +1,22 @@
+# junk
+.DS_Store
+._*
+.fuse_hidden*
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+*.zip
+
+# Obsidian per-device state (keep config, ignore workspace churn)
+.obsidian/workspace*
+
+# has its own git repo + GitHub remote (Wiki.js git-backed)
+audio/Live Sound KB/Wiki/
+
+# bulk static reference media — not workable content
+Kims Stuff/
+audio/SOP Stuff/
+
+# secrets stay out of history
+TDS_Credentials_CheatSheet.md

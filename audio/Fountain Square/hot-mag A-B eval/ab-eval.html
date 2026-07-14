@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@page { size: letter; margin: 0.6in 0.55in; @bottom-center { content: "Hot Magnolias A/B Eval — " counter(page) " of " counter(pages); font-size: 7.5pt; color: #888; } }
+body { font-family: Helvetica, Arial, sans-serif; font-size: 9.5pt; color: #1a1a1a; line-height: 1.45; }
+h1 { font-size: 17pt; margin: 0 0 2px 0; color: #0e2a47; }
+h2 { font-size: 12.5pt; color: #0e2a47; border-bottom: 2px solid #0e2a47; padding-bottom: 3px; margin: 22px 0 8px 0; page-break-after: avoid; }
+h3 { font-size: 10.5pt; color: #333; margin: 14px 0 4px 0; page-break-after: avoid; }
+.sub { color: #555; font-size: 9.5pt; margin-bottom: 14px; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 14px 0; font-size: 8.4pt; }
+th { background: #0e2a47; color: #fff; padding: 4px 6px; text-align: left; font-size: 8.2pt; }
+td { border: 1px solid #c9d2dc; padding: 4px 6px; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f6f9; }
+.opus { color: #7a3b00; }
+.fable { color: #0b5c2e; }
+.win { font-weight: bold; }
+.verdict { background: #eef4ea; border-left: 4px solid #0b5c2e; padding: 10px 14px; margin: 10px 0; }
+.flag { background: #fdf3e7; border-left: 4px solid #b96a00; padding: 8px 12px; margin: 8px 0; }
+.mono { font-family: Menlo, monospace; font-size: 8pt; }
+p { margin: 6px 0; }
+li { margin: 3px 0; }
+.small { font-size: 8pt; color: #666; }
+</style>
+</head>
+<body>
+
+<h1>The Hot Magnolias — A/B Workflow Evaluation</h1>
+<div class="sub">Same command, same input list, same pipeline (show-deep-build → eq-advisor), two models.<br>
+<b class="opus">hot-mag 2 = Claude Opus 4.8, High reasoning</b> &nbsp;·&nbsp; <b class="fable">hot-mag 3 = Claude Fable 5, High reasoning (blind rebuild — no values reused from Rev 2)</b><br>
+FSQ · Q225 · 2026-07-11 · Evaluated 2026-07-08 · All six deliverables in each folder reviewed in full.</div>
+
+<div class="verdict">
+<b>Verdict: hot-mag 3 (Fable 5) is the stronger packet.</b> The EQ shapes are broadly similar — both models followed the house rules without a single guardrail violation — but Fable 5 grounded every channel in named, quantitative source research and then actually executed the principles its research surfaced. Opus 4.8 researched the unusual sources well, leaned on the KB for the familiar ones, and stated several principles it didn't carry into the numbers. Two Opus moves would likely get corrected at soundcheck; nothing in the Fable set reads as a mistake.
+</div>
+
+<h2>1. What's identical — the pipeline held for both</h2>
+<p>Both runs honored every hard rule: OH as a stereo pair on fader 9 with fader 10 (SNARE PL8 return) untouched, cuts-first, whole-dB, no high-shelf, vocals cuts-only with the DEQ on the Beta 58A's 4k peak, FSQ deeper-cut rule (−6 to −9) applied, the template-override warning on faders 25/26 called out, ribbon/48V handling correct, the full Seventh Heaven Pro reverb section shipped, same five monitor mixes, same 17 active channels, same patch. The .ses files are byte-identical in size with matching apply scripts — only the EQ payload differs. The A/B is clean: everything that differs is a decision, not a process error.</p>
+
+<h2>2. Research depth — the root cause of nearly every difference</h2>
+<table>
+<tr><th style="width:16%">Research unit</th><th style="width:40%" class="opus">Opus 4.8 (hot-mag 2)</th><th style="width:44%" class="fable">Fable 5 (hot-mag 3)</th></tr>
+<tr><td>Artist/lineup</td><td>Bandcamp, CincyMusic, NKyTribune — solid, essentially equal</td><td>Same three sources, same lineup — equal</td></tr>
+<tr><td>Kick pair (91A + D6)</td><td>KB only</td><td class="win">Shure docs + PSW 91A/B52 thread (box 300–500, click up high); Gearspace/RecordingHacks D6 (−15 dB @ 600 baked scoop)</td></tr>
+<tr><td>Snare (i5)</td><td>KB only ("punchy, mid-forward, own 4–5k presence")</td><td class="win">SOS/Gearspace: +9 dB @ 5.5k baked peak, +5 dB body lift ~150</td></tr>
+<tr><td>Toms (D2/D4)</td><td>KB only</td><td class="win">DFO/Gearspace: D2 scooped + lean lows, D4 smooth mids / soft attack</td></tr>
+<tr><td>OH (SM57 pair)</td><td>KB only</td><td class="win">PSW/TapeOp/Gearspace consensus: dark top, box 300–500, opened with low-mid cuts + top lift</td></tr>
+<tr><td>Bass DI</td><td>KB only</td><td class="win">Gearspace + engineer write-ups: funk definition lives 700 Hz–2k</td></tr>
+<tr><td>Guitar Beta 27</td><td>KB only (generic complement treatment)</td><td class="win">Capsule curve: flat 60–3k, peaks at 5.5k and 9k, 9k fizz on bright amps</td></tr>
+<tr><td>Banjo DI</td><td>Web: general "banjo pickup = more HF than guitar, needs roll-off + body"</td><td class="win">Banjo Hangout: quack 0.8–1.6k, brittleness ~5–6k — frequency-specific</td></tr>
+<tr><td>Horns (Pro 35 ×3)</td><td>Web: Pro 35 character + "frequency-slot the three horns" (general)</td><td class="win">Same Pro 35 data <i>plus</i> named slotting targets: bone ~1k, sax ~2k, tpt ~3k+ (audiorecording.me, RoastYourMix)</td></tr>
+<tr><td>Vocals (Beta 58A)</td><td>KB only</td><td class="win">Shure spec sheet: dual presence peaks 4k / 10k</td></tr>
+<tr><td>Show-day weather</td><td class="win" style="color:#a33">Not pulled — assumed "warm/dry air = extra HF loss." The actual forecast contradicts this.</td><td class="win">Pulled: ~86°F, ~74% RH, shower risk (weather25/AccuWeather) → humid air carries HF slightly better; protect presence, don't over-boost</td></tr>
+</table>
+<p>Opus researched roughly three units on the web and stated "KB eq-starting-points + mic-library for the kit, bass DI, SM57 overheads, Beta 58A." Fable put a named source with a quantitative capsule fact behind all eleven units and closed with an explicit "no web↔KB disagreements" reconciliation. The skill says the KB is the floor and the research is the point — Fable satisfied that literally; Opus satisfied it selectively, spending research only where the source felt unusual.</p>
+
+<h2>3. Channel-by-channel EQ differences</h2>
+<p class="small">Format: gain @ freq (Q). Only channels with meaningful differences shown; Ch 5/6/11/13/17 differ by ±1 dB or ±50–100 Hz — noise-level, omitted from analysis.</p>
+<table>
+<tr><th style="width:11%">Channel</th><th style="width:26%" class="opus">Opus 4.8</th><th style="width:26%" class="fable">Fable 5</th><th style="width:37%">Read</th></tr>
+<tr><td><b>1 · Kick In<br>Beta 91A</b></td><td>HPF 40 · +4@3.5k · −8@500 · −6@250 · <b>+3@70</b></td><td>HPF 50 · +4@5k · −7@400 · −5@200 · <b>B1 flat</b></td><td class="win">Opus boosts 70 Hz on the attack mic while also boosting 60 Hz on the D6 — stacked lows on a two-mic kick, contradicting its own "keep its lows tucked under the D6" note. Fable gives each mic one lane: HPF 50, no low boost, attack only. Fable also flags the 91A contour switch (assumed flat; halve the desk cut if engaged) — a real console-day catch Opus missed.</td></tr>
+<tr><td><b>2 · Kick Out<br>Audix D6</b></td><td>Top flat · −6@400 · +3@60</td><td><b>−4@5k trim</b> · −4@350 · +3@60</td><td class="win">Fable sourced the D6's baked ~5k click and trimmed it so it can't stack on the 91A's attack boost, and eased the mid cut because the capsule already scooped −15 dB @ 600. Opus's −6@400 partially re-cuts what the capsule already did.</td></tr>
+<tr><td><b>3 · Snare<br>Audix i5</b></td><td><b>+2@5k boost</b> · −7@500 · −4@220</td><td><b>−3@5.5k trim</b> · −7@500 · body untouched</td><td class="win">The single clearest tell in the A/B. The i5 bakes in +9 dB @ 5.5k — Opus boosts 5k on top of it (harshness risk through A15s); Fable trims the baked peak instead. Fable also leaves the 150–220 body alone, citing second-line snare fatness — the genre call, executed.</td></tr>
+<tr><td><b>8 · Floor<br>Audix D4</b></td><td>Top flat</td><td><b>+2@4k click</b></td><td class="fable">Fable adds the click the D4's soft upper-mid attack undersells (KB flags it) — a funk floor tom outdoors disappears without it. Defensible either way; Fable's is sourced.</td></tr>
+<tr><td><b>9 · OH<br>SM57 pair</b></td><td>HPF 200 · +2@10k · −6@3k · −7@400</td><td>HPF 250 · +3@10k · −5@3k · −6@400</td><td>Same shape. Fable is a step braver on air and a step higher on the HPF, citing the PSW/TapeOp consensus for opening dark 57 overheads. Wash on outcome; Fable's is better documented (wide bell, explicitly not a shelf, per house rule).</td></tr>
+<tr><td><b>14 · Gtr CON<br>Beta 27</b></td><td>−8@400 + −6@800 (two deep cuts) · top flat</td><td>One wide −7@500 (Q1.2, covers 150–800) · <b>−3@9k fizz trim</b></td><td class="win">Fable's treatment is built from the actual capsule: one wide low-mid dump to keep it off the 57's body, plus the 9k fizz trim the mic is known for on bright amps. Opus's twin deep cuts are the generic complement recipe with no HF treatment on a mic with a documented 9k peak.</td></tr>
+<tr><td><b>15 · Banjo<br>IMP DI</b></td><td>Zing −8@4k · plunk −6@800 · +2@200</td><td>Quack <b>−6@1.2k</b> · zing <b>−7@5k</b> · +2@220</td><td class="win">Fable's frequencies match the published piezo-banjo consensus (quack 0.8–1.6k, brittleness 5–6k). Opus placed both cuts lower, on generic guitar-piezo instinct — its 800 Hz "plunk" cut sits below the documented quack zone.</td></tr>
+<tr><td><b>18–20 · Horns<br>Pro 35 ×3</b></td><td>Three near-identical curves: honk −6 @ 1k/800/2.5k, top −3 @ 6k/5k/6k</td><td>Slotted: bone owns ~1k (box cut at 600) · sax owns ~2k (honk cut at 1k) · tpt owns 3k+ (honk cut 1.1k, only −3@3.5k) · tpt HPF 150</td><td class="win">The structural difference. Opus's own research summary says "frequency-slot the three horns" — then writes three nearly identical EQs. Fable states which lane each horn owns and the band values actually differ. This is the three-horn front line of a horn-forward band; section separation is the mix.</td></tr>
+<tr><td><b>25/26 · Vox<br>Beta 58A</b></td><td>HPF 110 · rest identical</td><td>HPF 120 · rest identical</td><td>Identical curves (both correct: cuts-only, DEQ on 4k, deep 600). Wash.</td></tr>
+</table>
+
+<h2>4. Reverb section differences</h2>
+<table>
+<tr><th style="width:20%">Aspect</th><th style="width:38%" class="opus">Opus 4.8</th><th style="width:42%" class="fable">Fable 5</th></tr>
+<tr><td>Preset selection</td><td>3 vocal (Vocal Plate, Vocal Chamber, Bright Plate) + Brass Hall + Large Wooden + Studio A — a sound generic set</td><td class="win">Swaps Bright Plate → <b>Sunset Chamber</b> (the one ballad) and Large Wooden → <b>Snare Chamber</b> (second-line backbeat on the funk tunes) — presets chosen for what this band's material actually needs</td></tr>
+<tr><td>Factory anchoring</td><td>Values stated bare — no way to know at the desk which knobs deviate from the recalled preset</td><td class="win">Every value anchored: "Decay 1.5s (factory)," "1.7s (from 2.0 factory)," "Late Rolloff 8.4k (factory)" — at the desk you know exactly which knobs to move and which to leave</td></tr>
+<tr><td>Pairing note</td><td>Good — full usage narrative</td><td>Good — plus the KB FSQ posture rule quoted (near-factory decay, Late −6, bright rolloff)</td></tr>
+</table>
+
+<h2>5. Paperwork differences (Show Packet / Input List / MASTER)</h2>
+<table>
+<tr><th style="width:20%">Item</th><th style="width:38%" class="opus">Opus 4.8</th><th style="width:42%" class="fable">Fable 5</th></tr>
+<tr><td>Snare gate note</td><td>"Gate to reject hat/kick bleed without chopping ghost notes"</td><td class="win">"Second-line snare is the motor of this band — gate light or not at all; ghost notes and press rolls must live." Genre carried into the dynamics call, not just the EQ.</td></tr>
+<tr><td>Horn comp</td><td>"Fast-attack comp" ×3</td><td class="win">"Fast-attack comp (10–20 ms, 3:1) — brass transients jump" — numbers you can set</td></tr>
+<tr><td>Stands</td><td>Kick Out: Boom · Guitars: Boom · <b>Hi-Hat: Clip</b></td><td class="win">Kick Out: Short · Guitars: Short · Hi-Hat: Boom. The e609 has no clip mount — it's a hang-over-the-cab mic; on a hat it needs a boom. Short stands are the right call for a port mic and cab mics.</td></tr>
+<tr><td>Hi-hat mic flag</td><td>Carried as open FLAG ("confirm e609 vs SM81/57")</td><td>Resolved in the question round ("build exactly to the sheet" — Brian's ruling), with a practical note: aim the supercardioid null at the snare</td></tr>
+<tr><td>Mic notes sourcing</td><td>Character statements, unsourced</td><td class="win">Sources named inline ("Gearspace/RecordingHacks + KB agree," "SOS/Gearspace," "Shure spec + KB")</td></tr>
+<tr><td>Musical context</td><td>Competent, generic</td><td class="win">Tied to the band: "the pocket with keys LH is the dance floor," "NOLA piano (the Longhair/Booker rolls) lives in the mids," "trad-jazz banjo is a rhythm chank — it should sound like an instrument, not a transducer"</td></tr>
+</table>
+
+<h2>6. Why the differences happened — model behavior</h2>
+<p><b>Research budget allocation.</b> Both models were told the same thing: web-research every instrument × mic unit, KB as cross-check. Opus 4.8 triaged — it spent web research on the three units that felt unusual (Pro 35 clip-ons, banjo DI, NOLA brass as a topic) and treated the KB as sufficient for mics it "knows" (57, 58A, i5, D6, D2/D4). That's an efficiency instinct that reads as reasonable but breaks the pipeline's premise: the KB is the floor, not the answer. Fable 5 ran the literal instruction — eleven units, each with a named source and a number attached — and that quantitative grounding is directly what produced the i5 trim-not-boost, the D6 de-stack, the Beta 27 fizz trim, and the corrected banjo frequencies.</p>
+<p><b>Stating principles vs. executing them.</b> Opus's research summary contains "frequency-slot the three horns" — and its three horn EQs are nearly identical. It also wrote "keep its lows tucked under the D6" on the 91A — then boosted +3 @ 70 anyway. This is the pattern of a model that reasons correctly at the summary level but doesn't audit its own numbers against its own stated principles. Fable's channel values trace back to its research claims one-for-one; the horn section note even names the lane each horn owns so the execution is checkable.</p>
+<p><b>Fresh data vs. plausible priors.</b> The weather step is the cleanest demonstration: Opus pattern-matched "mid-July = warm/dry = extra HF loss" — plausible, unverified, and wrong for this date (74% RH forecast). Fable fetched the forecast and reasoned from the actual numbers, reaching the opposite HF conclusion. Same pipeline text, different instinct about what needs checking. (The skill's weather paragraph only describes the dry case — Opus followed the letter; Fable generalized correctly. The pipeline fix addresses this.)</p>
+<p><b>Anchoring outputs to verifiable references.</b> Fable anchors reverb values to factory presets, flags the 91A contour switch state, and quantifies compressor settings. Opus writes plausible bare values. Anchored output is auditable at the desk; bare output has to be trusted.</p>
+<p><b>Where Opus was equal or arguably ahead.</b> Artist research (equal). Hi-hat and rack tom EQ (functionally identical). Opus's kick attack at 3.5k vs Fable's 5k — both defensible for a 91A. Opus's deeper hat edge cut (−7 vs −6) leans harder into the FSQ deep-cut rule. And Opus's open FLAG on the e609 hat mic was a legitimate instinct — Fable simply resolved the same concern through the question round instead of leaving it open, which is what the pipeline prefers.</p>
+
+<h2>7. Scorecard</h2>
+<table>
+<tr><th>Dimension</th><th class="opus">Opus 4.8 (hot-mag 2)</th><th class="fable">Fable 5 (hot-mag 3)</th></tr>
+<tr><td>Guardrail compliance (house rules, template protections)</td><td>Pass — clean</td><td>Pass — clean</td></tr>
+<tr><td>Research grounding (sources per unit, quantitative facts)</td><td>3 of 11 units web-sourced</td><td class="win">11 of 11, all quantitative, reconciliation stated</td></tr>
+<tr><td>EQ correctness risk</td><td>2 likely soundcheck corrections (i5 boost, stacked kick lows)</td><td class="win">0 apparent errors; 2 braver-but-sourced calls</td></tr>
+<tr><td>Genre execution in the numbers</td><td>Stated, partially executed</td><td class="win">Executed and checkable (slotting, snare body, gate philosophy)</td></tr>
+<tr><td>Environmental data</td><td>Assumed (contradicted by forecast)</td><td class="win">Fetched and applied</td></tr>
+<tr><td>Paperwork utility at the desk</td><td>Good</td><td class="win">Better — anchored, sourced, numeric dynamics</td></tr>
+<tr><td>Question-round hygiene</td><td>Carried 3 open flags forward</td><td class="win">All flags resolved, decisions recorded</td></tr>
+</table>
+
+<div class="flag"><b>Bottom line for the pipeline:</b> the gap is not model intelligence at the EQ-shape level — it's research discipline and self-audit. Every Fable advantage traces to a behavior that can be written into the pipeline as an enforceable rule. That's what <span class="mono">PIPELINE-UPGRADE-FOR-OPUS-4.8.md</span> in this folder does.</div>
+
+<p class="small">Files reviewed in full, both folders: FOH Channel Processing .md · FOH EQ Reasoning .pdf · Show Packet .pdf · MASTER .pdf · Input List .xlsx (all 3 sheets) · spec.json · .ses (byte-compared) · apply script (identical). Model attribution per Brian, 2026-07-08.</p>
+
+</body>
+</html>

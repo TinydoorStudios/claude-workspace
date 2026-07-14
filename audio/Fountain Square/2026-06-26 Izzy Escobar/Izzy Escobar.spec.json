@@ -1,0 +1,827 @@
+{
+  "venue": "fsq",
+  "venue_label": "Fountain Square (outdoor)",
+  "console_label": "DiGiCo Quantum 225",
+  "show_name": "Izzy Escobar",
+  "artist": "Izzy Escobar",
+  "genre": "Pop-soul / indie-R&B (jazz + soul, classical roots)",
+  "show_date": "2026-06-26",
+  "foh_engineer": "Brian Lloyd",
+  "mon_engineer": "Sam Carpender",
+  "show_time": "9:00pm",
+  "rev": "Rev 1.0 Deep Build (gear-informed)",
+  "app_version": "deep-think-1.0",
+  "artist_profile": "Cuban-Italian pop-soul / indie-R&B singer-songwriter (debut EP 'Sunny in London', Oct 2025). Classically trained violinist, piano-forward writing, a jazz-and-soul blend with restrained, produced arrangements — violin lines and piano bloom under the voice rather than a wall of band. The voice is the show: Amy-Winehouse throaty grit meets Adele-style soulful power, a wide dynamic range from intimate/breathy to commanding belt. FOH implication: protect the low-mid chest body, ride/compress the intimate->belt swing, keep EQ subtractive and musical, de-ess dynamically rather than statically gutting the air.",
+  "research_summary": "Artist: Atwood Magazine, commfailure, Ones to Watch, Plastic/Melodic Mag -> pop-soul/jazz/soul, classical-violin roots, piano-forward, restraint over maximalism, Winehouse+Adele vocal reference. Backline (Tech Group quote 26-0553): Yamaha Maple Custom Absolute kit (22in kick w/ Powerstroke 3, 10in+12in racks, 16in floor, Clear/Coated Emperors), Ludwig Black Beauty BRASS snare, Zildjian K Custom cymbals (dark), Fender Deluxe Reverb '65 RI guitar amp, Ampeg SVT-CL + 810 'fridge' bass rig (flatwounds/fingerstyle per stage notes), Yamaha Motif XF8 keys. Per-source EQ cross-checked against live forums (Gearspace, TalkBass, TDPRI, DrumHelper/Sweetwater, maker docs) and the KB eq-starting-points + mic profiles. Venue: open-air Fountain Square.",
+  "room_context": "Open-air Fountain Square — no room gain, low end and HF both dissipate over the throw, the hard facade can slap but there is no reverb tail. Support the lows and the presence that distance eats, keep cuts surgical, and default to no reverb send (a short, forward plate on the vocal only if a song asks for it).",
+  "style_note": "Restraint-forward pop-soul — the voice is the mix; band sits under it. Outdoor, intimate, minimal verb.",
+  "reverb_note": "FSQ is outdoors — default is no reverb send. Vocal: a short, forward plate only when the song calls for it.",
+  "changes": [
+    "Guitar (Ch13/14): re-voiced for the ACTUAL amp on the backline quote — a Fender Deluxe Reverb '65 RI — which overrides the 'Vox AC30 top boost' note in the brief. A Deluxe is bright + scooped, so instead of a rock-style 2.5k boost the guitars TAME the bright-cap chime at 3.5k and trim the flubby low end at 150; the mid scoop is left alone (that's the Fender voice).",
+    "Bass (Ch11/12): rig confirmed as Ampeg SVT-CL + 810 'fridge' with flatwounds/fingerstyle — an already-dark, low-mid-heavy sound. So the cab 57 carves a deeper -7@400 pocket and LPFs at 5k, the DI tames clank at 1.5k, and the top stays rolled. Mid-forward soul bass confirmed, not pushed brighter.",
+    "Snare (Ch3): drum confirmed as a brass Ludwig Black Beauty — added a -3@500 to tame its signature metallic ring and big mid projection (a Supraphonic wouldn't need it); the 300 box cut is eased because the BB carries wanted body.",
+    "Overheads + hat (Ch5/9/10): cymbals are dark Zildjian K Customs — pulled the OH air to a modest +2@6k and removed any hat HF lift; a bright EQ on dark cymbals over a long outdoor throw goes washy and brittle.",
+    "Kick (Ch1/2): kit is a 22in maple with a Powerstroke 3 batter — already pre-controlled, so the box cuts are eased and the click leans on the 91A rather than EQ.",
+    "Vocal (Ch25): static -5@8k -> dynamic de-ess and HPF 130->110 — the KMS 105 isn't a sibilant mic, so protect the throaty chest body and only de-ess on peaks.",
+    "Acoustic (Ch15): air moved off the 5k brassy-piezo zone up to 8k, and the 2k piezo quack cut made dynamic so it only bites on loud strums."
+  ],
+  "channels": [
+    {
+      "ch": 1,
+      "name": "Kick In",
+      "instrument": "Kick",
+      "mic": "Shure Beta 91A",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Boom",
+      "patch": "Local 1",
+      "notes": "Beta 91A inside + 52A at the port — treat as one blend: same VCA, pan together, polarity-check (flip one if thinner).",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 3,
+          "freq": 80,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -2,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 4,
+          "freq": 3500,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "Boundary mic inside a 22in maple kick with a Powerstroke 3 batter — the head is already muffled/focused, and the 91A is the attack/click layer.",
+      "eq_summary": "The 91A owns the click — +4@3.5k beater definition that travels outdoors. Lows modest so they tuck under the 52A; box cut eased to -3 because the Powerstroke 3 + maple shell are already controlled, no need to gut 250."
+    },
+    {
+      "ch": 2,
+      "name": "Kick Out",
+      "instrument": "Kick",
+      "mic": "Shure Beta 52A",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "patch": "Local 2",
+      "notes": "Body/punch half of the kick blend — see Kick In.",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 70,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 300,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -2,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 2,
+          "freq": 3000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "52A at the port = the body/weight engine of the maple kick.",
+      "eq_summary": "+5@70 supports the weight open air swallows; only a small 3k snap since the 91A carries the real click. Mud cut eased for outdoors."
+    },
+    {
+      "ch": 3,
+      "name": "Snare Top",
+      "instrument": "Snare",
+      "mic": "Audix i5",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "patch": "Local 3",
+      "notes": "",
+      "hpf": 120,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -4,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 500,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 3,
+          "freq": 1000,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 2,
+          "freq": 7000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "i5 has a built-in ~3.5-4k presence peak and slightly scooped low-mids — fuller, less boxy than a 57. The drum is a brass Ludwig Black Beauty: dark, with a strong metallic ring and big mid projection.",
+      "eq_summary": "On a Black Beauty the ring is the thing to manage — -3@500 tames the metallic ring/projection without gutting the drum (a Supraphonic wouldn't need this). -4@300 box, eased because the brass carries wanted body. +3@1k restores the crack the i5 scoops; +2@7k snap for the outdoor throw — coated Emperor + i5 presence mean it doesn't need more."
+    },
+    {
+      "ch": 5,
+      "name": "Hat",
+      "instrument": "Hi-Hat",
+      "mic": "Shure SM81",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Boom",
+      "patch": "Local 5",
+      "notes": "",
+      "hpf": 500,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -6,
+          "freq": 800,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 2000,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "SM81 — smooth, un-hyped highs. The hats are 14in Zildjian K Custom Session: dark and warm, not bright.",
+      "eq_summary": "No HF boost — dark K hats through a smooth 81 already sit nicely, and lifting the top over a long outdoor throw just adds hiss. Clear the low bleed (800) and the 2k clang; LPF 16k trims any edge."
+    },
+    {
+      "ch": 6,
+      "name": "Rack 1",
+      "instrument": "Rack Tom",
+      "mic": "Audix D2",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "patch": "Local 6",
+      "notes": "",
+      "hpf": 100,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 3,
+          "freq": 150,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 450,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 3000,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "D2 is tuned to control tom resonance — articulate with little EQ. This is the 10in rack (highest tom), Clear Emperor.",
+      "eq_summary": "Voiced highest in the kit series. Gentle body @150, modest mud cut @450, +4@3k stick attack — trust the D2's voicing."
+    },
+    {
+      "ch": 7,
+      "name": "Rack 2",
+      "instrument": "Rack Tom",
+      "mic": "Audix D2",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "patch": "Local 7",
+      "notes": "",
+      "hpf": 85,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 3,
+          "freq": 130,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 400,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 2600,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "As Rack 1, shifted down for the larger 12in drum.",
+      "eq_summary": "Same treatment as Rack 1, voiced a touch lower for the bigger shell — let the D2 do the work."
+    },
+    {
+      "ch": 8,
+      "name": "Floor",
+      "instrument": "Floor Tom",
+      "mic": "Audix D4",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "Boom",
+      "patch": "Local 8",
+      "notes": "",
+      "hpf": 55,
+      "lpf": 10000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 70,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 400,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 1800,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "D4 reaches an octave lower than the D2 natively — the 16in floor's weight is there without much help.",
+      "eq_summary": "Body shelf stays modest (+4) — support, not a big lift; ride the sub outdoors. -3@400 mud; +4@1.8k stick definition."
+    },
+    {
+      "ch": 9,
+      "name": "OH HL",
+      "instrument": "Overhead L",
+      "mic": "Shure SM81",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Boom",
+      "patch": "Local 9",
+      "notes": "",
+      "hpf": 180,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 300,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": 2,
+          "freq": 6000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "Cymbal sheen + kit glue. The cymbals are dark Zildjian K Customs; the SM81 is already detailed.",
+      "eq_summary": "+2@6k only (not +5) — dark K cymbals plus a long outdoor throw mean a big HF lift turns brittle and washy. -5@300 clears the low wash so the OHs stay cymbals, not a second kit mic."
+    },
+    {
+      "ch": 10,
+      "name": "OH HR",
+      "instrument": "Overhead R",
+      "mic": "Shure SM81",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Boom",
+      "patch": "Local 10",
+      "notes": "",
+      "hpf": 180,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -5,
+          "freq": 300,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": 2,
+          "freq": 6000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "Matched to OH HL — keep the stereo pair identical.",
+      "eq_summary": "Same as OH HL."
+    },
+    {
+      "ch": 11,
+      "name": "Bass DI",
+      "instrument": "Bass",
+      "mic": "XLR (DI)",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "patch": "Local 11",
+      "notes": "Bass DI + SM57 cab blend: DI = weight + low-mid warmth, 57 = punch/grind. One VCA, polarity-check against the 57.",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 80,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 250,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 4,
+          "freq": 600,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": -5,
+          "freq": 1500,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "DI carries the lows the sealed 810 rolls off. Flatwounds + fingerstyle = dark, round, low-mid forward, very little string clank.",
+      "eq_summary": "Soul/Motown bass — dark, round, low-mid forward, top rolled. +4@600 is the Motown 'wool'; -5@1.5k tames what little clank there is (flats are already dark); -6@250 keeps it off the kick AND the cab's strong low-mids; +5@80 foundation for the open air."
+    },
+    {
+      "ch": 12,
+      "name": "Bass Mic",
+      "instrument": "Bass Cab",
+      "mic": "Shure SM57",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "patch": "Local 12",
+      "notes": "Blend with the DI — see Bass DI. Ampeg SVT-CL + 810 'fridge'.",
+      "hpf": 60,
+      "lpf": 5000,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 5,
+          "freq": 100,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -7,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 5,
+          "freq": 800,
+          "q": 1.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "57 on the 810 cab — it's the punch/grind mid layer over the DI (the 57 rolls off below ~200). The sealed 810 is already strong in the low-mids and has no top sizzle.",
+      "eq_summary": "+5@800 is the SVT growl; -7@400 carves a deep pocket so it doesn't stack the DI AND the 810's baked low-mid into mud. LPF 5k keeps the dark flatwound character — the fridge has no top anyway. Blend constant with the DI, same VCA."
+    },
+    {
+      "ch": 13,
+      "name": "Guitar 57",
+      "instrument": "Electric Gtr",
+      "mic": "Shure SM57",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "patch": "Local 13",
+      "notes": "SM57 on a Fender Deluxe Reverb '65, edge-of-breakup. 57 + Beta 27 blend (off-axis pair) — same VCA, polarity-check.",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -3,
+          "freq": 150,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -3,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 2,
+          "freq": 800,
+          "q": 1.2,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": -4,
+          "freq": 3500,
+          "q": 1.4,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "57 brings honky mids; the amp is a Fender Deluxe Reverb '65 — bright-cap chime, scooped mids, a snappy/glassy top that turns ice-picky past ~5 on the dial. The treble is the thing to tame, not boost.",
+      "eq_summary": "Re-voiced for the actual amp (Deluxe Reverb '65 from the backline quote — overrides the 'Vox AC30' note in the brief). A Deluxe is bright and scooped, so instead of a rock-style 2.5k push this TAMES the chime at 3.5k, trims the flubby low end at 150, and adds just a touch of body at 800 so the clean tone sits under the vocal. The mid scoop is left alone — that's the Fender voice."
+    },
+    {
+      "ch": 14,
+      "name": "Guitar 27",
+      "instrument": "Electric Gtr",
+      "mic": "Shure Beta 27",
+      "section": "RHYTHM",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "DI",
+      "patch": "Local 14",
+      "notes": "57/27 blend pair on the Deluxe — 27 carries clean low body + a sliver of air. Polarity-check against the 57.",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 2,
+          "freq": 120,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -2,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -3,
+          "freq": 3500,
+          "q": 1.4,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": 2,
+          "freq": 10000,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "Bright detailed condenser — on a bright Deluxe its value is clean low body + a hint of air, NOT more upper-mid, which would just stack the amp's chime.",
+      "eq_summary": "Re-thought from the KB condenser default: 57 owns mids, 27 owns clean body + a sliver of air. Because the Deluxe is already bright, the 27's presence region (3.5k) is trimmed, not boosted, and the air sits up at 10k above the ice-pick zone. -2@400 to match a little box; same VCA as the 57."
+    },
+    {
+      "ch": 15,
+      "name": "Acoustic Guitar",
+      "instrument": "Acoustic Gtr",
+      "mic": "BSS AR-133",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "patch": "Local 15",
+      "notes": "",
+      "hpf": 100,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": 4,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -5,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -6,
+          "freq": 2000,
+          "q": 1.8,
+          "type": "BELL",
+          "deq": {
+            "thr": -12,
+            "atk_ms": 5,
+            "rel_ms": 80
+          }
+        },
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        }
+      ],
+      "mic_notes": "AR-133 is a clean/transparent DI; the source is a piezo — quack at 1.5-2k, brassy at ~5k.",
+      "eq_summary": "Air at 8k, NOT 5k — 5k is the brassy piezo zone you cut. The -6@2k quack cut is DYNAMIC so it only bites on loud strums without gutting sustain; -5@400 box; +4@200 body the piezo can't make on its own."
+    },
+    {
+      "ch": 17,
+      "name": "Keys",
+      "instrument": "Keys",
+      "mic": "Whirlwind IMP (DI)",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "patch": "Local 17",
+      "notes": "Yamaha Motif XF8.",
+      "hpf": 50,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -4,
+          "freq": 200,
+          "q": 1.5,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": 3,
+          "freq": 2500,
+          "q": 0.8,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": 2,
+          "freq": 8000,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        }
+      ],
+      "mic_notes": "Motif XF8 is a full-range workstation — real piano lows and it can be bright; clean DI. Piano is central to her writing.",
+      "eq_summary": "HPF only 50 to keep the piano's real low end. Carve -4@200 so it doesn't crowd the bass + vocal low-mids; +3@2.5k for definition in a dense mix; a gentle 8k shelf for sparkle. Musical, not hyped — the Motif is already full and produced."
+    },
+    {
+      "ch": 18,
+      "name": "Click",
+      "instrument": "Click",
+      "mic": "Whirlwind IMP (DI)",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "patch": "Local 18",
+      "notes": "Monitors / IEM only — never assigned to FOH.",
+      "hpf": 80,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 315,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "Utility / cue.",
+      "eq_summary": "Mud trimmed so it's clean in the players' ears. CONFIRM: monitors / IEM only — never to FOH."
+    },
+    {
+      "ch": 19,
+      "name": "Guide",
+      "instrument": "Guide Vocal",
+      "mic": "Whirlwind IMP (DI)",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "patch": "Local 19",
+      "notes": "Cue track — monitors only.",
+      "hpf": 80,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 1,
+          "gain": -2,
+          "freq": 200,
+          "q": 0.71,
+          "type": "SHELF",
+          "deq": null
+        },
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 315,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        }
+      ],
+      "mic_notes": "Guide vocal / cue track.",
+      "eq_summary": "Same utility treatment. CONFIRM: monitors / IEM only — not in FOH."
+    },
+    {
+      "ch": 20,
+      "name": "Tracks",
+      "instrument": "Playback",
+      "mic": "Whirlwind IMP (DI)",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "stand": "DI",
+      "patch": "Local 20",
+      "notes": "Mastered, full-range stem (her strings/synths/BGV bed).",
+      "hpf": 30,
+      "lpf": null,
+      "bands": [],
+      "mic_notes": "Already a balanced, mastered master — not a mic'd source.",
+      "eq_summary": "Left near-flat (HPF 30 only) — EQ'ing a finished master like a mic'd source just thins the production. Add a small 315 trim live ONLY if it clouds the band."
+    },
+    {
+      "ch": 25,
+      "name": "Izzy",
+      "instrument": "Female Vocal",
+      "mic": "Neumann KMS 105",
+      "section": "VOCALS",
+      "phantom": true,
+      "ribbon": false,
+      "stand": "Tall",
+      "patch": "Local 25",
+      "notes": "Wired handheld on a stand (not the wireless system).",
+      "hpf": 110,
+      "lpf": 15000,
+      "bands": [
+        {
+          "b": 2,
+          "gain": -4,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 3,
+          "gain": -3,
+          "freq": 1600,
+          "q": 1.4,
+          "type": "BELL",
+          "deq": null
+        },
+        {
+          "b": 4,
+          "gain": -3,
+          "freq": 7500,
+          "q": 3.0,
+          "type": "BELL",
+          "deq": {
+            "thr": -18,
+            "atk_ms": 3,
+            "rel_ms": 120
+          }
+        }
+      ],
+      "mic_notes": "KMS 105 — transparent, smooth 7-12k presence, NOT a sibilant mic. Wired handheld on a stand.",
+      "eq_summary": "The show lives here. A DYNAMIC de-ess at 7.5k instead of a static -5@8k — keep the air a soul voice wants and only act on sibilant peaks. HPF pulled to 110 (the mic compensates proximity, won't boom) to protect the throaty Winehouse chest body. -3@1.6k gentle nasal; -4@300 box for outdoor intelligibility. Protective + subtractive, not aggressive. NOTE: this overrides the FSQ template's wireless-vocal baseline (removes its feedback notch) — watch for feedback at soundcheck and reach for the Mustard comp + a touch of plate before any more EQ."
+    }
+  ]
+}
