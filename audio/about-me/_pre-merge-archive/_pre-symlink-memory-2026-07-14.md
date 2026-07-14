@@ -87,7 +87,71 @@ These are the critical facts to know when working with Seventh Heaven Pro at Mem
 
 ## Session Notes
 
-*Rolling window: keep roughly the last 30 days here. Older entries rotate to `memory-archive-2026H1.md` (new archive file per half-year) — the memory-consolidation pass handles rotation. Anything durable must be promoted (CLAUDE.md / KB / auto-memory) before it rotates out.*
+### May 16, 2026
+- Created CLAUDE.md at ~/.claude/CLAUDE.md — global context file covering Brian's full setup, venues, EQ library, show doc format, mic shorthand, and active projects.
+- Created about-me.md, writing-rules.md, memory.md in ~/.claude/about-me/
+- Updated global instructions to reference all three files on session start.
+- Established: default output is PDF, writing tone is warm but direct, never assume — always ask.
+- Created `/Documents/Claude/audio/` folder structure with venue subfolders: Memorial Hall, Fountain Square, Washington Park, Elm Street Plaza, Other.
+- Created venue-notes.md in each folder — pre-filled from known data.
+- Documented PA rigs: Fountain Square (L-Acoustics A15/KS21/X12, Q225 FOH, M32 monitors); Washington Park (JBL SRX915/906/928, M32 FOH, no Tempest).
+- Updated CLAUDE.md and about-me.md with PA and console assignments per venue.
+- Extracted full session knowledge base from uploaded MD file into CLAUDE.md, memory.md, and about-me.md:
+  - Added venue abbreviations (Memo, FSQ, WP, ESP, Greaves) to all files
+  - Corrected Memo RT60 to working ~1.6s (previous 2.2s was empty/pre-renovation estimate)
+  - Expanded mic shorthand library with Type and Primary Use columns; added B3 numbering and C422 notes
+  - Added Celtic Music Engineering section (attack times, gating rules, instrument-specific notes)
+  - Added Classical Recording Geometry section (wire array, ORTF, R88, spot mic preferences)
+  - Added Frequency Reference tables (problem zones by venue type, instrument fundamental ranges)
+  - Added Soundcheck Priority Order and Bus Grouping Standard
+  - Updated color palette to full spec (console accent colors, EQ row colors, structure bars)
+  - Added Drowsey Lads 2026 and Israeli Chamber Project as new active projects in memory.md
+  - Expanded KSO S&G notes with full channel detail
+  - Saved show-packet-builder-template.py to /Documents/Claude/audio/
+
+### June 7, 2026 (TDS Proxmox server + n8n migration + cutover)
+- Brought new Dell 14G **Proxmox server "TDS"** online (192.168.0.4, web UI :8006). Set up SSH key access (`~/.ssh/proxmox_tds`, alias `ssh tds`). Server was briefly called "venus" — renamed to TDS everywhere 2026-06-07 (SSH alias + key, Tailscale, all docs).
+- Accessed **iDRAC** at 192.168.0.7 (root/root factory — flagged to change) via Redfish API.
+- **Fixed Proxmox reboot-hang:** SEL showed PCIe fatal error (bus 4) at reboot caused by ASPM. Disabled BIOS `PcieAspmL1` (SysProfile→Custom) via iDRAC, added `pcie_aspm=off reboot=pci` to GRUB. Verified clean cold-boot.
+- **Storage:** wiped the 1TB spinner (`sdb`, had an old Windows install — confirmed before wiping), built LVM-thin VG `vmdata`/`vmthin` = Proxmox storage `hdd-vm` (~931GB). SSD untouched.
+- **Tailscale** on host → machine renamed to `tinydoorstudios-dashboard-server` (100.99.198.22).
+- **n8n migration:** built Debian 12 VM (id 100, 192.168.0.125), Docker Compose n8n + Postgres 16 at `/opt/n8n`. Migrated 13 workflows + 8 credentials off the Pi (encryption key carried over, dropped 9.6GB of execution-log bloat). Workflows imported **INACTIVE** — Pi stays live until Brian triggers cutover. Export backup on Mac at `~/Documents/Claude/Code/n8n-migration/`.
+- **Cutover DONE (same day):** Tailscale subnet route `192.168.0.0/24` advertised+approved (iDRAC/VM/Proxmox reachable over tailnet). Relocated the `n8n-tunnel` (cloudflared) from Pi to the VM — no DNS change, same creds. Migrated `tempest-dashboard` to the VM (systemd, :3001). Activated the 8 live workflows by id; n8n + tempest verified 200 from the VM. Stopped Pi cloudflared + pm2. Repointed Pi `spl-monitor` `.env` webhook to the VM n8n.
+- **Pi NOT fully decommissioned:** `spl-monitor` still on the Pi. Its public URL spl.tinydoorstudios.com runs on a separate tunnel (`TDS Cold Storage`, connector at the remote SMAART box 192.24.143.121), not the home LAN. Full Pi shutdown needs spl-monitor relocated — blocked on SMAART/venue network access. (Saw spl 502 during this session = the remote cold-storage box being down/asleep, unrelated to the cutover.)
+- Behavior: Brian escalated the **no-narration** rule — hardened in CLAUDE.md and saved to project memory.
+
+### June 6–7, 2026 (session 3 — SPL Monitor continued)
+- Tiles row: removed redundant headroom tile, moved prediction to slot 3, added Davidson C-A as slot 4.
+- Fixed prediction display — em-dash null case replaced with "↓ stable" / "↑ limit in MM:SS" / "OVER LIMIT".
+- Backend: added `ca` (LCeq10s − LAeq10s) field to each virtual location in `_compute_virtual()`.
+- Compacted full layout — all sections now fit one screen without scrolling (main gap/padding, reduced font sizes throughout, tighter cards in virtual and ordinance sections, chart min-height 220→140).
+- Bug: rewrote Pi .env without SPL_PORT=8090, broke public URL with 502. Fixed. Standing instruction added to CLAUDE.md.
+- Created /reflect skill at `~/.claude/skills/reflect/SKILL.md`.
+
+### June 5–6, 2026
+- Built and deployed the **SPL Monitor** (10EaZy-style remote SPL portal) from scratch — Smaart v8.5 API client (Python/aiohttp) → live dashboard → Cloudflare. Live at **https://spl.tinydoorstudios.com**.
+- Proven end-to-end against a real live show on the work rig (DiGiCo UB MADI ASIO / SPL @ 192.24.143.121:26000): native `LAeq 6` compliance number, traffic light, predictive "time-to-limit", CSV/XML logging.
+- Debugged an aiohttp connection-reuse hang in the Smaart adapter (fixed with `force_close`) and an HTTPS mixed-content WebSocket bug (ws→wss).
+- Deployed on homelab Pi (192.168.0.2) as systemd service `spl-monitor` (boot-enabled); exposed `spl.tinydoorstudios.com` by adding ingress to the existing n8n cloudflared tunnel via the Cloudflare API (token from `~/.cloudflared/cert.pem`). Mac SSH deploy key `~/.ssh/spl_deploy`.
+- **Granted full autonomy going forward** — updated `Documents/Claude/CLAUDE.md` "How to Talk to Me": act without asking permission at each step; only stop for consequential/irreversible decisions.
+- Saved research + designs for later phases: Red Rocks SPL program analysis, violation counter (3-strikes + n8n escalation), limit verbiage + time-of-night tiers, low-frequency bass meter, virtual location meters.
+- Flagged for cleanup: two `cloudflared` instances running the n8n tunnel on the Pi.
+
+### June 10, 2026
+- Diagnosed why Cowork kept failing FSQ .ses builds while Memo worked: the KB article `pipeline-spec-fsq.md` still carried the dead "strip region" constants (0x11456/5383 — the console never reads that region on recall) from before the 2026-06-09 console-save-diff discovery. Rewrote the KB Step 3 section to the verified method (surface table 0xA287A + current-scene blocks 0x1A1000–0x1CC000) and updated `console-digico-q225.md` to warn the two venue templates use different regions.
+- Confirmed byte-for-byte that the FSQ scene block filter layout is identical to the Memo strip: LPF = tag 0x0703 bidx 1, HPF float at LPF+0x10 under tag 0xFFFF (Memo's HPF_REL=406 is that same record). Open question is encoding only: console saves store HPF ≈ 0.8×display, but the Memo patcher writes raw Hz and recalls fine — read mapping unproven.
+- Built the calibration kit at `audio/Fountain Square/_TEMPLATE/Filter Calibration/`: `FSQ_Filter_Cal.ses` (8 bytes changed — Ch1 HPF=80, Ch2 HPF=100, Ch3 LPF=5000, Ch4 LPF=6250) + READ ME with the decode table. Brian loads it once at FSQ, reads four displayed values, then HPF/LPF writes go live in the FSQ patcher and Blue Eighty-Eight.ses gets rebuilt with filters.
+- Also asked Brian to capture one-parameter-per-save console diffs for SD comp/gate (both venues) so dynamics can join the pipeline — those tags are still unmapped (0x1D/0x1E are Mustard, do-not-write).
+
+### June 10, 2026 (evening — .ses calibration cracked)
+- Brian supplied the decisive save-diff: edited Ch 6 in the DiGiCo offline editor (Wine) and saved `klaud edited.ses` next to the template in `~/.wine/drive_c/Projects/`. Diff confirmed everything: HPF stored = 0.8× display Hz, LPF stored = 1.25× display (off = 25000), EQ bidx 0 = HIGH band … bidx 3 = LOW, DEQ tags (0x040E/0x0411/0x0412/0x0410, seconds), comp threshold 0x050F bidx 0–2, gate enable 0x050E bidx 3. Name copies are each followed by a float64 save-timestamp — the file-wide diff noise.
+- Root-caused "Blue 88 barely worked": the FSQ patcher mapped MD B1→bidx0, but B1 = low in the locked convention and bidx0 = high in the file — every channel's EQ was reversed (shelves inverted). Verve Pipe failed earlier for the dead-region reason.
+- Rewrote `apply_show_TEMPLATE_FSQ.py`: band mapping fixed (B1→bidx3…B4→bidx0), HPF/LPF writes enabled with the confirmed scales, DEQ writes added, comp-thr now hits all three multiband slots. Rebuilt `Blue Eighty-Eight.ses` from its MD — readback-verified (band placement, shelf types, HPF 40→32/120→96, 0 stray bytes). Awaiting Brian's console verification.
+- Memo patcher (`apply_show_TEMPLATE.py`) given the same filter scales — previous Memo shows wrote raw Hz, so their HPFs recalled ~25% above paperwork. Updated KB: pipeline-spec-fsq, pipeline-spec-memo (bidx correction), console-digico-q225. Filter Calibration kit marked obsolete.
+
+### June 10, 2026 (late — send-it skill)
+- Brian console-verified the rebuilt Blue Eighty-Eight.ses. Built the **send-it skill** (`~/.claude/skills/send-it/`): "send it fsq" / "send it memo" → MD paperwork → venue template → verified .ses. Both venue patchers now share the same CLI (--src/--dest/--md); upgraded the Memo SOP patcher with read_md (band map B1→bidx3, filter scales, DEQ) and smoke-tested it against the Memo template (HPF 40→32, LPF 6000→7500, bands land at correct bidx, do-not-write PASS).
+- Disambiguated the trigger collision: fsq-wiki-push description narrowed — bare "SEND IT" after a verified .ses = wiki push; "send it <venue>" = build the .ses.
 
 ### June 14, 2026 (KB SOP download 404 — root-caused and fixed for good)
 - **The bug that kept coming back:** every SOP download at `kb.tinydoorstudios.com/assets/sops/*.pdf` returned a Wiki.js 404. Several past sessions "fixed" it by editing local cloudflared `config.yml` (on the n8n VM and inside CT 101) and nginx — none of it held, because the tunnel never reads those files.
@@ -178,6 +242,20 @@ These are the critical facts to know when working with Seventh Heaven Pro at Mem
 
 **Entries merged from the audio copy (original dates preserved):**
 
+### May 28, 2026
+- The Brit Pack show paperwork completed at Memorial Hall
+- Seventh Heaven Pro reverb section in show doc corrected — replaced all hallucinated preset names with verified presets from official Liquidsonics PDFs
+- Early/Late slider hard-jump behavior confirmed and documented in KB + memory
+- Built standalone Seventh Heaven Pro reference PDF: `Memo Work/Seventh Heaven Pro Reference.pdf`
+- KB article `reverb-reference-memo.md` updated: added Gold Hall, Snare Chamber, Studio A presets; Early/Late behavior section updated
+- Pipeline spec finalized as 2-stage
+
+### June 12, 2026
+- Built WP Clear-Com Production Intercom SOP (Main Stage) from uploaded PDF — extracted 5 photos, produced .md + .html + .pdf via weasyprint
+- SOP filed at `audio/SOP Stuff/WP/WP-SOP-ClearCom-Main-Stage.{md,html,pdf}`
+- Routing correction: initially created `Memorial Hall/SOP Stuff/` by mistake — files moved to canonical `audio/SOP Stuff/` after Brian pointed it out and provided audio folder access
+- Added feedback memory to Cowork auto-memory: SOP Stuff is always at audio root, never inside a venue folder
+
 ### June 16, 2026 — ShowBuilder app built
 
 - Built **ShowBuilder**, a guided web dashboard at `Code/ShowBuilder/` (Python/aiohttp, `./run.sh` → :8095) that front-ends the existing Q225 pipeline. Wizard: Show → Channels → Review → Build. Collects venue/channels/instruments/mics/genre/artist, suggests EQ+comp and 4–6 Seventh Heaven Pro reverbs, shows a review screen for approval, then renders the locked `FOH Channel Processing.md` and calls the `apply_show_TEMPLATE*.py` patchers + show-packet builder. Outputs MD/HTML/.ses/packet PDF/input-list xlsx + review PDF into the show folder. Does NOT re-derive the .ses byte format.
@@ -225,6 +303,14 @@ These are the critical facts to know when working with Seventh Heaven Pro at Mem
 
 **Entries below found by the 2026-07-08 memory-consolidation pass, scanning sessions never logged here (original session dates preserved, from file mtimes where the session itself wasn't dated):**
 
+### 2026-05-19 — Mic inventory spreadsheet built
+- `Memorial Hall/mic_inventory.xlsx` + `.csv` — mic library inventory by category. WA-87 (Warm Audio) corrected to multi-pattern (Omni/Cardioid/Fig-8), not cardioid-only. Audio-Technica AE2500 added to Dynamics (dual-element kick mic, dynamic + condenser capsules, two XLR outs) — Category field set to "Dynamic / Condenser" per Brian's call, so it signals two channels when pulled into an input list.
+- Logged to active-projects.md Tools & Infrastructure 2026-07-08 (was untracked until the consolidation pass found it).
+
+### 2026-06-02 — Audio Archive Sync email report built
+- Daily confirmation email that the Reaper-PC → Audio NAS sync ran — separate from the existing 2 AM `backup-to-coldstorage.sh` (NAS → cold storage). TrueNAS: `/root/scripts/audio-sync-report.sh`, cron 3 AM, emails `tinydoorstudios@gmail.com` (log on success, "no log found" alert if the Windows side didn't run). Windows (7th-Heaven/Reaper PC): `C:\Scripts\audio-archive-sync.ps1` + Task Scheduler, writes `Z:\sync-logs\`. Hit the usual PowerShell speed bumps (Command Prompt vs. PowerShell confusion, execution policy, em-dash encoding corruption in the script comments) — all resolved, verified working.
+- Logged to active-projects.md Tools & Infrastructure 2026-07-08.
+
 ### 2026-06-25 — DiGiCo OSC macro for Reaper (LiveTrax one-button record-arm) — paused
 - Goal: one DiGiCo command key arms/starts Reaper LiveTrax recording over OSC. Protocol partially decoded (reference capture + parser saved); self-send and the DiGiCo_OSC module both ruled out. Handoff written at session close: `handoffs/2026-06-25_DiGiCo-LiveTrax-OneButton-Macro-Handoff.md` + `handoffs/digico-livetrax-macro/`. Left mid-debug on the Record Arm macro insert — no further session found continuing it.
 - Logged to active-projects.md Tools & Infrastructure and flagged in questions.md 2026-07-08 — was an orphaned open thread until now.
@@ -243,16 +329,6 @@ These are the critical facts to know when working with Seventh Heaven Pro at Mem
 - Added: 6 entries (mic inventory, audio archive sync, DiGiCo OSC macro, FSQ network manager SOP, Hog5 lighting flag, SPL Monitor moved to active-projects.md) · Updated: 4 (Wind Alert + KSO S&G resolved in active-projects.md and questions.md; active-projects.md header/sync date; memory.md Active Projects section trimmed to a pointer — 2 contradictions resolved) · Archived/trimmed: 1 (memory.md's duplicate 5-show Active Projects block → pointer)
 - Flagged to questions.md: LDB status (frozen since May 16, no show date on record), DiGiCo OSC macro resume/shelve call, Hog5 lighting recurring-or-one-off
 - First run was a dry run confirmed by Brian 2026-07-08 ("yes do this, do not ask again") — this run applied the changes and future daily runs proceed automatically per the skill's safety rule.
-
-### July 8, 2026 (FSQ feedback pass — Hot Magnolias)
-- Brian console-loaded the first shared-engine FSQ .ses (Hot Magnolias) — recalled properly. Five corrections from that pass, all landed as code + docs same night:
-  1. FSQ cuts deeper: −6 to −9 dB typical, −10 on mud (pipeline-spec-fsq, eq-advisor, NEW-SHOW, CLAUDE.md genre tables).
-  2. FSQ fader 9 "Overheads" = STEREO (both OH mics, one fader); fader 10 "SNARE PL8" = snare plate return, never an input — Hot Magnolias had overwritten it. Now double-gated: build_packet RESERVED_CH validation error + FSQ patcher `protected` hard-abort.
-  3. Stage plots band-provided, never generated; file as `<Show> - Stage Plot.pdf`.
-  4. `build_packet.py` now emits `<Show> - MASTER.pdf` (packet + rationale + band stage plot/rider, pypdf) alongside the individual files.
-  5. Reverb suggestions required every show incl. FSQ: 3 complementary vocal + 1–2 instrument (horn on request) + 1 general; Seventh Heaven presets verbatim with settings + in-plugin EQ + why + pairing paragraph. Validator-enforced (`reverbs`/`reverb_pairing`, opt-out `no_reverb: true`); Reverbs xlsx sheet + Rationale block upgraded.
-- Verified: old Hot Magnolias spec fails with exactly the two intended errors; corrected spec builds clean incl. 24-page MASTER; patcher refuses the ch-10 MD.
-- **Open: the shipped 2026-07-11 Hot Magnolias packet/.ses predates these rules — Brian re-running the input list through the updated pipeline.** *(Updated 2026-07-09: done — Rev 2 rebuilt on the corrected pipeline (`hot-mag 2/`), Rev 3 blind rebuild (`hot-mag 3/`), A/B evaluated 2026-07-09 (see below); console verify still pending.)*
 
 ### 2026-07-08 (late) — Hot Magnolias Rev 3 blind rebuild (`hot-mag 3/`)
 - Brian's call: run the deep build "from the beginning" as a comparison test vs `hot-mag 2` — no values reused, full fresh web pass (artist + all 14 research units). Rulings from the question round: OH = stereo pair on fader 9 (fader 10 stays SNARE PL8 return), V1/V2 Beta 58A only, no locker swaps, blanks stay spares, date 2026-07-11.
@@ -282,11 +358,6 @@ These are the critical facts to know when working with Seventh Heaven Pro at Mem
 - Built a 4-page **Mic Reference** in `SOP Stuff/Mic Reference/`: page 1 = full 32-channel FSQ input list (shorthand decoded to full mic names), pages 2–4 = a photo mic-ID guide. Deliverables: PDF + HTML + xlsx (two tabs: Input List, Mic Guide) + `build_mic_reference.py` + a sample-page PNG. Handoff at `handoff-2026-07-09-mic-reference.md`.
 - **Known quality limit:** the delivered PDF is soft — sandbox can't reach image hosts and the browser bridge blocks image data, so pages were browser-rendered then re-sliced by hand (rasterized twice). Sharp path is a **local weasyprint / headless-browser render** with direct network access (fetches photos, keeps text vector); Claude offered to build that repeatable local mic-sheet script — Brian's call. Interim sharp copy: open the HTML, let photos load, Chrome Print → Save as PDF (keeps text vector).
 - **Mic-spec discrepancy flagged** (see questions.md): per Shure specs the Beta 27 and Beta 98D/S are supercardioid, but `Memorial Hall/mic_inventory.xlsx` lists the Beta 27 as cardioid. Not reconciled — awaiting Brian's call on which is authoritative.
-
-### Memory Consolidation — 2026-07-09
-- Scanned: 3 sessions / 1 day back (watermark: the 2026-07-08 run — it updated active-projects.md and questions.md but never appended its watermark entry here; chain restored with this entry)
-- Added: 2 entries · Updated: 2 (0 contradictions resolved) · Archived/trimmed: 0
-- Flagged to questions.md: none (pipeline-upgrade follow-through logged to active-projects.md Open Issues instead — it's a task, not a question)
 
 ### Memory Consolidation — 2026-07-10
 - Scanned: 31 sessions via list_sessions (watermark 2026-07-08); ~4 read in full. All 2026-07-08/09 pipeline + hot-mag work was already logged; only the 2026-07-09 Mic Reference session was unrecorded.
@@ -345,9 +416,3 @@ These are the critical facts to know when working with Seventh Heaven Pro at Mem
 - Scanned: 38 sessions via list_sessions (watermark 2026-07-13); 1 read in full. Only "Mic Photos to Wiki" postdated the watermark — it turned out to be the same long-running session already partly logged on 2026-07-13, continued further (Royer merge, TRP2 preamp page, U87 removal / "87 JR" lock-in) after that pass's cutoff. "Slate coaster engraving white" reappeared in the session list but is the same out-of-scope hobby project already excluded.
 - Added: 1 entry (Mic Locker Gallery continuation) · Updated: 2 (active-projects.md Mic Locker Gallery entry + header sync date — 1 contradiction resolved: U87 kit status) · Archived/trimmed: 0
 - Flagged to questions.md: 2 (U87 removal not propagated to CLAUDE.md/decision-flow.md/portable-context.md — needs an actual fix, not just a note; other preamps needed from Brian for the new Preamp category)
-
-### 2026-07-14 — Workspace structure cleanup (memory / skills / git / layout)
-- Full audit of the Claude structure, then all eight fixes applied. Headlines: `audio/CLAUDE.md` was a stale 2026-05-27 fork (Neumann U87, Pi n8n, weasyprint packet claim) loading into every audio session — rewritten as a thin pointer layer. about-me had re-forked (audio copy was getting the nightly consolidation writes, canonical was stale) — merged and replaced with real symlinks this time. memory.md now runs a rolling ~30-day Session Notes window; older entries live in `about-me/memory-archive-2026H1.md`.
-- `~/Documents/Claude` is a git repo now (baseline commit `c7e1f64` captured pre-cleanup). Commit rule-file changes instead of .bak copies. Ignored: Kims Stuff, SOP Stuff, the Wiki (own repo), venvs, credentials.
-- Skills: `_skills/` sources symlinked into `.claude/skills/` (Claude Code always runs live copies; Cowork uploads still snapshots). New `_system/PIPELINE.md` = the five-stage show chain on one page. `/reflect` rewritten to feed auto-memory, not `~/.claude/CLAUDE.md`. CLAUDE.md Active Projects → pointer to active-projects.md. U87/421-U identities fixed in decision-flow.md + portable-context.md (matcher was already right); questions.md item closed.
-- Full detail: `_system/IMPROVEMENTS.md` 2026-07-14 entry.

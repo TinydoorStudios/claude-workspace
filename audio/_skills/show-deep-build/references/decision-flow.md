@@ -40,7 +40,8 @@ expensive to get wrong.
 The mic is the single biggest swing on the baseline because it changes what's *already in* the signal.
 
 Resolve the model precisely, expanding Brian's shorthand against `mic-library.md` and the `CLAUDE.md`
-mic table (DM6, DM17, SR20, MKH40, U87, U87 Jr = WA-87, Beta 58A, RNDI, J48, DPA 4099, B3, R88, etc.).
+mic table (DM6, DM17, SR20, MKH40, 87 JR = WA-87 — Brian's ONLY "87", no Neumann U87 in the kit; any
+"421" = the vintage MD 421-U Silver Tail, never the 421-II; Beta 58A, RNDI, J48, DPA 4099, B3, R88, etc.).
 
 Then read the mic's **EQ tendency** from `mic-library.md`. The KB classifies every mic as one of:
 

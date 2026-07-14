@@ -61,11 +61,10 @@ Brian Lloyd — live sound and recording engineer, Cincinnati, Ohio. 20+ years i
 | DM17 | Earthworks DM17 | Snare top, toms |
 | SR20 | Earthworks SR20 Gen 2 | Hat, overheads, room |
 | MKH40 | Sennheiser MKH40 | Flute, pipes, classical detail |
-| U87 | Neumann U87 | Crowd mic, room |
-| U87 Jr | Warm Audio WA-87 | Trombone |
+| 87 JR / U87 Jr | Warm Audio WA-87 — Brian's ONLY "87" (no Neumann U87 in the kit; any "87"/"U87" = this mic) | Trombone |
 | Beta 58A | Shure Beta 58A | Vocals |
 | Beta 98H/C | Shure Beta 98H/C | Clip-on horns |
-| MD421 | Sennheiser MD421 | Brass alternative |
+| MD421 | Sennheiser MD 421-U "Silver Tail" (vintage 1970s, native XLR — NOT the 421-II; any "421" = this mic) | Toms first choice, brass, guitar cabs |
 | RNDI | Rupert Neve Designs RNDI | Bass, electric guitar, keys DI |
 | J48 | Radial J48 | Bass DI |
 | DPA 4099 | DPA 4099 CORE+ | Clip-on piano, strings, brass |

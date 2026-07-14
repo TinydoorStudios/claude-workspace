@@ -23,6 +23,12 @@ flat file, and there's no CLI hook to piggyback on — the trigger is a real Cow
 ## Where memory lives (read this first, every run)
 
 - `about-me/memory.md` — session history, decisions, resolved/open notes. **Not** project state.
+  Canonical file: `~/Documents/Claude/about-me/memory.md`. The copies at `audio/about-me/` and
+  `~/.claude/about-me/` are symlinks to it (re-unified 2026-07-14 after the audio copy forked a
+  second time) — always resolves to the same file, but if a symlink ever breaks, fix the link;
+  never write a second real memory.md.
+- `about-me/memory-archive-YYYYHn.md` — rotated-out session notes (see the rolling window in
+  Phase 4). Read-only history; nothing loads it at session start.
 - `Live Sound KB/Wiki/active-projects.md` — canonical current project state. This is the file
   most consolidation work touches.
 - `Live Sound KB/Wiki/questions.md` — open questions / gaps. Anything uncertain goes here, never
@@ -84,6 +90,17 @@ makes them explicit and consistent:
 
 - Keep `memory.md`'s "Session Notes" section chronological and don't let old resolved entries
   bloat it — items fully superseded by KB content can be trimmed to a one-line pointer.
+- **Rolling window (added 2026-07-14): Session Notes keep roughly the last 30 days.** Each run,
+  move entries older than 30 days to `about-me/memory-archive-YYYYHn.md` (one archive file per
+  half-year; create the next one when the half rolls over; append, keep chronological order).
+  Before an entry rotates out, confirm anything durable in it (standing rule, correction,
+  infrastructure fact) was promoted to CLAUDE.md, the KB, or auto-memory — promote it now if
+  not. memory.md is loaded at every session start; the archive never is, so the window is what
+  keeps startup cost flat.
+- **Auto-memory dedupe:** if a Cowork auto-memory entry restates what a CLAUDE.md file or the KB
+  already carries in full, trim the auto-memory entry to a one-line pointer (or delete it) — a
+  fact stated in two places is a contradiction waiting to happen. Same rule in reverse: don't
+  copy auto-memory facts into these files.
 - Confirm `active-projects.md` entries marked `[DONE]` actually have their paperwork/output filed
   where `NEW-SHOW.md`/`ROUTING.md` says it should be; flag mismatches to `questions.md` rather
   than moving files yourself (file moves are a stop-and-ask action per Brian's rules).

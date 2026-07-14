@@ -401,33 +401,7 @@ Used at Memorial Hall on SR guitar (CH13 SM57, CH15 R-121).
 
 ## Active Projects
 
-### Live Dead and Brothers (LDB)
-- GD/Allman Brothers tribute — Memorial Hall
-- Files built: `LDB_Show_Document.docx` (patch + monitors + EQ + stage plot), `LDB_FabFilter_ProQ4_Settings.pdf`
-- 21 input channels + 6 crowd mics
-- Royer AxeMount on SR guitar (CH13 SM57, CH15 R-121)
-- All TOUR wireless vocals — confirm RF coordination at load-in
-- IEM: Hardwire Mix 7 on drums · MIX 1–5 stage wedges
-
-### FSQ Salsa (Weekly Repeating — Fountain Square)
-- Conversion sheet built: `FSQ_Salsa_Patch_2026.pdf`
-- 32-channel show: Standard snake labels → Salsa-specific inputs
-- CH 25–28: Dante 49–52 for wireless vocals
-- CH 13–16: Guitar inputs repurposed as Keys 1–4
-- CH 17–21: Misc inputs repurposed as Timbales/Quinto/Tumba/Bongo
-
-### Simon & Garfunkel Tribute
-- Console: Behringer Wing
-- Piano: 9ft Steinway, short stick lid
-- Mics: DPA 4099 stereo pair (piano mount clips, magnet mounts on frame)
-- EQ: Conservative cuts-only (see Piano / Classical EQ above)
-- No show document built yet
-
-### ShowBuilder — show paperwork + .ses dashboard (built 2026-06-16)
-- Guided web app at `Code/ShowBuilder/` (Python/aiohttp, `./run.sh` → http://localhost:8095). Front-ends the existing Q225 pipeline — does NOT re-derive the `.ses` byte format.
-- Wizard: Show → Channels → Review → Build. Suggests EQ+comp and 4–6 Seventh Heaven Pro reverbs (names verbatim from the reverb KB), shows a review screen, then renders the locked `FOH Channel Processing.md` and runs the `apply_show_TEMPLATE*.py` patchers + show-packet builder → MD/HTML/.ses/packet PDF/input-list xlsx/review PDF in the show folder.
-- Brain is KB-sourced + self-improving (`build_knowledge.py` parses the reverb article; unknown mics → library + KB queue; `learning/` log). Memo + FSQ get the full .ses pipeline; other venues paperwork-only.
-- Phase 2 (planned): package-only instance on the n8n VM behind cloudflared + passcode on the TDS dashboard, emitting the `*.spec.json` package the Mac builds from. See `Code/ShowBuilder/deploy/DEPLOY.md`.
+Canonical project state — active shows, tools & infrastructure, open issues, completed shows — lives in ONE place: `audio/Live Sound KB/Wiki/active-projects.md`. Read it there; update it there. (This section used to duplicate it — LDB, FSQ Salsa, S&G, ShowBuilder — all frozen at their May/June text while the KB moved on. Trimmed to this pointer 2026-07-14 to stop the drift.) ShowBuilder's operational notes: app at `Code/ShowBuilder/` (`./run.sh` → :8095), re-scoped 2026-06-25 to facts-only capture emitting `<Show>.brief.json` — EQ/paperwork/.ses all belong to the show-deep-build pipeline, and deploy detail is in `Code/ShowBuilder/deploy/DEPLOY.md`.
 
 ---
 
@@ -558,4 +532,4 @@ Full rules in `/Users/brianlloyd/Documents/Claude/about-me/writing-rules.md` —
 
 ---
 
-*Last updated: July 13, 2026 (consolidated — absorbed the global `~/.claude/CLAUDE.md` domain/infra content: Work Context, Tempest station table, full TDS/n8n-VM home-lab detail + reboot-hang fix, SPL Monitor deploy runbook, Standing Corrections. This file is now the complete technical/domain reference; the global file holds only session-start + identity + how-to-work. Prior: July 1 — EQ tables moved to the KB; weasyprint rule fixed; Memo template = brian memo june 2026.ses)*
+*Last updated: July 14, 2026 (structure cleanup: Active Projects section → pointer to the KB's active-projects.md; whole workspace is now a git repo — commit rule-file changes instead of making .bak copies; audio/CLAUDE.md slimmed to a thin audio-layer pointer file; audio/about-me re-symlinked to the canonical about-me/; memory.md runs a rolling ~30-day session-notes window with rotation to memory-archive files; skill sources in audio/_skills are symlinked into .claude/skills so Claude Code always runs the live copy. Prior: July 13, 2026 (consolidated — absorbed the global `~/.claude/CLAUDE.md` domain/infra content: Work Context, Tempest station table, full TDS/n8n-VM home-lab detail + reboot-hang fix, SPL Monitor deploy runbook, Standing Corrections. This file is now the complete technical/domain reference; the global file holds only session-start + identity + how-to-work. Prior: July 1 — EQ tables moved to the KB; weasyprint rule fixed; Memo template = brian memo june 2026.ses)*
