@@ -1,5 +1,5 @@
 {
-  "_note": "yellow/red = A-weighted show limits (dBA). cYellow/cRed = C-weighted 'bass cop' limits (dBC, retired from the lamp — kept as secondary readouts). subYellow/subRed = 63 Hz octave-band limits (dB, 1-min Leq); leave null to run the bass lamp in WATCH mode (display only, no alarm) until a real target is set after the watch period. Light + prediction key off the 10-s LAeq; bass lamp now keys off the 63 Hz 1-min Leq. The 63 Hz labels are auto-detected from the Smaart stream (any metric containing '63'); set subBand.label10s / label1m only to force specific labels.",
+  "_note": "yellow/red = A-weighted show limits (dBA). cYellow/cRed = C-weighted 'bass cop' limits (dBC, retired from the lamp — kept as secondary readouts). subYellow/subRed = 63 Hz octave-band limits (dB, 1-min Leq); leave null to run the bass lamp in WATCH mode (display only, no alarm) until a real target is set after the watch period. Light + prediction key off the 10-s LAeq; bass lamp keys off the 63 Hz 10-s Leq. The 63 Hz labels are auto-detected from the Smaart stream (any metric containing '63'); set subBand.label10s / label1m only to force specific labels.",
 
   "subBand": { "label10s": null, "label1m": null },
 
@@ -80,7 +80,7 @@
       "cYellow": null,
       "cRed": null,
       "subYellow": null,
-      "subRed": null,
+      "subRed": 90,
       "ordinance": {
         "limit": 75,
         "yellow": 70,

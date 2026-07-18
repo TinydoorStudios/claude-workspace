@@ -231,8 +231,8 @@ class Monitor:
         sub_short_val = sub_native_short if sub_native_short is not None else self.subShort.value()
         sub_long_val = sub_native_long if sub_native_long is not None else self.subLong.value()
         subyellow, subred = self.sub_limits()
-        # lamp keys off the 1-min Leq (LF compliance window); null subRed => WATCH
-        sub_light = self._light(sub_long_val, subyellow, subred)
+        # lamp keys off the 10-s Leq (live LF readout); null subRed => WATCH
+        sub_light = self._light(sub_short_val, subyellow, subred)
         sub_long_fill = 1.0 if sub_native_long is not None else round(self.subLong.fill_fraction(now), 3)
 
         native = {k: v for k, v in metrics.items()

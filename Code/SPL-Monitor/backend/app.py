@@ -87,14 +87,20 @@ async def reset_strikes_handler(request):
 
 
 async def toggle_alerts_handler(request):
-    """Runtime on/off switch for Slack violation alerts — no passcode, just a
-    dashboard toggle. Console/webhook logging still records violations either
-    way; this only gates the Slack POST."""
+    """Runtime on/off switch for Slack violation alerts. Turning alerts OFF
+    requires the reset passcode (so nobody silently kills alerting mid-show);
+    turning them back ON is free. Console/webhook logging still records
+    violations either way; this only gates the Slack POST."""
     try:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "bad request"}, status=400)
     enabled = bool(body.get("enabled"))
+    if not enabled:
+        code = str(body.get("passcode", ""))
+        expected = str(request.app["config"].get("resetPasscode", ""))
+        if not expected or code != expected:
+            return web.json_response({"ok": False, "error": "incorrect"}, status=403)
     request.app["alerts_enabled"] = enabled
     await request.app["hub"].broadcast({"type": "alertsToggle", "enabled": enabled})
     print(f"[alerts] Slack alerts {'enabled' if enabled else 'disabled'}", flush=True)

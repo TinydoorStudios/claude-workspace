@@ -223,10 +223,10 @@ function renderLimitsStrip(s) {
 function renderBass(s) {
   const sec = $("bassSection");
   if (!sec) return;
-  // lamp keys off the 63 Hz octave 1-min Leq (subLight); WATCH until subRed set
+  // lamp keys off the 63 Hz octave 10-s Leq (subLight); WATCH until subRed set
   sec.className = "bass-section " + (s.subLight || "idle");
-  $("bassLong").textContent = fmt(s.subLong);     // big = 63 Hz 1-min Leq
-  $("bassShort").textContent = fmt(s.subShort);   // live = 63 Hz 10s
+  $("bassShort").textContent = fmt(s.subShort);   // big = 63 Hz 10-s Leq (lamp metric)
+  $("bassLong").textContent = fmt(s.subLong);     // tile = 63 Hz 1-min Leq
   $("bassInst").textContent = fmt(s.laeqLongC);   // secondary = full-band 6-min LCeq
   const ca = $("bassCA");
   if (ca) ca.textContent = s.caTilt != null ? (s.caTilt > 0 ? "+" : "") + Number(s.caTilt).toFixed(1) : "--.-";
@@ -235,9 +235,9 @@ function renderBass(s) {
   const note = $("bassNote");
   if (note) {
     if (s.subArmed) {
-      note.textContent = "63 Hz octave · building-transmission / complaint band · 1-min limit " + s.subRed + " dB" + band;
+      note.textContent = "63 Hz octave · building-transmission / complaint band · 10-s limit " + s.subRed + " dB" + band;
     } else if (s.subLong != null || s.subShort != null) {
-      note.textContent = "63 Hz octave · 1-min Leq is the compliance number · WATCH mode — no limit set yet" + band;
+      note.textContent = "63 Hz octave · 10-s Leq is the live number · WATCH mode — no limit set yet" + band;
     } else {
       note.textContent = "63 Hz octave · waiting for the band metric from Smaart…";
     }
@@ -613,19 +613,74 @@ function clockTick() {
 (function () {
   const toggle = $("slackToggle");
   if (!toggle) return;
-  toggle.addEventListener("change", async () => {
-    const enabled = toggle.checked;
+  const modal = $("slackModal");
+  const input = $("slackInput");
+  const err   = $("slackErr");
+
+  async function postToggle(enabled, passcode) {
+    const body = passcode != null ? { enabled, passcode } : { enabled };
+    return fetch("/api/toggle-alerts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+
+  function closeModal() { modal.classList.add("hidden"); input.value = ""; }
+  function shake() {
+    input.classList.add("shake");
+    setTimeout(() => input.classList.remove("shake"), 500);
+  }
+
+  async function confirmOff() {
+    const code = input.value;
+    if (!code) { shake(); return; }
+    err.classList.add("hidden");
     try {
-      const r = await fetch("/api/toggle-alerts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled }),
-      });
+      const r = await postToggle(false, code);
+      if (r.ok) {
+        closeModal();               // server broadcasts the toggled state
+      } else {
+        err.classList.remove("hidden");
+        shake();
+        input.value = "";
+        setTimeout(() => input.focus(), 10);
+      }
+    } catch (e) {
+      err.textContent = "Connection error — try again.";
+      err.classList.remove("hidden");
+    }
+  }
+
+  function cancelOff() {
+    closeModal();
+    toggle.checked = true;          // it stays ON until a valid passcode disables it
+  }
+
+  toggle.addEventListener("change", async () => {
+    // turning OFF requires the passcode; turning ON is free
+    if (!toggle.checked) {
+      input.value = "";
+      err.classList.add("hidden");
+      modal.classList.remove("hidden");
+      setTimeout(() => input.focus(), 40);
+      return;
+    }
+    try {
+      const r = await postToggle(true);
       if (!r.ok) throw new Error("bad response");
     } catch (e) {
-      toggle.checked = !enabled; // revert on failure
+      toggle.checked = false; // revert on failure
     }
   });
+
+  $("slackCancel").addEventListener("click", cancelOff);
+  $("slackConfirm").addEventListener("click", confirmOff);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") confirmOff();
+    if (e.key === "Escape") cancelOff();
+  });
+  modal.addEventListener("click", (e) => { if (e.target === modal) cancelOff(); });
 })();
 
 // ---- boot ---------------------------------------------------------------

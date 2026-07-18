@@ -158,11 +158,11 @@
     <div class="bass-row">
       <span class="bass-lamp" id="bassLamp"></span>
       <div class="bass-read">
-        <div class="bass-num"><span id="bassLong">--.-</span><span class="unit">dB</span></div>
-        <div class="bass-label">1-min 63 Hz Leq <span class="dim">· limit <span id="bassLimit">—</span></span></div>
+        <div class="bass-num"><span id="bassShort">--.-</span><span class="unit">dB</span></div>
+        <div class="bass-label">10-s 63 Hz Leq <span class="dim">· limit <span id="bassLimit">—</span></span></div>
       </div>
       <div class="bass-tiles">
-        <div class="bass-tile"><div class="tile-label">Live 63 Hz <span class="dim">10s</span></div><div class="bass-tile-val"><span id="bassShort">--.-</span><span class="u">dB</span></div></div>
+        <div class="bass-tile"><div class="tile-label">1-min 63 Hz <span class="dim">Leq</span></div><div class="bass-tile-val"><span id="bassLong">--.-</span><span class="u">dB</span></div></div>
         <div class="bass-tile"><div class="tile-label">C−A tilt <span class="dim">bass content</span></div><div class="bass-tile-val"><span id="bassCA">--.-</span><span class="u">dB</span></div></div>
         <div class="bass-tile"><div class="tile-label">Full-band LCeq <span class="dim">6-min</span></div><div class="bass-tile-val"><span id="bassInst">--.-</span><span class="u">dBC</span></div></div>
       </div>
@@ -203,6 +203,20 @@
       <div class="modal-actions">
         <button id="resetCancel" class="modal-btn cancel">Cancel</button>
         <button id="resetConfirm" class="modal-btn confirm">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slack-alerts-off passcode modal -->
+  <div id="slackModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Disable Slack alerts">
+    <div class="modal-card">
+      <div class="modal-title">Turn Off Slack Alerts</div>
+      <p class="modal-sub">Enter the passcode to disable Slack violation alerts for this session.</p>
+      <input id="slackInput" class="modal-input" type="password" maxlength="32" placeholder="Passcode" autocomplete="off">
+      <div id="slackErr" class="modal-err hidden">Incorrect passcode.</div>
+      <div class="modal-actions">
+        <button id="slackCancel" class="modal-btn cancel">Cancel</button>
+        <button id="slackConfirm" class="modal-btn confirm">Turn Off</button>
       </div>
     </div>
   </div>
