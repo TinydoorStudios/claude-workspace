@@ -161,17 +161,39 @@ async function pollAll() {
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
 
+// Cluster-wide lightning: FSQ / ESP / ZP are within a block of each other, and
+// Tempest's single-sensor per-strike distance is noisy — one unit can miss a
+// close strike its neighbor logged. For lightning-hold decisions we take the
+// most-conservative (closest / most-recent) reading across all stations and
+// apply it to every card, so any station detecting a close strike lights up
+// the whole cluster. Temp / wind / rain stay per-station; only lightning shares.
+function clusterLightning() {
+  const all = Object.values(lightningByStation);
+  const within = {};
+  LIGHTNING_THRESHOLDS_MI.forEach(r => {
+    within[r] = Math.max(0, ...all.map(L => (L.within && L.within[r]) || 0));
+  });
+  const closest = all.map(L => L.closestMi).filter(v => v != null);
+  const lastEp  = Math.max(0, ...all.map(L => L.lastEpoch || 0));
+  return {
+    within,
+    closestMi: closest.length ? Math.min(...closest) : null,
+    lastEpoch: lastEp || null,
+    count1hr:  Math.max(0, ...all.map(L => L.count1hr || 0)),
+  };
+}
+
 function buildPayload() {
+  const C = clusterLightning();
   return JSON.stringify(
     Object.values(stationData).map(s => {
-      const L = lightningByStation[s.id] || { within: { 1: 0, 5: 0, 30: 0 }, closestMi: null, lastEpoch: null, count1hr: 0 };
       return {
         ...s,
         history: history[String(s.id)] || [],
-        lightningWithin: L.within,
-        lightningClosestMi: L.closestMi,
-        lightningLastEpoch: L.lastEpoch,
-        lightningCount: L.count1hr,
+        lightningWithin: C.within,
+        lightningClosestMi: C.closestMi,
+        lightningLastEpoch: C.lastEpoch,
+        lightningCount: C.count1hr,
       };
     })
   );
