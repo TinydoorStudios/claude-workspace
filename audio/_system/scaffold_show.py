@@ -108,6 +108,16 @@ def main(argv=None):
         venue_notes=notes))
     made.append(md)
 
+    sys.path.insert(0, os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "_shared"))
+    try:
+        import show_status
+        show_status.stamp(show_dir, "scaffolded",
+                          note=f"venue={a.venue} console={console}")
+        made.append(os.path.join(show_dir, show_status.FILENAME))
+    except ImportError:
+        print("  (show_status.py not found — no status file written)")
+
     print("Created:")
     for p in made:
         print(f"  {p}")

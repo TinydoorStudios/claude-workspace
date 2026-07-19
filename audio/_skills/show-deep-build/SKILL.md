@@ -56,7 +56,8 @@ was found. Instant output is the tell that research was skipped — this rule ma
 cuts-first · vocals cuts-only · no high shelf unasked · band order/numbering · ribbon = NO 48V ·
 TOUR flagged never swapped · cut/boost ranges incl. the outdoor override · Memo standing waves +
 fixed crowd rig · FSQ ch 10 reserved / OH stereo on 9 · research floor · capsule gate · reverbs
-anchored to factory · one batched round. **Re-read the card immediately before the question round
+anchored to factory · one batched round · genre verified first (split evidence = ask now) ·
+equipment rides the instrument layer · per-unit TRACE line. **Re-read the card immediately before the question round
 and again before writing spec.json, and say that you did.** Late-context constraint loss (a half-dB
 or a vocal boost appearing at channel 24) is the failure this closes.
 
@@ -80,16 +81,44 @@ instrument. **Ask for the tech rider / stage plot if one exists** — densest re
 is (real backline, monitor asks, wireless counts, tonal requests). If the list smells secondhand,
 ask whether a rider PDF is sitting in an email.
 
+### 0. Intake — normalize whatever arrived (2026-07-19)
+Show info rarely arrives as a clean list. Whatever Brian drops or uploads — a rider PDF, a stage
+plot, an xlsx/CSV input list, phone photos or screenshots of a printed/handwritten list or an
+email thread — **read every artifact before any research starts** (PDFs page by page, images
+visually) and normalize it into one set of brief facts: channels + mics/DIs, TOUR gear (with any
+spec facts the rider states), monitor/wedge/IEM asks, wireless counts, backline, tonal requests.
+File the originals in the show folder: the plot as `<Show> - Stage Plot.pdf`, the rider as
+`<Show> - Rider.pdf` (the MASTER PDF picks both up automatically). Where two artifacts disagree
+(the rider says 24 channels, the emailed xlsx says 18) or something's unreadable, that's a
+question-round item — never silently pick a winner. The normalized facts are the build input;
+everything downstream runs unchanged.
+
 ### 1. Route + confirm
 Read `_system/ROUTING.md` for the venue row (folder, console, base `.ses`, patcher, KB articles —
 pull only those). Confirm date + show name + whatever the venue row flags. Scaffold the folder:
 `python3 _system/scaffold_show.py --venue <v> --date YYYY-MM-DD --name "Show Name"`.
 
-### 2. Research the ARTIST + GENRE first — always
-Web-search the artist: who they are, sonic references, real instrumentation, production style,
-vocal character. Fresh every show — the web pass is never skipped or cached. Write a short
-**artist_profile** + genre; it feeds every channel's genre layer in Part II, and where the
-artist's actual sound differs from the generic genre profile, **the artist wins**.
+The scaffold also writes **`show.status.json`** — the per-show state file (2026-07-19,
+`_shared/show_status.py`). `build_packet.py` stamps `packet_built` and the .ses engine stamps
+`ses_built` automatically; `published` is stamped by the wiki push, `verified` only if Brian
+volunteers a desk load (optional — never a gate). Any later session reads
+it (`python3 _shared/show_status.py show --folder "<show folder>"`) instead of guessing show
+state from folder recency.
+
+### 2. Verify the GENRE, then research the ARTIST — always
+
+**2a. The genre gate (2026-07-19).** Before any other research, verify the genre with named
+evidence — the act's own materials, streaming/venue listings, live footage, a prior verified
+show. Write one line: `Genre: X — <evidence>`. This is verification, not a guess: if the
+evidence is split or the act is hybrid, **stop and ask Brian right then** — the one exception
+to the batched round, because the genre shapes every downstream search and can't wait for it.
+The verified genre also rides the plan table, so Brian can veto it before any EQ commits.
+
+**2b. Artist research.** Web-search the artist: who they are, sonic references, real
+instrumentation, production style, vocal character. Fresh every show — the web pass is never
+skipped or cached. Write a short **artist_profile**; it feeds every channel's genre layer in
+Part II, and where the artist's actual sound differs from the generic genre profile, **the
+artist wins**.
 
 **Listen, don't just read.** Recent live videos (YouTube) and setlists (setlist.fm) over press
 copy — the live footage tells you the actual arrangement, stage volume, and whether the input
@@ -167,10 +196,13 @@ python3 "<venue patcher>" --src "<venue _TEMPLATE>/<base>.ses" \
 Require `bytes changed outside mic'd blocks: 0  PASS`, `readback: PASS`, and an identical file
 size. Render a page of each PDF and eyeball for clipping before handing over.
 
-### 6. HARD STOP — Brian verifies on the console
+### 6. Hand over — publish on Brian's go (rule changed 2026-07-19)
 List which faders/EQ were written and which knobs he still dials by hand. Flag anything that
 overrides a template baseline (e.g. FSQ vocal faders ship a wireless curve / feedback notch — a
-vocal MD override removes it; call it out). **Wait for "verified" before any wiki push.**
+vocal MD override removes it; call it out). **Shows are one-offs: console verification is NOT a
+publish gate.** Brian's explicit go ("SEND IT", "push it") is the only gate for the wiki push —
+never ask him to load-test the .ses first. If he volunteers that it ran on the desk, stamp it
+(informational): `python3 _shared/show_status.py stamp --folder "<show folder>" --stage verified`.
 
 ### 7. Close out + harvest
 Shows are one-offs; the lessons aren't. Ask "what will I reuse?" and write it into the KB:
@@ -180,9 +212,11 @@ or the pipeline spec; new venue fact → that venue article (promote emerging �
 show's EQ decisions to `_learning/eq-advisor-log.md` and propose KB write-backs (see the
 self-improvement loop below). Add the row to `active-projects.md` → Completed Shows; bump touched
 articles' `Last updated`; note it in `CHANGELOG.md`. Workflow changes → `_system/IMPROVEMENTS.md`;
-open items → `QUESTIONS.md`; preferences → auto-memory. Then `wiki-publish` / `fsq-wiki-push` once
-verified. (No post-show "what did you move" solicitation — Brian declined that, 2026-07-05; if he
-volunteers a live change, log it.)
+open items → `QUESTIONS.md`; preferences → auto-memory. Then the **show-wiki-push** skill on
+Brian's go (venue-aware — FSQ and Memo; `fsq-wiki-push` is its legacy alias; other venues/KB
+articles → `wiki-publish`). The push stamps `published` in `show.status.json`. (No post-show
+"what did you move" solicitation — Brian declined that, 2026-07-05; if he volunteers a live
+change, log it.)
 
 ---
 
@@ -192,8 +226,9 @@ The standalone EQ brain: mic-, genre-, and venue-aware EQ for any live or record
 the web-then-KB verification workflow. Called per-unit by Part I, or alone for any ad-hoc EQ
 question. Full detail + worked examples: `references/decision-flow.md`.
 
-**Per-input order of importance AND process (locked 2026-07-05): instrument → mic → genre →
-venue.** Instrument + mic set the foundation and carry the most decision weight; genre — refined
+**Per-input order of importance AND process (locked 2026-07-05; equipment named as part of the
+instrument layer 2026-07-19): instrument (+its notated equipment) → mic → genre → venue.**
+Instrument + mic set the foundation and carry the most decision weight; genre — refined
 by the artist profile, which outranks the generic genre read where they differ — bends the
 targets; the venue is applied last as a constraint filter: it trims amounts and vetoes moves that
 fight the room (often the biggest single bend in dB) but never rewrites the foundation.
@@ -201,9 +236,17 @@ fight the room (often the biggest single bend in dB) but never rewrites the foun
 For a standalone question you can start once you know the **instrument** and the **mic/DI** — ask
 for whichever is missing, plus genre/venue/console/live-vs-post as they become relevant.
 
-### Step 1 — Identify the instrument/source
+### Step 1 — Identify the instrument/source + its equipment
 Exactly what's being miked: "electric cab, cranked" vs. "acoustic, fingerstyle" — the problems
 differ. One mic, a two-mic blend (treat as one signal), or a section?
+
+**Equipment is part of the instrument layer (2026-07-19).** Anything notated about the rig —
+amp/cab model, drum sizes and heads, string type (flats/rounds), pickup/piezo type, 4- vs
+5-string — is a first-class input to the baseline, with the same research floor as a mic: at
+least one quantitative fact with a named source (an SVT 8x10's low-mid emphasis, a Twin
+Reverb's bright top, a 26" kick's lower fundamental) before it may bend a value. Any EQ move
+the equipment changed must cite it in that channel's `mic_notes`/`eq_summary`. Nothing
+notated → the generic instrument carries; never invent a rig.
 
 ### Step 2 — Identify the mic/DI
 The specific model changes the whole approach (pre-scooped D6 ≈ no EQ; flat DM6 = full shaping).
@@ -318,6 +361,18 @@ Global philosophy: **cuts before boosts, always. Vocals: cuts only, every genre 
 control, not taste). Whole-dB only. No high-shelf band unless Brian asks.** Typical cuts −4 to
 −7 dB tight Q (1.5–2.0), boosts +3 to +6 dB on non-vocal sources — with the outdoor override above.
 
+### The per-unit layer trace (2026-07-19)
+In show builds, every unit's `research_summary` entry closes with a compact **TRACE** line
+showing the whole chain, each layer carrying a value or an explicit "no change":
+
+`TRACE: base(57 on 4x12 — −5@450, SOS baked-presence fact) · equip(Twin Reverb bright top —
+trim 3k, no boost) · genre(blues-rock — keep low-mid) · artist(dark tape tone — no HF lift) ·
+venue(Memo — 250 cut deepened to −6)`
+
+"No change" proves the layer was run, not skipped. The pre-commit audit spot-checks TRACE
+lines against the actual band values — a trace that doesn't match its channel's numbers is a
+failed audit line.
+
 ### Standalone output — inline, then PDF, every time
 **Inline:** the recommendation in the target console's band layout (default Q225:
 `HPF · LPF · Band 4 (HF) → Band 3 → Band 2 → Band 1 (LF)`; band numbers match the console, 1 = LF —
@@ -341,6 +396,16 @@ the top of the script); save to the show folder if it's show work, else Desktop/
 - Dynamics notes carry numbers, not adjectives: "fast-attack comp" is incomplete — write the
   range and ratio ("10–20 ms, 3:1"). Gate philosophy states what must survive ("ghost notes and
   press rolls must live"), tied to the genre.
+- **Those reasoned dynamics get DOCUMENTED, not written to the .ses.** On a Q225 build, every channel
+  whose reasoning lands on a compressor or gate still emits `COMP:` / `GATE:` lines in the FOH .md
+  alongside its bands — but the patcher no longer patches Mustard into the .ses (console-verified
+  2026-07-16, then pulled from the build the same day on Brian's call after hearing the activation
+  live; paperwork keeps the lines, the build ignores them). Pick the Mustard colour from the
+  reasoning (Blue/Red/Green/Purple/Silver), write a documented starting threshold with the GR target
+  in `mic_notes`, and realize a ducker as `Duck` / an expander as a shallow-range `Gate` — this is
+  still the correct reasoning to capture, it's just for the desk/paperwork, not the byte-patch.
+  Format + rules in `references/console-bands.md`. A channel left flat by the
+  reasoning gets no line. (Wing has no Mustard writer yet — dynamics stay in notes there.)
 - Per-channel `mic_notes` cite their source inline ("SOS/Gearspace + KB agree: …"), and every
   `eq_summary` connects the moves to the channel's musical role in THIS band, not a generic
   description. Stands and mounts are chosen for the physical mic (an e609 has no clip mount —

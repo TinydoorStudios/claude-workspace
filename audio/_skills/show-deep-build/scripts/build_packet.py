@@ -519,6 +519,13 @@ def main():
             build_master_pdf(spec, a.out, [packet_pdf, rationale_pdf])]
     for m in made:
         print("WROTE", m)
+    try:
+        sys.path.insert(0, os.path.expanduser("~/Documents/Claude/audio/_shared"))
+        import show_status
+        show_status.stamp(a.out, "packet_built",
+                          note=f"{len(spec['channels'])} channels, full packet")
+    except ImportError:
+        pass  # status stamp is best-effort — never blocks a build
     print("\nNEXT: run the venue .ses patcher on the .md, then verify on the console.")
 
 if __name__ == "__main__":

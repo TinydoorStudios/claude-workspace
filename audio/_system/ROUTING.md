@@ -1,7 +1,7 @@
 # ROUTING — the venue brain
 
 *The control map for every show conversation. Read this + `NEW-SHOW.md` at the start of any show.*
-*Last updated: 2026-05-30*
+*Last updated: 2026-07-19 (show.status.json in global rules; the venue table's patcher footnote was already current — the header date had just never been bumped since 2026-05-30)*
 
 ---
 
@@ -61,6 +61,7 @@ Knowledge lives in one place: `Live Sound KB/Wiki/`. This file routes; the KB ho
 ## Global rules (apply to every venue)
 
 - **Show folder name:** `YYYY-MM-DD ShowName` inside the venue folder (date first so folders sort chronologically). Create the venue folder if it's a new venue.
+- **Show state lives in `show.status.json`** (2026-07-19, `_shared/show_status.py`) — scaffolded / packet_built / ses_built / verified / published. The scaffold creates it, builds stamp it automatically, and later stages read it instead of guessing from folder recency. `verified` is optional/informational — publishing gates on Brian's explicit go, never on a console check (shows are one-offs). Pre-2026-07-19 shows don't have one; stamp retroactively when touching them.
 - **Default deliverable: PDF.** Channel processing docs ship as `.md` + `.html` + PDF (PDF rendered from the HTML via weasyprint, not reportlab).
 - **Pipeline is 2-stage:** Stage 1 = combined Show Document (patch · monitors · EQ · stage plot) → PDF + HTML. Stage 2 = Q225 `.ses` via the venue patcher (Q225 venues only). See KB `show-processing-pipeline`.
 - **At packet completion:** generate the master reference PDF (input list summary, EQ decisions, patching, mic choices, stage plot reference, file index), update `active-projects.md` + `CHANGELOG.md`, and log anything learned to `_system/IMPROVEMENTS.md`.

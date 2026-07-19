@@ -8,7 +8,7 @@
 - `_system/NEW-SHOW.md` — router + don't-forgets for any show conversation.
 - `Live Sound KB/Wiki/INDEX.md` — KB article map; pull articles as the task requires, never all at startup.
 
-Every new show runs the **show-deep-build** skill (the Deep Think pipeline — see the Deep Think section of the main CLAUDE.md). Scaffolding = **new-show** skill; .ses build = **send-it**; wiki publish = **fsq-wiki-push** / **wiki-publish**. Full chain: `_system/PIPELINE.md`.
+Every new show runs the **show-deep-build** skill (the Deep Think pipeline — see the Deep Think section of the main CLAUDE.md). Scaffolding = **new-show** skill; .ses build = **send-it**; wiki publish = **show-wiki-push** (FSQ + Memo; `fsq-wiki-push` is its alias) / **wiki-publish** for everything else. Full chain: `_system/PIPELINE.md`. Show state per folder: `show.status.json` (2026-07-19).
 
 ## Canonical sources — where truth lives
 

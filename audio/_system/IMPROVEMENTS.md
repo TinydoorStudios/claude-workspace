@@ -217,3 +217,32 @@ Full audit + fix pass on the Claude structure itself. The changes that affect ho
 - **Git.** `~/Documents/Claude` is now a git repo (baseline commit before any of this, second commit after). `.gitignore` excludes Kims Stuff, SOP Stuff media, the Wiki (own repo), venvs, and the credentials cheat sheet. Retire the `.bak` habit — commit instead.
 - **Permissions:** `.claude/settings.local.json` cut from ~40 single-use entries (several against the dead 192.168.0.125) to a short prefix allowlist.
 - **Root sweep:** dead June wiki-setup scripts, `_wiki-import`, finished handoffs, the stale "Brian Lloyd - Context.md" export, and the RAM-upgrade spec moved to `_ARCHIVE/`; stray root `Vocal Slap.aup` filed into Echoes T7E Presets (renamed — it differs from the folder copy).
+
+## 2026-07-19 — Workflow evaluation: intake step, show.status.json, unified show-wiki-push
+
+**Context:** Brian asked for an end-to-end evaluation of the DiGiCo/showfile workflow with the goal "upload show info → show-ready PDF packet + console file → wiki." Verdict: the build core (spec.json → build_packet, shared .ses engine, deep-research EQ) is solid; the weak edges were intake, cross-session state, and the publish stage. Venue-keyed template selection already existed via ROUTING.md — confirmed as-is with Brian.
+
+**Shipped (all four approved in one question round):**
+- **Intake step (show-deep-build Step 0):** rider/stage-plot PDFs, xlsx/CSV lists, and photos/screenshots are now first-class inputs — every artifact read in full and normalized into brief facts before research; conflicts between artifacts go to the question round; plot/rider filed as `<Show> - Stage Plot.pdf` / `<Show> - Rider.pdf` so the MASTER picks them up.
+- **`show.status.json` per show** (`_shared/show_status.py`): scaffolded / packet_built / ses_built / verified / published, with timestamps. scaffold_show.py writes it; build_packet.py and the .ses engine stamp their stages automatically (best-effort — a stamp can never break a build); "verified" and "published" stamped in conversation. Later stages read it instead of newest-folder guessing. Engine regression after the change: hot-mag 3 rebuild md5-identical.
+- **show-wiki-push skill** (source `_skills/show-wiki-push/`, symlinked into `.claude/skills/`): venue-aware wiki push for FSQ **and** Memo, driven by the status file, shipping the FULL packet (MASTER / Show Packet / EQ Reasoning / Input List xlsx / .ses / FOH .md / spec.json / band plot+rider) with the copy-list-must-match-links rule. Publishes via `kb-publish.sh`. Fixed stale constants the old skill carried (Wiki.js LAN is 192.168.200.126:3000, not 192.168.0.126). `fsq-wiki-push` rewritten as a deprecated alias that redirects here.
+- **Doc sync:** PIPELINE.md (stage table + state-file paragraph), NEW-SHOW.md (intake + scaffold), ROUTING.md (global rule + header date finally bumped off 2026-05-30), send-it (status-file show resolution, verified stamp, wiki-push pointer, and a stale-guardrail fix — it still claimed Mustard dynamics ARE written; corrected to the 2026-07-16 doc-only reality).
+
+**Not done / explicitly scoped out:** ShowBuilder-inbox auto-pull at build start (Brian didn't select it in the intake round); multiple templates per venue and templates for more venues (Brian: covered as-is).
+
+## 2026-07-19 (later) — EQ logic hardened: genre gate, equipment layer, TRACE line
+
+**Context:** Brian dictated his intended EQ-suggestion order (verify genre → research artist → instrument → mic → base EQ influenced by genre/artist/equipment → venue last) and asked for verification against the workflow. Verdict: aligned on artist research, instrument→mic foundation, and venue-last; partial on genre (emerged from artist research instead of being verified first) and equipment (mined from notes but not a named layer no audit could catch under-weighting).
+
+**Shipped (all three options approved):**
+- **Genre gate (SKILL.md Step 2a):** genre verified with named evidence before any research; split/hybrid = immediate ask (the one exception to the batched round); verified genre rides the plan table for veto.
+- **Equipment in the locked order:** now **instrument (+its notated equipment) → mic → genre → venue**. Notated rig facts (amp/cab model, drum sizes/heads, strings, pickup type) carry the mic-grade research floor — one quantitative fact + named source before bending a value — and are cited in mic_notes/eq_summary wherever they changed a move. Never invent a rig.
+- **Per-unit TRACE line:** every unit's research_summary closes with `TRACE: base(…) · equip(…) · genre(…) · artist(…) · venue(…)`, each layer a value or "no change"; pre-commit audit line 14 spot-checks traces against the actual band values.
+
+**Files:** show-deep-build SKILL.md + references (decision-flow, deep-research-workflow, pre-commit-audit line 14 + header), NEW-SHOW.md don't-forgets, project CLAUDE.md locked-order sentence, KB (eq-starting-points, show-processing-pipeline, pipeline-spec-memo, pipeline-spec-fsq — dates bumped), KB CHANGELOG. Constraint card list extended (genre gate · equipment layer · TRACE). `_skills/show-deep-build.skill` zip rebuilt.
+
+## 2026-07-19 (final) — Console-verify gate removed from publishing
+
+**Brian's ruling (verbatim intent):** each show is a one-off — he won't come back to verify a show on the console before it goes to the wiki. His explicit go ("SEND IT" / "push it") is the ONLY publish gate.
+
+**Changed:** show-wiki-push (gate = Brian's go; `verified` stamp informational only, show located by `ses_built`-not-`published`), show-deep-build Step 6 (renamed from "HARD STOP — Brian verifies" to "Hand over — publish on Brian's go"), send-it Step 5, PIPELINE.md stage 4 (now "Console load — NOT a publish gate"), NEW-SHOW.md, ROUTING.md, show_status.py docstring, fsq-wiki-push alias description, KB pipeline-spec-memo + pipeline-spec-fsq hard-stop sentences. Also corrected pipeline-spec-memo's stale "first Memo build still needs console verification" note — the Memo calibration was console-proven 2026-07-16 (Back to Black test load). Auto-memory: `publish-on-go` (feedback). The `verified` stage stays in show.status.json as an optional stamp for when Brian volunteers that a file ran on the desk.

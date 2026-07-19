@@ -10,9 +10,15 @@ produced — never throw it away. The instrument sets the problem space, the mic
 web+KB baseline gives you sourced numbers, the genre bends the targets, and the room does the final
 shaping. Cuts first, the whole way down.
 
-**Order of importance = order of process (locked 2026-07-05): instrument → mic → genre → venue.**
-The room is often the biggest single bend in dB, but it ranks last in decision authority — it trims
-and vetoes, it never replaces the instrument + mic foundation.
+**Order of importance = order of process (locked 2026-07-05; equipment named 2026-07-19):
+instrument (+its notated equipment) → mic → genre → venue.** The genre itself is VERIFIED with
+named evidence before any research runs (split evidence = ask Brian immediately — see SKILL.md
+Step 2a). Notated equipment (amp/cab model, drum sizes, strings, pickup type) rides the
+instrument layer with the same research floor as a mic — a quantitative fact with a named source
+before it bends a value, cited in `mic_notes`/`eq_summary`. The room is often the biggest single
+bend in dB, but it ranks last in decision authority — it trims and vetoes, it never replaces the
+instrument + mic foundation. Each unit's chain lands in a closing TRACE line (base · equip ·
+genre · artist · venue, value or "no change" per layer — SKILL.md, audit line 14).
 
 Confidence is cumulative too. If you finished a step on a guess, you carry that uncertainty forward
 and it compounds. That's why the stop-and-ask gate matters most early — an unsure mic identification
