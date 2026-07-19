@@ -5,6 +5,8 @@ DiGiCo Q225 → REAPER relay for Jazz At The Memo
 Listens on UDP 9000 for triggers from Companion.
   /record  → pull channel names 1-32 from console, rename REAPER tracks,
               wait RECORD_DELAY seconds, start recording
+  /prep    → pull channel names 1-32 from console, rename REAPER tracks.
+              No record. For staging tracks ahead of a show.
   /stop    → stop REAPER
 
 Console:       192.168.200.224 : 1024
@@ -181,13 +183,35 @@ def record_chain():
     finally:
         _chain_lock.release()
 
+def prep_chain():
+    """Name pull + REAPER track rename only — no record."""
+    if not _chain_lock.acquire(blocking=False):
+        print("Chain already in progress — ignoring trigger")
+        return
+    try:
+        print("── Prep (name pull only) ───────────────")
+        print("  Pulling names from console...")
+        names = pull_names()
+        print(f"  Received {len(names)} names for channels 1–{MAX_CHANNELS}")
+        for ch in sorted(names):
+            print(f"    CH {ch:2d}: {names[ch]}")
+
+        if names:
+            rename_reaper_tracks(names)
+            print("  Track names sent to REAPER")
+        else:
+            print("  WARNING: no names received — tracks not renamed")
+        print("────────────────────────────────────────")
+    finally:
+        _chain_lock.release()
+
 # ── Main loop ────────────────────────────────────────────────────────────────
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(("", TRIGGER_PORT))
     print(f"DiGiCo→REAPER relay running")
-    print(f"  Trigger:  UDP {TRIGGER_PORT} (/record, /stop)")
+    print(f"  Trigger:  UDP {TRIGGER_PORT} (/record, /prep, /stop)")
     print(f"  Console:  {CONSOLE_IP}:{CONSOLE_PORT}")
     print(f"  Names:    UDP {NAMES_PORT}")
     print(f"  REAPER:   {REAPER_IP}:{REAPER_PORT}")
@@ -199,6 +223,9 @@ def main():
         if path == "/record":
             print(f"RECORD trigger from {addr}")
             threading.Thread(target=record_chain, daemon=True).start()
+        elif path == "/prep":
+            print(f"PREP trigger from {addr}")
+            threading.Thread(target=prep_chain, daemon=True).start()
         elif path == "/stop":
             print(f"STOP trigger from {addr}")
             osc_send(REAPER_IP, REAPER_PORT, "/stop")

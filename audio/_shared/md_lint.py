@@ -12,6 +12,12 @@ Locked format (B1 = console LOW band .. B4 = HIGH, since 2026-05-30):
     B4: gain | freq | Q | SHELF|BELL  [| DEQ: thr=-16 atk=10ms rel=100ms]
     ...
     B1: FLAT
+    [COMP: <model> | in|out | thr=.. ratio=.. atk=..ms rel=..ms ...]   (optional)
+    [GATE: Gate|Duck|MSE | in|out | thr=.. atk=..ms hold=..ms rel=..ms range=..]
+
+Mustard (COMP:/GATE:) is opt-in per channel and validated by the engine's own
+_parse_comp / _parse_gate — the same code the patcher runs — so lint and the
+build agree on what's legal (model names, model-specific fields, unit forms).
 
 ERRORS (abort the build — the file is wrong or pre-2026-05-30):
   - no channels found / duplicate channel numbers
@@ -111,6 +117,32 @@ def lint(path, max_ch=None):
                 errors.append(f"Ch {cur} B{bnum}: DEQ clause doesn't parse — "
                               "it would be silently dropped. Format: "
                               "DEQ: thr=-16 atk=10ms rel=100ms")
+            continue
+        cgm = re.match(r'(COMP|GATE):\s', line, re.I)
+        if cgm:
+            # Reuse the engine's Mustard parsers — one source of truth for the
+            # syntax. They raise ValueError with a channel-tagged message on
+            # anything malformed; the engine would abort on the same, so lint
+            # surfaces it as an error here (the documented first gate).
+            try:
+                import q225_ses_engine as _eng
+            except ImportError:
+                import os
+                sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+                import q225_ses_engine as _eng
+            body = line[cgm.end():]
+            seen = chans[cur].setdefault('mseen', set())
+            key = cgm.group(1).upper()
+            if key in seen:
+                errors.append(f"Ch {cur}: duplicate {key} line")
+            seen.add(key)
+            try:
+                if key == 'COMP':
+                    _eng._parse_comp(body, cur)
+                else:
+                    _eng._parse_gate(body, cur)
+            except ValueError as e:
+                errors.append(str(e))
             continue
         warnings.append(f"line {lineno}: unrecognized line inside Ch {cur} "
                         f"block: {line!r}")

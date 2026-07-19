@@ -34,6 +34,40 @@ Mustard Processing EQ: **HPF + LPF + 4 bands.**
 DEQ goes in Notes/Details (threshold, attack ms, release ms). This is the default the PDF script
 renders.
 
+### Mustard dynamics — paperwork only, NOT written to the .ses (pulled 2026-07-16)
+
+The Q225 patcher can write **Mustard Dynamics 1 (compressor)** and **Dynamics 2 (gate / duck /
+MSE)** per channel from two optional MD lines — console-verified on the Back to Black build,
+then pulled from the build the same day on Brian's call after hearing the activation live. The
+writer (`write_mustard()`) and decode notes still live in the engine / `audio/_shared/mustard-cal/`,
+but `main_cli()` no longer calls it — COMP:/GATE: lines are parsed and linted, never patched into
+the .ses. Dial comp/gate in on the desk at soundcheck instead.
+
+Still emit these in the FOH Channel Processing .md **whenever the deep build reasons dynamics for a
+channel** — they document the reasoning on the same footing as the EQ, even though the build now
+ignores them:
+
+```
+COMP: <model> | in|out | thr=.. | ratio=.. | atk=..ms | rel=..ms [| makeup=.. | mix=..% | knee=hard|soft | det=peak|rms | sc=<lo>-<hi>]
+GATE: Gate|Duck|MSE | in|out | thr=.. [| atk=..ms | hold=..ms | rel=..ms | range=..]
+```
+
+- **Comp models** (from the reasoning, not invented): `Blue` (Neve), `Red` (Vintage VCA — no
+  atk/rel), `Green` (FET/1176), `Purple` (Optical/LA-2A), `Silver` (Levelling Amp — uses
+  `peak=`/`gain=`/`limit`, not thr/ratio). These are the Mustard colours the KB already names.
+- **D2**: `Gate`, `Duck` (the KB's "light ducker over hard gate on acoustic-forward" rule), `MSE`.
+  There is **no Expander mode** — realize a spec'd downward expander as a shallow-`range` Gate, or
+  leave it for the desk; say which in `mic_notes`.
+- **Threshold is a soundcheck call.** The worksheets reason model/ratio/timing + a **GR target**;
+  write a documented *starting* threshold (≈ −6 dBFS program peak minus GR/(1−1/ratio), whole dB)
+  and carry the GR target into `mic_notes` so it's dialed in the room. Everything omitted keeps the
+  template default — Mustard is fully opt-in per channel.
+- Units are **display units** (ms, %); the engine's parser (still used for linting) converts to
+  seconds / 0–1. `md_lint` validates the syntax with that same parser, so lint and the paperwork
+  agree on format — even though nothing gets patched into the .ses.
+- Ambient/room/crowd mics and instruments the reasoning leaves flat get **no** Mustard line — the
+  build never touches any channel's dynamics blocks now, lined or not.
+
 ---
 
 ## Behringer Wing (secondary venues)

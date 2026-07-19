@@ -1,0 +1,474 @@
+{
+  "venue": "memo",
+  "venue_label": "Memorial Hall (Memo) — 556 seats, RT60 ~1.6s",
+  "console_label": "DiGiCo Quantum 225",
+  "show_name": "Back to Black",
+  "artist": "Reine Beau / Night Owl Shows",
+  "genre": "60s Motown / soul revue with a jazz-inflected first half (Amy Winehouse tribute)",
+  "show_date": "2026-07-16",
+  "foh_engineer": "Brian Lloyd",
+  "mon_engineer": "",
+  "show_time": "8:00pm",
+  "rev": "Rev 1.0 Deep Think",
+  "app_version": "deep-think-1.0",
+
+  "artist_profile": "Back to Black: The Music of Amy Winehouse — Reine Beau fronting the Night Owl Shows band. Not a bar tribute: a produced theatre piece in Night Owl's 'show-umentary' format, live music interleaved with documentary-style storytelling about Amy's career, driven by Q-Lab (52 LX cues, 10 AV cues). 25+ international awards, Edinburgh Fringe pedigree. THE SETLIST IS A CLEAN 50/50 AND IT SPLITS AT THE INTERVAL (from the act's own AV/LX script): SET 1 IS THE FRANK ALBUM — Me & Mr Jones, Teach Me Tonight, I Heard Love Is Blind [Acoustic – Solo Lead Vocalist], Stronger Than Me, Fuck Me Pumps, Take The Box, What Is It About Men?, Addicted, Tears Dry On Their Own. Nine songs of Salaam Remi's jazz-infused, conversational 2003 record. SET 2 IS BACK TO BLACK — Folsom Prison underscore under the band intros, Rehab (with a Folsom Prison Blues underscore), He Can Only Hold Her / Doo Wop, You Know I'm No Good, Back to Black, Love Is a Losing Game, A Song For You, then BAND OFF STAGE for Body & Soul [Piano + Vocal]. Encore: Valerie, Monkey Man. So this is NOT a Back to Black revue with a jazz nod — it is a jazz set and a soul set, in that order, and the console has to be two different shows either side of the break. THE STORYTELLING IS LIVE, ON THE LEAD VOCAL MIC — every DIALOGUE cue in the script is her speaking ('For the rest of you welcome to your musical education of Amy Winehouse'), not playback. Two moments strip the stage bare: I Heard Love Is Blind (#3, acoustic guitar + solo lead vocalist) and Body & Soul (#7 of set 2, piano + vocal, band off stage) — plus Back to Black opens on a solo piano riff held ~15s under a Piano Special (LX Q39). THE LOAD-BEARING FACT: mix engineer Tom Elmhirst on the Back to Black sessions — 'The drums were recorded with one microphone, and there's lots of spill between the instruments, which was great.' Drums, piano, guitar and bass tracked together in one room to 1\" 16-track tape through a Neve, Daptone running a strict no-Pro-Tools ethos. The bleed IS the record. That inverts the KB's generic dense-soul/R&B modifier (which wants aggressive separation, faster comp, tighter gates) and the artist profile outranks it: we are pointing eight flat Earthworks condensers at a kit to reproduce a record made with one. The overheads are the 'one microphone'; the close mics are fill. Ronson on effects: 'a little bit of spring or plate reverb goes a very long way' — plate, not hall, and Memo's 1.6s RT60 already does Spector's job for free.",
+
+  "research_summary": "PRIMARY SOURCE — THE ACT'S OWN TOUR PAPERWORK (Amy USA Tour: Tech Rider, Stage Plot, AV/LX Script), found in the show's Dropbox folder after the first build and now the authority over anything the web says: it supplies the full 19-song setlist and two-set structure, confirms the storytelling is live on the lead vocal mic rather than playback, and defines ch 20 as Q-Lab AV (walk-in music / show announce / needle drop / video audio) with NO backing tracks and NO horns. Day-of contact: Noah Nelson, +1 901-634-1234 (also the bassist — he cues the band in at LX Q3). Web (used for the production reference, which the rider does not cover): memorialhallotr.com show page + nightowlshows.com (fetched — neither publishes a lineup or any technical detail; four searches and two direct fetches of their own pages returned the format, the awards and a partial setlist, and nothing about instrumentation, band size, horns or tracks — the rider closed all of it). Production: MusicRadar 'The making of Back to Black' (Tom Elmhirst / Mark Ronson, verbatim quotes), Billboard 'It Ain't Retro' (Dap-Kings), Wikipedia Back to Black, album liner notes (John Adams — Rhodes/organ; Victor Axelrod — Wurlitzer/piano). Backline: Event Enterprises quote 26-0593 REVISED II. PER-UNIT CAPSULE FACTS (external source named): Earthworks DM6 — TapeOp review #160: '+9 dB at 20 Hz' and 'a +8 dB bump at around the 11 to 12 kHz range', plus ~-8 dB @ 400 Hz scoop (Sweetwater curve). Lauten LS-408 — Mixonline: 'smooth, 6 dB/octave, low-Q filters'; 28 dB off-axis rejection, 135 dB dynamic range (Lauten/SOS). Earthworks SR25 — maker Data Sheet V1: '20 Hz to 25 kHz +2 dB @ 30cm', cardioid, 145 dB SPL, 10 mV/Pa, 20 dBA. Earthworks DM17 — maker spec: 20 Hz-17 kHz roll-off, -51 dBV/Pa (2.8 mV/Pa), 148 dB @ 3% THD, 28 dBA. Earthworks SR20sp G2 — maker spec: 20 Hz-20 kHz, 148 dB @ 3% THD, -50 dBV/Pa. Neve RNDI — Rupert Neve published: '±0.25 dB from 25 Hz-44 kHz', +20.5 dBu headroom; SOS: character is level-dependent harmonic distortion, 'minimal loss of high-frequencies'. Sennheiser MD 421-U — RecordingHacks plot: '-8 dB from 80 Hz down to 40 Hz', 'even midrange from 80 Hz up to 1.5 kHz', 'slopes up gently to +4 dB at 2.75 kHz' into a 4-5 kHz presence peak. Shure SM57 — RecordingHacks/Shure: 'from 2 kHz to about 6 kHz, where the mic becomes 7 dB more sensitive'; proximity +6-10 dB below 100 Hz; small dip 300-600 Hz. Royer R-121 — Royer published (ZenPro): '30-15,000 Hz ±3 dB', figure-8, >135 dB SPL @ 20 Hz. Radial J48 — Radial Engineering: 'dynamic handling is increased by a full 3 dB by gently removing unnecessary lows', 220 kΩ input specced for piezo, THD 0.002% @ -5 dBu. Shure Beta 58A — Shure: 50 Hz-16 kHz, two presence peaks at 4 kHz and 10 kHz, attenuated below 500 Hz for proximity, supercardioid null ~125° off-axis (rear LOBE at 180°); peak amplitudes are NOT published anywhere — Shure's own spec sheet is 403-blocked. AKG C422 — AKG manual: 4.5 mV/Pa @ 1 kHz, self-noise ≤22 dB, max SPL ~133 dB @ 1 kHz; the manual PDF is 403-blocked at both mirrors and no outlet publishes a response curve. Playback (ch 20) is a line input — no capsule, nothing to research. RECONCILIATION: THREE web↔KB DISAGREEMENTS and TWO THIN, none averaged over. DISAGREE — DM6 (KB: 'flat… takes full shaping'; TapeOp: pre-voiced smiley, 'never immediately compelled to reach for an EQ'). DISAGREE — RNDI (KB: 'very slight HF softening' → 'ease off presence'; Neve measures ±0.25 dB to 44 kHz — the KB's direction is inverted; touches ch 9/14/15). THIN — LS-408 (switch behaviour well documented; the response curve has no published dB values anywhere and two readings of the SOS review contradict each other, so no band was placed on it — Band 4 is OFF). THIN — C422 (sensitivity/noise/SPL known; no curve, and the KB's 'classic AKG brilliance rise ~6-12kHz' is attributed to a CK12 the C422 does not have — Gearspace/Austrian Audio: AKG 'conveniently retained the name CK12' for the late-70s Teflon capsule). All five resolved in the question round; DM6 and RNDI resolved as 'research wins + fix the KB rows' (staged). Every other unit AGREE.",
+
+  "room_context": "Memorial Hall — 556 seats, Beaux Arts, hardwood stage 37'4\"W × 22'3\"D, working RT60 ~1.6s with audience. INDOOR: the FSQ/outdoor cut override (−6 to −9, up to −10) does NOT apply and was not imported — cuts here run indoor depth. Standing waves at 63 / 125 / 200 / 250–315 Hz interact with everything, and on this show they are what make three toms three different channels rather than one curve copied twice: the 10\" tom's fundamental (~200 Hz) IS the 200 Hz node, the 12\" (~140 Hz) sits on the 125 node, the 16\" floor (~80 Hz) has the 63 node booming underneath it. The 125 Hz node is 'right in the bass fundamental range' (KB) — treated once, on ch 9, which owns the low lane. A contralto's chest voice lands on 200 Hz, which is why ch 16's cut there is dynamic rather than static. The 1.6s RT60 is a gift on this show: it does Phil Spector's job for free, so the band stays dry and reverb goes short, plate-flavoured and well under factory decay. Where a filter corner can do a node's work it does — the hat's 300 Hz HPF clears 250–315 outright, the keys' 60 Hz HPF lands on the 63 node — which buys bell bands back for real moves.",
+
+  "style_note": "60s Motown/soul revue with a jazz-inflected first half. Dark, midrange-forward, room-glued — the record was one mic on the drums and the bleed was the point.",
+
+  "changes": [
+    "DM6 (ch 1) — KB says 'flat/uncolored, takes full shaping'; TapeOp #160 measures +9 dB @ 20 Hz and +8 dB @ 11–12 kHz, i.e. a pre-voiced smiley. Built as pre-voiced: HPF 45 Hz kills the baked sub lift before it excites the 63 Hz node, LPF 9 kHz removes the baked beater sheen, and there is ZERO low boost. Following the KB literally would have meant boosting into a baked capsule lift AND a room resonance simultaneously. KB row correction staged.",
+    "RNDI (ch 9, 14, 15) — KB says 'very slight HF softening' → 'ease off presence'; Rupert Neve measures ±0.25 dB from 25 Hz–44 kHz and SOS finds no rolloff at all. Band 4 left OFF on all three channels rather than carrying a reflex presence cut. The RNDI's warmth is level-dependent transformer harmonics (SOS: 'more pronounced at higher input signal levels') — so it comes from DRIVE, not EQ. KB row correction staged.",
+    "Kit architecture — the OH pair (7/8) is treated as the 'one microphone' per Elmhirst, not as a cymbal channel: HPF sits LOW and GENTLE at 100 Hz/12 dB/oct to keep shell body, and there is NO gate and NO ducker on it. Close mics (1–6) get range-limited gates (15–20 dB), never full mutes. This inverts the KB's dense-genre 'tighter gates / more aggressive separation' modifier on artist-profile authority. Corroborated by Earthworks' own featured engineer on this exact pair: 'with a kick drum and these two overhead mics, I don't need to add any other mic inputs into the drum kit.'",
+    "Ch 6 relabeled FLOOR 16 — the input list says 'Rack 3', but backline quote 26-0593 lists a 14\"D × 16\"W tom with three Gretsch floor tom legs, and supplies only two DW 9900 rack mounts (for the 10\" and 12\"). It is a floor tom.",
+    "Toms voiced by node collision rather than copied — 10\" → −4 @ 200 Hz (its fundamental IS the node), 12\" → −4 @ 125 Hz, 16\" floor → −3 @ 63 Hz under the fundamental. Three different curves because Memo makes them three different channels. Floor tom gate release runs 400 ms (vs 150/200 on the racks) so it rings out under the ballads.",
+    "Bass lane split (9+10) — RNDI owns the bottom (flat ±0.25 dB at the low E); the MD 421-U owns mids and CANNOT deliver a fundamental (−8 dB @ 40 Hz, RecordingHacks), so it is HPF'd at 100 Hz to finish what the capsule started. 800 Hz is a HANDOFF, not a stack: −4 on ch 9 vacates the lane, +3 on ch 10 fills it. Memo's 125 Hz node cut lives on ch 9 ONLY — the node belongs to whichever mic owns the low lane.",
+    "Guitar (11+12) — the SM57's baked +7 dB @ 6 kHz (RecordingHacks/Shure) is trimmed −4. A bright Fender Blues Deluxe clean into a mic that adds 7 dB exactly where a Fender is already spiky is the problem this unit exists to solve.",
+    "R-121 (ch 12) Band 4 left OFF — a deliberate departure from the KB's 'ease off air, presence, top' tendency line for this mic. The ribbon is patched specifically to contribute its sweet, un-peaky top as the antidote to the 57's 6 kHz peak; cutting its top defeats the only reason it is there. The mechanism isn't that the ribbon adds top — it adds content with no 6 kHz spike, which averages the 57's peak down.",
+    "R-121 blend set 3–5 dB under the SM57, not the usual 6–10 — the KB's own 'GD/Allmans-style warm tones may close to 3–5 dB' case, which is exactly what a clean, dark Daptone guitar tone is.",
+    "SM57 400 Hz cut held to −3, not the reflex −5 — the published curve shows a small dip already at 300–600 Hz, so a deeper cut would be a second scoop on top of the capsule's own (reverse capsule gate).",
+    "Acoustic (13) Band 1 OFF — the J48 already removes low end by design ('a full 3 dB by gently removing unnecessary lows', Radial). A desk LF cut would be the third low-end reduction on one channel, stacking on the DI's own removal and the HPF.",
+    "BGVs (17/18) deliberately NOT slotted apart — identical curves are the sourced decision, not an oversight. Winehouse 'knew that she wanted a '60s girlgroup sound' and the album's orchestration is Phil Spector-influenced; Spector's whole method was massing sources until they read as ONE voice. The sectional rule is conditional on the research saying to separate, and here it says the opposite. The real slotting is lead-vs-section and it is visible in the values: HPF 100 vs 130, 200 Hz −4 DEQ vs −5 static, 1.6 kHz none vs −4, 4 kHz −4 vs −3, expander vs none.",
+    "Lead vocal 200 Hz cut made DYNAMIC (thr −18, 3:1, 10/120 ms) — a contralto alternating whispered narration and full belt swings 200 Hz energy too far for a static cut to hold; a static −4 leaves the storytelling thin. The BGVs get it static and deeper (−5) because they never narrate. KB's own criterion: 'DEQ where a static cut won't hold.'",
+    "Lead vocal HPF held at 100 Hz/24 dB/oct rather than the 120–150 an aggressive vocal HPF wants — steep instead of high. The show-umentary's spoken storytelling is half the product and a contralto's speaking fundamental sits ~165–200 Hz; the slope does the work without moving the corner into the chest voice.",
+    "Ch 20 rebuilt TWICE, and the tour rider settled it. Pre-round I read it as narration (low confidence, and I said so); the round said backing tracks incl. horns; then the act's own rider and AV script — found in the show's Dropbox folder — showed it is neither. It is Q-Lab AV: the act's laptop, 1/8\" jack, at FOH, carrying AV 1 walk-in music, AV 2 show announce, AV 3 needle drop and the audio under three videos. NO backing tracks, NO horns — the AV cue list confirms it by omission, and the five-piece plays the horn lines or they're arranged out. So the 1.2 kHz brass-bark cut came OFF (there are no horns to bark), the section moved HORNS → AMBIENT (Q-Lab is a FOH source, not a stage instrument), the fader is now QLAB, and it is a DI with phantom rather than an XLR line. One band survives: −3 @ 315 Hz, which serves the walk-in music's mud and the spoken content's consonants at once. Kept MONO on ch 20 per Brian, though the rider asks for stereo on 19/20.",
+    "Ch 20 is an OPS item as much as a mix item — the rider requires an in-house tech to OPERATE Q-Lab at FOH or lighting, against 52 LX cues and 10 AV cues. Video is a separate HDMI path, not this channel.",
+    "Setlist corrected from the act's AV script — it is NOT 'mostly Back to Black material' as I had it before the rider surfaced. It is a clean 50/50 that splits at the interval: nine Frank-era jazz songs in Set 1, the Back to Black nine in Set 2. This is why the reverb pairing is now organised BY SET rather than by guesswork, and it undercuts the original reasoning for making the Supraphonic the snare's base curve (Brian's call: keep as built).",
+    "Crowd rig — BOTH, per the round. Standard OM1/S2/CM4 EQ transcribed VERBATIM from venue-memorial-hall.md, not re-derived (the article says 'EQ is fixed — do not adjust show to show'). C422 pairs left flat (HPF 40 Hz only): they are a multitrack capture, EQ belongs in post per the documented workflow, and the C422's capsule research came back THIN.",
+    "Snare — base curve is the Supraphonic; snapshot 'SNARE — MAPLE' deepens B2 200 Hz −4 → −6 and B3 315 Hz −3 → −5 and lifts HPF 90 → 100, because maple's boosted lows and long sustain sit on Memo's 200 Hz node where aluminum's dry, short decay does not. Re-check gain at the swap.",
+    "No horn-specific reverb — the horns arrive on ch 20 with Ronson's production reverb already printed on them.",
+    "No general/band reverb — Memo's 1.6s RT60 IS the reverb and the one-mic reference wants the room doing that work. A band send would fight both.",
+    "Locker: no alternatives suggested on any of the 13 units, and each declined with a named reason rather than by default — the most notable being the Neumann KMS 105 rejected on ch 16 (KB flags it 'feedback-sensitive' with a 12k air peak; this is a hard-pushing singer in a 1.6s room with a wedge, and the Beta 58A's supercardioid is what buys the feedback margin)."
+  ],
+
+  "decisions": [
+    "Q: Crowd rig — the list specifies C422 for Audience (23/24) and Room (31/32) and drops the locked OM1/Deity S2/CM4 rig entirely, which the venue KB says patches every show. -> Brian: BOTH. Standard rig on its locked EQ for FOH; C422 pairs as a flat multitrack capture. Standard rig assigned to ch 25–30 (the list's only blanks — exactly six). NOTE: CLAUDE.md says the Memo crowd rig's CH numbers are normally left BLANK; the builder and patcher require numbers, so these six are my assignment — move them freely. CONFIRM AT LOAD-IN: two C422 bodies AND two S42E remote units (AKG's manual: patterns are set on the S42E). No file records a C422 quantity.",
+    "Q: DM6 and RNDI both contradict measured manufacturer data in ways that would push the EQ the wrong direction — research, KB, or research + fix the KB? -> Brian: research wins AND fix both mic-library.md rows. Corrections STAGED for wiki-publish at close-out, never written live.",
+    "Q: What keyboard? The backline supplies a stand and a bench and no keyboard ($0.00) — the player brings their own, and the confirmed setlist needs piano, Rhodes, Wurlitzer and organ (album credits: John Adams Rhodes/organ, Victor Axelrod Wurlitzer/piano). -> Brian: Nord-class stage keyboard on patches. The conservative curve on 14/15 was built to be safe across all four voices, which is what a four-voice channel demands.",
+    "Q: Ch 20 Playback, and where are the horns? Rehab / Valerie / Back to Black / Monkey Man are all horn records (Ronson cut 'a trio of horn players') and there is no horn input; Night Owl publishes no lineup or tech detail. -> Brian: backing tracks INCLUDING horns. Ch 20 rebuilt as a full-range music channel in the horn lane; HPF 80 -> 35 Hz. Still open as a note, not a blocker: one XLR reads mono and backing tracks are usually stereo — ch 21/22 are free if a pair is wanted.",
+    "Q: Is the Lauten LS-408 in the locker? mic_data.json says '\"owned\": false, \"status\": \"Reference — not in locker\"'; Memorial Hall/mic_inventory.csv lists it as owned/Standalone. -> Brian: owned — use it, and fix the record. mic_data.json correction staged. The spare-DM17 fallback is dropped.",
+    "Q: Which snare — the backline carries a Gretsch USA Custom Maple 5.5x14 AND a Ludwig Supraphonic Aluminum 5x14, and there is one snare channel. -> Brian: BOTH, swapped mid-set. Base curve = Supraphonic; snapshot 'SNARE — MAPLE' carries the deltas. Mic switches (80 Hz LC / 12 kHz HC) stay put across the swap — they are physical and cannot be snapshotted, and they serve both drums. RE-ASKED after the rider surfaced ('No snare or cymbals required' — the drummer brings their own, and the setlist splits 50/50 at the interval rather than favouring Back to Black) -> Brian: keep as built. No rebuild on ch 2.",
+    "--- SECOND ROUND, after the act's tour rider + stage plot + AV script were found in the show's Dropbox folder (they were not in the original two attachments) ---",
+    "Q: Ch 20 must be rebuilt — the rider puts Q-Lab on 19/20 as a stereo DI at FOH; your list has one XLR on 20. -> Brian: leave it MONO on ch 20. Horn-lane EQ stripped regardless (the 1.2 kHz brass-bark cut is gone) — the AV cue list shows no backing tracks and no horns. Section moved HORNS -> AMBIENT, fader renamed QLAB, now a DI with phantom.",
+    "Q: The rider asks for 10 monitor mixes (5 wedges + 5 IEMs) against the 6 on your list. -> Brian: ship the 6 — it's what he negotiated. The rider's ask is noted on the Monitors sheet so nobody is surprised at load-in.",
+    "Q: The rider asks for bass DI only (ch 9) and ONE mic on the electric guitar (ch 11); your list adds the MD 421-U on the Aguilar and the full AxeMount 57/121 pair. Keep them? -> Brian: KEEP BOTH. They are Memo house practice and they stay as built.",
+    "Q: Also offered and DECLINED by Brian — (a) adding the rider's ch 18 'Ambient room mic — Band IEM only' (would have fed the band's IEM ambience off the OM1 pair); (b) moving the lead vocal to wireless per the rider's 'Wireless preferred' on ch 14; (c) re-voicing ch 13 and ch 14/15 for their exposed feature moments (I Heard Love Is Blind = acoustic + solo vocal; Body & Soul = piano + vocal, band off stage). All three left as built at his call — the feature moments are documented in artist_profile and reverb_pairing instead."
+  ],
+
+  "monitors": [
+    { "mix": "MIX 1", "who": "Guitar", "type": "IEM", "note": "" },
+    { "mix": "MIX 2", "who": "Star (Reine Beau)", "type": "IEM", "note": "" },
+    { "mix": "MIX 3", "who": "Keys", "type": "IEM", "note": "" },
+    { "mix": "MIX 4", "who": "Bass", "type": "IEM", "note": "" },
+    { "mix": "MIX 5", "who": "Drums", "type": "IEM", "note": "" },
+    { "mix": "MIX 6", "who": "Star Wedge", "type": "wedge", "note": "⚠ PLACEMENT: the Beta 58A is SUPERCARDIOID — its null is at ~125° off-axis, NOT 180°. At 180° there is a rear LOBE. Put this wedge SIDE-REAR at roughly 125°, never straight behind the mic." },
+    "⚑ THE RIDER ASKS FOR 10 MIXES, NOT 6 — flagged so nobody is surprised at load-in. Night Owl's tech rider specifies 5 wedges (1 Drums, 2 Bass, 3 Guitar, 4 Keys, 5 Lead Vocal ×2 wedges) PLUS 5 IEMs (6 Drums, 7 Bass, 8 Guitar, 9 Keys, 10 Lead Vocal), with Night Owl providing 3× wired packs and 2× wireless packs and transmitters, and the venue providing '5 x IEM outputs via onstage XLRs.' The stage plot shows wedges at lead vocal (×2), guitar, bass and keys, wired in-ears at drums/keys/bass and wireless in-ears at guitar and lead vocal. The 6 above is what Brian negotiated and is what ships — confirmed 2026-07-14."
+  ],
+
+  "reverbs": [
+    { "role": "vocal",
+      "preset": "Plates 1 / #06 Vocal Plate",
+      "settings": "Decay 1.0s (from 1.50s factory) · PreDelay 24ms (factory) · VLF −19 (factory) · E/L Max Early · Late −14.0 dB · Late Rolloff 6.0k (from 6.4k factory) · ES 15 (factory)",
+      "plugin_eq": "Master Filter HS −3 dB above 8k (room's natural HF brightness); Ducker Reverb mode, Thr −22 dB, Rel 300ms",
+      "why": "The record, literally — Ronson: 'a little bit of spring or plate reverb goes a very long way.' The KB's first choice for a contemporary lead vocal, and unusually its −19 VLF factory is already exactly what Memo wants, so it stays put where most presets need cutting. Decay pulled 33% because the room supplies 1.6s of its own. This is the workhorse and carries the Back to Black material." },
+    { "role": "vocal",
+      "preset": "Chambers 1 / #10 Vocal Chamber",
+      "settings": "Decay 1.0s (from 1.60s factory) · PreDelay 24ms (from 0 factory) · VLF −18 (from −10 factory) · E/L Max Early · Late −16.0 dB · Late Rolloff 7.0k (from 8.0k factory) · ES 9 (factory)",
+      "plugin_eq": "Ducker Reverb mode, Thr −22 dB, Rel 250ms",
+      "why": "The Frank-era jazz numbers and the spoken storytelling. A chamber rather than a plate — it places the voice in a room without the plate's sheen, which on a talking voice would read as an effect. Drier than #06 (Late −16 vs −14) and slightly brighter (7k vs 6k) so consonants survive 1.6s of room. The KB's Jazz table names this exact preset for lead vocal and gives 1.0s as the Memo target; its watch-out ('cut Vocal Chamber from −10dB') is why VLF moved." },
+    { "role": "vocal",
+      "preset": "Plates 1 / #16 Large Plate",
+      "settings": "Decay 1.4s (from 2.20s factory) · PreDelay 28ms (from 0 factory) · VLF −16 (from −10 factory) · E/L Max Early · Late −10.0 dB · Late Rolloff 4.8k (factory) · ES 7 (factory)",
+      "plugin_eq": "Master Filter HS −2 dB above 8k; Ducker Reverb mode, Thr −25 dB, Rel 400ms",
+      "why": "The Spector wall moment — the Back to Black chorus, Love Is a Losing Game. Earned by THIS band's material rather than filling a third slot: the album's orchestration is explicitly Phil Spector-influenced and nothing else in the set justifies a 1.4s plate. Late sits higher here (−10) than the other two because this is the one send where the tail IS the effect. Its 4.8k rolloff is already dark at factory — Spector's plates were." },
+    { "role": "instrument",
+      "preset": "Plates 1 / #04 Snare Plate A",
+      "settings": "Decay 0.8s (from 1.20s factory) · PreDelay 10ms (from 0 factory) · VLF −15 (from −9 factory) · E/L Max Early · Late −12.0 dB · Late Rolloff 5.6k (from 6.8k factory) · ES 5 (factory)",
+      "plugin_eq": "LC 200 Hz on the return — Memo's node, and exactly where a snare plate booms",
+      "why": "This band earns a snare plate the way most don't: the Motown/Daptone backbeat has a distinct short plate printed on it, and Ronson 'caked the tambourine in reverb.' The KB's first choice for snare, and its Memo target is 0.8s — where this landed. VLF cut hard from −9 because the 200 Hz node is precisely what a snare plate excites here. Rolloff pulled from 6.8k: the KB calls this preset 'bright and dense' and the record is neither. ⚠ Send comes down a notch on the maple snare — it rings longer than the Supraphonic." },
+    { "role": "instrument",
+      "preset": "Rooms 1 / #16 Djangos Room",
+      "settings": "Decay 0.55s (from 0.80s factory) · PreDelay 10ms (from 4ms factory) · VLF −15 (from −10 factory) · E/L Max Early · Late −16.0 dB · Late Rolloff 5.2k (factory) · ES 6 (factory)",
+      "plugin_eq": "LC 250 Hz on the return",
+      "why": "The Frank-side jazz numbers only — acoustic guitar (13) and the piano patch (14/15). The KB's Jazz table names this preset for acoustic instruments at Memo and hands over both the 0.55s Memo target and the −15 VLF verbatim. Small jazz-club feel under a 556-seat hall that is already doing 1.6s on its own." }
+  ],
+
+  "reverb_pairing": "THE ACT'S SCRIPT MAKES THIS EASY: the setlist splits at the interval, so the vocal reverb splits with it — SET 1 IS VOCAL CHAMBER (#10), SET 2 IS VOCAL PLATE (#06). Nine Frank-era jazz songs then nine Back to Black songs; a chamber for the first, Ronson's plate for the second. That's the handoff, and it happens once, at the break, rather than song by song. Chamber leads Set 1 because a plate's sheen on the jazz material — and on her spoken storytelling, which is LIVE on ch 16 all night — would read as an effect rather than a room; it's drier (Late −16) and slightly brighter (7k) so consonants survive 1.6s of hall. Plate leads Set 2 because it IS the record. LARGE PLATE (#16) is the big-moment send only and it lives entirely in Set 2 — the Back to Black chorus and Love Is a Losing Game, which sit back to back at #4 and #5. It is the one place Late comes up (−10) because there the tail is the effect. NEVER run #06 and #16 together: both are plates and they stack into mud; one is the bed, one is the moment. SNARE PLATE A (#04) sits under everything without fighting it — short at 0.8s, return low-cut at 200 Hz (Memo's node), so it adds backbeat splash rather than low-mid wash. Ride it up for Set 2 where the Motown backbeat is the point, and down for Set 1's brushwork; and down again on the maple snare, which rings longer than the Supraphonic. DJANGOS ROOM belongs to Set 1, pairing with the Chamber — at 0.55s and Late −16 it places the acoustic guitar without putting a second room on top of the real one. IT HAS ONE MOMENT THAT MATTERS MORE THAN THE REST: #3 'I Heard Love Is Blind' is acoustic guitar and solo lead vocalist, nothing else on stage. TWO MOMENTS TO PRE-PLAN: 'Body & Soul' closes Set 2 with the BAND OFF STAGE — piano and voice alone on a jazz standard — so bring the Chamber back for it even though it sits in the plate's set; it is the one Set 2 song that wants Set 1's reverb. And 'Back to Black' opens on a solo piano riff held ~15s under a Piano Special (LX Q39) before the vocal arrives. TWO DELIBERATE ABSENCES: no horn reverb, because there are no horns — the rider's AV cue list has no backing tracks on it at all; and no general/band verb, because Memo's 1.6s RT60 IS the reverb, the one-mic reference wants the room doing that work, and a band send would fight both the room and the record.",
+
+  "channels": [
+    {
+      "ch": 1, "name": "KICK", "instrument": "Kick Drum", "mic": "Earthworks DM6",
+      "section": "DRUMS", "phantom": true, "ribbon": false, "tour": false, "stand": "Short",
+      "notes": "Gretsch USA Custom maple, 18\"D × 22\"W. Single Yamaha FP9500C pedal (no double kick). Triad-Orbit M2-R mount included. Spare kick batter head in the backline toolbox.",
+      "hpf": 45, "lpf": 9000,
+      "bands": [
+        { "b": 3, "gain": -3, "freq": 250, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -3, "freq": 125, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -4, "freq": 63, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "The DM6 is NOT flat, whatever the label suggests. TapeOp #160 measures a boosted low end (+9 dB at 20 Hz), a low-mid scoop (~−8 dB @ 400 Hz), and a +8 dB bump at 11–12 kHz — 'a generally natural, but dare I say, pre-mixed/EQ'd tone.' So: no low boost (the capsule already did it, and Memo's 63 Hz node would double it again), and no box cut at 300–500 (the capsule already scooped there — a desk cut would be a second scoop on the first). HPF at 45 Hz/24 dB/oct kills the baked sub lift before it excites the room; LPF at 9 kHz removes the baked beater sheen. This corrects the KB row, which said 'flat… takes full shaping' — correction staged.",
+      "eq_summary": "Memo's highest-risk channel, and every move is a subtraction from either a baked capsule peak or a room node — there is not one boost here. The three low cuts are the room's three nodes (63/125/250) sitting inside a 22\" maple kick's range; they don't thin it, because the room hands that energy straight back. The 9 kHz LPF is the artist move: the DM6 bakes +8 dB at 11–12 kHz and Back to Black has no modern click sheen on it — this is a felt beater on maple, and beater definition lives at 2–5 kHz, which survives. Gate is range-limited to 20 dB, not a mute: the reference record is glued by bleed, and a hard gate chops the kit apart and chatters on the quiet jazz-side material. Comp = Mustard Blue (Neve), 4:1, 20 ms attack so the beater passes, 150 ms release, 3–4 dB GR — the record ran through a Neve into tape."
+    },
+    {
+      "ch": 2, "name": "SNARE", "instrument": "Snare Drum", "mic": "Lauten Audio LS-408 Snare Mic",
+      "section": "DRUMS", "phantom": true, "ribbon": false, "tour": false, "stand": "Short",
+      "notes": "TWO SNARES, SWAPPED MID-SET: base = Ludwig Supraphonic Aluminum 5×14; snapshot 'SNARE — MAPLE' for the Gretsch USA Custom Maple 5.5×14. SWITCHES: Low Cut → 80 Hz, High Cut → 12 kHz (stay put across the swap — physical, can't be snapshotted). Re-check gain at the swap. Spare snare top+bottom heads in the toolbox.",
+      "hpf": 90, "lpf": 12000,
+      "bands": [
+        { "b": 3, "gain": -3, "freq": 315, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -4, "freq": 200, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -3, "freq": 125, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Switches assumed 80 Hz LC / 12 kHz HC, and both are voicing changes rather than plain filters — Lauten: the 80 Hz LC 'reduce[s] low-frequency spillover from kick drums and toms while adding a slight presence boost'; the 12 kHz HC 'adds a dip after 7 kHz to help reduce cymbal bleed.' 12k is chosen over Flat because Flat's 'open, lifelike top-end air' is the wrong record. The crack arrives pre-made twice over (Lauten voices a rise ~5 kHz for stick attack; the 80 Hz LC adds presence on top) — so the desk adds nothing up there. Mixonline: the filters are 'smooth, 6 dB/octave, low-Q' — gentle, which is why the desk's steeper 90 Hz HPF complements rather than double-dips, and why kick spill still rides Memo's 125 Hz node into this mic. Band 4 is OFF on purpose: the only published curve data for 1–5 kHz contradicts itself between readings of the SOS review, and no outlet publishes dB values — no evidence, no band. Ownership: mic_data.json had this as 'not in locker' — Brian confirmed owned; record correction staged.",
+      "eq_summary": "The Motown backbeat, and the collision is exact: Memo's 200 Hz node sits on a 14\" shell's fundamental, which is why the deepest cut on the channel lives there. 315 takes the cardboard-box zone; 125 takes kick spill riding the room's node straight through the mic's gentle 6 dB/oct filter. Nothing is added — the crack is baked in. Gate is range-limited to 15 dB and must let ghost notes and brushes live: the Dap-Kings shuffle under Rehab and the whole Frank-era jazz side are built on ghosts, and a conventional gate erases them. Comp = Mustard Blue (Neve), 4:1, 15 ms attack so the crack passes, 120 ms release, 3–4 dB GR. On the maple snapshot everything low goes deeper (200 → −6, 315 → −5, HPF → 100) because maple's boosted lows and long sustain are what the room smears; the Supraphonic is dry and short and doesn't need it."
+    },
+    {
+      "ch": 3, "name": "HAT", "instrument": "Hi-Hat", "mic": "Earthworks SR25",
+      "section": "DRUMS", "phantom": true, "ribbon": false, "tour": false, "stand": "Boom",
+      "notes": "Yamaha HS850 3-leg hat stand. Boom required — no clip mount on an SR25.",
+      "hpf": 300, "lpf": 14000,
+      "bands": [
+        { "b": 4, "gain": -3, "freq": 8000, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": -3, "freq": 2500, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -3, "freq": 400, "q": 1.5, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Ruler-flat and it bakes in nothing: the maker's data sheet specs '20 Hz to 25 kHz +2 dB @ 30cm', cardioid, 145 dB SPL, 10 mV/Pa, 20 dBA, with 'uniform frequency response at 0° 45° & 90° off-axis.' A +2 dB tolerance across five octaves means every move on this channel is a tonal decision I own, not a correction of the mic. Pattern confirmed cardioid against the maker (the current Gen 2 SR25 is supercardioid — Brian's DK-25 pair is not; the KB is right).",
+      "eq_summary": "The 8ths under Rehab and Valerie are the engine of this set, and on the jazz side this drops to brushes — so it has to be crisp without ever getting glassy. The 300 Hz HPF does double duty: it's the KB's 'HPF aggressively' rule for hat, and it clears Memo's 250–315 node off this channel outright, which buys back a bell band. The darkening at 2.5k and 8k plus the 14 kHz LPF is the tape ceiling — Back to Black was cut to 1\" 16-track and tape rolls the top off; a flat condenser through a tuned PA in a 556-seat room reads far brighter than the reference, so the darkening is mine to add deliberately. Ducker, NOT a gate — threshold −50, range 30 dB, straight off the KB's acoustic-forward spec: brushes and the hat's tail have to survive, and the one-mic reference says don't chop the kit apart. No comp."
+    },
+    {
+      "ch": 4, "name": "RACK 10", "instrument": "Rack Tom 10\"", "mic": "Earthworks DM17",
+      "section": "DRUMS", "phantom": true, "ribbon": false, "tour": false, "stand": "Clip",
+      "notes": "Gretsch USA Custom maple 7\"D × 10\"W on a DW 9900 rack mount. Earthworks RM3 rim mount.",
+      "hpf": 90, "lpf": 12000,
+      "bands": [
+        { "b": 3, "gain": -4, "freq": 400, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -4, "freq": 200, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Flat and honest — the maker specs 20 Hz–17 kHz, cardioid, 148 dB SPL @ 3% THD, −51 dBV/Pa (2.8 mV/Pa), 28 dBA. Two numbers matter at the desk. First, the 17 kHz ceiling sits 8 kHz below the SR25's 25 kHz, so the DM17 arrives darker than its kit-mates for free — a gift on this show. Second, at 2.8 mV/Pa it is roughly 11 dB less sensitive than the SR25 sharing this kit: expect noticeably more gain on 4/5/6 than on 3/7/8, and expect less bleed than 'condenser' implies (Earthworks build it for 'dynamic microphone-like isolation').",
+      "eq_summary": "Toms are fills here, not a feature — sparse, dark, round, never a rock kit. This drum's ~200 Hz fundamental lands directly ON Memo's 200 Hz node, which is why its deepest cut is there and why it differs from the 12\" and the floor: the room makes these three genuinely different channels rather than one curve copied twice. 400 Hz takes shell box, the constant across all three. No attack boost anywhere — the reference has no modern tom click, and the 12 kHz LPF finishes what the capsule's 17 kHz ceiling started. Gate range-limited to 20 dB (never a mute), 150 ms release for a snappy rack tom. Comp = Mustard Blue (Neve), 3:1, 20 ms, 150 ms, 2–3 dB GR — light."
+    },
+    {
+      "ch": 5, "name": "RACK 12", "instrument": "Rack Tom 12\"", "mic": "Earthworks DM17",
+      "section": "DRUMS", "phantom": true, "ribbon": false, "tour": false, "stand": "Clip",
+      "notes": "Gretsch USA Custom maple 8\"D × 12\"W on a DW 9900 rack mount. Earthworks RM3 rim mount.",
+      "hpf": 70, "lpf": 12000,
+      "bands": [
+        { "b": 3, "gain": -4, "freq": 400, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -4, "freq": 125, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Same DM17 as ch 4 — flat, 20 Hz–17 kHz ceiling (free darkening), 148 dB SPL, and the low 2.8 mV/Pa sensitivity that means more gain here than on the hat or overheads. Nothing baked to correct at either end.",
+      "eq_summary": "The 12\"'s ~140 Hz fundamental sits on Memo's 125 Hz node — a different collision from the 10\" one drum over, so a different curve. That's the whole reason these three toms aren't copy-paste. 400 Hz shell box as on the others; no attack boost, dark by design. Gate range-limited to 20 dB, release opened to 200 ms for the bigger shell's longer decay. Comp = Mustard Blue (Neve), 3:1, 20 ms, 150 ms, 2–3 dB GR."
+    },
+    {
+      "ch": 6, "name": "FLOOR 16", "instrument": "Floor Tom 16\"", "mic": "Earthworks DM17",
+      "section": "DRUMS", "phantom": true, "ribbon": false, "tour": false, "stand": "Clip",
+      "notes": "⚑ LABEL FIX: the input list says 'Rack 3'. The backline quote lists a 14\"D × 16\"W tom with three Gretsch floor tom legs, and only two DW 9900 rack mounts (for the 10\" and 12\"). It is a FLOOR TOM. Earthworks RM3 rim mount.",
+      "hpf": 50, "lpf": 10000,
+      "bands": [
+        { "b": 3, "gain": -4, "freq": 400, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -3, "freq": 250, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -3, "freq": 63, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Same DM17 — flat, 17 kHz ceiling, low sensitivity (expect more gain). Nothing baked to correct.",
+      "eq_summary": "The third distinct node collision on the kit: a 16\" floor's ~80 Hz fundamental sits BETWEEN Memo's 63 and 125 nodes, with 63 booming underneath it — so the HPF corner is deliberately parked at 50 Hz to leave the fundamental intact while a bell takes the 63 Hz wave out from under it. 250 is the woof; 400 is the shell box constant. LPF lands lower than the racks (10 kHz) because a floor tom has no business up top on this record. The gate is the one that matters: 400 ms release, against 150/200 on the racks — Back to Black and Love Is a Losing Game are ballads and this drum has to be allowed to ring out under them, which is exactly the KB's warning about not gating a slow-decay floor tom like a funk kit. Range-limited to 20 dB. Comp = Mustard Blue (Neve), 3:1, 20 ms, 150 ms, 2–3 dB GR."
+    },
+    {
+      "ch": 7, "name": "OH L", "instrument": "Drum Overhead L", "mic": "Earthworks SR20sp Gen 2",
+      "section": "DRUMS", "phantom": true, "ribbon": false, "tour": false, "stand": "Boom",
+      "notes": "Matched stereo pair with ch 8 — link. ⚠ POLARITY-CHECK against kick and snare BEFORE advancing the pair: with the HPF this low, a polarity error guts the kit's low-mids and reads as 'the overheads sound thin.'",
+      "hpf": 100, "lpf": 14000,
+      "bands": [
+        { "b": 4, "gain": -3, "freq": 8000, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": -4, "freq": 315, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -3, "freq": 200, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Flat and accurate, no hype — maker specs 20 Hz–20 kHz, cardioid, 148 dB SPL @ 3% THD, −50 dBV/Pa, 25 dBA. That 148 dB ceiling is the operative number: this pair can sit close over a hard-hit kit and never be the thing that breaks up. The KB warns it 'reveals harshness honestly' — in a 556-seat room through a tuned PA, honest reads bright, which is what the 8 kHz cut and the 14 kHz LPF are for. Nothing baked to correct.",
+      "eq_summary": "THIS PAIR IS THE SHOW'S 'ONE MICROPHONE' — not a cymbal channel. Elmhirst on the Back to Black sessions: 'the drums were recorded with one microphone, and there's lots of spill between the instruments, which was great.' We're pointing eight condensers at a kit to rebuild a record made with one, so this pair carries it and channels 1–6 are fill. Earthworks' own featured engineer, on this exact pair: 'with a kick drum and these two overhead mics, I don't need to add any other mic inputs into the drum kit.' Everything follows from that: the HPF is deliberately LOW and GENTLE (100 Hz, 12 dB/oct) to keep shell body — a modern 200 Hz overhead HPF would throw away the glue and is banned here — while its corner still drops kick rumble and the 63 Hz node. 315 gets the deepest cut on the channel because this is the input most exposed to a 1.6s room. NO GATE AND NO DUCKER, stated as a decision rather than an omission: the spill IS the record, and gating this pair would be the single most damaging move available on this show. Comp = Mustard Blue (Neve) for glue not control — 3:1, 30 ms attack so every transient passes, 200 ms release, 2–3 dB GR. This is the channel that should sound like tape."
+    },
+    {
+      "ch": 8, "name": "OH R", "instrument": "Drum Overhead R", "mic": "Earthworks SR20sp Gen 2",
+      "section": "DRUMS", "phantom": true, "ribbon": false, "tour": false, "stand": "Boom",
+      "notes": "Matched stereo pair with ch 7 — link. Identical EQ both sides. ⚠ Polarity-check against kick and snare before advancing.",
+      "hpf": 100, "lpf": 14000,
+      "bands": [
+        { "b": 4, "gain": -3, "freq": 8000, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": -4, "freq": 315, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -3, "freq": 200, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "See ch 7 — matched pair, identical treatment. 20 Hz–20 kHz, 148 dB SPL @ 3% THD, −50 dBV/Pa, 25 dBA (maker spec). Nothing baked to correct.",
+      "eq_summary": "Right side of the 'one microphone' pair — see ch 7 for the full reasoning. Linked and identical: low gentle HPF to keep the kit glued, the room's 315 and 200 nodes cut, tape ceiling at 8k/14k, and no gate or ducker because the spill is the record. Comp = Mustard Blue (Neve), 3:1, 30 ms, 200 ms, 2–3 dB GR."
+    },
+    {
+      "ch": 9, "name": "BASS DI", "instrument": "Electric Bass (DI)", "mic": "Neve RNDI",
+      "section": "BASS", "phantom": true, "ribbon": false, "tour": false, "stand": "DI",
+      "notes": "TWO-MIC with ch 10 — this DI owns the BOTTOM. Aguilar DB751 head + DB410 (4×10) cab. Group with ch 10 to one VCA; keep the blend constant.",
+      "hpf": 35, "lpf": 5000,
+      "bands": [
+        { "b": 3, "gain": -4, "freq": 800, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -3, "freq": 250, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -4, "freq": 125, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "LANE: this DI owns the BOTTOM; the MD 421-U on ch 10 owns the mids. The capsule facts hand that split over for free — the RNDI is measured at ±0.25 dB from 25 Hz–44 kHz (Rupert Neve published), so it delivers the low E (41 Hz) untouched, while the 421 is 8 dB down at 40 Hz and cannot deliver a fundamental. 800 Hz is a HANDOFF, not a stack: −4 here vacates the lane that ch 10 fills with +3. The 5 kHz LPF is the de-stack at the top — the DI's job is weight, not clank. The Memo 125 Hz node cut lives HERE and nowhere else, because this mic owns the low lane. Band 4 is OFF deliberately: the KB's 'ease off presence' tendency for this DI is contradicted by the measurement — there is no HF softening (SOS notes 'minimal loss of high-frequencies'; reviews find the highs have MORE clarity). KB row correction staged. GAIN STAGING: drive it — SOS finds the transformer character is 'more pronounced at higher input signal levels,' so the warmth comes from gain, not EQ.",
+      "eq_summary": "The Motown bassline IS the song here — round, dark, melodic, forward — and on the Frank side it turns into jazz-club walking. The 125 Hz cut is the show's clearest room collision: the KB says flatly 'at Memo, 125 Hz standing wave is right in the bass fundamental range,' and per the lane split it gets treated once, on this channel. 250 handles Memo's node meeting the DB751's very thick flat voicing. HPF at 35 Hz sits under the low E to protect the fundamental this DI exists to deliver, but steep at 24 dB/oct because ±1 dB down to 12.5 Hz means it WILL pass subsonic garbage. Comp = Mustard Purple (Optical/LA-2A) — the period-correct bass compressor and gentle by design: 4:1, 20 ms, 200 ms, 4–5 dB GR. No gate; bass is continuous."
+    },
+    {
+      "ch": 10, "name": "BASS MIC", "instrument": "Electric Bass (cab mic)", "mic": "Sennheiser MD 421-U",
+      "section": "BASS", "phantom": false, "ribbon": false, "tour": false, "stand": "Short",
+      "notes": "TWO-MIC with ch 9 — this mic owns the MIDS/GROWL. On the Aguilar DB410. SWITCH: 5-position bass rolloff assumed 'M' (music/full). ⚠ Polarity-check against ch 9 in mono before advancing — the sum must be FULLER, not thinner. Cab mic arrives late (~1 ms/ft); if the sum stays hollow after the flip, time-align 10 to 9 rather than EQ around it. Same VCA as ch 9.",
+      "hpf": 100, "lpf": 6000,
+      "bands": [
+        { "b": 4, "gain": -3, "freq": 4000, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": 3, "freq": 800, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -4, "freq": 300, "q": 1.8, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "LANE: owns the MIDS/GROWL; ch 9 owns the bottom. RecordingHacks' published plot: '−8 dB from 80 Hz down to 40 Hz', 'an even midrange from 80 Hz up to 1.5 kHz', then 'slopes up gently to +4 dB at 2.75 kHz' into a 4–5 kHz presence peak. The 100 Hz HPF is the de-stack at the bottom — the mic is already 8 dB down at the low E, and this finishes it so it cannot pile onto the DI's lane; it also clears Memo's 63 Hz node outright. The −3 @ 4 kHz TRIMS the baked presence peak, which the Daptone reference doesn't want. Switch assumed 'M' because the desk's HPF de-stacks more precisely than a 5-position inductive filter; if the cab is boomy on stage and the switch moves toward 'S', back the 100 Hz HPF and the 300 Hz cut off a step each — they'd be stacking on the mic's own filter.",
+      "eq_summary": "The Aguilar is closer to the record than it looks — the DB751 is a tube-preamp hybrid whose power section TalkBass describes as 'a big, fat, musical slam more similar to the SVT,' thick and bottom-heavy flat, through a 4×10 with punchy articulate mids. So this channel isn't fighting the rig, it's picking one job out of it. The +3 @ 800 Hz is THE ONLY BOOST IN THE ENTIRE SHOW, and it's a lane handoff rather than an addition: ch 9 cuts −4 there to make the room, and the KB's own note is the reason — 'upper harmonics give the bass definition on small speakers and for audience members far from the subs,' which in a 1.6s hall is what stops a dark bass turning to porridge. It clears the capsule gate because the plot shows the 421 is flat at 800; the peak it does bake sits at 2.75–5 kHz and is being cut, not boosted. 800 is also the DB751's own voicing hinge. 300 is double-justified — the KB's documented 421 low-mid bloat AND Memo's 250–315 node. Comp = Mustard Blue (Neve), 3:1, 20 ms, 150 ms, 2–3 dB GR — light, because the DI is doing the leveling and this one is for colour."
+    },
+    {
+      "ch": 11, "name": "GTR 57", "instrument": "Electric Guitar (cab)", "mic": "Shure SM57",
+      "section": "GUITAR", "phantom": false, "ribbon": false, "tour": false, "stand": "Bar",
+      "notes": "TWO-MIC with ch 12 — Royer AxeMount, both mics on ONE bar/stand. This is the PRIMARY: set its level first, then bring ch 12 up from zero. Fender Blues Deluxe 40W 1×12. Same VCA as ch 12. NOTE: Memo's KB documents this rig on CH 13/15 — this show puts it on 11/12. The input list wins; don't patch from memory.",
+      "hpf": 90, "lpf": 10000,
+      "bands": [
+        { "b": 4, "gain": -4, "freq": 6000, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": -3, "freq": 400, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -3, "freq": 250, "q": 1.8, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "LANE: primary — owns midrange grit, pick attack and the bottom; ch 12 owns the top. The 57's baked peak is the problem to solve: RecordingHacks/Shure describe 'an upward ramp in sensitivity from 2 kHz to about 6 kHz, where the mic becomes 7 dB more sensitive' — so −4 @ 6 kHz is a trim of a documented peak, not a cut of nothing. The 90 Hz HPF controls Shure's documented proximity boost of 6–10 dB below 100 Hz. The 400 Hz cut is held to −3 rather than the reflex −5 because the published curve shows a small dip already at 300–600 Hz ('helps reduce muddiness in the low mids') — a deeper cut would be a second scoop on the capsule's own. LPF at 10 kHz rather than 12 so it actually does something; the mic self-rolls sharply from 12 kHz anyway.",
+      "eq_summary": "The Daptone guitar part — clean, warm, chunky, sitting back: the Rehab chank, the Back to Black arpeggios. Dark and round, never bright. The −4 @ 6 kHz is the most artist-specific move on the channel and the reason this pair exists: a Fender Blues Deluxe clean is already chimey and spiky up there, and the 57 adds 7 dB exactly at that spot. 250 takes Memo's node meeting 1×12 cab boom. No gate — a clean guitar part is continuous and the one-mic reference says don't chop. Comp = Mustard Blue (Neve), 3:1, 20 ms, 150 ms, 2–3 dB GR, light. Post-blend, check 300–500 Hz on the bus and notch −2 to −3 dB if it piles up."
+    },
+    {
+      "ch": 12, "name": "GTR 121", "instrument": "Electric Guitar (ribbon blend)", "mic": "Royer R-121",
+      "section": "GUITAR", "phantom": false, "ribbon": true, "tour": false, "stand": "Bar",
+      "notes": "⚠⚠ RIBBON — PHANTOM OFF AT ALL TIMES. Verify before the mic is plugged AND again after any patch change. TWO-MIC with ch 11 on the Royer AxeMount, both mics one bar. BLEND: bring up from zero until the 57's brittleness reduces — sits 3–5 dB under ch 11 (NOT the usual 6–10 — see eq_summary). ⚠ Polarity-check in mono before advancing: the sum must be FULLER, not thinner; if thinner, flip polarity here. Same VCA as ch 11.",
+      "hpf": 120, "lpf": null,
+      "bands": [
+        { "b": 3, "gain": -4, "freq": 400, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -3, "freq": 200, "q": 1.8, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "LANE: complement — owns the TOP; ch 11 owns mids and bottom. Royer published: 30–15,000 Hz ±3 dB, figure-8, >135 dB SPL @ 20 Hz; low end 'deep and full' without boominess, top 'sweet and natural sounding, never edgy or sibilant.' HPF set at 120 Hz — deliberately ABOVE the 57's 90 — so the ribbon can't stack on the primary's bottom, and it catches the KB's documented ~200 Hz proximity bloom. The 400 Hz cut is the KB blend rule: the complement's 150–800 comes down so it doesn't stack on the 57's midrange. LPF is OFF on purpose — the ribbon self-limits at 15 kHz; a filter there would be theater. BAND 4 IS OFF, and that DEPARTS from the KB's 'ease off air, presence, top' tendency for this mic: it is patched specifically to contribute its un-peaky top as the antidote to the 57's +7 dB @ 6 kHz, so cutting its top defeats the only reason it's here. Rear side reads brighter at ≤3 ft if more presence is wanted.",
+      "eq_summary": "The ribbon doesn't ADD top — it adds content with no 6 kHz spike, which averages the 57's baked peak down. That's what 'tames brittleness' means physically, and it's why its top is left completely alone while the 57's is trimmed. The blend sits 3–5 dB under rather than the standard 6–10, straight off the KB's own note that it closes to '3–5 dB for warm GD/Allmans-style tones' — a clean, dark Daptone tone is that case exactly, and we want more ribbon in this blend than a rock show would take. Zero boosts in the unit. No comp — the ribbon rides the blend. PHANTOM OFF."
+    },
+    {
+      "ch": 13, "name": "AC GTR", "instrument": "Acoustic Guitar (DI)", "mic": "Radial J48",
+      "section": "GUITAR", "phantom": true, "ribbon": false, "tour": false, "stand": "DI",
+      "notes": "SWITCHES: 80 Hz HPF → OUT (flat), −15 dB pad → OUT. Piezo/undersaddle pickup assumed.",
+      "hpf": 80, "lpf": 12000,
+      "bands": [
+        { "b": 3, "gain": -5, "freq": 1800, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -3, "freq": 250, "q": 1.8, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Clean and transparent with tight lows — and the KB's 'tight lows' turns out to be Radial's own spec: 'the J48's dynamic handling is increased by a full 3 dB by gently removing unnecessary lows.' That is why Band 1 is OFF: the DI has already removed low end by design, and a desk LF cut would be the third reduction on this channel stacking on the DI's own plus the HPF. Input impedance 220 kΩ, specced by Radial as 'high enough to avoid loading down any instrument pickup, including finicky piezo transducers.' Switches assumed OUT: the desk's HPF is steeper and tunable where the J48's is a fixed corner of unpublished slope — if the guitar howls on its body resonance and the desk can't catch it, engage the 80 Hz switch and back the desk HPF down a step. Pad out; an onboard acoustic preamp won't trouble the J48's 9 V rails. If the guitar turns out to have a magnetic or onboard-mic system rather than a piezo, the 1.8 kHz cut largely comes off.",
+      "eq_summary": "Texture, not feature — the Frank-side material and the ballads, never the front of the mix. This channel takes the acoustic-forward rules rather than the show's soul-revue rules, because that's what it is musically: conservative, cuts only, two bands used and two OFF, and the restraint is the point. The −5 @ 1.8 kHz is the piezo quack, the named primary target for any DI'd acoustic and the one move that matters here. HPF sits right AT the low E (82 Hz) to preserve the fundamental while dropping everything under it — decisive rather than polite because a DI'd acoustic with its low end intact turns to porridge in a 1.6s room, and the bass owns that register anyway. 250 takes Memo's node meeting body boom. No gate — the KB's rule against chopping attacks, and the part is sparse enough that a gate would only chatter. Comp = Mustard Purple (Optical), 3:1, 20 ms, 200 ms, 2–3 dB GR, light."
+    },
+    {
+      "ch": 14, "name": "KEY L", "instrument": "Keyboard L", "mic": "Neve RNDI",
+      "section": "KEYS", "phantom": true, "ribbon": false, "tour": false, "stand": "DI",
+      "notes": "⚑ ARTIST-PROVIDED KEYBOARD — the backline supplies a Single Tier X Stand and bench only ($0.00). Nord-class stage keyboard on piano/Rhodes/Wurli/organ patches (confirmed with Brian). Stereo pair with ch 15 — link. CONFIRM AT LOAD-IN: what the board is, and whether it's sending its own onboard reverb (it will fight the plate).",
+      "hpf": 60, "lpf": 14000,
+      "bands": [
+        { "b": 3, "gain": -3, "freq": 2500, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -4, "freq": 315, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -3, "freq": 125, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "RNDI measured at ±0.25 dB from 25 Hz–44 kHz (Rupert Neve published) — it bakes in nothing at either end. Band 4 is OFF because of that: the KB's 'ease off presence' tendency would trim the top off a measurably flat DI, and on a keyboard channel that matters more than on the bass, because a Rhodes and a piano both live in the octaves it would have cut for no measured reason. KB row correction staged. The RNDI is the right DI here over the J48 for a nameable reason: on a digital board with sampled patches and clean converters, the transformer's harmonic character is the one thing in the chain that sounds like the record's transformer-and-tape lineage — and the KB calls the J48 'clinical (no color),' which is the last thing a Nord needs. GAIN: drive it; the character is level-dependent (SOS), so warmth comes from gain, not EQ.",
+      "eq_summary": "ONE CURVE HAS TO SERVE FOUR VOICES — the album credits put Rhodes and organ (John Adams), Wurlitzer and piano (Victor Axelrod) across this setlist, and one player on one tier means patches. That single fact forces the conservatism here: anything shaped tightly around a Rhodes bell wrecks the piano two songs later. Mostly this is the harmonic bed under the vocal — the 'synthetic Motown backdrop' — but the Frank material turns the piano into a foreground jazz instrument, so the curve can't be so shaped it can't step forward. The 2.5 kHz cut is carving, not correcting, per the KB's own rule for DI keys ('the EQ work is mostly about carving space in the mix, not correcting a mic'): it's where sampled Rhodes/Wurli patches go glassy AND where the keys would sit on top of the lead vocal's intelligibility. 315 is the deepest cut — Memo's node in the most contested zone on this stage (bass cab at 300, guitar box at 400, snare at 315). 125 is the node where a piano patch's left hand collides with the bass guitar. HPF's corner is parked at 60 Hz to land on the 63 Hz node so the filter handles it instead of a band. Comp = Mustard Purple (Optical), 3:1, 20 ms, 200 ms, 2–3 dB GR — it has to stay transparent across a piano transient and an organ's flat sustain. No gate."
+    },
+    {
+      "ch": 15, "name": "KEY R", "instrument": "Keyboard R", "mic": "Neve RNDI",
+      "section": "KEYS", "phantom": true, "ribbon": false, "tour": false, "stand": "DI",
+      "notes": "⚑ ARTIST-PROVIDED KEYBOARD — backline supplies stand + bench only. Stereo pair with ch 14 — link, identical EQ both sides.",
+      "hpf": 60, "lpf": 14000,
+      "bands": [
+        { "b": 3, "gain": -3, "freq": 2500, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -4, "freq": 315, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -3, "freq": 125, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "See ch 14 — linked pair, identical treatment. RNDI ±0.25 dB, 25 Hz–44 kHz (Rupert Neve): nothing baked, Band 4 stays OFF, warmth from drive not EQ.",
+      "eq_summary": "Right side of the keys pair — see ch 14 for the full reasoning. Linked and identical: conservative because one curve serves piano, Rhodes, Wurlitzer and organ across this setlist; 2.5 kHz carves space for the lead vocal, 315 takes the room's node in the stage's most contested zone, 125 keeps a piano patch's left hand off the bass, and the 60 Hz HPF corner does the 63 Hz node's work. Comp = Mustard Purple (Optical), 3:1, 20 ms, 200 ms, 2–3 dB GR."
+    },
+    {
+      "ch": 16, "name": "REINE", "instrument": "Lead Vocal", "mic": "Shure Beta 58A",
+      "section": "VOCALS", "phantom": false, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "Reine Beau. ⚠ MIX 6 STAR WEDGE PLACEMENT: the Beta 58A is SUPERCARDIOID — null at ~125° off-axis, NOT 180°, where there is a rear LOBE. Wedge goes SIDE-REAR at ~125°, never straight behind the mic.",
+      "hpf": 100, "lpf": null,
+      "bands": [
+        { "b": 4, "gain": -3, "freq": 10000, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": -4, "freq": 4000, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -4, "freq": 315, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -4, "freq": 200, "q": 2.0, "type": "BELL",
+          "deq": { "thr": -18, "atk_ms": 10, "rel_ms": 120 } }
+      ],
+      "mic_notes": "Shure: 50 Hz–16 kHz, TWO presence peaks at 4 kHz and 10 kHz, attenuated below 500 Hz to counter proximity, true supercardioid throughout with 'high gain before feedback.' Both HF bands are trims of those documented peaks — the mic is voiced to deliver brightness there ('the presence peaks create a natural brightness which elevates vocals within a busy mix'), so the desk subtracts and never adds. CAVEAT: Shure publishes the peak FREQUENCIES but not their AMPLITUDES (their own spec sheet is 403-blocked and every secondary source reproduces the frequencies without dB), so the −3/−4 depths are judgment against the KB's 'can get strident' plus the room, not arithmetic against a measured curve — verify by ear at soundcheck. LPF OFF: the mic already ends at 16 kHz. The KMS 105 was considered and rejected: the KB flags it 'feedback-sensitive' with a 12k air peak that 'can turn sibilant/harsh on a loud PA,' and this is a hard-pushing singer in a 1.6s room with a wedge — the Beta 58A's supercardioid is what buys the feedback margin.",
+      "eq_summary": "Two jobs on one channel and they pull opposite ways: singing Amy — a deep, smoky contralto swinging from intimate jazz phrasing to full belt — and TALKING, because this is a show-umentary and the spoken storytelling between songs is half the product. The second job constrains the channel more than the first, and it's why the HPF is STEEP rather than HIGH: 100 Hz at 24 dB/oct kills handling and proximity without moving the corner up into the chest voice, where a conventional 120–150 Hz vocal HPF would leave the narration thin. Same logic drives the one dynamic band on the show: Memo's 200 Hz node sits right on a contralto's chest voice, but a performer alternating whisper and belt swings that energy too far for a static cut to hold — so the DEQ (thr −18, 3:1, 10/120 ms) acts only on the belt and lets the quiet speech through untouched. That's the KB's exact criterion for going dynamic. 315 is doubly earned: Memo's node landing inside the KB's named vocal box zone where 'feedback most often starts building.' 4 kHz is triply earned — a documented capsule peak, the KB's named feedback zone for handheld dynamics, and a 1.6s room that washes it. Cuts only, no exceptions. Comp = Mustard Green (FET/1176), 4:1, 10 ms, 100 ms, 4–6 dB GR — the aggressive characterful choice, and the artist-referenced one: Elmhirst's vocal treatment on this record is famously hard-compressed, and it has to hold a range that runs from spoken whisper to belt inside a minute. EXPANDER not a gate — thr −45, range 10 dB only: the quiet spoken storytelling must survive, and a conventional gate chops the front off narration lines."
+    },
+    {
+      "ch": 17, "name": "BGV 1", "instrument": "Backing Vocal", "mic": "Shure Beta 58A",
+      "section": "VOCALS", "phantom": false, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "SECTION with ch 18 — identical EQ by deliberate decision, see eq_summary. ⚠ Supercardioid null ~125°, rear lobe at 180° — with three Beta 58As live, wedge and PA geometry relative to each mic's 125° null is the gain-before-feedback story for the whole front line.",
+      "hpf": 130, "lpf": null,
+      "bands": [
+        { "b": 4, "gain": -3, "freq": 10000, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": -3, "freq": 4000, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -4, "freq": 1600, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -5, "freq": 200, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Same Beta 58A as ch 16 — 50 Hz–16 kHz, peaks at 4 kHz and 10 kHz, attenuated below 500 Hz, supercardioid null ~125°. Both HF bands trim those documented peaks; same unpublished-amplitude caveat as ch 16. The 1.6 kHz cut is NOT a capsule correction — it's the KB's massed-voice rule, an ensemble phenomenon rather than a mic one. If the two singers turn out to be in clearly different registers, split the HPFs at the desk (upper voice up to ~150 Hz) — an ear call in the room, and it doesn't disturb the blend.",
+      "eq_summary": "The 60s girl-group answer-vocal is a signature of this record — the 'we only said goodbye with words', the 'no, no, no' — so these aren't decoration. CH 17 AND 18 ARE IDENTICAL ON PURPOSE, and that's the sourced decision rather than an oversight: Winehouse 'knew that she wanted a '60s girlgroup sound,' the album's orchestration is Phil Spector-influenced, and Spector's whole method was massing sources until they read as ONE voice. Slotting two BGVs into separate lanes would be undoing the thing the arrangement is imitating. The separation that IS real here is lead-vs-section, and it's visible in every value: HPF 130 against the lead's 100 (no narration to protect, and it lifts the section clear of her chest register); 200 Hz static and deeper at −5 against her −4 dynamic (they never drop to a whisper so a static cut holds, and the extra depth clears room for the lead); 4 kHz shallower at −3 than her −4 (the answers need enough bite to read, and these mics aren't in front of the Star Wedge); and 1.6 kHz, which she doesn't get at all — the KB's 'upper-mid nasality from massed voices is usually the first thing to address,' because two voices in thirds honk where neither does alone. Cuts only. NO GATE, NO EXPANDER, per the KB: 'the group never goes fully silent the way a solo vocalist does,' and two singers trading in and out of a blend will chatter anything you put there. Comp = Mustard Purple (Optical/LA-2A), 3:1, 20 ms, 200 ms, 3–4 dB GR — deliberately not the lead's 1176: optical is program-dependent and GLUES two voices toward one, which is the Spector brief, where the FET's grab would articulate them apart."
+    },
+    {
+      "ch": 18, "name": "BGV 2", "instrument": "Backing Vocal", "mic": "Shure Beta 58A",
+      "section": "VOCALS", "phantom": false, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "SECTION with ch 17 — identical EQ by deliberate decision (Spector blend), see ch 17 eq_summary. ⚠ Supercardioid null ~125°, rear lobe at 180°.",
+      "hpf": 130, "lpf": null,
+      "bands": [
+        { "b": 4, "gain": -3, "freq": 10000, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": -3, "freq": 4000, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -4, "freq": 1600, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -5, "freq": 200, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "See ch 17 — matched section treatment. Beta 58A: 50 Hz–16 kHz, peaks 4 kHz / 10 kHz, attenuated below 500 Hz, null ~125°. The 1.6 kHz cut is the KB's massed-voice nasality rule, not a capsule correction.",
+      "eq_summary": "Second voice of the girl-group answer — identical to ch 17 by design, not by default. See ch 17 for the full reasoning: Spector's method was massing to one voice, so blending these two IS the arrangement, and the slotting that matters is lead-vs-section (HPF 130 vs 100, 200 Hz −5 static vs −4 dynamic, 4 kHz −3 vs −4, 1.6 kHz −4 vs none, no dynamics vs expander). Cuts only. No gate. Comp = Mustard Purple (Optical), 3:1, 20 ms, 200 ms, 3–4 dB GR — optical glue toward one voice."
+    },
+    {
+      "ch": 19, "name": "TB", "instrument": "Talkback", "mic": "Shure Beta 58A",
+      "section": "VOCALS", "phantom": false, "ribbon": false, "tour": false, "stand": "Short",
+      "notes": "TALKBACK — utility, NOT a show channel. Not in the FOH mix, no reverb send. Listed so it isn't mistaken for a dropped vocal.",
+      "hpf": 150, "lpf": null,
+      "bands": [],
+      "mic_notes": "Beta 58A. No processing beyond the HPF — this is comms, not a source.",
+      "eq_summary": "Talkback to the band. HPF at 150 Hz for intelligibility and handling, nothing else. Never in the house mix."
+    },
+    {
+      "ch": 20, "name": "QLAB", "instrument": "Q-Lab AV Playback (act's laptop)", "mic": "DI — 1/8\" stereo jack, summed mono",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "DI",
+      "notes": "⚑ PATCHED AT FOH, NOT THE STAGE BOX. The act supplies the Q-Lab laptop; rider: 'HDMI for video projection and 1/8 inch stereo jack from Q-Lab laptop for audio, located at FOH or Lighting for in-house tech to run.' ⚠ OPS, NOT MIX: an in-house tech must OPERATE Q-Lab — 52 LX cues and 10 AV cues run against it. Rider asks for stereo on 19/20; summed to MONO on 20 per Brian. Video is a separate HDMI path — not this channel. No reverb send: the content arrives finished.",
+      "hpf": 35, "lpf": null,
+      "bands": [
+        { "b": 2, "gain": -3, "freq": 315, "q": 1.5, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Line-level DI off the laptop's 1/8\" headphone out — no capsule, no polar pattern, nothing baked to correct because there is no transducer. Phantom on for the DI. HPF at 35 Hz rather than the 80 Hz a speech bed would take: AV 1 is full-range walk-in music and an 80 Hz corner would gut it. Watch the laptop's own output level — a headphone jack into a DI is the weak link in this chain, and it is the only source in the show with no gain structure upstream of it.",
+      "eq_summary": "This is the show-umentary's other half. Q-Lab drives the projections AND their audio: AV 1 walk-in music, AV 2 show announce, AV 3 needle drop, and the video audio under AV 7 ('What Is It About Men'), AV 9 ('Amy Reflects') and AV 10 ('Amy's Influence'). It carries NO backing tracks and NO horns — the five-piece plays the horn lines or they're arranged out, which the AV cue list confirms by omission. So there is exactly ONE band here: −3 @ 315 Hz, Memo's node, and it serves both halves of the content at once — it's the room's mud under the walk-in music, and it's what smears spoken consonants in a 1.6s hall under the announce and the video audio. Everything else is OFF, because this is finished, mixed material and the room is the only thing I'm entitled to correct. Note the rule that does NOT bind here: cuts-only exists for feedback control, and a line input has no microphone and no feedback loop — so a presence lift is available if the narration reads muddy in the room. I haven't used one, because I haven't heard the material. Comp = Mustard Blue (Neve), 3:1, 20 ms, 150 ms, 2 dB GR — a safety net for the needle-drop transient, not control over a mastered mix. No gate."
+    },
+    {
+      "ch": 23, "name": "AUD L", "instrument": "Audience L (multitrack)", "mic": "AKG C422",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "C422 #1 — one body, two capsules, ch 23/24. Requires the S42E Remote Control Unit to set patterns. ⚠ Polarity-check L vs R capsule and verify the mono sum is clean before advancing — AKG's manual notes the two capsules are 'capable of comb filtering patterns.' CONFIRM: XY or M/S, and pattern per capsule.",
+      "hpf": 40, "lpf": null,
+      "bands": [],
+      "mic_notes": "AKG manual: 4.5 mV/Pa @ 1 kHz, self-noise ≤22 dB (~26 dB into a 500 Ω load), max SPL ~133 dB @ 1 kHz. Research came back THIN — the manual PDF is 403-blocked at both mirrors and no outlet publishes a response curve, and the KB's 'classic AKG brilliance rise ~6-12kHz' is attributed to a CK12 this mic does not have (Gearspace/Austrian Audio: AKG 'conveniently retained the name CK12' for the late-70s Teflon capsule, a different part from the C12's brass-ring original). So no bands are placed on its curve — that would be invention.",
+      "eq_summary": "This is a CAPTURE, not a FOH colour channel — it feeds the multitrack, and the standard crowd rig (25–30) does the FOH work. So it stays flat: HPF 40 Hz for subsonic and HVAC, and nothing else. EQ decisions belong in post where the documented workflow already lives, and leaving it flat keeps every option open there. The C422's ~22 dB self-noise is unremarkable for a vintage LDC on a loud source but is genuinely weak for capturing a quiet hall between songs — worth knowing when the faders come up."
+    },
+    {
+      "ch": 24, "name": "AUD R", "instrument": "Audience R (multitrack)", "mic": "AKG C422",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "C422 #1, second capsule — pairs with ch 23. ⚠ Polarity-check L vs R, verify mono sum before advancing.",
+      "hpf": 40, "lpf": null,
+      "bands": [],
+      "mic_notes": "See ch 23. AKG manual: 4.5 mV/Pa, ≤22 dB self-noise, ~133 dB max SPL. Capsule research THIN — no published curve, so no bands placed.",
+      "eq_summary": "Right capsule of the Audience pair — flat capture for the multitrack, HPF 40 Hz only. See ch 23."
+    },
+    {
+      "ch": 25, "name": "OM1 L", "instrument": "Crowd — Flown Omni L", "mic": "Line Audio OM1",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "—",
+      "notes": "⚑ STANDARD MEMO CROWD RIG — flown 18' above stage, 12' apart. EQ LOCKED, transcribed verbatim from venue-memorial-hall.md — do not adjust show to show. ⚑ CH NUMBER IS MY ASSIGNMENT: CLAUDE.md says the crowd rig's CH numbers are normally left blank; the builder and patcher need numbers, so I used the list's blanks (25–30). Move freely.",
+      "hpf": 80, "lpf": null,
+      "bands": [
+        { "b": 3, "gain": -3, "freq": 800, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -6, "freq": 315, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -5, "freq": 200, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Pressure (omni) condenser, very flat and natural with low self-noise — which is exactly why this rig was chosen for the job and why the C422 (≤22 dB) is the capture rather than the FOH colour. Omni means lots of room and LF, hence the aggressive HPF and mud cuts. EQ is LOCKED by the venue article: not derived here, not adjusted per show.",
+      "eq_summary": "FOH ambient colour — the flown pair over the stage. Locked EQ, quoted verbatim from the venue KB: HPF 80, −5 @ 200, −6 @ 315, −3 @ 800. Both node cuts and the 800 Hz cut are the room's known behaviour with this exact pair in this exact position, proven across shows — nothing here is a fresh decision, which is the point. Set conservatively as a blend, per the soundcheck order."
+    },
+    {
+      "ch": 26, "name": "OM1 R", "instrument": "Crowd — Flown Omni R", "mic": "Line Audio OM1",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "—",
+      "notes": "⚑ STANDARD MEMO CROWD RIG — flown pair with ch 25. EQ LOCKED, verbatim from venue-memorial-hall.md. CH number is my assignment — see ch 25.",
+      "hpf": 80, "lpf": null,
+      "bands": [
+        { "b": 3, "gain": -3, "freq": 800, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -6, "freq": 315, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -5, "freq": 200, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "See ch 25 — matched pair, locked EQ, not derived.",
+      "eq_summary": "Right side of the flown omni pair. Locked EQ verbatim from the venue KB — HPF 80, −5 @ 200, −6 @ 315, −3 @ 800. Set conservatively as a blend."
+    },
+    {
+      "ch": 27, "name": "S2 L", "instrument": "Crowd — Under-PA Shotgun L", "mic": "Deity S-Mic 2",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "Short",
+      "notes": "⚑ STANDARD MEMO CROWD RIG — under the main-floor PA, aimed into the audience. EQ LOCKED, verbatim from venue-memorial-hall.md. CH number is my assignment — see ch 25.",
+      "hpf": 100, "lpf": 16000,
+      "bands": [
+        { "b": 3, "gain": -3, "freq": 2400, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -5, "freq": 315, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -5, "freq": 200, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Short shotgun, smooth and warm with no presence-peak hype (unlike an MKH416), ~−18 dB off-axis rejection. Its rear rejection is only fair, so it does pick up PA HF — which is what the locked 16 kHz LPF and the 2.4 kHz cut are for. EQ LOCKED by the venue article.",
+      "eq_summary": "FOH ambient — the pair under the main-floor PA firing into the audience, closest to the crowd. Locked EQ, quoted verbatim: HPF 100, −5 @ 200, −5 @ 315, −3 @ 2.4k, LPF 16k. The 2.4 kHz cut and the LPF exist because this pair hears the PA behind it; both are proven in this position. Set conservatively as a blend."
+    },
+    {
+      "ch": 28, "name": "S2 R", "instrument": "Crowd — Under-PA Shotgun R", "mic": "Deity S-Mic 2",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "Short",
+      "notes": "⚑ STANDARD MEMO CROWD RIG — pair with ch 27. EQ LOCKED, verbatim from venue-memorial-hall.md. CH number is my assignment — see ch 25.",
+      "hpf": 100, "lpf": 16000,
+      "bands": [
+        { "b": 3, "gain": -3, "freq": 2400, "q": 1.8, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -5, "freq": 315, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -5, "freq": 200, "q": 2.0, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "See ch 27 — matched pair, locked EQ, not derived.",
+      "eq_summary": "Right side of the under-PA shotgun pair. Locked EQ verbatim — HPF 100, −5 @ 200, −5 @ 315, −3 @ 2.4k, LPF 16k. Set conservatively as a blend."
+    },
+    {
+      "ch": 29, "name": "CM4 L", "instrument": "Crowd — Balcony ORTF L", "mic": "Line Audio CM4",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "Boom",
+      "notes": "⚑ STANDARD MEMO CROWD RIG — balcony, rear-facing into the room, ORTF, 34' from the Deity pair. EQ LOCKED, verbatim from venue-memorial-hall.md. CH number is my assignment — see ch 25.",
+      "hpf": 120, "lpf": 14000,
+      "bands": [
+        { "b": 4, "gain": -4, "freq": 400, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": -5, "freq": 315, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -6, "freq": 200, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -5, "freq": 63, "q": 2.5, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "Cardioid SDC, flat and natural. At balcony distance it collects boomy LF and room mud, which is what the locked 120 Hz HPF and the four cuts address. EQ LOCKED by the venue article — transcribed, not derived. ⚑ OBSERVATION, NOT A CHANGE: the locked EQ pairs a 120 Hz HPF with a −5 dB @ 63 Hz bell — the HPF has already removed 63 Hz, so that bell is doing nothing. Transcribed verbatim as locked, but it looks like a leftover worth a look next time you're in that article.",
+      "eq_summary": "FOH ambient — the rear-facing balcony pair, furthest from the stage and the one that hears the most room. Locked EQ, quoted verbatim: HPF 120, −5 @ 63, −6 @ 200, −5 @ 315, −4 @ 400, LPF 14k. All four bands are in use here, which is why this pair needs more subtraction than the other two — 34' of a 1.6s room between it and the source. Set conservatively as a blend."
+    },
+    {
+      "ch": 30, "name": "CM4 R", "instrument": "Crowd — Balcony ORTF R", "mic": "Line Audio CM4",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "Boom",
+      "notes": "⚑ STANDARD MEMO CROWD RIG — ORTF pair with ch 29. EQ LOCKED, verbatim from venue-memorial-hall.md. CH number is my assignment — see ch 25.",
+      "hpf": 120, "lpf": 14000,
+      "bands": [
+        { "b": 4, "gain": -4, "freq": 400, "q": 1.5, "type": "BELL", "deq": null },
+        { "b": 3, "gain": -5, "freq": 315, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 2, "gain": -6, "freq": 200, "q": 2.0, "type": "BELL", "deq": null },
+        { "b": 1, "gain": -5, "freq": 63, "q": 2.5, "type": "BELL", "deq": null }
+      ],
+      "mic_notes": "See ch 29 — matched ORTF pair, locked EQ, not derived.",
+      "eq_summary": "Right side of the balcony ORTF pair. Locked EQ verbatim — HPF 120, −5 @ 63, −6 @ 200, −5 @ 315, −4 @ 400, LPF 14k. Set conservatively as a blend."
+    },
+    {
+      "ch": 31, "name": "ROOM L", "instrument": "Room L (multitrack)", "mic": "AKG C422",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "C422 #2 — second body, ch 31/32. Requires its own S42E Remote Control Unit. ⚠ CONFIRM AT LOAD-IN: two C422 bodies AND two S42E remotes exist — no file records a C422 quantity. ⚠ Polarity-check L vs R capsule, verify mono sum before advancing.",
+      "hpf": 40, "lpf": null,
+      "bands": [],
+      "mic_notes": "See ch 23. AKG manual: 4.5 mV/Pa @ 1 kHz, ≤22 dB self-noise, ~133 dB max SPL @ 1 kHz. Capsule research THIN — no published curve at any accessible source, so no bands placed on it.",
+      "eq_summary": "The room pair for the multitrack — flat capture, HPF 40 Hz for subsonic/HVAC and nothing else. The standard rig (25–30) does the FOH ambient work; this exists so post has a clean, coincident, mono-safe picture of the hall to work with."
+    },
+    {
+      "ch": 32, "name": "ROOM R", "instrument": "Room R (multitrack)", "mic": "AKG C422",
+      "section": "AMBIENT", "phantom": true, "ribbon": false, "tour": false, "stand": "Tall",
+      "notes": "C422 #2, second capsule — pairs with ch 31. ⚠ Polarity-check L vs R, verify mono sum before advancing.",
+      "hpf": 40, "lpf": null,
+      "bands": [],
+      "mic_notes": "See ch 23/31. Capsule research THIN — no published curve, so no bands placed.",
+      "eq_summary": "Right capsule of the Room pair — flat capture for the multitrack, HPF 40 Hz only. See ch 31."
+    }
+  ]
+}
