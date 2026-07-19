@@ -20,3 +20,22 @@ audio/SOP Stuff/
 
 # secrets stay out of history
 TDS_Credentials_CheatSheet.md
+
+# credentials / secret-bearing files — local only, scrubbed from history 2026-07-19
+TDS_Credentials_CheatSheet.md
+.claude/settings.local.json
+Code/.claude/settings.local.json
+scrub_and_push.command
+scrub_push.log
+audio/Live Sound KB/_tools/KB-Diagnose-API.command
+audio/Live Sound KB/_tools/KB-Fix-Tunnel-API.command
+audio/Live Sound KB/_tools/_archive-obsolete/*.command
+audio/N8n/*.command
+audio/N8n/*.sh
+audio/N8n/_n8n_diag_out.txt
+audio/N8n/_vm-snapshots/
+audio/handoffs/tds-proxmox-server/2026-06-09_TDS-Server-Handoff.md
+_ARCHIVE/handoffs-done/2026-06-11_Wiki-Asset-Setup-Handoff.md
+_ARCHIVE/2026-06-wiki-setup/*.command
+_ARCHIVE/2026-06-wiki-setup/wiki-asset-setup.sh
+_ARCHIVE/2026-06-wiki-setup/wiki-complete-setup.sh
