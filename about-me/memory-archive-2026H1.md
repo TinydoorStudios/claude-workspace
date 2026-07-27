@@ -5,6 +5,35 @@
 
 ## Session Notes (archived)
 
+### June 24, 2026 — FSQ Stage Backdrop Insert Panels SOP built
+
+- Built FSQ Stage Backdrop Insert Panels SOP from 8 photos already in `SOP Stuff/FSQ/Stage Inserts/` — categorized images first (storage / mounting technique / end panels / finished result), then walked the install + teardown steps with Brian.
+- Key facts captured: 5 panels numbered 1–5 SL→SR, install/teardown happens every show, U-bolts finger-tight (no slack, not wrenched down), silver support bar required at every inner joint (wind tear-out prevention), panels 1 & 5 have a rope cut-out for the backdrop pipe — single loop only or the panel won't seat, U-bolt hardware stored assembled (support bar + both nuts on).
+- Files: `FSQ-SOP-Stage-Inserts.md/.html/.pdf` in `SOP Stuff/FSQ/Stage Inserts/`, alongside the source photos. PDF rendered via weasyprint, 4 pages, verified clean (no clipping).
+- Durable facts promoted before archiving (2026-07-26 consolidation): pointer entry added to `active-projects.md` Tools & Infrastructure (this SOP had no canonical-file presence before).
+
+### 2026-06-25 — DiGiCo OSC macro for Reaper (LiveTrax one-button record-arm) — paused, then superseded
+
+- Goal: one DiGiCo command key arms/starts Reaper LiveTrax recording over OSC. Protocol partially decoded (reference capture + parser saved); self-send and the DiGiCo_OSC module both ruled out. Handoff written at session close: `handoffs/2026-06-25_DiGiCo-LiveTrax-OneButton-Macro-Handoff.md` + `handoffs/digico-livetrax-macro/`. Left mid-debug on the Record Arm macro insert.
+- **Superseded:** this same 2026-06-25 date/thread continued as the Companion-button + `reaper_relay.py` approach (REAPER, not LiveTrax, as the actual target) — Phase 2 completed 2026-06-27, extended 2026-07-16, status DONE/in active use. Full current state: `active-projects.md`'s "DiGiCo → REAPER Companion record chain" entry.
+- Durable facts promoted before archiving (2026-07-26 consolidation): the open question tracking this as "paused mid-debug" (questions.md, Recording/REAPER section) was stale — resolved and moved to questions.md's Resolved section same pass, pointing at the completed chain.
+
+### June 23, 2026 — eq-advisor EQ skill
+
+- Built the **eq-advisor** skill (installed plugin + source `_skills/eq-advisor/`): instrument → mic → live forum research (PSW LAB, Gearspace) cross-checked against `eq-starting-points`/`mic-library` → genre → venue/room. Web and KB verify each other; stops and asks on any uncertainty (Brian's rule: an unsure answer is ~3× worse than a pause). Cuts-first / whole-dB, inline + PDF.
+- Per Brian's follow-up: made it a **required EQ step in the show/ShowBuilder flow** (wired into NEW-SHOW, showbuilder, show-processing-pipeline, eq-starting-points); **self-improving** (logs to `_learning/eq-advisor-log.md`, proposes KB write-backs via wiki-publish, a Brian override = ground truth); and **Q225/Wing only** — no CL3/M32 unless explicitly asked.
+- ShowBuilder's Python app (`Code/ShowBuilder/`) is outside the mounted folder, so it wasn't modified — wiring is at the workflow/KB layer; both target the KB to stay consistent. KB edits are local; push on next wiki-publish run. Delivered updated `eq-advisor.plugin` (re-install to pick up the changes).
+- Durable facts promoted before archiving (2026-07-24 consolidation): eq-advisor was merged into show-deep-build as Part II on 2026-07-09 — full detail already lives in `active-projects.md`'s "eq-advisor — EQ decision skill (MERGED into show-deep-build 2026-07-09)" entry and KB CHANGELOG's 2026-07-09 entries.
+
+### June 16, 2026 — ShowBuilder app built
+- Built **ShowBuilder**, a guided web dashboard at `Code/ShowBuilder/` (Python/aiohttp, `./run.sh` → :8095) that front-ends the existing Q225 pipeline. Wizard: Show → Channels → Review → Build. Collects venue/channels/instruments/mics/genre/artist, suggests EQ+comp and 4–6 Seventh Heaven Pro reverbs, shows a review screen for approval, then renders the locked `FOH Channel Processing.md` and calls the `apply_show_TEMPLATE*.py` patchers + show-packet builder. Outputs MD/HTML/.ses/packet PDF/input-list xlsx + review PDF into the show folder. Does NOT re-derive the .ses byte format.
+- Brain is KB-sourced: `reverb_presets.json` parsed from `reverb-reference-memo.md` (236 presets, names verbatim) via `build_knowledge.py`; `eq_rules.json` = CLAUDE.md starting points + genre/venue/mic layering; `mics.json` from `mic-library`. Self-improves: unknown mics → library + KB queue; every build logs to `learning/`.
+- Phase 1 = Mac (done). Phase 2 (next session) = package-only instance on the n8n VM behind cloudflared + a passcode on the TDS dashboard; emits `*.spec.json`, Mac builds the .ses + final paperwork.
+- Only Memo + FSQ have the calibrated .ses pipeline; other venues are paperwork-only.
+- Verified: Blue Eighty-Eight rebuilds byte-identical (md5 match); Memo/FSQ fresh builds PASS at exact sizes (1,543,866 / 2,466,215); packet cover renders clean (no clipping).
+- Finding: existing Memo MDs (Seals & Crofts 2, Brit Pack, Gospel Awards) are pre-2026-05-30 backwards B-numbering — logged to QUESTIONS for conversion.
+- Durable facts already captured in `active-projects.md`'s ShowBuilder entry (Last updated June 16, 2026) before this rotation.
+
 ### May 16, 2026
 - Created CLAUDE.md at ~/.claude/CLAUDE.md — global context file covering Brian's full setup, venues, EQ library, show doc format, mic shorthand, and active projects.
 - Created about-me.md, writing-rules.md, memory.md in ~/.claude/about-me/

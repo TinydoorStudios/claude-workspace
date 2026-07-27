@@ -1,3 +1,45 @@
+## 2026-07-26 — House wireless gets fixed faders and a mult rule
+
+Wireless 1–4 land on **FSQ faders 33–36** and **Memo faders 41–44** — put anything on a wireless row of the input list and that's where it goes, no thought required. Both numbers were checked against the patcher templates' surface-label tables rather than taken on faith: FSQ 33–36 read 'Wireless 1'–'Wireless 4', Memo 41–44 the same with the W1–W4 monitor sends following at 45–48.
+
+The exception is a mult. When a band input's mic field names a unit instead — `Wireless 2`, `W58 2`, `WL2`, `W2` — that input keeps its own channel *and* the wireless fader stays listed, both rows carrying the same source port. Worth remembering at the desk: two channels off one socket share the Q225's analog gain, so the mult rides per-channel digital trim, not the head amp. The named input carries the deep-built EQ; the wireless fader keeps its template baseline and gets no second EQ card.
+
+A bare `W58` or "wireless" with no unit number never gets auto-assigned — it's a stop-and-ask, same as any other fork.
+
+This turned up a contradiction in [Pipeline Spec — FSQ](/pipeline-spec-fsq), which said "Channels 1–32 only, ignore anything above 32" in two places and would have silently dropped every wireless channel. Corrected to 1–32 for band inputs plus the 33–36 wireless block. `build_packet.py` now enforces the mechanical half: unnumbered wireless mic errors, a wireless fader whose mic names a different unit errors, a missing fader row or a non-wireless source parked on a wireless fader warns.
+
+## 2026-07-26 — Mic locker check upgraded to a fork Brian answers
+
+The deep-build's Step 2b locker pass used to emit a suggestion — a `Locker alt:` line that rode the question round and the Rationale PDF as information. It's now a decision point. Every mic'd input either passes silently (the specified mic is the locker's first call, or nothing in the locker concretely beats it) or raises a LOCKER FORK card with a keep/swap call that has to be answered before the build proceeds.
+
+The reason attached to each fork is three sentences by rule: the concrete win with a number and its source, what it changes for this show, and the honest cost. A win that can't carry the third sentence isn't a win and the fork stays down. One alternative per input, and it has to be a mic that's actually free — not already assigned to another channel — with its kit source (DP8, DK-6, V Pack Arena, standalone) named.
+
+Inputs that never fork: anything on a DI (RNDI, J48, AR133, artist's own), any XLR line feed (wireless XLR out, keys/track/playback, console ties), TOUR/artist-provided mics, and the fixed Memo crowd rig. No capsule to swap, so no question — they pass silently and nothing appears in the packet.
+
+Forks batch into the existing single up-front question round rather than stopping the build channel by channel, and they sit at the top of it. Every fork raised gets a line in the spec's `decisions` list whether Brian swapped or kept, so the same one isn't re-litigated on the next rev.
+
+## 2026-07-26 — Three KB pages that never published: description field over Postgres' 255-char limit
+
+`fx-echoes-t7e`, `sop-esp-magewell-rx-recycle` and `sop-esp-ndi-bridge-keeper` had been failing on every publish run — silently, since the auto-sync agent only logs to `~/.claude/logs/kb-git-push.log`. Two of them had never existed on the live site at all; the Magewell SOP was stuck on its 2026-06-28 content, so every edit since then went nowhere.
+
+Cause: Wiki.js stores `pages.description` as `varchar(255)`, and those three were the only pages in the KB with a frontmatter description over that — 358, 309 and 274 characters against a 250-character high-water mark for everything else. Postgres rejected the whole insert/update with `value too long for type character varying(255)`. The publisher truncated the GraphQL error at 600 characters, which cut the message off right before the part that said why.
+
+Fix, three parts: descriptions trimmed to 253/249/237 characters (no information lost — the long-form text was already duplicated in each page's `Summary:` frontmatter field, which the publisher doesn't send); `kb-publish-pages.py` now clamps `title` and `description` to 255 at the word boundary and prints a `WARN` naming the page and the overage, so an over-long description degrades instead of failing; and the error output is no longer truncated, so the next Postgres error arrives intact.
+
+All three verified live: HTTP 200, page content byte-identical to source, descriptions matching. Full publish run reports `create=0 update=0 unchanged=96 failed=0`.
+
+Worth knowing: `com.tinydoor.kb-gitpush` is a launchd agent with `WatchPaths` on the Wiki directory, so it commits, pushes and republishes within seconds of any `.md` save. Editing a KB page publishes it — no manual step, and no visible error if it fails.
+
+## 2026-07-26 — Electro-Voice N/D 408 added to the locker
+
+New (to Brian) vintage mic in the kit: an **Electro-Voice N/D 408** — first-generation, no letter suffix, badge confirmed from photos of the unit. Supercardioid N/DYM neodymium dynamic, made in Buchanan MI, discontinued (the current ND468 is its successor). Published 408-series figures: 30 Hz–22 kHz close / 60 Hz–22 kHz far, 3.1 mV/Pa, 150 Ω, 190 g, all-metal on a pivoting wire yoke.
+
+The reason it matters in this kit: it does the MD 421 job — rack toms, guitar cab, snare — with more upper-mid bite and about a third of the bulk, so it fits tom positions where the 421 physically won't. Voiced brighter and more aggressive than an SM57; the close/far response split means working distance is the low-end control before the HPF is. EQ tendency recorded as *ease off presence, attack; tame box ~400 Hz*.
+
+Added everywhere mics are catalogued: `mic_data.json` → generated `/mic-electro-voice-nd408` page + reference PDF + Locker Gallery tile, the mic-library Dynamics and Mic Character tables, Memo `mic-go-tos.md`, the project CLAUDE.md shorthand table (`ND408`), and both ShowBuilder and Patchbay `mics.json` pickers. Aliases `nd408 / n-d408 / nd-408 / ev408 / ev-408` resolve to it; **bare "408" is deliberately left unmapped** — it collides with the Lauten LS-408 on snare.
+
+Outstanding: the page photo. Mic is discontinued so there's no manufacturer product shot — Brian's own phone photos go in `Wiki/assets/mics/electro-voice-nd408/electro-voice-nd408.jpg`, then `make_thumbs.py` and publish.
+
 ## 2026-07-16 — Memo Companion: prep-only name-pull button added, one-swoop "Rec + Names" button restored
 
 Added a `/prep` path to `reaper_relay.py` on the .54 PC (pull names + rename REAPER tracks 1–32, no record) and wired it to the existing "Name" button in Companion, which had been misconfigured as a duplicate `/record` button. Live-tested via the actual Companion Test control — 32 names pulled and renamed correctly, no record triggered.
@@ -248,3 +290,7 @@ Brian dictated his intended EQ-suggestion logic and had it verified against the 
 ## 2026-07-19 — Publish gate change: Brian's go, not console verification
 
 Brian's ruling: shows are one-offs — no console-verify trip before a wiki push; his explicit go is the only gate. `pipeline-spec-memo` and `pipeline-spec-fsq` hard-stop sentences rewritten (hand over + publish on go), and pipeline-spec-memo's stale "first Memo .ses still needs console verification" note corrected — the Memo calibration was console-proven 2026-07-16 via the Back to Black test load. Skill-side changes logged in `_system/IMPROVEMENTS.md`.
+
+## 2026-07-24 — Tempest dashboard shows Celsius; lightning-fix open item closed
+
+Dashboard cards now carry the °C reading in smaller muted text under the big °F number, and "Feels like" shows both units (`76°F / 24.5°C`). The Tempest API sends metric natively, so the C value is the raw sensor reading and F is the converted one. Change is in `Code/tempest-dashboard/public/index.html` (`.temp-c`), deployed to the n8n VM with `deploy.command` — service restarted clean, WS payload verified. A `tempest-preview` entry was added to `.claude/launch.json` (:4321, static-serves `public/`) so the layout can be checked locally without touching the VM; the page renders placeholder cards before the WebSocket connects. Also closed the open item from 2026-07-18 in `active-projects.md`: the `clusterLightning()` change did land — commit `5e35389`, and the 07-24 deploy put it on the VM.

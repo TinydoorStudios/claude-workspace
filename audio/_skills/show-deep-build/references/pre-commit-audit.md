@@ -3,7 +3,7 @@
 Answer each line in visible output with the evidence quoted — channel numbers and values, not
 "verified" or "all good." An audit that passes without quoting evidence is a failed audit. Fix
 what fails, then re-run the failed lines. build_packet.py catches the mechanical subset of this;
-the judgment lines (5, 6, 8, 13, 14) are on you.
+the judgment lines (5, 6, 8, 13, 14, 15) are on you.
 
 1. **Whole-dB scan** — any .5 anywhere in any band?
 2. **Vocal channels** — any boost? Cuts only, every genre (feedback control, not taste).
@@ -27,9 +27,12 @@ the judgment lines (5, 6, 8, 13, 14) are on you.
 11. **Reserved faders** — FSQ ch 10 = SNARE PL8 return; OH stereo on fader 9, never split 9/10?
 12. **decisions + notes** — every question-round answer recorded in `decisions`? Every mined note
     traceable to a `mic_notes`/`eq_summary`/`changes` entry — nothing dropped on the floor?
-13. **eq_summary spot-check** — read three at random; if any would fit a different band's show
+13. **Locker forks** — every mic'd input ran Step 2b (DI/XLR line feeds exempt, and say which
+    channels those were)? Every fork raised has Brian's keep/swap answer in `decisions`, and every
+    swap he took is carried through the mic, 48V, stand and patch columns — not just the EQ?
+14. **eq_summary spot-check** — read three at random; if any would fit a different band's show
     unchanged, it's generic — rewrite it around the channel's role in THIS band.
-14. **TRACE lines** — every unit's `research_summary` closes with the five-layer TRACE
+15. **TRACE lines** — every unit's `research_summary` closes with the five-layer TRACE
     (base(instr+mic) · equip · genre · artist · venue), each layer a value or "no change"; pick
     two at random and check the trace against the channel's actual band values — a trace the
     numbers don't back is a failed line.

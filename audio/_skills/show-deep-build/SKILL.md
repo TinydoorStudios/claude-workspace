@@ -33,9 +33,11 @@ was skipped. If the artist, a mic, an instrument, the genre, the venue, or any v
 **stop and ask Brian.** Never paper a gap with a confident guess. A clean "here's what I know,
 here's the fork, which way?" is always the right call.
 
-**In show builds, batch the round (locked 2026-07-05):** the plan pass (dedupe + locker loop +
-note mining) collects every stop-and-ask trigger and every locker alternative into **one question
-round** before any EQ is committed. Brian answers once; the build runs straight through. Stop
+**In show builds, batch the round (locked 2026-07-05):** the plan pass (dedupe + locker fork loop +
+note mining) collects every stop-and-ask trigger and every locker fork into **one question
+round** before any EQ is committed. **Locker forks are gate items, not FYIs** (2026-07-26) — they
+head the round, each carries its three-sentence reason, and no build passes the round with one
+unanswered; see Step 2b. Brian answers once; the build runs straight through. Stop
 mid-build only for a genuinely new fork the scan missed. **Carried flags count as questions:**
 any open FLAG inherited from a prior rev or run (a mic-choice flag, a mono/stereo question, an
 unassigned vocal) goes INTO the round and comes out either as a recorded decision or as an
@@ -54,8 +56,10 @@ was found. Instant output is the tell that research was skipped — this rule ma
 **The constraint card:** at the start of every show build, after reading this file in full (no
 "I remember this skill"), write the hard rules into a short card in your own words — whole-dB ·
 cuts-first · vocals cuts-only · no high shelf unasked · band order/numbering · ribbon = NO 48V ·
-TOUR flagged never swapped · cut/boost ranges incl. the outdoor override · Memo standing waves +
-fixed crowd rig · FSQ ch 10 reserved / OH stereo on 9 · research floor · capsule gate · reverbs
+TOUR flagged never swapped · locker fork on every mic'd input, DI/XLR exempt, three-sentence
+reason, unanswered fork blocks the build · cut/boost ranges incl. the outdoor override · Memo standing waves +
+fixed crowd rig · FSQ ch 10 reserved / OH stereo on 9 · wireless faders FSQ 33–36 / Memo 41–44,
+multed when a channel names one, bare W58 = ask · research floor · capsule gate · reverbs
 anchored to factory · one batched round · genre verified first (split evidence = ask now) ·
 equipment rides the instrument layer · per-unit TRACE line. **Re-read the card immediately before the question round
 and again before writing spec.json, and say that you did.** Late-context constraint loss (a half-dB
@@ -80,6 +84,35 @@ a hand-typed list works. Only an artist name? Ask for the input list. Don't gues
 instrument. **Ask for the tech rider / stage plot if one exists** — densest research input there
 is (real backline, monitor asks, wireless counts, tonal requests). If the list smells secondhand,
 ask whether a rider PDF is sitting in an email.
+
+**House wireless — fixed faders, and the mult rule (Brian, 2026-07-26).** Both Q225 templates
+reserve four faders for the house wireless receivers, confirmed against the patchers' surface
+labels:
+
+| Venue | Wireless 1 | 2 | 3 | 4 |
+|---|---|---|---|---|
+| **FSQ** | 33 | 34 | 35 | 36 |
+| **Memo** | 41 | 42 | 43 | 44 |
+
+Put information on a wireless 1–4 row in the input list and it lands on that fader — that's the
+default, no thought required. **The mult:** when another input's mic reads `Wireless 2` (or
+`W58 2`, `WL2`, `W2`), that input keeps its own channel *and* the wireless fader stays listed —
+same receiver patched to both, so the input list shows the wireless's home channel next to the
+named channel it's feeding. The patch column carries the same source port on both rows.
+**Practical note for the paperwork:** two channels off one socket share the analog gain on a
+Q225 — ride the per-channel digital trim on the mult, not the head amp, and say so in `notes`.
+
+**A bare `W58` / "wireless" with no unit number is a stop-and-ask** — never auto-assign a unit,
+never guess which pack. It goes in the question round like any other fork.
+
+Default EQ ownership on a mult: the **named input** gets the deep build (it's the one being
+mixed); the reserved wireless fader keeps the template's baseline curve untouched (FSQ faders
+25–36 ship a vocal/wireless curve — an MD only overrides the bands it names). Don't write a
+second EQ card for the multed fader; do list it on the input list and patch page.
+
+`build_packet.py` enforces the mechanical half: bare-wireless mic → error, a wireless fader whose
+mic names a different unit → error, a named wireless with no fader row → warning, a non-wireless
+source parked on a wireless fader → warning.
 
 ### 0. Intake — normalize whatever arrived (2026-07-19)
 Show info rarely arrives as a clean list. Whatever Brian drops or uploads — a rider PDF, a stage
@@ -142,8 +175,9 @@ broadcast → underheads). Research what you find (web + KB); if still unclear, 
 note on the floor. What a note changed shows up in `mic_notes`/`eq_summary`, and in `changes` if
 it moved you off the KB default. Table of worked examples: `references/deep-research-workflow.md`.
 
-Then run **Part II per unit** — including the locker pass on every input — and fire the **single
-batched question round** before committing any EQ. **Record every answer in the spec's
+Then run **Part II per unit** — including the **locker fork loop on every mic'd input** (Step 2b;
+DI and XLR line feeds are exempt) — and fire the **single batched question round** before
+committing any EQ, with the locker forks at the top of it. **Record every answer in the spec's
 `decisions` list** — the question round is research output; it rides the Rationale PDF.
 
 ### 4. Room context (+ weather outdoors)
@@ -181,7 +215,8 @@ python3 scripts/build_packet.py --spec "<show folder>/<Show>.spec.json" --out "<
 ```
 
 It validates first (ribbon+48V, vocal boosts, duplicates, ranges, RESERVED faders — FSQ ch 10 is
-the SNARE PL8 return; the OH pair is STEREO on fader 9, never split 9/10 — missing `reverbs`;
+the SNARE PL8 return; the OH pair is STEREO on fader 9, never split 9/10 — the wireless faders
+(FSQ 33–36 / Memo 41–44) and unnumbered `W58` mics; missing `reverbs`;
 errors abort with nothing written), auto-lints the `.md` (`audio/_shared/md_lint.py`), and writes
 the `.md`, `.xlsx` (+ Monitors/Reverbs sheets), Show Packet PDF, **EQ Rationale PDF**, and
 **MASTER PDF** (packet + rationale + any band-provided `<Show> - Stage Plot.pdf` / `- Rider.pdf`
@@ -268,16 +303,64 @@ the capsule already brings so you don't double it. Flag immediately, before any 
   fallback into `mic_notes` ("contour assumed FLAT — the 400 Hz cut lives on the desk; if the
   switch is engaged, halve the desk cut"). Never leave a switch state implicit.
 
-### Step 2b — Mic locker pass (every input in a show build)
-Load `mic-library.md` once per session; hold it in memory. Per input, after the specified mic is
-resolved: (1) if it's already the locker's first call for this source → move on; (2) does a locker
-mic beat it *for this show* on a concrete, nameable win — less-EQ voicing, a problem peak colliding
-with genre/room, rejection/feedback margin, SPL, kit coherence? (3) record **at most one**
-alternative with a one-line why — a suggestion, not a swap; EQ is still built for the specified
-mic; (4) **TOUR/artist gear is exempt** — never suggest replacing it; (5) batch all suggestions
-into the single question round. Accepted → re-run that channel from Step 2. Marginal/taste wins
-don't qualify. Output: `Locker alt:` line inline; in show builds also in `mic_notes` + a
-`Locker alt —` entry in `changes` so it rides the Rationale PDF.
+### Step 2b — The locker fork (every mic'd input; DI/XLR exempt)
+*Upgraded 2026-07-26 from an FYI "locker alt" line to a real fork Brian decides. It is a loop:
+every eligible input runs it, and every raised fork is a gate — the build does not pass the
+question round with one unanswered, and there is no silent default to the specified mic.*
+
+**Eligibility gate — run this first, per input.** The fork only exists where there's a capsule to
+swap:
+
+| Input | Fork? |
+|---|---|
+| Any microphone Brian owns or specified | **Yes** |
+| **DI** — RNDI, J48, AR133, artist's own DI, any instrument arriving through a DI | **No** |
+| **XLR line feed** — wireless XLR out, keys/track/playback XLR, a console/ambient tie, anything landing at line level with no capsule in front of it | **No** |
+| TOUR / artist-provided mic (⚑) | **No** — never suggest replacing artist gear |
+| Fixed rigs — the Memo crowd array (OM1 / Deity S2 / CM4) | **No** — locked rig, don't re-derive |
+| Mic + DI on one source (bass cab + DI) | **Yes, on the mic leg only** |
+
+Exempt inputs pass silently: no fork, no question, no line in the packet.
+
+**The loop, per eligible input:**
+
+1. Load `mic-library.md` once per session; hold it. Name the source and the specified mic.
+2. If the specified mic is already the locker's first call for this source → **silent pass.**
+3. Otherwise sweep the locker for candidates and score each on a concrete, nameable win:
+   less-EQ voicing · a baked peak colliding with this genre/room · rejection or feedback margin ·
+   SPL handling · kit/section coherence · physical fit (clip vs. stand, sightlines, space).
+   Marginal or taste-level wins do **not** qualify — a tie goes to the specified mic.
+4. **Availability check before raising it:** the alternative must be free — not already assigned
+   to another channel in this show, and not a second call on a single-piece mic. Note its kit
+   source (DP8, DK-6, V Pack Arena, standalone) so Brian knows what case it comes out of.
+5. **One alternative per input, maximum.** Two candidates → pick the stronger and drop the other.
+6. Raise the fork in the card format below.
+
+**The fork card — the reason is exactly three sentences:**
+
+```
+LOCKER FORK — CH 4 · Snare top
+  Specified:  Audix i5          Alt: Earthworks DM17 (DK-6)
+  Why: <1 — the concrete win, with a number and its source>
+       <2 — what it changes downstream: EQ moves saved, or the room/genre problem it solves>
+       <3 — the honest cost: what he gives up, or why it's a close call>
+  Call: keep i5  ·  swap to DM17
+```
+
+Sentence one is the win with a fact attached, sentence two is the consequence for this show,
+sentence three is the tradeoff told straight. Not two sentences, not a paragraph — three. No
+recommendation without all three; if you can't fill sentence three honestly, the win wasn't real
+and the fork shouldn't be raised.
+
+**Where it lands:**
+
+- **Show build** — forks batch into the single up-front question round (locked 2026-07-05),
+  listed first, before the other questions. Brian answers all of them in one pass.
+- **Standalone EQ question** — ask immediately, same card.
+- **Accepted** → re-enter Step 2 for that channel with the new mic, and carry the swap through the
+  Input List (48V, stand, split patch), the patcher, and `changes` (`Locker fork — swapped …`).
+- **Declined** → EQ builds for the specified mic; one line in `mic_notes`
+  (`Locker fork — DM17 offered, i5 kept`) so the same fork isn't re-litigated next rev.
 
 ### Step 3 — Baseline: web first, KB second, reconcile
 The web pass runs fresh **every show/question, no exceptions** — no cross-show caching (within-show

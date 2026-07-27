@@ -86,6 +86,9 @@ earthworks-dm6	earthworks-dm6
 earthworks-sr20sp	earthworks-sr20sp
 earthworks-sr20sp-gen-2	earthworks-sr20sp
 earthworks-sr25	earthworks-sr25
+electro-voice-nd408	electro-voice-nd408
+ev-408	electro-voice-nd408
+ev408	electro-voice-nd408
 i5	audix-i5
 imp	whirlwind-imp
 j48	radial-j48
@@ -106,6 +109,9 @@ mk5	schoeps-cmc6-mk5
 mkh	sennheiser-mkh40
 mkh-40	sennheiser-mkh40
 mkh40	sennheiser-mkh40
+n-d408	electro-voice-nd408
+nd-408	electro-voice-nd408
+nd408	electro-voice-nd408
 neumann-kms-105	neumann-kms-105
 neumann-tlm-102	neumann-tlm-102
 neve-rndi	neve-rndi

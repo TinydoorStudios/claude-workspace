@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patchbay</title>
+<link rel="stylesheet" href="/static/style.css?v=9">
+<link rel="stylesheet" href="/static/wizard.css?v=2">
+</head>
+<body>
+<header id="topbar">
+  <a class="brand" href="#/">
+    <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+      <rect width="24" height="24" rx="5" fill="var(--sel)" stroke="var(--primary)" stroke-opacity=".4"/>
+      <g fill="var(--primary)">
+        <rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1" opacity=".3"/>
+        <rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1" opacity=".3"/>
+        <rect x="10" y="10" width="4" height="4" rx="1"/><rect x="17" y="10" width="4" height="4" rx="1" opacity=".3"/>
+        <rect x="3" y="17" width="4" height="4" rx="1"/><rect x="10" y="17" width="4" height="4" rx="1" opacity=".3"/>
+        <rect x="17" y="17" width="4" height="4" rx="1"/>
+      </g>
+    </svg>
+    <span>Patchbay</span>
+  </a>
+  <div class="topright">
+    <span class="tag" id="kindtag" hidden></span>
+    <span class="savestate" id="savestate"></span>
+    <button class="iconbtn" id="theme" title="Light / dark">☾</button>
+  </div>
+</header>
+
+<div id="shell">
+  <aside id="sidebar"></aside>
+  <main id="main"></main>
+</div>
+
+<!-- New Patch Sheet wizard: Location → Console → I/O Devices → Confirm. -->
+<div id="wizard" hidden></div>
+
+<div id="toast" hidden></div>
+
+<datalist id="miclist"></datalist>
+<datalist id="standlist"></datalist>
+<datalist id="venuelist"></datalist>
+<script src="/static/app.js?v=9"></script>
+<script src="/static/pages.js?v=1"></script>
+<script src="/static/wizard.js?v=2"></script>
+<script>boot();</script>
+</body>
+</html>

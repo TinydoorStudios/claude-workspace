@@ -246,3 +246,31 @@ Full audit + fix pass on the Claude structure itself. The changes that affect ho
 **Brian's ruling (verbatim intent):** each show is a one-off — he won't come back to verify a show on the console before it goes to the wiki. His explicit go ("SEND IT" / "push it") is the ONLY publish gate.
 
 **Changed:** show-wiki-push (gate = Brian's go; `verified` stamp informational only, show located by `ses_built`-not-`published`), show-deep-build Step 6 (renamed from "HARD STOP — Brian verifies" to "Hand over — publish on Brian's go"), send-it Step 5, PIPELINE.md stage 4 (now "Console load — NOT a publish gate"), NEW-SHOW.md, ROUTING.md, show_status.py docstring, fsq-wiki-push alias description, KB pipeline-spec-memo + pipeline-spec-fsq hard-stop sentences. Also corrected pipeline-spec-memo's stale "first Memo build still needs console verification" note — the Memo calibration was console-proven 2026-07-16 (Back to Black test load). Auto-memory: `publish-on-go` (feedback). The `verified` stage stays in show.status.json as an optional stamp for when Brian volunteers that a file ran on the desk.
+
+## 2026-07-26 — The locker check became a fork Brian decides
+
+**Brian's ask:** a loop over the show's inputs that checks whether something in the locker beats the specified mic, and when it does, **stop and ask him which he wants** with a three-sentence reason for the recommendation. DI and XLR line-feed inputs don't get the fork.
+
+**What changed:** Step 2b was already sweeping `mic-library.md`, but its output was an FYI — a one-line `Locker alt:` note that batched into the round and, in practice, was easy to read past and default away from. It's now a gate: every eligible input either passes silently (the specified mic is the locker's first call, or nothing concretely beats it) or produces a **LOCKER FORK** card that Brian answers keep/swap. No third state, no silent default.
+
+**The eligibility gate (new):** the fork only runs where there's a capsule to swap. DIs (RNDI, J48, AR133, artist's own box) and XLR line feeds (wireless XLR out, keys/track/playback, console ties) are exempt and pass silently — no fork, no question, nothing in the packet. Also exempt: TOUR/artist-provided mics and the fixed Memo crowd rig (OM1 / Deity S2 / CM4). A source with both a mic and a DI forks on the mic leg only.
+
+**The three sentences are specified, not left to taste:** (1) the concrete win with a number and its source, (2) what it changes for this show — EQ moves saved, or the room/genre problem it solves, (3) the honest cost. If sentence three can't be written straight, the win wasn't real and the fork doesn't get raised. Still one alternative per input, maximum, and the alternative has to be free — not already assigned elsewhere in the show — with its kit source named so Brian knows which case it comes out of.
+
+**Batching kept.** Forks head the single up-front question round rather than interrupting per channel; the 2026-07-05 batched-round rule stands. Standalone EQ questions ask immediately, same card.
+
+**Files:** show-deep-build SKILL.md (Step 2b rewritten, batching paragraph, Part I step 3, constraint card), references/decision-flow.md, references/deep-research-workflow.md (locker loop + batch note + two new failure modes: the swallowed fork, the padded reason), references/spec-schema.md (`decisions` records every fork, swapped or kept), project CLAUDE.md locked-order sentence. `_skills/show-deep-build.skill` zip rebuilt for Cowork.
+
+## 2026-07-26 — House wireless: fixed faders + the mult rule
+
+**Brian's rule:** information on a wireless 1–4 row of the input list lands on fixed faders — **FSQ 33/34/35/36, Memo 41/42/43/44** — unless a band input's mic names the unit (`Wireless 2`, `W58 2`, `WL2`, `W2`), in which case the receiver is **multed**: the named input keeps its own channel *and* the wireless fader stays listed, both patched to the same source port. A bare `W58` with no unit number is a stop-and-ask — never auto-assign a pack.
+
+**Verified against the templates, not taken on faith:** the FSQ patcher's `expected_names` puts 'Wireless 1'–'Wireless 4' at faders 33–36, and the Memo patcher's at 41–44 (45–48 are the matching W1–W4 monitor sends). Brian's numbers and the surface-label tables agree exactly.
+
+**Contradiction fixed:** `pipeline-spec-fsq` said "Channels 1–32 only. Ignore anything above 32" in two places, which would have silently dropped every wireless channel. Now 1–32 for band inputs plus the 33–36 wireless block; skip above 36.
+
+**Enforced as code** in `build_packet.py` (new `WIRELESS_CH` map + `wireless_unit()` parser): a mic naming a wireless with no unit number → error; a wireless fader whose mic names a different unit → error; a named wireless with no fader row in the spec → warning; a non-wireless source parked on a wireless fader → warning. Parser tested against `Wireless 2 / wireless2 / W58 / W58 3 / W58-4 / WL1 / W2 / SM58 / Beta 58A` — `SM58` and `WA-87` correctly don't match, bare `W58` correctly returns "no unit."
+
+**Two defaults I set (Brian to correct if wrong):** on a mult the *named* input carries the deep-built EQ while the wireless fader keeps its template baseline curve and gets no second EQ card; and the shared-socket gain note (two channels off one socket share the Q225 analog gain — ride digital trim on the mult) goes in the channel `notes`.
+
+**Files:** show-deep-build SKILL.md (new wireless block in Part I + validator line + constraint card), references/spec-schema.md (`patch` note), scripts/build_packet.py (map, parser, four checks, docstring), KB pipeline-spec-fsq (channel range ×2 + Input Format gotcha) and pipeline-spec-memo (Input Format block), project CLAUDE.md Patching Conventions, KB CHANGELOG. `.skill` zip rebuilt.

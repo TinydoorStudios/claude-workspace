@@ -23,6 +23,7 @@ Full library with kit contents and phantom warnings: `mic-library.pdf`
 | MD421 | Toms (first choice), guitar cabs, brass, woodwinds | Standalone |
 | e609 | Guitar cab — side-address, hang over cab face | Standalone |
 | e604 | Toms — clip-on, quick setup | Standalone |
+| EV N/D 408 | Rack toms — small-footprint 421 alternative; also guitar cab and snare | Standalone |
 
 ---
 

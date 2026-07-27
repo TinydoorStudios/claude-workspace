@@ -87,6 +87,7 @@
 
     .temp-big { font-size: 7rem; font-weight: 800; line-height: 0.9; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
     .temp-unit { font-size: 2.8rem; font-weight: 300; opacity: 0.5; letter-spacing: -0.02em; }
+    .temp-c { margin-top: 2px; font-size: 1.1rem; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
     .temp-feels { margin-top: 6px; font-size: 0.85rem; color: var(--muted); }
     .temp-feels strong { color: var(--text); font-weight: 500; }
 
@@ -334,7 +335,8 @@
       '<div class="temp-hero">'+
         '<div>'+
           '<div class="temp-big '+tc(tempF)+'">'+fmt(tempF,0)+'<span class="temp-unit">&deg;F</span></div>'+
-          (feelsF!=null?'<div class="temp-feels">Feels like <strong>'+fmt(feelsF,0)+'&deg;F</strong></div>':'')+
+          (tempC!=null?'<div class="temp-c">'+fmt(tempC,1)+'&deg;C</div>':'')+
+          (feelsF!=null?'<div class="temp-feels">Feels like <strong>'+fmt(feelsF,0)+'&deg;F</strong>'+(feelsC!=null?' / <strong>'+fmt(feelsC,1)+'&deg;C</strong>':'')+'</div>':'')+
         '</div>'+
         '<div class="temp-right">'+
           (hum!=null?'<div class="meta-pill"><strong>'+fmt(hum,0)+'%</strong> RH</div>':'')+

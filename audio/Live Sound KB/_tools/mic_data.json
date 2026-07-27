@@ -3154,6 +3154,98 @@
           "/multitrack-recording-workflow"
         ]
       ]
+    },
+    {
+      "slug": "electro-voice-nd408",
+      "name": "Electro-Voice N/D 408",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "supercardioid",
+        "electro-voice",
+        "ev",
+        "tom",
+        "guitar-cab",
+        "vintage",
+        "owned"
+      ],
+      "description": "Supercardioid N/DYM dynamic — vintage EV tom and guitar-cab mic on a pivoting yoke.",
+      "summary": "The small-footprint 421 alternative. Supercardioid neodymium dynamic voiced brighter and more aggressive than an SM57, on a pivoting yoke that gets it into tom positions nothing else fits.",
+      "sources": "Electro-Voice N/D 408B published data sheet (Part No. 531818-201, 1992) — the 408-series acoustic system; Live Sound KB mic-library character notes; live-sound forum consensus (Gearspace, HomeRecording, Tape Op)",
+      "photo_source_url": "Brian Lloyd — photograph of his own unit, 2026-07-26 (mic is discontinued; no current manufacturer product shot)",
+      "intro": "A vintage USA-made N/DYM dynamic from the era when Electro-Voice was putting neodymium magnets in everything. Supercardioid, all-metal, and mounted in a pivoting wire yoke that lets the head swing to almost any angle without moving the stand — which is the whole reason it earned its keep on rack toms. The tonal short version: it does the MD 421 job with more upper-mid bite and about a third of the bulk. Brian's is the first-generation N/D 408, no letter suffix, badge confirmed.",
+      "specs": {
+        "Type": "Dynamic (moving coil, N/DYM neodymium magnet)",
+        "Polar pattern": "Supercardioid",
+        "Frequency response": "30 Hz – 22 kHz close / 60 Hz – 22 kHz far",
+        "Impedance": "150 Ω balanced (lo-Z)",
+        "Open circuit voltage": "3.1 mV/Pa @ 1 kHz",
+        "Power sensitivity": "−51 dB (0 dB = 1 mW/Pa)",
+        "Dynamic range": "144 dB",
+        "Equivalent output noise": "14 dB",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Weight": "190 g (6.7 oz)",
+        "Dimensions": "115 × 72 × 70 mm (4.55 × 2.85 × 2.75 in)",
+        "Mounting": "Pivoting wire yoke, integral",
+        "Construction": "All-metal, removable front grille assembly",
+        "Origin": "Made in USA — Buchanan, Michigan",
+        "Status": "Discontinued — superseded by the N/D468 / ND468"
+      },
+      "sound": "Forward and aggressive through the upper mids — brighter than an SM57 and quicker to bite, which is what makes it read on rack toms and medium-gain guitar cabs without help. The published response splits close and far for a reason: worked in tight it reaches to 30 Hz on deliberate proximity, backed off it thins to 60 Hz. Distance is the low-end control on this mic before the HPF is. The supercardioid pattern buys real gain-before-feedback and tight isolation, at the cost of a rear lobe you have to aim around.",
+      "bestfit": [
+        "Rack toms — the reason to own it. The pivoting yoke and small head clear cymbals and the drummer's hands where a 421 clip won't fit.",
+        "Guitar cab — more presence and cut than a 57 on medium-gain amps; ease off the top if the amp is already bright.",
+        "Snare — brighter crack than a 57, with supercardioid rejection working against the hat.",
+        "Horns and loud percussion — handles the SPL; watch the 1–1.5 kHz bark on close brass."
+      ],
+      "notes": [
+        "Supercardioid: the null sits around 125°, not 180°. Aim wedges into the null, not straight up the back.",
+        "Proximity is voiced in, not a flaw — close response is 30 Hz–22 kHz against 60 Hz–22 kHz far. Set the low end with working distance first, HPF second.",
+        "No 48V required. Phantom won't hurt a dynamic, but there's nothing to gain by leaving it on.",
+        "Discontinued and vintage — no service parts from EV. The front grille assembly unscrews for cleaning.",
+        "Against the MD 421-U: the 421 has more low-mid girth, the 408 more upper-mid bite in a fraction of the space. On a multi-tom kit that's a real reason to split them — 421 on floor, 408 on racks.",
+        "The A and B revisions changed the housing and shock mount (N/DYM II and III), not the acoustic system. Brian's plain N/D 408 is the first-generation housing."
+      ],
+      "comparable": [
+        [
+          "Sennheiser MD 421-U (Silver Tail)",
+          "Same jobs with more low-mid weight — and far more bulk"
+        ],
+        [
+          "Shure SM57",
+          "The 408 is brighter and more aggressive through the upper mids"
+        ],
+        [
+          "Audix D2",
+          "Rack-tom alternative — punchier low-mid lift, less top"
+        ],
+        [
+          "Electro-Voice N/D468",
+          "The current-production successor; slightly more low-frequency extension"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "EQ Starting Points",
+          "/eq-starting-points"
+        ],
+        [
+          "DiGiCo Quantum 225",
+          "/console-digico-q225"
+        ],
+        [
+          "Memorial Hall",
+          "/venue-memorial-hall"
+        ]
+      ]
     }
   ]
 }

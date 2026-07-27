@@ -188,25 +188,7 @@ Brian heard the Mustard activation live and didn't like it — asked to remove i
 
 **Entries merged from the audio copy (original dates preserved):**
 
-### June 16, 2026 — ShowBuilder app built
-
-- Built **ShowBuilder**, a guided web dashboard at `Code/ShowBuilder/` (Python/aiohttp, `./run.sh` → :8095) that front-ends the existing Q225 pipeline. Wizard: Show → Channels → Review → Build. Collects venue/channels/instruments/mics/genre/artist, suggests EQ+comp and 4–6 Seventh Heaven Pro reverbs, shows a review screen for approval, then renders the locked `FOH Channel Processing.md` and calls the `apply_show_TEMPLATE*.py` patchers + show-packet builder. Outputs MD/HTML/.ses/packet PDF/input-list xlsx + review PDF into the show folder. Does NOT re-derive the .ses byte format.
-- Brain is KB-sourced: `reverb_presets.json` parsed from `reverb-reference-memo.md` (236 presets, names verbatim) via `build_knowledge.py`; `eq_rules.json` = CLAUDE.md starting points + genre/venue/mic layering; `mics.json` from `mic-library`. Self-improves: unknown mics → library + KB queue; every build logs to `learning/`.
-- Phase 1 = Mac (done). Phase 2 (next session) = package-only instance on the n8n VM behind cloudflared + a passcode on the TDS dashboard; emits `*.spec.json`, Mac builds the .ses + final paperwork.
-- Only Memo + FSQ have the calibrated .ses pipeline; other venues are paperwork-only.
-- Verified: Blue Eighty-Eight rebuilds byte-identical (md5 match); Memo/FSQ fresh builds PASS at exact sizes (1,543,866 / 2,466,215); packet cover renders clean (no clipping).
-- Finding: existing Memo MDs (Seals & Crofts 2, Brit Pack, Gospel Awards) are pre-2026-05-30 backwards B-numbering — logged to QUESTIONS for conversion.
-
-### June 23, 2026 — eq-advisor EQ skill
-
-- Built the **eq-advisor** skill (installed plugin + source `_skills/eq-advisor/`): instrument → mic → live forum research (PSW LAB, Gearspace) cross-checked against `eq-starting-points`/`mic-library` → genre → venue/room. Web and KB verify each other; stops and asks on any uncertainty (Brian's rule: an unsure answer is ~3× worse than a pause). Cuts-first / whole-dB, inline + PDF.
-- Per Brian's follow-up: made it a **required EQ step in the show/ShowBuilder flow** (wired into NEW-SHOW, showbuilder, show-processing-pipeline, eq-starting-points); **self-improving** (logs to `_learning/eq-advisor-log.md`, proposes KB write-backs via wiki-publish, a Brian override = ground truth); and **Q225/Wing only** — no CL3/M32 unless explicitly asked.
-- ShowBuilder's Python app (`Code/ShowBuilder/`) is outside the mounted folder, so it wasn't modified — wiring is at the workflow/KB layer; both target the KB to stay consistent. KB edits are local; push on next wiki-publish run. Delivered updated `eq-advisor.plugin` (re-install to pick up the changes).
-
-### June 24, 2026
-- Built FSQ Stage Backdrop Insert Panels SOP from 8 photos already in `SOP Stuff/FSQ/Stage Inserts/` — categorized images first (storage / mounting technique / end panels / finished result), then walked the install + teardown steps with Brian.
-- Key facts captured: 5 panels numbered 1–5 SL→SR, install/teardown happens every show, U-bolts finger-tight (no slack, not wrenched down), silver support bar required at every inner joint (wind tear-out prevention), panels 1 & 5 have a rope cut-out for the backdrop pipe — single loop only or the panel won't seat, U-bolt hardware stored assembled (support bar + both nuts on).
-- Files: `FSQ-SOP-Stage-Inserts.md/.html/.pdf` in `SOP Stuff/FSQ/Stage Inserts/`, alongside the source photos. PDF rendered via weasyprint, 4 pages, verified clean (no clipping).
+*(June 16, 2026 "ShowBuilder app built" entry rotated to `memory-archive-2026H1.md` by the 2026-07-20 consolidation pass — past the 30-day window; current state lives in `active-projects.md`'s ShowBuilder entry.)*
 
 ### July 5, 2026
 - Deep Think EQ flow evaluated at Brian's request. Locked the per-input order (importance + process): **instrument → mic → genre → venue** — written into eq-advisor and show-deep-build (SKILL.md + references). Venue clarified as last-applied constraint filter, not top authority.
@@ -234,10 +216,6 @@ Brian heard the Mustard activation live and didn't like it — asked to remove i
 ---
 
 **Entries below found by the 2026-07-08 memory-consolidation pass, scanning sessions never logged here (original session dates preserved, from file mtimes where the session itself wasn't dated):**
-
-### 2026-06-25 — DiGiCo OSC macro for Reaper (LiveTrax one-button record-arm) — paused
-- Goal: one DiGiCo command key arms/starts Reaper LiveTrax recording over OSC. Protocol partially decoded (reference capture + parser saved); self-send and the DiGiCo_OSC module both ruled out. Handoff written at session close: `handoffs/2026-06-25_DiGiCo-LiveTrax-OneButton-Macro-Handoff.md` + `handoffs/digico-livetrax-macro/`. Left mid-debug on the Record Arm macro insert — no further session found continuing it.
-- Logged to active-projects.md Tools & Infrastructure and flagged in questions.md 2026-07-08 — was an orphaned open thread until now.
 
 ### 2026-06-29–30 — FSQ L-Acoustics Network Manager SOP built + published
 - Built from 8+ screenshots in `SOP Stuff/FSQ/L-Acoustics Network Manager/`: connect to amps, load checker, restore session, confirm restore flow. Output: `FSQ-SOP-LA-Network-Manager.pdf`.
@@ -312,6 +290,9 @@ Brian heard the Mustard activation live and didn't like it — asked to remove i
 - Scanned: 33 sessions via list_sessions (watermark 2026-07-10); 1 read in full. Only one work session postdated the watermark ("Mic Photos to Wiki" / the 421-U identity lock); everything else was already logged.
 - Added: 1 entry (421 → MD 421-U "Silver Tail" standing rule) · Updated: 0 (0 contradictions resolved) · Archived/trimmed: 0
 - Flagged to questions.md: 1 (MD 421-U label consistency in mic_inventory.xlsx)
+
+### Memory Consolidation — 2026-07-23
+- Nothing to consolidate — no sessions found active since the 2026-07-22 watermark (list_sessions shows only prior consolidation runs and "Patch sheet layout redesign," already logged 2026-07-20). IMPROVEMENTS.md and KB CHANGELOG.md tails both unchanged since 2026-07-19. No Session Notes entries fall outside the 30-day rolling window yet (oldest current entry is June 23, cutoff is 2026-06-23).
 
 ### 2026-07-11 — Audiority Echoes T7E preset library + KB article *(from session "Echos T7E plugin research", logged by 2026-07-12 consolidation)*
 - Built an **8-preset library** for the Audiority Echoes T7E mkII (Binson Echorec T7E magnetic-drum echo emulation) — a color/FX plugin that lives on a send in Studio One / WaveLab, not a console effect. Every preset was derived from Brian's known-good factory **Slapback** file so the 12-position head matrix and file structure are guaranteed to load. 6 core by source (Vocal Slap · Vocal Ambient Swell · Guitar Multi-Head Gilmour · Guitar Rockabilly Slap · Keys Wide Stereo · Horns Vintage Warmth) + 2 signature-style interpretations (Brauer Vocal Slap Drive, Blake Character Echo — Claude's reads of each engineer's approach, not published patches). Delivered in an "Echoes T7E Presets" folder in the Claude folder → drop in `/Users/Shared/Audiority/` or Load Preset in-plugin.
@@ -389,3 +370,59 @@ Brian heard the Mustard activation live and didn't like it — asked to remove i
 - Scanned: list_sessions re-checked (watermark 2026-07-18); no session in reach postdates it — the two 2026-07-18 entries at the top of this file (n8n lightning all-clear fix, Tempest dashboard clustering) were already logged same-day by their own sessions, which list_sessions can't see from here (best-effort limit, noted in the skill). CHANGELOG.md tail unchanged since 2026-07-14.
 - Added: 1 entry (`active-projects.md` Tools & Infrastructure — "Weather & Lightning Alerting (ESP/FSQ/ZP)" — the two 2026-07-18 fixes were genuine project state that had only been captured here, not in the canonical file, same gap pattern as the 2026-07-17 Mustard promotion) · Updated: 1 (active-projects.md header/sync date) · Archived/trimmed: 1 (June 17, 2026 "SPL 63 Hz band + Tailscale jump" entry rotated to `memory-archive-2026H1.md` — past the 30-day window; its durable facts were already promoted in the 2026-07-16 pass and to CLAUDE.md/auto-memory at the time)
 - Flagged to questions.md: none
+
+### 2026-07-19 (evening) — Master Patch Sheet redesign: Split Patch field, Orange snake, Wireless 1–4 block (from session "Patch sheet layout redesign", logged by 2026-07-20 consolidation)
+Reworked Brian's general-purpose patch sheet template (not a specific show, filed in `audio/Other/`) through 3 layout options, then a standalone Google-Sheets-ready version. Split Patch merged into one self-coloring field (`R-3`/`G-7`/`B-2`/`O-9`/`WIRELESS`, no separate swatch column); Orange snake replaced White; all four snake blocks tightened to sit flush, still one page. Brian then uploaded his own tweaked copy and asked for a 4-cell Wireless 1–4 block + 4 artist-name fill-ins — found the empty rows for it under the Green snake (Green stops at location 12, Red runs to 16), added the block cream-filled to match the Mixes fields. Final file: `Master Patch Sheet 2026 Revamp.xlsx`.
+
+### Memory Consolidation — 2026-07-20
+- Scanned: list_sessions re-checked (watermark 2026-07-19); one unlogged session found — "Patch sheet layout redesign" (2026-07-19 evening, per file timestamps 23:03–23:15), a template redesign not tied to a show build. Everything else already logged. CHANGELOG.md tail unchanged since 2026-07-19.
+- Added: 2 entries (memory.md session note above; `active-projects.md` Tools & Infrastructure — "Master Patch Sheet" template) · Updated: 1 (active-projects.md header/sync date; 0 contradictions resolved) · Archived/trimmed: 1 (June 16, 2026 "ShowBuilder app built" entry rotated to `memory-archive-2026H1.md` — past the 30-day window; durable facts already live in active-projects.md's ShowBuilder entry)
+- Flagged to questions.md: none
+
+### Memory Consolidation — 2026-07-21
+- Nothing to consolidate — no sessions found active since the 2026-07-20 watermark (list_sessions shows only "Patch sheet layout redesign," already fully logged 2026-07-20, and prior consolidation runs themselves). CHANGELOG.md tail unchanged since 2026-07-19; no Session Notes entries fall outside the 30-day rolling window yet (oldest current entries are June 23–24, cutoff is 2026-06-21).
+
+### Memory Consolidation — 2026-07-22
+- Scanned: list_sessions re-checked (watermark 2026-07-21); no session postdates it — nothing new to gather. Full pass instead caught a gap between memory.md and the canonical KB file: the three 2026-07-19 sessions (show.status.json/show-wiki-push build, console-verify-gate removal, EQ genre-gate/equipment-layer/TRACE line) were fully logged here and in KB CHANGELOG.md/IMPROVEMENTS.md at the time, but never promoted into `active-projects.md`'s Q225 Show Pipeline section — same gap pattern as the 2026-07-17/19 passes.
+- Added: 3 entries to `active-projects.md` Q225 Show Pipeline (show.status.json + show-wiki-push skill + deprecated fsq-wiki-push alias; console-verify gate removed from publishing per Brian's ruling; EQ genre gate + equipment layer + five-layer TRACE line) · Updated: 2 (active-projects.md's stale "Open gate: first Memo show build needs a console load + Brian's verified" line — resolved via KB CHANGELOG's 2026-07-19 entry confirming the Back to Black console load 2026-07-16 already proved the Memo calibration; header/sync date bumped to 2026-07-22 — 1 contradiction resolved) · Archived/trimmed: 0 (oldest entries still June 23–24, inside the 30-day window)
+- Flagged to questions.md: none
+
+### Memory Consolidation — 2026-07-24
+- Scanned: list_sessions re-checked (watermark 2026-07-23); one new session found ("Gumball string wire sourcing" — decorative outdoor lighting-string wire spec/splicing) but it's a non-audio hobby/personal errand with no tie to the show/venue/KB system, same out-of-scope treatment as the "Slate coaster engraving" sessions — not logged here. CHANGELOG.md tail and questions.md both unchanged since the 2026-07-22 pass.
+- Added: 0 entries · Updated: 0 (0 contradictions resolved) · Archived/trimmed: 1 (June 23, 2026 "eq-advisor EQ skill" entry rotated to `memory-archive-2026H1.md` — now past the 30-day window; its durable fact, the 2026-07-09 merge into show-deep-build, is already captured in full in `active-projects.md`'s eq-advisor entry and KB CHANGELOG)
+- Flagged to questions.md: none
+
+### 2026-07-26 — Electro-Voice N/D 408 researched and added to the locker (KB + every mic list)
+Brian added a vintage **EV N/D 408** to the kit and asked for the full add-a-mic treatment. Photos of the body confirmed the **first-generation N/D 408 — no letter suffix** (the A and B revisions changed housing/shock mount, N/DYM II and III, not the acoustic system). Supercardioid N/DYM neodymium dynamic, made in Buchanan MI, discontinued (ND468 is the successor). Specs pulled from the EV N/D 408B data sheet (Part No. 531818-201, 1992) — 30 Hz–22 kHz close / 60 Hz–22 kHz far, 3.1 mV/Pa, −51 dB, 150 Ω, 144 dB dynamic range, 190 g, 115×72×70 mm, all-metal on a pivoting wire yoke.
+
+Character consensus (Gearspace / HomeRecording / Tape Op, cross-checked with the KB): brighter and more aggressive through the upper mids than an SM57; does the MD 421 job on rack toms, cabs and snare in about a third of the bulk, which is the real reason to own it — it fits tom positions the 421 physically won't. Close/far response split means working distance is the LF control before the HPF. EQ tendency recorded as *ease off presence, attack; tame box ~400 Hz* (soften presence 0.8 / attack 0.7, tame 400 Hz −3 dB Q1.8).
+
+Ran the NEW-MIC-WORKFLOW end to end: `mic_data.json` record → generated `/mic-electro-voice-nd408` page + reference PDF + Locker Gallery tile, then hand-added rows to the mic-library Dynamics and Mic Character tables, Memo `mic-go-tos.md`, the project CLAUDE.md shorthand table (`ND408`), and both `Code/ShowBuilder/knowledge/mics.json` (full record with EQ) and `Code/Patchbay/knowledge/mics.json` (slim). Published — page and PDF both verified live at 200. **Alias decision:** `nd408 / n-d408 / nd-408 / ev408 / ev-408` all resolve to it, but **bare "408" is deliberately left unmapped** because it collides with the Lauten LS-408 on snare; noted in `gen_aliases.py` and the CLAUDE.md shorthand row.
+
+Open: the page photo. Mic is discontinued so there's no manufacturer product shot — Brian's own phone photos need to land in `Wiki/assets/mics/electro-voice-nd408/electro-voice-nd408.jpg`, then `make_thumbs.py` + republish. Page shows the navy placeholder until then.
+
+Side note: the pages publisher reported 3 pre-existing failures unrelated to this work — `/fx-echoes-t7e`, `/sop-esp-magewell-rx-recycle`, `/sop-esp-ndi-bridge-keeper` all fail their Wiki.js insert/update with errorCode 1. Worth a look separately.
+
+### 2026-07-26 — Locker check turned into a real fork in the DiGiCo deep-build
+Brian asked for a loop in the show-deep-build pipeline that checks every suggested mic against the locker and, when something owned is genuinely better, **stops and asks him which he wants** with a three-sentence reason — and explicitly carved out DI and XLR line-feed inputs, which get no fork at all.
+
+Step 2b already swept `mic-library.md`, but its output was an FYI `Locker alt:` line that batched into the question round and was easy to default away from. Rewrote it as a gate: every eligible input either passes silently (specified mic is the locker's first call, or nothing concretely beats it) or raises a **LOCKER FORK** card — specified vs. one alternative, kit source named, keep/swap call — and the build can't pass the question round with one unanswered. The three sentences are now specified rather than left to taste: (1) the concrete win with a number and its source, (2) what it changes for this show, (3) the honest cost. If sentence three can't be written straight, the win wasn't real and the fork stays down. The alternative also has to be *free* — not already assigned to another channel in the show.
+
+Exempt from the fork: DIs (RNDI, J48, AR133, artist's own), XLR line feeds (wireless XLR out, keys/track/playback, console ties), TOUR/artist mics, and the fixed Memo crowd rig. Mic+DI sources fork on the mic leg only.
+
+**Judgment call flagged to Brian:** kept the 2026-07-05 batched-round rule — forks head the single up-front question round instead of interrupting channel by channel. Per-channel stops are a one-line change if he wants them.
+
+Files: show-deep-build SKILL.md (Step 2b rewrite, batching paragraph, Part I step 3, constraint card), decision-flow.md, deep-research-workflow.md (+2 failure modes: the swallowed locker fork, the padded locker reason), spec-schema.md (`decisions` records every fork, swapped or kept), project CLAUDE.md, KB pipeline-spec-memo + pipeline-spec-fsq, KB CHANGELOG, _system/IMPROVEMENTS.md. `.skill` zip rebuilt for Cowork — needs re-upload there.
+
+### 2026-07-26 (later) — House wireless: fixed faders + the mult rule
+Brian's rule: information on a wireless 1–4 row of the input list lands on fixed faders — **FSQ 33/34/35/36, Memo 41/42/43/44** — unless a band input's mic names the unit (`Wireless 2`, `W58 2`, `WL2`, `W2`), in which case the receiver is **multed**: the named input keeps its own channel *and* the wireless fader stays listed, both patched to the same source port. Bare `W58` with no number → stop-and-ask, never auto-assign a pack (his explicit call).
+
+Checked his numbers against the templates before writing anything: the FSQ patcher's `expected_names` puts 'Wireless 1'–'Wireless 4' at faders 33–36, Memo's at 41–44 with the W1–W4 monitor sends at 45–48. Exact match.
+
+That surfaced a live contradiction — `pipeline-spec-fsq` said "Channels 1–32 only. Ignore anything above 32" in two places, which would have silently dropped every wireless channel from the packet. Now 1–32 for band inputs plus the 33–36 wireless block, skip above 36.
+
+Enforced in `build_packet.py` (new `WIRELESS_CH` map + `wireless_unit()` parser, tested against Wireless 2 / wireless2 / W58 / W58 3 / W58-4 / WL1 / W2 / SM58 / WA-87 — the last two correctly don't match): unnumbered wireless mic errors, wireless fader whose mic names a different unit errors, named wireless with no fader row warns, non-wireless source parked on a wireless fader warns.
+
+Two defaults I set, flagged to him: on a mult the named input carries the deep-built EQ while the wireless fader keeps its template baseline and gets no second EQ card, and the shared-socket gain note (two channels off one socket share the Q225 analog gain — ride digital trim, not the head amp) goes in the channel notes.
+
+Files: show-deep-build SKILL.md, spec-schema.md, build_packet.py, KB pipeline-spec-fsq + pipeline-spec-memo, project CLAUDE.md Patching Conventions, KB CHANGELOG, IMPROVEMENTS.md. `.skill` zip rebuilt — needs re-upload in Cowork.

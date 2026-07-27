@@ -18,7 +18,7 @@ instrument layer with the same research floor as a mic — a quantitative fact w
 before it bends a value, cited in `mic_notes`/`eq_summary`. The room is often the biggest single
 bend in dB, but it ranks last in decision authority — it trims and vetoes, it never replaces the
 instrument + mic foundation. Each unit's chain lands in a closing TRACE line (base · equip ·
-genre · artist · venue, value or "no change" per layer — SKILL.md, audit line 14).
+genre · artist · venue, value or "no change" per layer — SKILL.md, audit line 15).
 
 Confidence is cumulative too. If you finished a step on a guess, you carry that uncertainty forward
 and it compounds. That's why the stop-and-ask gate matters most early — an unsure mic identification
@@ -67,14 +67,24 @@ Most mics carry both an "ease off" and a "tame." Apply both against the instrume
   300–500 Hz on the bus if it stacks. See the Two-Mic Blends table in `mic-library.md`.
 - **Mic not in the KB** → research it (Step 3) and treat as a stop-and-ask.
 
-### Step 2b — the locker loop
+### Step 2b — the locker fork
 
-With the mic resolved, sweep `mic-library.md` (loaded once per session) for a better fit *from
-gear Brian actually owns*. First-call match → silent pass. A concrete win (less-EQ voicing, a
-problem peak that collides with this genre/room, rejection margin, SPL, kit coherence) → record
-one alternative with a one-line why. Never on TOUR/artist gear. Suggestions batch into the show
-build's single up-front question round; an accepted swap re-enters at Step 2. The EQ you build is
-always for the *specified* mic — the alternative is advice, not a substitution.
+**Eligibility first.** DI inputs (RNDI, J48, AR133, artist's own box) and XLR line feeds
+(wireless XLR out, keys/track/playback, console ties) **do not get this fork** — no capsule, no
+swap, pass silently. Neither do TOUR/artist mics or the fixed Memo crowd rig. A mic + DI source
+forks on the mic leg only.
+
+For every eligible input: sweep `mic-library.md` (loaded once per session) for a better fit *from
+gear Brian actually owns and hasn't already assigned elsewhere in this show*. First-call match →
+silent pass. A concrete win (less-EQ voicing, a baked peak that collides with this genre/room,
+rejection margin, SPL, kit coherence, physical fit) → raise a **LOCKER FORK**: one alternative
+max, a **three-sentence** why (the win with a number · what it changes for this show · the honest
+cost), and Brian picks. Ties go to the specified mic; marginal wins aren't raised.
+
+Forks are gate items — they head the show build's single up-front question round and the build
+does not proceed with one unanswered; standalone questions ask immediately. Accepted → re-enter
+Step 2 and carry the swap through the input list, patch, and `changes`. Declined → EQ builds for
+the specified mic with the offer recorded in `mic_notes`. Full card format: SKILL.md Step 2b.
 
 ---
 

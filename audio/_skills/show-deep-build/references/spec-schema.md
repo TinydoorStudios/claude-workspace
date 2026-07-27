@@ -36,7 +36,9 @@ auto-lints the written `.md` with `audio/_shared/md_lint.py`. A failed validatio
   ],
   "decisions": [                    // optional — the answered question round, verbatim intent.
     "Q: gate the toms? -> Brian: yes, 5 ms attack.",
-    "Locker alt accepted: DM17 over i5 on snare (kit coherence)."
+    // Every locker fork raised gets a line here, swapped or kept (2026-07-26).
+    "Locker fork CH4 snare: DM17 offered over i5 -> Brian: swap (kit coherence).",
+    "Locker fork CH9 gtr cab: PRO 6L offered over SM57 -> Brian: keep SM57."
   ],
   "monitors": [                     // optional — rides an xlsx Monitors sheet + Rationale header
     { "mix": "MIX 1", "who": "Lead Vox", "type": "wedge", "note": "verb-lite" },
@@ -73,7 +75,10 @@ auto-lints the written `.md` with `audio/_shared/md_lint.py`. A failed validatio
       "ribbon": false,                // ribbon -> NO 48V flag (red) auto-prepended to notes; ribbon+phantom = build error
       "tour": false,                  // artist-provided gear -> ⚑ TOUR flag auto-prepended; confirm at load-in
       "stand": "Tall",                // Short/Tall/Boom/Bar/Clip/DI/—
-      "patch": "Local 25",            // optional; defaults to "Local <ch>"
+      "patch": "Local 25",            // optional; defaults to "Local <ch>". On a wireless mult
+                                      // (2026-07-26) both rows carry the SAME source port —
+                                      // the named input's channel and the wireless fader
+                                      // (FSQ 33-36 / Memo 41-44, Wireless 1-4).
       "notes": "Blend / patch / stage note for the input list (optional).",
       "hpf": 110,                     // display Hz
       "lpf": 15000,                   // display Hz, or null for OFF

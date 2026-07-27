@@ -1,0 +1,1268 @@
+{
+ "venue": "fsq",
+ "venue_label": "Fountain Square (outdoor)",
+ "console_label": "DiGiCo Quantum 225",
+ "show_name": "Nasty Nati Band",
+ "artist": "Nasty Nati Band",
+ "genre": "R&B / funk-soul",
+ "show_date": "2026-07-25",
+ "foh_engineer": "Brian Lloyd",
+ "mon_engineer": "",
+ "show_time": "",
+ "rev": "Rev 1.0 Deep Think",
+ "app_version": "deep-think-1.0",
+ "eq_on": true,
+ "comp_on": false,
+ "artist_profile": "Per Brian's call, processed as R&B (no artist dig). Nasty Nati is an R&B/funk BRASS band — sousaphone, trombone, tenor & alto sax, trumpet fronting the rhythm section, so the horn section is the identity and gets slotted as a section (each horn owns a frequency lane).",
+ "research_summary": "Genre fixed R&B by Brian (no artist research). Per-source fresh web pass (Shure/Audix/Audio-Technica/Sennheiser specs + Gearspace/PSW + masteringthemix/musicguymixing R&B-drum consensus) cross-checked vs KB mic-library + eq-starting-points, and beside Brian's console-verified Izzy Escobar 2.0 build (same FSQ house kit). Backline (Backstage Backline pull 26-0420): Mapex Saturn V kit (22\" kick, 10/12/16 toms, 14\" Black Panther snare), Sabian HHX cymbals, Yamaha CP33 keys. Weather (Open-Meteo, 6–10pm): 7/25 77–83°F, 43–61% RH, wind 4–8 mph, rain ~1% — HF carries a touch better; don't over-boost the top.",
+ "room_context": "Open-air Fountain Square — no room gain, low end + HF dissipate over the throw, façade slap but no reverb tail. Cuts run deeper than indoor (−6 to −9 typ), HPF decisive, clarity first. L-Acoustics A15/KS21 house PA, M32 monitors.",
+ "changes": [
+  "Kick-out D6 (vs Izzy's 52A): near-flat — NO 3–5k boost (capsule bakes +5k) and NO 600 cut (already −15 scooped).",
+  "Added snare-bottom e604: HPF 180, owns wire snap only; i5 keeps body/crack.",
+  "OH is a Beta 27 STEREO pair on fader 9 (not SM81 split 9/10) — top already baked, so no HF boost, tame 9k; ch 10 stays the PL8 return.",
+  "Bass two-mic INVERTED vs Izzy: PG52 (kick mic on the cab) owns sub/thump, DI owns definition — de-stacked the DI lows.",
+  "Four guitars: e609 (1/2) voiced against SM57 (3/4) so the mids don't pile.",
+  "Vocals override the FSQ template's wireless curve/feedback notch — ring out at soundcheck."
+ ],
+ "decisions": [
+  "Q: Percussion 1/2 instrument? -> Brian: generic aux perc — conservative, neutral voicing.",
+  "Q: snare-bottom '604'? -> Brian: Sennheiser e604.",
+  "Genre fixed R&B for all three by Brian; no artist research."
+ ],
+ "reverbs": [
+  {
+   "role": "vocal",
+   "preset": "Plates 1 / #06 Vocal Plate",
+   "settings": "Decay 1.5s (factory) · PreDelay 24ms (factory) · VLF −19 (factory) · E/L Max Early · Late −6 (raised from a Memo-deep cut — outdoors carries the late field) · Late Rolloff 6400 (factory)",
+   "plugin_eq": "LC 180 Hz on the return; ducker Reverb mode, Thr −22 dB",
+   "why": "Lead-vocal sheen + presence, sits forward over the band; no room outdoors to muddy it — the workhorse lead plate."
+  },
+  {
+   "role": "vocal",
+   "preset": "Chambers 1 / #10 Vocal Chamber",
+   "settings": "Decay 1.2s (from 1.6s factory — tighter for up-tempo funk) · PreDelay 15ms (from 0 factory) · VLF −15 (from −10 factory — less low wash outdoors) · E/L Max Early · Late −8 · Late Rolloff 8000 (factory)",
+   "plugin_eq": "LC 200 Hz on the return",
+   "why": "Gives place without wash on up-tempo/funk material; hands off to the Vocal Plate when a song slows down."
+  },
+  {
+   "role": "vocal",
+   "preset": "Halls 1 / #11 Gold Hall",
+   "settings": "Decay 1.8s (factory) · PreDelay 20ms · VLF −12 (cut hard from 0 factory — Gold Hall always gets its VLF cut) · E/L Max Early · Late −6 · Late Rolloff 6000 (from factory)",
+   "plugin_eq": "LC 200 Hz + HS −2 above 8k on the return",
+   "why": "The ballad / feature bloom when a song opens up — used sparingly, the big-moment size."
+  },
+  {
+   "role": "instrument",
+   "preset": "Plates 1 / #04 Snare Plate A",
+   "settings": "Decay 1.0s (from 1.2s factory — tighter outdoors) · PreDelay 0 (factory) · VLF −15 · E/L Max Early · Late −8 · Late Rolloff 6400 (factory)",
+   "plugin_eq": "LC 250 Hz on the return",
+   "why": "Adds snap/depth to the snare on the funk backbeat without washing the kit. Feeds the ch-10 PL8 return."
+  },
+  {
+   "role": "instrument",
+   "preset": "Halls 1 / #15 Brass Hall",
+   "settings": "Decay 1.5s (from factory) · PreDelay 10ms · VLF −14 · E/L Max Early · Late −6 · Late Rolloff 6000 (pulled from 8400 factory — tame the bright top outdoors)",
+   "plugin_eq": "LC 200 Hz on the return",
+   "why": "Gives the horn section a shared space so five clip mics read as one section, not five spots."
+  },
+  {
+   "role": "general",
+   "preset": "Rooms 1 / #02 Studio B Close",
+   "settings": "Decay 0.6s (factory) · PreDelay 0 · VLF −12 (cut hard from 0 factory — always cut) · E/L Max Early · Late −10 · Late Rolloff 6800 (factory)",
+   "plugin_eq": "LC 300 Hz on the return",
+   "why": "A hair of glue on the kit/percussion so the outdoor stage isn't bone-dry — very short, no obvious tail."
+  }
+ ],
+ "reverb_pairing": "Vocal Plate is the default lead — forward and present. On up-tempo/funk numbers switch the lead to the tighter Vocal Chamber so the groove stays dry and articulate; the two hand off song-to-song. Gold Hall is the big-moment throw only — a feature or a ballad — never under the whole set. Brass Hall sits under the horn section as its own return so the five clip mics glue into one section; keep it below the vocal returns so it doesn't stack mud. Snare Plate A feeds the reserved ch-10 PL8 return for backbeat depth; Studio B Close is a whisper of kit glue only. Everything runs 100% wet on its own return, VLF cut, Late higher than a Memo send because there's no room to carry the tail.",
+ "no_reverb": false,
+ "channels": [
+  {
+   "ch": 1,
+   "name": "Kick In",
+   "instrument": "Kick",
+   "mic": "Shure Beta 91A",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "—",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 4,
+     "freq": 3000,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 250,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 2,
+     "freq": 80,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Beta 91A/D6 kick blend — 91A is the attack/click layer. Treat the pair as ONE: same VCA, pan together, blend constant. Polarity: sum in mono, flip one if thinner. Bus: notch −2/−3 @300–500 if it builds.",
+   "mic_notes": "Beta 91A boundary inside the kick — the click/attack engine. Contour assumed FLAT (the 400 cut lives on the desk; if the switch is engaged, halve it). Owns click + upper; lows tucked under the D6.",
+   "eq_summary": "+4@3k beater definition that travels outdoors (R&B punch, not a metal click). 400/250 clear the shell boom the boundary picks up — eased for open air. Lows modest (+2@80) so they don't stack with the D6's baked 63Hz. TRACE: base(91A boundary, +4@3k click) · equip(22\" Mapex Saturn kick — no change) · genre(R&B — punch over click) · artist(no dig) · venue(FSQ — box cuts eased, no room mud). COMP (doc only, not patched): Green FET ~4:1, 15ms atk, 3–4 dB GR."
+  },
+  {
+   "ch": 2,
+   "name": "Kick Out",
+   "instrument": "Kick",
+   "mic": "Audix D6",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Short",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -2,
+     "freq": 250,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 60,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Beta 91A/D6 kick blend — D6 is the sub/body core. Pan together, same VCA.",
+   "mic_notes": "Audix D6 pre-scooped 'smiley' — peaks ~63Hz & ~5kHz, deep scoop −15dB @600. Thump+click baked in; needs almost no EQ. Owns the sub/body under the 91A's click.",
+   "eq_summary": "Barely touched — the capsule IS the kick voicing. +3@60 supports the low open air swallows; light 250 trim. Capsule-voicing gate: NO 3–5k boost (D6 already bakes +5k — a boost stacks harsh) and NO 600 cut (already −15 scooped). TRACE: base(D6 smiley — near-flat) · equip(22\" kick — no change) · genre(R&B thump) · artist(—) · venue(FSQ — +60 for lost low). Two-mic: D6 owns sub, 91A owns click."
+  },
+  {
+   "ch": 3,
+   "name": "Snare Top",
+   "instrument": "Snare",
+   "mic": "Audix i5",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Claw",
+   "hpf": 120,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 2,
+     "freq": 7000,
+     "q": 0.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 5500,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": 3,
+     "freq": 1000,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -5,
+     "freq": 300,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Snare top/bottom pair — treat with the e604 as one snare; polarity-check the pair.",
+   "mic_notes": "i5 bakes +5dB@150 body + a strong +9dB@5.5k presence, mids slightly scooped — more open/body than a 57. Owns the snare body + crack; the e604 owns the wire snap.",
+   "eq_summary": "Capsule-voicing gate: the +9@5.5k is baked, so I TRIM it −2 (not boost) and put the snap up at 7k where the capsule rolls off. +3@1k crack, −5@300 box (eased — the i5 isn't boxy, don't gut it). TRACE: base(i5 +9@5.5k baked → trim) · equip(14\" Black Panther — no change) · genre(R&B backbeat — body over crack) · artist(—) · venue(FSQ — 7k snap to cut outdoors). GATE (doc): fast ~1ms atk but ghost notes/press rolls must live — 15–20ms rel. Two-mic: i5 body+crack, e604 snap."
+  },
+  {
+   "ch": 4,
+   "name": "Snare Bot",
+   "instrument": "Snare",
+   "mic": "Sennheiser e604",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Claw",
+   "hpf": 180,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 8000,
+     "q": 0.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 1000,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Bottom head — wire capture only. Polarity-check against the snare top; flip if the pair thins.",
+   "mic_notes": "e604 clip on the bottom head — scooped low-mids, voiced attack, thin lows (ideal for wires). Owns the snare-wire snap/sizzle only.",
+   "eq_summary": "HPF way up at 180 so it's wires, not shell or kick bleed. +3@8k snap; −3@1k clears the e604's box. Lane: owns the top-end wire sizzle, the i5 owns body — no overlap. TRACE: base(e604 thin/voiced-attack) · equip(snare wires) · genre(R&B — crisp backbeat) · artist(—) · venue(FSQ — 8k to cut). GATE (doc): key off the snare top so wires don't chatter."
+  },
+  {
+   "ch": 5,
+   "name": "Hat",
+   "instrument": "Hi-Hat",
+   "mic": "Shure SM81",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Tall",
+   "hpf": 500,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 2000,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -6,
+     "freq": 800,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "SM81 — ruler-flat, un-hyped highs. Takes EQ straight; no built-in flattery to fight.",
+   "eq_summary": "No HF boost (81 is already detailed and dry 7/24 air thins the top over the throw anyway — don't make it brittle). Clear the low bleed (800) + the 2k clang so it sparkles clean. TRACE: base(SM81 flat) · equip(14\" HHX hats) · genre(R&B — tight hat) · artist(—) · venue(FSQ+dry — resist top boost)."
+  },
+  {
+   "ch": 6,
+   "name": "Rack 1",
+   "instrument": "Rack Tom",
+   "mic": "Audix D2",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Claw",
+   "hpf": 90,
+   "lpf": 12000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 4,
+     "freq": 2800,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 450,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 135,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "D2 tuned to control tom resonance — articulate with little EQ; leaner deep lows than the D4.",
+   "eq_summary": "Attack lift +4@2.8k (trust the capsule), gentle 135 body, modest 450 mud cut. TRACE: base(D2 — articulate) · equip(10\" Saturn rack) · genre(R&B fills) · artist(—) · venue(FSQ). GATE (doc): snappy release for funk; don't choke the decay."
+  },
+  {
+   "ch": 7,
+   "name": "Rack 2",
+   "instrument": "Rack Tom",
+   "mic": "Audix D2",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Claw",
+   "hpf": 80,
+   "lpf": 12000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 4,
+     "freq": 2500,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 405,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 120,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "As Rack 1, shifted down for the larger 12\" drum.",
+   "eq_summary": "Let the D2 do the work; body at 120 for the bigger shell. TRACE: base(D2) · equip(12\" Saturn rack) · genre · artist(—) · venue(FSQ)."
+  },
+  {
+   "ch": 8,
+   "name": "Floor",
+   "instrument": "Floor Tom",
+   "mic": "Audix D4",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Claw",
+   "hpf": 55,
+   "lpf": 10000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 4,
+     "freq": 1800,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 405,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 4,
+     "freq": 70,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "mic_notes": "D4 reaches ~an octave lower than the D2 natively; smooth 800–1k (not scooped) — may want a touch of click.",
+   "eq_summary": "Body shelf modest +4@70 (support, not a lift; ride the sub outdoors). +4@1.8k stick definition the D4 lacks. TRACE: base(D4 — deep, smooth mids) · equip(16\" Saturn floor) · genre(R&B) · artist(—) · venue(FSQ — modest sub). GATE (doc): slower release than the racks so the floor decay lives."
+  },
+  {
+   "ch": 9,
+   "name": "OH (st)",
+   "instrument": "Overhead (stereo)",
+   "mic": "Shure Beta 27",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Tall",
+   "hpf": 200,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -2,
+     "freq": 9000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -5,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "STEREO pair on fader 9 (both OH mics on this one fader). FSQ ch 10 is the SNARE PL8 return — not an input.",
+   "mic_notes": "Beta 27 LDC pair as overheads — flat 60Hz–3k with baked +2dB bumps at 5.5k & 9k, supercardioid (tight, less room — good outdoors), −15 pad available.",
+   "eq_summary": "Capsule-voicing gate: the top is already lifted (5.5k+9k baked) → NO HF boost; a light −2@9k tames fizz instead. −5@300 clears low wash + kit bleed so it's cymbals/sheen, not a room mic. Supercardioid keeps the outdoor stage tight. HPF 200. TRACE: base(Beta 27 — baked top) · equip(HHX cymbals) · genre(R&B — cymbal sheen) · artist(—) · venue(FSQ — supercard tight, clear wash)."
+  },
+  {
+   "ch": 11,
+   "name": "Bass DI",
+   "instrument": "Bass",
+   "mic": "XLR (DI)",
+   "section": "BASS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -4,
+     "freq": 1500,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": 4,
+     "freq": 700,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 250,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 80,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "notes": "Bass DI + PG52 cab blend — INVERTED lanes: DI = definition/mids/top, PG52 = sub/thump. Group to one VCA, polarity-check against the PG52.",
+   "mic_notes": "Bass DI — clean, full-range. The PG52 (a kick mic) is on the cab. LANE: the DI owns note definition + mids + upper harmonics; the PG52 owns the sub/thump — so the DI's lows are pulled back to de-stack.",
+   "eq_summary": "R&B/soul bass = round, low-mid forward, top rolled. +4@700 note/growl (DI's lane), −4@1.5k tames string clank, −5@250 de-stacks off the PG52's low body, +3@80 modest (PG52 carries the real sub). TRACE: base(DI clean — definition lane) · equip(bass rig, DI+cab) · genre(R&B — round, low-mid forward) · artist(—) · venue(FSQ — support 80). COMP (doc): opto ~3:1, 20–30ms atk, even the pocket."
+  },
+  {
+   "ch": 12,
+   "name": "Bass Mic",
+   "instrument": "Bass Cab",
+   "mic": "Shure PG52",
+   "section": "BASS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Short",
+   "hpf": 30,
+   "lpf": 8000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 2,
+     "freq": 2500,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 4,
+     "freq": 90,
+     "q": 0.71,
+     "type": "SHELF",
+     "deq": null
+    }
+   ],
+   "notes": "Blend with the DI — see Bass DI note. PG52 carries the lows.",
+   "mic_notes": "PG52 is a kick mic on the bass cab — 30Hz–13k, tuned low-end thump + a slight upper-mid click bump, rolls off above 13k (no air). It's the SUB/BODY layer under the DI.",
+   "eq_summary": "Owns the low thump: +4@90 shelf. −5@400 carves a pocket so it doesn't double the DI's mud. Small +2@2.5k for finger attack (the PG52's click bump). LPF 8k — no useful top, keep it dark body. TRACE: base(PG52 kick-mic-on-cab — sub lane) · equip(bass cab) · genre(R&B thump) · artist(—) · venue(FSQ). Two-mic: PG52 lows, DI definition — no low boost on both."
+  },
+  {
+   "ch": 13,
+   "name": "Gtr 1",
+   "instrument": "Electric Gtr",
+   "mic": "Sennheiser e609",
+   "section": "GUITAR",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Hang",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 3000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": 2,
+     "freq": 1200,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -3,
+     "freq": 150,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Four guitars (1/2 = e609, 3/4 = SM57) — pan-spread, freq-staggered so the mids don't pile.",
+   "mic_notes": "e609 flat-face over the cab — bright upper-mid/presence 4–5k, supercardioid, can get edgy 2.5–4k on bright amps. Owns cab presence.",
+   "eq_summary": "Rhythm R&B guitar sits under the vocal + horns. −3@3k tames the e609 edge; +2@1.2k so the comp speaks; −4@400 box; HPF 100 + −3@150 keeps it out of the bass. TRACE: base(e609 — bright/edgy) · equip(gtr cab) · genre(R&B comp — supportive, not a wall) · artist(—) · venue(FSQ — deeper box cut). Staggered vs the 57 guitars."
+  },
+  {
+   "ch": 14,
+   "name": "Gtr 2",
+   "instrument": "Electric Gtr",
+   "mic": "Sennheiser e609",
+   "section": "GUITAR",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Hang",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 2800,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": 2,
+     "freq": 1400,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 450,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -3,
+     "freq": 150,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "See Gtr 1 — shifted for separation from Gtr 1.",
+   "mic_notes": "e609 as Gtr 1; voiced a hair different (edge 2.8k, presence 1.4k) so two e609 guitars don't overlay.",
+   "eq_summary": "As Gtr 1 with the edge/presence shifted so the two e609 guitars separate. TRACE: base(e609) · equip(gtr cab) · genre(R&B comp) · artist(—) · venue(FSQ)."
+  },
+  {
+   "ch": 15,
+   "name": "Gtr 3",
+   "instrument": "Electric Gtr",
+   "mic": "Shure SM57",
+   "section": "GUITAR",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Short",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 3500,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 800,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -3,
+     "freq": 180,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "SM57 guitars (3/4) voiced with presence UP where the e609 guitars are cut — that's the 4-guitar separation.",
+   "mic_notes": "SM57 on the cab — mid-forward, presence 3–5k, builds box/honk 300–500. Owns mid grit.",
+   "eq_summary": "+3@3.5k presence (57's lane — differs from the e609 guitars' voicing so 4 gtrs separate), −5@400 box, −2@800 honk, HPF 100 + 180 trim off the bass. TRACE: base(SM57 — mid grit) · equip(gtr cab) · genre(R&B — present, under the vocals) · artist(—) · venue(FSQ — deeper box)."
+  },
+  {
+   "ch": 16,
+   "name": "Gtr 4",
+   "instrument": "Electric Gtr",
+   "mic": "Shure SM57",
+   "section": "GUITAR",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Short",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 3000,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 850,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 450,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -3,
+     "freq": 180,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "See Gtr 3 — shifted for separation.",
+   "mic_notes": "SM57 as Gtr 3; presence at 3k, box 450 so the two 57 guitars separate.",
+   "eq_summary": "As Gtr 3, shifted. TRACE: base(SM57) · equip(gtr cab) · genre(R&B) · artist(—) · venue(FSQ)."
+  },
+  {
+   "ch": 17,
+   "name": "Sousa",
+   "instrument": "Sousaphone",
+   "mic": "Audio-Technica PRO 35",
+   "section": "HORNS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Clip",
+   "hpf": 50,
+   "lpf": 8000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 2,
+     "freq": 1200,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 350,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 90,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "AT Pro 35 clip on the sousaphone bell — 50Hz–15k, 80Hz rolloff 18dB/oct, strong lows (good for low brass), rounded top, 145 SPL. The LOW-brass foundation.",
+   "eq_summary": "Sousaphone is the bass of the brass band — +3@90 weight, +2@1.2k so the line has pitch definition (not just thump), −4@350 mud in the dense horn stack. LPF 8k (no useful top). Owns the sub-brass lane; sits below the bass guitar's 80. TRACE: base(Pro 35 — strong lows) · equip(sousaphone) · genre(funk brass — walking foundation) · artist(—) · venue(FSQ). COMP (doc): opto ~3:1, 20ms, even the line."
+  },
+  {
+   "ch": 18,
+   "name": "Bone",
+   "instrument": "Trombone",
+   "mic": "Audio-Technica PRO 35",
+   "section": "HORNS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Clip",
+   "hpf": 80,
+   "lpf": 10000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 2,
+     "freq": 6000,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 1200,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 500,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "Pro 35 clip on the bell — rounded top means gentle presence. Trombone owns the low-brass midrange ~1k.",
+   "eq_summary": "Section slotting: the bone owns ~1k, so its bark cut sits there (−3@1.2k) — trumpet's cut goes higher, sax lower. −4@500 mud, +2@6k rasp for definition over the Pro 35's rolled top. TRACE: base(Pro 35 rounded top) · equip(trombone) · genre(funk brass — fast transients) · artist(—) · venue(FSQ). COMP (doc): fast atk ~5ms — brass transients jump."
+  },
+  {
+   "ch": 19,
+   "name": "Tenor",
+   "instrument": "Tenor Sax",
+   "mic": "Audio-Technica PRO 35",
+   "section": "HORNS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Clip",
+   "hpf": 80,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 7000,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 800,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 350,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "Pro 35 clip at the bell — tenor sax, lower reed. Upper-mid harshness + body resonance; needs upper harmonics to cut a dense mix.",
+   "eq_summary": "Section slotting: tenor's honk cut at 800 (lowest reed), below the alto (1.5k) and trumpet (2.7k) so the horns don't pile. −4@350 body, +3@7k reed air to cut over the rolled top. TRACE: base(Pro 35) · equip(tenor sax) · genre(funk horns) · artist(—) · venue(FSQ). Watch the plasticky upper-mid up close."
+  },
+  {
+   "ch": 20,
+   "name": "Alto",
+   "instrument": "Alto Sax",
+   "mic": "Audio-Technica PRO 35",
+   "section": "HORNS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Clip",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 8000,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 1500,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 400,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "Pro 35 clip — alto sax, brighter reed than the tenor. Owns ~1.5k in the section.",
+   "eq_summary": "Alto honk cut at 1.5k (its lane, above the tenor's 800), −3@400 body, +3@8k air. Slots between tenor and trumpet. TRACE: base(Pro 35) · equip(alto sax) · genre(funk horns) · artist(—) · venue(FSQ)."
+  },
+  {
+   "ch": 21,
+   "name": "Tpt",
+   "instrument": "Trumpet",
+   "mic": "Audio-Technica PRO 35",
+   "section": "HORNS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Clip",
+   "hpf": 120,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 2,
+     "freq": 9000,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -4,
+     "freq": 2700,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 500,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "Pro 35 clip on the bell — trumpet, the brightest/loudest horn, transients jump. Owns the top of the section ~2.7k.",
+   "eq_summary": "Trumpet's bark cut sits highest in the section (−4@2.7k) — tenor@800, bone@1.2k, alto@1.5k, trumpet@2.7k, so each horn owns a lane and they don't pile. −3@500 body, +2@9k sizzle. TRACE: base(Pro 35 rounded top) · equip(trumpet) · genre(funk horns — lead bark) · artist(—) · venue(FSQ). COMP (doc): fast atk mandatory — trumpet spikes above the mix."
+  },
+  {
+   "ch": 22,
+   "name": "Perc 1",
+   "instrument": "Aux Percussion",
+   "mic": "Shure SM57",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Tall",
+   "hpf": 120,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 2,
+     "freq": 4000,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 400,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Generic aux percussion (per FOH) — specific instrument unconfirmed; neutral voicing, dial at soundcheck.",
+   "mic_notes": "SM57 on aux/hand percussion — kept conservative per the brief (instrument not confirmed).",
+   "eq_summary": "Conservative per the brief: light +2@4k attack, −3@400 box, HPF 120. Voicing left neutral — dial to the actual instrument at soundcheck. TRACE: base(SM57) · equip(aux perc) · genre(R&B) · artist(—) · venue(FSQ)."
+  },
+  {
+   "ch": 23,
+   "name": "Perc 2",
+   "instrument": "Aux Percussion",
+   "mic": "Shure SM57",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Tall",
+   "hpf": 120,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 2,
+     "freq": 4000,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -3,
+     "freq": 400,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Generic aux percussion (per FOH) — specific instrument unconfirmed; neutral voicing, dial at soundcheck.",
+   "mic_notes": "SM57 on aux/hand percussion — kept conservative per the brief (instrument not confirmed).",
+   "eq_summary": "Conservative per the brief: light +2@4k attack, −3@400 box, HPF 120. Voicing left neutral — dial to the actual instrument at soundcheck. TRACE: base(SM57) · equip(aux perc) · genre(R&B) · artist(—) · venue(FSQ)."
+  },
+  {
+   "ch": 24,
+   "name": "BT Aux",
+   "instrument": "Playback",
+   "mic": "Line / BT",
+   "section": "AMBIENT",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "—",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [],
+   "mic_notes": "Bluetooth aux — walk-in / between-set music, not a performance input.",
+   "eq_summary": "Near-flat playback. HPF 40 only. TRACE: base(mastered playback) · venue(FSQ)."
+  },
+  {
+   "ch": 25,
+   "name": "Wls 1",
+   "instrument": "Lead Vocal",
+   "mic": "Shure Beta 58A",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Round",
+   "hpf": 100,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 10000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": {
+      "thr": -18,
+      "atk_ms": 3,
+      "rel_ms": 120
+     }
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 4000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 600,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "Beta 58A supercardioid handheld — TWO baked presence peaks (~4k & ~10k), boxy ~600, <500 attenuated, tight pattern/high GBF (brighter than an SM58). LEAD voicing.",
+   "eq_summary": "Cut-only (feedback + taste). Dynamic de-ess −3@10k on the baked top peak so the air stays between sibilants; light −2@4k tames stridency without killing the bite the capsule bakes; −4@600 box for outdoor intelligibility. HPF 100. Overrides the FSQ template wireless curve/notch — ring out at soundcheck; reach for comp + a touch of plate before more EQ. TRACE: base(Beta 58A twin peaks) · genre(R&B lead) · venue(FSQ intelligibility)."
+  },
+  {
+   "ch": 26,
+   "name": "Wls 2",
+   "instrument": "Vocal",
+   "mic": "Shure Beta 58A",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Round",
+   "hpf": 120,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -2,
+     "freq": 10000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": {
+      "thr": -18,
+      "atk_ms": 3,
+      "rel_ms": 120
+     }
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 3000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 600,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "Beta 58A handheld — backing voicing: sits a touch behind the lead (−2@3k) so the harmony supports.",
+   "eq_summary": "Cut-only. −4@600 box, −2@10k de-ess, −2@3k to seat it behind the lead. HPF 120. Overrides the template wireless notch — ring out. TRACE: base(Beta 58A) · genre(R&B BGV) · venue(FSQ)."
+  },
+  {
+   "ch": 27,
+   "name": "Wls 3",
+   "instrument": "Vocal",
+   "mic": "Shure Beta 58A",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Round",
+   "hpf": 120,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -2,
+     "freq": 10000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": {
+      "thr": -18,
+      "atk_ms": 3,
+      "rel_ms": 120
+     }
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 3000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 600,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "Beta 58A handheld — backing voicing: sits a touch behind the lead (−2@3k) so the harmony supports.",
+   "eq_summary": "Cut-only. −4@600 box, −2@10k de-ess, −2@3k to seat it behind the lead. HPF 120. Overrides the template wireless notch — ring out. TRACE: base(Beta 58A) · genre(R&B BGV) · venue(FSQ)."
+  },
+  {
+   "ch": 28,
+   "name": "Wls 4",
+   "instrument": "Vocal",
+   "mic": "Shure Beta 58A",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Round",
+   "hpf": 120,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -2,
+     "freq": 10000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": {
+      "thr": -18,
+      "atk_ms": 3,
+      "rel_ms": 120
+     }
+    },
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 3000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 600,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "Beta 58A handheld — backing voicing: sits a touch behind the lead (−2@3k) so the harmony supports.",
+   "eq_summary": "Cut-only. −4@600 box, −2@10k de-ess, −2@3k to seat it behind the lead. HPF 120. Overrides the template wireless notch — ring out. TRACE: base(Beta 58A) · genre(R&B BGV) · venue(FSQ)."
+  },
+  {
+   "ch": 29,
+   "name": "Vox 5",
+   "instrument": "Vocal",
+   "mic": "Shure SM58",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Tall",
+   "hpf": 110,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 5000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 500,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "SM58 on a stand — presence 4–6k, boxy ~500, gentle low rolloff. Backing/utility vocal.",
+   "eq_summary": "Cut-only. −4@500 box, light −2@5k if spitty, HPF 110. Supportive — a touch behind the leads. TRACE: base(SM58) · genre(R&B BGV) · venue(FSQ)."
+  },
+  {
+   "ch": 30,
+   "name": "Vox 6",
+   "instrument": "Vocal",
+   "mic": "Shure SM58",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Tall",
+   "hpf": 110,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -2,
+     "freq": 5000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 500,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "mic_notes": "SM58 on a stand — presence 4–6k, boxy ~500, gentle low rolloff. Backing/utility vocal.",
+   "eq_summary": "Cut-only. −4@500 box, light −2@5k if spitty, HPF 110. Supportive — a touch behind the leads. TRACE: base(SM58) · genre(R&B BGV) · venue(FSQ)."
+  },
+  {
+   "ch": 31,
+   "name": "DJ L",
+   "instrument": "Playback",
+   "mic": "XLR (DI)",
+   "section": "AMBIENT",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 30,
+   "lpf": null,
+   "bands": [],
+   "notes": "Stereo DJ playback — keep 31/32 identical.",
+   "mic_notes": "DJ playback (turntables/controller), stereo — mastered full-range.",
+   "eq_summary": "Left near-flat — EQ'ing mastered playback like a mic thins it. HPF 30 only; add a small 315 trim live only if it clouds the band. TRACE: base(mastered stereo) · venue(FSQ)."
+  },
+  {
+   "ch": 32,
+   "name": "DJ R",
+   "instrument": "Playback",
+   "mic": "XLR (DI)",
+   "section": "AMBIENT",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 30,
+   "lpf": null,
+   "bands": [],
+   "notes": "See DJ L.",
+   "mic_notes": "DJ playback (turntables/controller), stereo — mastered full-range.",
+   "eq_summary": "Left near-flat — EQ'ing mastered playback like a mic thins it. HPF 30 only; add a small 315 trim live only if it clouds the band. TRACE: base(mastered stereo) · venue(FSQ)."
+  }
+ ]
+}

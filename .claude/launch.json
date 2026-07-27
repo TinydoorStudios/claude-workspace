@@ -8,6 +8,12 @@
       "port": 8095
     },
     {
+      "name": "patchbay",
+      "runtimeExecutable": "Code/Patchbay/run.sh",
+      "runtimeArgs": [],
+      "port": 8096
+    },
+    {
       "name": "spl-green",
       "runtimeExecutable": "bash",
       "runtimeArgs": ["-c", "cd Code/SPL-Monitor && SPL_SOURCE=simulator SPL_SIM_SCENE=green ./.venv/bin/python -m backend.app"],
@@ -18,6 +24,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8099", "--directory", "Code/landing-redesign"],
       "port": 8099
+    },
+    {
+      "name": "tempest-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4321", "--directory", "Code/tempest-dashboard/public"],
+      "port": 4321
     },
     {
       "name": "spl-hot",

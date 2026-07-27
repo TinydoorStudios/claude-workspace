@@ -14,6 +14,12 @@ node_modules/
 # has its own git repo + GitHub remote (Wiki.js git-backed)
 audio/Live Sound KB/Wiki/
 
+# third-party clone of invzfnc/spotify-downloader — own .git + 188MB .venv
+Code/spotify-downloader/
+
+# transient deploy logs
+Code/tempest-dashboard/deploy.out
+
 # bulk static reference media — not workable content
 Kims Stuff/
 audio/SOP Stuff/

@@ -60,6 +60,20 @@ These are hard facts from the 2026-06-27 build session, extending the Phase 1 fi
 
 ---
 
+## 2026-07-19 — Name pull fixed (two separate faults)
+
+Name pull had stopped working entirely, and before that was only ever renaming 10 tracks. Two unrelated causes, both now fixed and verified on .54.
+
+**1. Companion sent nothing.** The `LiveTrax` Generic OSC connection was running module **generic-osc v2.8.2** — a hand-imported version that isn't in the Companion module store. The child process crashed on every action fire (`Instance/Child/LiveTrax: Process stopped` in the Companion log the instant a button was pressed), so no packet ever left Companion. Record Start and Stop were dead for the same reason. Fixed by switching the connection to **v2.7.0 (latest stable)**, already installed. Host/port/protocol and the button's `/prep ,i 1` were correct all along.
+
+**2. The relay truncated at CH 10.** `pull_names()` treated `args[1] == 2` on `/strip/name/N` as an end-of-list marker. It isn't. A raw capture on 3819 (91 packets from one `/request_names`) shows that second int varies per channel — most are 1, CH 10 "Overhead" is 2, CH 11 is 3. Every pull therefore stopped at whichever channel happened to carry a 2. Removed that logic; collection now runs until 0.75 s of silence after the last packet, deadline 6 s. Verified: all 32 channels land, CH 1–32.
+
+The relay lives at `C:\relay\reaper_relay.py` on .54 — patched in place, backup at `C:\relay\reaper_relay_2026-07-19.py.bak`. The repo copy here carries the same fix.
+
+**Gotcha for next time:** the whole name burst arrives in ~40 ms, so any "quiet tick means done" logic must use a real quiet window, not a single 100 ms timeout.
+
+---
+
 ## Network Map (Final)
 
 | Device | IP | Role |

@@ -1,0 +1,19 @@
+{
+  "show": "Natural Progression",
+  "venue": "Fountain Square",
+  "date": "2026-07-25",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-07-23T23:01:41",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-07-23T23:12:41",
+      "note": "31 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-07-25T19:55:24",
+      "note": "fsq \u00b7 31 channels \u00b7 Natural Progression.ses"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "show": "Yolo Band",
+  "venue": "Fountain Square",
+  "date": "2026-07-24",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-07-23T23:01:41",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-07-23T23:13:22",
+      "note": "31 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-07-23T23:13:48",
+      "note": "fsq \u00b7 31 channels \u00b7 Yolo Band.ses"
+    }
+  }
+}

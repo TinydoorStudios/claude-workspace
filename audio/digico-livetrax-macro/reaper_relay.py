@@ -114,16 +114,18 @@ def pull_names():
     osc_send(CONSOLE_IP, CONSOLE_PORT, "/request_names", 1)
 
     names = {}
-    deadline = time.monotonic() + 3.0
+    deadline = time.monotonic() + 6.0
     got_end = False
+    last_pkt = time.monotonic()
 
     try:
         while time.monotonic() < deadline and not got_end:
             try:
                 data, _ = sock.recvfrom(4096)
+                last_pkt = time.monotonic()
             except socket.timeout:
-                # no packet this tick — if we already have names, we're done
-                if names:
+                # quiet for 0.75s after the last packet — console is done
+                if names and (time.monotonic() - last_pkt) > 0.75:
                     break
                 continue
 
@@ -135,8 +137,11 @@ def pull_names():
                     flag = args[1] if len(args) > 1 else 0
                     if 1 <= ch <= MAX_CHANNELS and name:
                         names[ch] = name
-                    if flag == 2:       # end-of-list — console is done sending
-                        got_end = True
+                    # NOTE (2026-07-19): args[1] is NOT an end-of-list marker.
+                    # Packet capture off the Q225 shows it varies per channel
+                    # (CH10 Overhead = 2, CH11 = 3, most = 1). Treating 2 as
+                    # end-of-list truncated every pull at the first channel
+                    # that happened to carry it. Do not reinstate.
                 except (ValueError, IndexError):
                     pass
     finally:

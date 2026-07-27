@@ -20,9 +20,12 @@ the instrument + mic foundation.
 1. **Instrument/source** — be specific (electric cab cranked vs. acoustic fingerstyle).
 2. **Mic on it** — research the actual capsule's behavior. Self-present mics already bring
    presence/scoop/air; note that so you *ease* boosts instead of stacking them. Don't guess the mic.
-   **Then the locker loop** (EQ method Step 2b in SKILL.md): sweep `mic-library.md` for an owned mic that
-   concretely beats the specified one for this show — one alternative max, one-line why, never on
-   TOUR gear, batched to the review stop. EQ still targets the specified mic.
+   **Then the locker fork loop** (EQ method Step 2b in SKILL.md): on every mic'd input, sweep
+   `mic-library.md` for an owned, unassigned mic that concretely beats the specified one for this
+   show — one alternative max, a three-sentence why, never on TOUR gear or the fixed Memo crowd
+   rig. **DI and XLR line-feed inputs are exempt** — no capsule, no fork, silent pass. Each fork
+   is a gate item in the batched round, not an FYI; Brian picks. EQ targets the specified mic
+   unless he swaps.
 3. **Forum/web** — Pro Sound Web, Gearspace, Sound on Sound, maker docs. Cross-check against the KB
    (`eq-starting-points`, `mic-library`). When web and KB agree, you're solid; when they disagree,
    STOP and ask. Dedupe first: research once per unique instrument × mic unit, fan out to the
@@ -81,9 +84,10 @@ Unknown artist/genre · mic or instrument missing · web vs KB conflict · a val
 a move that fights a known room problem · a template-baseline override (e.g. FSQ vocal feedback
 notch). A clean "here's what I know, here's the fork, which way?" always beats a confident guess.
 
-**Batch the round:** collect every trigger during the plan pass (dedupe + locker + note mining)
-and ask them all — with the locker alternatives — in ONE message before committing any EQ. Then
-build straight through; stop mid-build only for a new fork the scan missed.
+**Batch the round:** collect every trigger during the plan pass (dedupe + locker forks + note
+mining) and ask them all in ONE message before committing any EQ — **locker forks first**, each
+with its three-sentence reason and an explicit keep/swap call. Then build straight through; stop
+mid-build only for a new fork the scan missed. An unanswered locker fork blocks the build.
 
 ## Known failure modes — recognize and stop (catalog added 2026-07-12)
 
@@ -101,3 +105,10 @@ build straight through; stop mid-build only for a new fork the scan missed.
 - **The question-round collapse.** Zero questions (gaps papered over) or fifteen trivial ones
   (judgment offloaded). Few, sharp, genuinely-forked, each with your read attached.
 - **The polite outdoor cut.** −4 at FSQ. Torn between two depths outdoors → take the deeper.
+- **The swallowed locker fork.** A better owned mic noticed and either written as a passing
+  `Locker alt:` note or dropped entirely, so the build defaults to the specified mic without
+  Brian ever choosing. Every eligible input either passes silently (first call, or nothing
+  concretely better) or produces a fork he answers — there is no third state.
+- **The padded locker reason.** Two sentences, or five, or three that never name the cost.
+  Sentence three is the tradeoff, told straight; if it can't be written honestly, the win wasn't
+  real and the fork shouldn't have been raised.

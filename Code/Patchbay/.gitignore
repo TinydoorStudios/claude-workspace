@@ -1,0 +1,7 @@
+data/trash/
+data/revisions/
+.venv/
+__pycache__/
+.DS_Store
+mac/Patchbay.app/
+mac/AppIcon.iconset/

@@ -10,6 +10,7 @@ the moment the files exist. Source URL is the manufacturer page to grab the shot
 | Audix D4 | `audix-d4/audix-d4.jpg` | `audix-d4/audix-d4-thumb.jpg` | https://audixusa.com/products/d4/ |
 | Audix D6 | `audix-d6/audix-d6.jpg` | `audix-d6/audix-d6-thumb.jpg` | https://audixusa.com/products/d6/ |
 | Audix i5 | `audix-i5/audix-i5.jpg` | `audix-i5/audix-i5-thumb.jpg` | https://audixusa.com/products/i5/ |
+| Electro-Voice N/D 408 | `electro-voice-nd408/electro-voice-nd408.jpg` | `electro-voice-nd408/electro-voice-nd408-thumb.jpg` | Brian's own unit — discontinued, no manufacturer shot. Two phone photos taken 2026-07-26; drop the better one in as the full-size. |
 | sE V-Beat | `se-v-beat/se-v-beat.jpg` | `se-v-beat/se-v-beat-thumb.jpg` | https://seelectronics.com/products/v-beat/ |
 | sE V-Kick | `se-v-kick/se-v-kick.jpg` | `se-v-kick/se-v-kick-thumb.jpg` | https://seelectronics.com/products/v-kick/ |
 | sE V7 X | `se-v7-x/se-v7-x.jpg` | `se-v7-x/se-v7-x-thumb.jpg` | https://seelectronics.com/products/v7-x/ |

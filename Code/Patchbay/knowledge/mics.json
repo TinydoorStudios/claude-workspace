@@ -1,0 +1,497 @@
+{
+  "_source": "slim copy of Code/ShowBuilder/knowledge/mics.json (facts only: name/aka/type/phantom/ribbon). Patchbay prefers the live ShowBuilder file when present.",
+  "mics": [
+    {
+      "name": "Earthworks DM6",
+      "aka": [
+        "DM6",
+        "DM6 SeisMic"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Earthworks DM17",
+      "aka": [
+        "DM17"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Earthworks SR20sp Gen 2",
+      "aka": [
+        "SR20",
+        "SR20sp",
+        "SR20sp G2"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Earthworks SR25",
+      "aka": [
+        "SR25"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Sennheiser MKH40",
+      "aka": [
+        "MKH40",
+        "MKH 40"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Warm Audio WA-87",
+      "aka": [
+        "U87 Jr",
+        "87 JR",
+        "WA-87",
+        "WA87",
+        "U87",
+        "87"
+      ],
+      "type": "ldc",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Shure SM57",
+      "aka": [
+        "SM57",
+        "57"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Shure SM58",
+      "aka": [
+        "SM58",
+        "58"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Shure Beta 58A",
+      "aka": [
+        "Beta 58A",
+        "Beta 58",
+        "B58"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Shure Beta 52A",
+      "aka": [
+        "Beta 52",
+        "B52"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Shure Beta 91A",
+      "aka": [
+        "Beta 91",
+        "B91"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Shure Beta 98H/C",
+      "aka": [
+        "Beta 98H/C",
+        "Beta 98",
+        "98H/C"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Shure SM81",
+      "aka": [
+        "SM81"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Sennheiser MD 421-U (Silver Tail)",
+      "aka": [
+        "MD421",
+        "421",
+        "MD 421",
+        "421-U",
+        "MD421-U",
+        "Silver Tail"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Sennheiser e609",
+      "aka": [
+        "e609",
+        "609"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Sennheiser e604",
+      "aka": [
+        "e604",
+        "604"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Audix D6",
+      "aka": [
+        "D6"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Audix i5",
+      "aka": [
+        "i5"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Audix D2",
+      "aka": [
+        "D2"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Audix D4",
+      "aka": [
+        "D4"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Audix M1280BHC",
+      "aka": [
+        "M1280BHC"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Audix M1280B",
+      "aka": [
+        "M1280B"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Audio-Technica Pro 35",
+      "aka": [
+        "AT Pro 35",
+        "Pro 35",
+        "Pro35",
+        "AT Pro35"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Telefunken M80",
+      "aka": [
+        "M80",
+        "Telefunken M80"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Shure Beta 56A",
+      "aka": [
+        "Beta 56A",
+        "B56A"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Lauten LS-408",
+      "aka": [
+        "LS-408",
+        "Lauten LS-408"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Neumann KMS 105",
+      "aka": [
+        "KMS 105",
+        "KMS105"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Neumann TLM 102",
+      "aka": [
+        "TLM 102",
+        "TLM102"
+      ],
+      "type": "ldc",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "AKG C414",
+      "aka": [
+        "C414"
+      ],
+      "type": "ldc",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "AKG C422",
+      "aka": [
+        "C422"
+      ],
+      "type": "ldc",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Shure Beta 27",
+      "aka": [
+        "Beta 27",
+        "B27"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Schoeps CMC6 + MK4",
+      "aka": [
+        "MK4",
+        "Schoeps MK4"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Schoeps CMC6 + MK5",
+      "aka": [
+        "MK5",
+        "Schoeps MK5"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Schoeps CMC6 + MK41",
+      "aka": [
+        "MK41",
+        "Schoeps MK41"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "DPA 4099 CORE+",
+      "aka": [
+        "DPA 4099",
+        "4099"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Countryman B3",
+      "aka": [
+        "B3",
+        "B3-B10"
+      ],
+      "type": "lav",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Line Audio OM1",
+      "aka": [
+        "OM1"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Line Audio CM4",
+      "aka": [
+        "CM4"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Deity S2",
+      "aka": [
+        "S2",
+        "Deity S2"
+      ],
+      "type": "condenser",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "AEA R88",
+      "aka": [
+        "R88"
+      ],
+      "type": "ribbon",
+      "phantom": false,
+      "ribbon": true
+    },
+    {
+      "name": "Royer R-121",
+      "aka": [
+        "R-121",
+        "R121"
+      ],
+      "type": "ribbon",
+      "phantom": false,
+      "ribbon": true
+    },
+    {
+      "name": "Royer R-10",
+      "aka": [
+        "R-10",
+        "R10"
+      ],
+      "type": "ribbon",
+      "phantom": false,
+      "ribbon": true
+    },
+    {
+      "name": "Radial J48",
+      "aka": [
+        "J48",
+        "DI"
+      ],
+      "type": "di",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Neve RNDI",
+      "aka": [
+        "RNDI",
+        "Neve RNDI"
+      ],
+      "type": "di",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "Radial DI",
+      "aka": [
+        "Radial DI"
+      ],
+      "type": "di",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "DI",
+      "aka": [
+        "D.I.",
+        "Direct"
+      ],
+      "type": "di",
+      "phantom": true,
+      "ribbon": false
+    },
+    {
+      "name": "BSS AR 133",
+      "aka": [],
+      "type": "di",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Whirlwind IMP",
+      "aka": [],
+      "type": "di",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "XLR",
+      "aka": [],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    },
+    {
+      "name": "Electro-Voice N/D 408",
+      "aka": [
+        "ND408",
+        "N/D408",
+        "N/D 408",
+        "EV 408",
+        "EV ND408"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
+    }
+  ]
+}

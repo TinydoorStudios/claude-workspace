@@ -982,6 +982,36 @@
         "soften": {},
         "research": "established knowledge"
       }
+    },
+    {
+      "name": "Electro-Voice N/D 408",
+      "aka": [
+        "ND408",
+        "N/D408",
+        "N/D 408",
+        "EV 408",
+        "EV ND408"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Vintage first-gen N/D 408 (no letter suffix), supercardioid. Rack toms, guitar cab, snare. Pivoting yoke — fits where a 421 won't. Bare \"408\" in paperwork means the Lauten LS-408, not this.",
+      "eq": {
+        "character": "Supercardioid N/DYM neodymium dynamic, 30Hz-22kHz close / 60Hz-22kHz far, brighter and more aggressive upper mids than an SM57, deliberate proximity lift, high SPL, tiny pivoting head. Toms/cabs/snare. Weakness: that upper-mid bite gets spiky on bright sources; close working distance piles low-mids; discontinued.",
+        "soften": {
+          "presence": 0.8,
+          "attack": 0.7
+        },
+        "tame": [
+          {
+            "freq": 400,
+            "gain": -3,
+            "q": 1.8,
+            "role": "box"
+          }
+        ],
+        "research": "web-verified 2026-07-26 (EV N/D 408B data sheet 531818-201; Gearspace / HomeRecording / Tape Op consensus)"
+      }
     }
   ]
 }

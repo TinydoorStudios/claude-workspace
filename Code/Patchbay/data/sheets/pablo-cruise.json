@@ -1,0 +1,273 @@
+{
+ "name": "Pablo Cruise",
+ "kind": "install",
+ "console": "q225",
+ "venue": "memo",
+ "venue_label": "Memorial Hall",
+ "date": "2026-07-20",
+ "meta": {
+  "foh": "",
+  "mon": "",
+  "showtime": "",
+  "artist": "",
+  "notes": "556 seats, hardwood, working RT60 ~1.6s. Problem zones 63/125/200/250\u2013315Hz standing waves, 200\u2013400Hz mud \u2014 treat in EQ, especially on the crowd mics. Piano storage stage right.\nCrowd rig is permanent: leave the CH numbers to the show, the placements never move."
+ },
+ "stageboxes": [
+  {
+   "id": "sb1",
+   "name": "SD-Rack SL",
+   "location": "Stage Left",
+   "format": "MADI",
+   "inputs": 56,
+   "outputs": 24,
+   "notes": "(CONFIRM rack model + I/O count at the desk)"
+  },
+  {
+   "id": "sb2",
+   "name": "Wire array",
+   "location": "Flown, 8' downstage of ensemble, 9' up",
+   "format": "\u2014",
+   "inputs": 2,
+   "outputs": 0,
+   "notes": "Schoeps MK5 ORTF pair (cardioid; omni if the session wants warmth/width)"
+  },
+  {
+   "id": "e9ff560d",
+   "name": "DQ Rack",
+   "location": "",
+   "format": "",
+   "inputs": 48,
+   "outputs": 24,
+   "notes": ""
+  }
+ ],
+ "inputs": [
+  {
+   "id": "67d7981a",
+   "ch": 1,
+   "name": "",
+   "instrument": "",
+   "mic": "",
+   "stand": "",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "section": "SPARE",
+   "port": "",
+   "box": "",
+   "split": "",
+   "notes": ""
+  },
+  {
+   "id": "3ee92a2e",
+   "ch": 2,
+   "name": "",
+   "instrument": "",
+   "mic": "",
+   "stand": "",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "section": "SPARE",
+   "port": "",
+   "box": "",
+   "split": "",
+   "notes": ""
+  },
+  {
+   "id": "cb260d00",
+   "ch": 3,
+   "name": "",
+   "instrument": "",
+   "mic": "",
+   "stand": "",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "section": "SPARE",
+   "port": "",
+   "box": "",
+   "split": "",
+   "notes": ""
+  },
+  {
+   "id": "d3718c85",
+   "ch": 4,
+   "name": "",
+   "instrument": "",
+   "mic": "",
+   "stand": "",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "section": "SPARE",
+   "port": "",
+   "box": "",
+   "split": "",
+   "notes": ""
+  },
+  {
+   "id": "920d2caf",
+   "ch": 5,
+   "name": "",
+   "instrument": "",
+   "mic": "",
+   "stand": "",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "section": "SPARE",
+   "port": "",
+   "box": "",
+   "split": "",
+   "notes": ""
+  },
+  {
+   "id": "ddfb6784",
+   "ch": 6,
+   "name": "",
+   "instrument": "",
+   "mic": "",
+   "stand": "",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "section": "SPARE",
+   "port": "",
+   "box": "",
+   "split": "",
+   "notes": ""
+  }
+ ],
+ "outputs": [
+  {
+   "id": "c203097a",
+   "bus": "Group 1",
+   "name": "Drums",
+   "port": "",
+   "device": "",
+   "location": "",
+   "notes": ""
+  },
+  {
+   "id": "12b127e8",
+   "bus": "Group 2",
+   "name": "Rhythm",
+   "port": "",
+   "device": "",
+   "location": "",
+   "notes": ""
+  },
+  {
+   "id": "87dd38ba",
+   "bus": "Group 3",
+   "name": "Piano (St)",
+   "port": "",
+   "device": "",
+   "location": "",
+   "notes": ""
+  },
+  {
+   "id": "cbb0e609",
+   "bus": "Group 4",
+   "name": "Strings",
+   "port": "",
+   "device": "",
+   "location": "",
+   "notes": ""
+  },
+  {
+   "id": "c167aeee",
+   "bus": "Group 5",
+   "name": "Horns / Winds",
+   "port": "",
+   "device": "",
+   "location": "",
+   "notes": ""
+  },
+  {
+   "id": "241b18bb",
+   "bus": "Group 6",
+   "name": "Vocals",
+   "port": "",
+   "device": "",
+   "location": "",
+   "notes": ""
+  },
+  {
+   "id": "96360540",
+   "bus": "Group 7",
+   "name": "FOH Ambient",
+   "port": "",
+   "device": "",
+   "location": "",
+   "notes": ""
+  },
+  {
+   "id": "5e32c61a",
+   "bus": "Matrix 1",
+   "name": "PA L",
+   "port": "Local Out 1",
+   "device": "House PA",
+   "location": "FOH",
+   "notes": ""
+  },
+  {
+   "id": "ec2fe539",
+   "bus": "Matrix 2",
+   "name": "PA R",
+   "port": "Local Out 2",
+   "device": "House PA",
+   "location": "FOH",
+   "notes": ""
+  },
+  {
+   "id": "6ab2780c",
+   "bus": "Aux 1",
+   "name": "Wedge 1",
+   "port": "",
+   "device": "",
+   "location": "Downstage center",
+   "notes": ""
+  },
+  {
+   "id": "89c2c2e9",
+   "bus": "Aux 2",
+   "name": "Wedge 2",
+   "port": "",
+   "device": "",
+   "location": "Downstage left",
+   "notes": ""
+  }
+ ],
+ "power": [],
+ "from_template": null,
+ "rev": 1,
+ "created": "2026-07-20T21:18:44",
+ "updated": "2026-07-20T21:18:44",
+ "id": "pablo-cruise",
+ "location": {
+  "project": "Pablo Cruise",
+  "client": "",
+  "site": "Memo",
+  "room": "",
+  "address": "1225 Elm Street",
+  "city": "",
+  "state": "",
+  "zip": ""
+ },
+ "console_info": {
+  "preset": "q225",
+  "manufacturer": "DiGiCo",
+  "model": "Quantum 225",
+  "fw": "2244",
+  "ip": "192.168.200.224",
+  "subnet": "255.255.255.0",
+  "gateway": "192.168.200.1",
+  "channels": 72,
+  "busses": 36,
+  "matrix": 12,
+  "local_in": "32",
+  "local_out": "24"
+ }
+}

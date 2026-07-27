@@ -1,0 +1,124 @@
+/* Patchbay — New Patch Sheet wizard.
+   Its own token scope (.pw-*) so the wizard's look is independent of the app
+   chrome: dark shadcn-style surface, 8px radii, 32px controls, blue primary. */
+#wizard {
+  --pw-bg: oklch(7% .015 254);
+  --pw-fg: oklch(97% .004 254);
+  --pw-card: oklch(14.5% .016 254);
+  --pw-input: oklch(20% .016 254 / .3);
+  --pw-input-border: oklch(20% .016 254);
+  --pw-border: oklch(22% .02 254);
+  --pw-muted: oklch(18% .013 254);
+  --pw-muted-fg: oklch(64% .04 254);
+  --pw-primary: oklch(65% .26 255);
+  --pw-primary-fg: oklch(99% 0 0);
+  --pw-destructive: oklch(65% .22 25);
+  --pw-radius: 8px;
+  position: fixed; inset: 0; z-index: 40; overflow: auto;
+  background: var(--pw-bg); color: var(--pw-fg);
+  font: 14px/1.5 Geist, Inter, -apple-system, "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+#wizard[hidden] { display: none !important; }
+#wizard * { box-sizing: border-box; }
+
+.pw-shell { min-height: 100%; display: flex; flex-direction: column; }
+.pw-header {
+  border-bottom: 1px solid var(--pw-border); padding: 16px 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+.pw-header .pw-brand { font-weight: 600; font-size: 18px; letter-spacing: -.01em; }
+.pw-header .pw-slash { color: var(--pw-muted-fg); }
+.pw-header .pw-crumb { font-size: 14px; font-weight: 500; }
+.pw-main { flex: 1; padding: 32px 24px; max-width: 672px; margin: 0 auto; width: 100%; }
+
+/* ---------- stepper ---------- */
+.pw-steps { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; overflow-x: auto; padding-bottom: 4px; }
+.pw-step { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.pw-step .pw-label { display: flex; align-items: center; gap: 6px; color: var(--pw-muted-fg); }
+.pw-step .pw-num {
+  width: 24px; height: 24px; border-radius: 999px; display: flex; align-items: center;
+  justify-content: center; font-size: 12px; font-weight: 600;
+  border: 1px solid color-mix(in oklab, var(--pw-muted-fg) 30%, transparent);
+}
+.pw-step .pw-name { font-size: 14px; font-weight: 500; }
+.pw-step .pw-line { height: 1px; width: 24px; background: var(--pw-muted); }
+.pw-step.on .pw-label { color: var(--pw-fg); }
+.pw-step.on .pw-num { border-color: var(--pw-primary); color: var(--pw-primary); }
+.pw-step.done .pw-label { color: var(--pw-fg); }
+.pw-step.done .pw-num { background: var(--pw-primary); border-color: var(--pw-primary); color: var(--pw-primary-fg); }
+.pw-step.done .pw-line { background: color-mix(in oklab, var(--pw-primary) 45%, transparent); }
+
+/* ---------- form ---------- */
+.pw-body { display: flex; flex-direction: column; gap: 24px; }
+.pw-h1 { font-size: 24px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.pw-h1row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pw-section { font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--pw-muted-fg); margin: 0 0 12px; }
+.pw-rule { height: 1px; background: var(--pw-border); border: 0; margin: 0; }
+.pw-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.pw-field { display: flex; flex-direction: column; gap: 6px; }
+.pw-field.c1 { grid-column: span 1; }
+.pw-field.c2 { grid-column: span 2; }
+.pw-field.c3 { grid-column: span 3; }
+.pw-field.c4 { grid-column: span 4; }
+.pw-field > label { font-size: 14px; font-weight: 500; line-height: 1; }
+.pw-field .pw-opt { color: var(--pw-muted-fg); font-weight: 400; }
+.pw-field .pw-help { font-size: 12px; color: var(--pw-muted-fg); }
+.pw-input, .pw-select {
+  height: 32px; width: 100%; min-width: 0; border-radius: var(--pw-radius);
+  border: 1px solid var(--pw-input-border); background: var(--pw-input);
+  color: var(--pw-fg); padding: 4px 10px; font: inherit; font-size: 14px;
+  transition: border-color .12s, box-shadow .12s; outline: none;
+}
+.pw-input::placeholder { color: color-mix(in oklab, var(--pw-muted-fg) 60%, transparent); }
+.pw-input:focus, .pw-select:focus {
+  border-color: color-mix(in oklab, var(--pw-primary) 60%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--pw-primary) 20%, transparent);
+}
+.pw-select option { background: var(--pw-card); color: var(--pw-fg); }
+
+/* ---------- cards / notices ---------- */
+.pw-card { border: 1px solid var(--pw-border); background: var(--pw-card); border-radius: 12px; padding: 24px; }
+.pw-card + .pw-card { margin-top: 16px; }
+.pw-card .pw-cardhead { font-size: 14px; color: var(--pw-muted-fg); margin: 0 0 16px; }
+.pw-devgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.pw-note {
+  border: 1px solid color-mix(in oklab, oklch(75% .15 75) 40%, transparent);
+  background: color-mix(in oklab, oklch(75% .15 75) 12%, transparent);
+  color: oklch(85% .11 80); border-radius: var(--pw-radius); padding: 12px 16px; font-size: 14px;
+}
+.pw-summary { display: flex; flex-direction: column; }
+.pw-summary .pw-blk { padding: 16px 0; }
+.pw-summary .pw-blk + .pw-blk { border-top: 1px solid var(--pw-border); }
+.pw-summary .pw-blk:first-child { padding-top: 0; }
+.pw-summary .pw-blk:last-child { padding-bottom: 0; }
+.pw-summary .pw-k { font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--pw-muted-fg); margin-bottom: 8px; }
+.pw-summary .pw-v { font-size: 14px; }
+.pw-summary .pw-v .pw-dim { color: var(--pw-muted-fg); }
+.pw-summary .pw-v + .pw-v { margin-top: 4px; }
+.pw-pill { display: inline-block; background: var(--pw-muted); border-radius: 999px; padding: 4px 10px; font-size: 13px; }
+
+/* ---------- buttons ---------- */
+.pw-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; }
+.pw-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 32px; padding: 0 10px; border-radius: var(--pw-radius); font: inherit;
+  font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  border: 1px solid var(--pw-input-border); background: var(--pw-input); color: var(--pw-fg);
+  transition: background .12s, border-color .12s;
+}
+.pw-btn:hover { background: color-mix(in oklab, var(--pw-input-border) 60%, transparent); }
+.pw-btn:active { transform: translateY(1px); }
+.pw-btn:disabled { opacity: .5; pointer-events: none; }
+.pw-btn.primary { background: var(--pw-primary); border-color: transparent; color: var(--pw-primary-fg); }
+.pw-btn.primary:hover { background: color-mix(in oklab, var(--pw-primary) 85%, black); }
+.pw-btn.ghost { background: transparent; border-color: transparent; color: var(--pw-muted-fg); }
+.pw-btn.ghost:hover { color: var(--pw-fg); background: var(--pw-muted); }
+.pw-btn .pw-arrow { font-size: 13px; }
+.pw-linkbtn { background: none; border: 0; color: var(--pw-muted-fg); font: inherit; font-size: 13px; cursor: pointer; }
+.pw-linkbtn:hover { color: var(--pw-destructive); }
+
+@media (max-width: 640px) {
+  .pw-grid, .pw-devgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pw-field.c3, .pw-field.c4 { grid-column: span 2; }
+}

@@ -1,0 +1,19 @@
+{
+  "show": "Nasty Nati Band",
+  "venue": "Fountain Square",
+  "date": "2026-07-25",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-07-23T23:01:41",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-07-23T23:12:42",
+      "note": "31 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-07-25T15:50:40",
+      "note": "fsq \u00b7 30 channels \u00b7 Nasty Nati Band.ses"
+    }
+  }
+}

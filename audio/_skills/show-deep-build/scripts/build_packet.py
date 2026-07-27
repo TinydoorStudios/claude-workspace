@@ -14,6 +14,11 @@ ONE source of truth (a deep-research spec.json) -> every paperwork output:
 House rules enforced at validation (2026-07-08 additions):
   - RESERVED template channels error out (fsq ch 10 = SNARE PL8 return; OH pair is
     STEREO on fader 9 — never split across 9/10)
+  - WIRELESS faders (2026-07-26): fsq 33-36 / memo 41-44 = Wireless 1-4. A mic naming
+    a wireless with no unit number ("W58") errors — never auto-assign a pack. A named
+    wireless mults: the named input keeps its channel AND the wireless fader stays
+    listed (warning if the fader row is missing, or if a non-wireless source is
+    parked on one).
   - "reverbs" is REQUIRED every show, FSQ included (3 complementary vocal + 1-2
     instrument + general when warranted; Seventh Heaven presets verbatim, each with
     settings + in-plugin EQ + why, plus spec-level "reverb_pairing"). Explicit
@@ -36,7 +41,7 @@ Deps: openpyxl + reportlab (pip3 install --user; both present on the Mac as of 2
 Spec schema: see references/spec-schema.md. Channels list only ACTIVE bands; any band 1-4 not
 present is treated as FLAT. Band numbering is Brian's console convention: b1=low .. b4=high.
 """
-import argparse, json, os, sys, importlib.util
+import argparse, json, os, re, sys, importlib.util
 
 VENUE_LABELS = {"fsq": "Fountain Square", "memo": "Memorial Hall", "wp": "Washington Park",
                 "esp": "Elm Street Plaza", "csp": "Court Street Plaza", "zp": "Zeigler Park",
@@ -55,6 +60,33 @@ RESERVED_CH = {
                 "on fader 9 (both OH mics on that one fader); an OH pair "
                 "never spills onto 10."},
 }
+
+# House wireless receivers live on fixed template faders (Brian, 2026-07-26).
+# Fill in a wireless 1-4 row and it lands on its own fader; when another input's
+# mic names a wireless unit, the receiver is MULTED — the named input keeps its
+# channel AND the wireless fader stays listed. Confirmed against both patcher
+# templates' surface labels (FSQ 33-36, Memo 41-44).
+WIRELESS_CH = {
+    "fsq":  {1: 33, 2: 34, 3: 35, 4: 36},
+    "memo": {1: 41, 2: 42, 3: 43, 4: 44},
+}
+# "Wireless 2" / "WL2" / "W2" / "W58 2" -> unit 2. Bare "W58"/"wireless" -> ask.
+_WL_UNIT_RE = [re.compile(p, re.I) for p in (
+    r"wireless\s*#?\s*([1-4])\b",
+    r"\bwl\s*#?\s*([1-4])\b",
+    r"\bw\s*58\s*[-/ ]?\s*([1-4])\b",
+    r"\bw\s*#?\s*([1-4])\b",
+)]
+_WL_BARE_RE = re.compile(r"\b(w\s*58|wireless|wl)\b", re.I)
+
+def wireless_unit(text):
+    """(unit|None, is_wireless). unit None + True = named a wireless, no number."""
+    s = str(text or "")
+    for rx in _WL_UNIT_RE:
+        m = rx.search(s)
+        if m:
+            return int(m.group(1)), True
+    return None, bool(_WL_BARE_RE.search(s))
 
 # ---------------------------------------------------------------- spec helpers
 def load_spec(p):
@@ -128,10 +160,29 @@ def validate_spec(spec):
             if isinstance(r, dict) and not (r.get("plugin_eq") or r.get("settings")):
                 warnings.append(f"reverb {r.get('preset','?')!r}: no settings/plugin_eq — include "
                                 "the in-plugin moves, not just the preset name")
+    wl_map = WIRELESS_CH.get(str(spec.get("venue", "")).lower(), {})
+    wl_faders = {fader: unit for unit, fader in wl_map.items()}
+    wl_named = {}          # unit -> [tags that call for it]
     seen_ch, seen_secs, last_sec = set(), set(), None
     for ch in spec["channels"]:
         cid = ch.get("ch")
         tag = f"Ch {cid} ({ch.get('name','?')})"
+        # --- wireless (Brian, 2026-07-26) -------------------------------
+        unit, is_wl = wireless_unit(f"{ch.get('mic','')} {ch.get('name','')}")
+        if wl_map:
+            if unit:
+                wl_named.setdefault(unit, []).append(tag)
+            elif is_wl:
+                errors.append(f"{tag}: mic names a wireless with no unit number "
+                              f"({ch.get('mic')!r}) — never auto-assign a unit; "
+                              "ask Brian which wireless (1-4) it is")
+            if cid in wl_faders and unit and unit != wl_faders[cid]:
+                errors.append(f"{tag}: Ch {cid} is the Wireless {wl_faders[cid]} fader on the "
+                              f"{spec.get('venue','')} template but the mic names Wireless {unit}")
+            elif cid in wl_faders and not is_wl:
+                warnings.append(f"{tag}: Ch {cid} is the Wireless {wl_faders[cid]} fader on the "
+                                f"{spec.get('venue','')} template — parking a non-wireless source "
+                                "here buries the receiver's home channel")
         if cid in seen_ch:
             errors.append(f"{tag}: duplicate channel number")
         seen_ch.add(cid)
@@ -190,6 +241,14 @@ def validate_spec(spec):
         name = str(ch.get("name", ""))
         if len(name) > 12:
             warnings.append(f"{tag}: fader name is {len(name)} chars (>12 — legibility)")
+    # Every wireless a channel calls for keeps its own fader listed too — the
+    # receiver is multed to both (Brian, 2026-07-26).
+    for unit, tags in sorted(wl_named.items()):
+        fader = wl_map[unit]
+        if fader not in seen_ch:
+            warnings.append(f"Wireless {unit} is called for by {', '.join(tags)} but Ch {fader} "
+                            f"(its {spec.get('venue','')} template fader) isn't in the spec — the "
+                            "receiver mults to both; list the wireless channel as well")
     return errors, warnings
 
 # ---------------------------------------------------------------- 1. .md (patcher input)

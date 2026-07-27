@@ -28,6 +28,9 @@ CURATED = {
     "vbeat": "se-v-beat", "vkick": "se-v-kick",
     "i5": "audix-i5", "d2": "audix-d2", "d4": "audix-d4", "d6": "audix-d6",
     "pro6l": "audio-technica-pro-6l", "pro-6l": "audio-technica-pro-6l",
+    "nd408": "electro-voice-nd408", "n-d408": "electro-voice-nd408",
+    "nd-408": "electro-voice-nd408", "ev408": "electro-voice-nd408",
+    "ev-408": "electro-voice-nd408",  # bare "408" left unmapped — ambiguous with the Lauten LS-408
     "s3": "deity-s3", "s-mic-3": "deity-s3", "smic3": "deity-s3", "s2": "deity-s2",
     "121l": "royer-r-121", "r121l": "royer-r-121", "r-121l": "royer-r-121",
     "trp2": "aea-trp2", "trp": "aea-trp2", "aeatrp2": "aea-trp2",
