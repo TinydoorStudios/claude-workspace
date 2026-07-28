@@ -1,0 +1,62 @@
+# Lenovo TB-J616F / TB-J616F — Android 12 — TB-J616F_S240253_241016_ROW
+# Generated 2026-07-27_190121
+
+## Third-party / user-installed (pm list packages -3)
+com.amazon.mp3
+com.netflix.mediaclient
+com.steadfastinnovation.android.projectpapyrus
+
+## Lenovo / ZUI system packages
+com.lenovo.dsa
+com.lenovo.inputdevices
+com.lenovo.launcher.provider
+com.lenovo.lsf
+com.lenovo.lsf.device
+com.lenovo.ocpl
+com.lenovo.ota
+com.lenovo.productivity.service
+com.lenovo.styluspen
+com.lenovo.tab_p11_plus
+com.lenovo.tablet.lenovofacedetectprovider
+com.lenovo.tablet.lenovoqcomfacedetectprovider
+com.lenovo.tbengine
+com.lenovo.ue.device
+com.lenovotab.camera
+com.motorola.demo
+com.tblenovo.center
+com.tblenovo.desktoplauncher
+com.tblenovo.landscapevision.lenovolandscapevision
+com.tblenovo.launcher
+com.tblenovo.lenovowhatsnew
+com.tblenovo.setup
+com.tblenovo.soundrecorder
+com.tblenovo.wallpaper
+
+## Non-Google, non-AOSP system packages (review these by hand)
+com.amazon.mp3
+com.debug.loggerui
+com.dolby.daxappui2
+com.dolby.daxservice
+com.huaqin.lenovoprivacy
+com.lmsa.app.lmsapad
+com.longcheertel.midtest
+com.mediatek
+com.mediatek.FrameworkResOverlayExt
+com.mediatek.MtkSettingsResOverlay
+com.mediatek.SettingsProviderResOverlay
+com.mediatek.batterywarning
+com.mediatek.capctrl.service
+com.mediatek.cellbroadcastuiresoverlay
+com.mediatek.duraspeed
+com.mediatek.engineermode
+com.mediatek.frameworkresoverlay
+com.mediatek.gnss.nonframeworklbs
+com.mediatek.lbs.em2.ui
+com.mediatek.location.lppe.main
+com.mediatek.miravision.ui
+com.mediatek.systemuiresoverlay
+com.mediatek.systemuiwmshellresoverlay
+com.motorola.demo
+com.netflix.mediaclient
+com.steadfastinnovation.android.projectpapyrus
+com.tbsmart.levision

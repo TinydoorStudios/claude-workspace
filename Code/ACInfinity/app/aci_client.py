@@ -112,7 +112,7 @@ class ACInfinity:
         if self._session and not self._session.closed:
             await self._session.close()
 
-    async def _post(self, path, data, auth=True):
+    async def _post(self, path, data, auth=True, _retried=False):
         sess = await self._client()
         headers = {"Content-Type":
                    "application/x-www-form-urlencoded; charset=utf-8"}
@@ -127,10 +127,12 @@ class ACInfinity:
         except ValueError:
             raise ACIError(f"{path}: non-JSON response: {text[:200]}")
         if payload.get("code") != 200:
-            # token expired -> re-login once
-            if auth and payload.get("code") in (-200, 401, 10001):
+            # token expired -> re-login once. 403 "Login Expired Please login
+            # again!" is what the cloud actually returns when a long-lived
+            # session ages out (seen 2026-07-27); the others are historical.
+            if auth and not _retried and payload.get("code") in (-200, 401, 403, 10001):
                 self._token = None
-                return await self._post(path, data, auth=auth)
+                return await self._post(path, data, auth=auth, _retried=True)
             raise ACIError(f"{path}: {payload.get('msg')!r} "
                            f"(code {payload.get('code')})")
         return payload

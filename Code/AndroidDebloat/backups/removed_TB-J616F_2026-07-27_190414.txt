@@ -1,0 +1,7 @@
+com.amazon.mp3
+com.debug.loggerui
+com.longcheertel.midtest
+com.mediatek.duraspeed
+com.mediatek.engineermode
+com.mediatek.lbs.em2.ui
+com.mediatek.miravision.ui
