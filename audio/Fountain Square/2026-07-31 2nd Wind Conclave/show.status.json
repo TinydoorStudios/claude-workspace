@@ -1,0 +1,23 @@
+{
+  "show": "2nd Wind Conclave",
+  "venue": "Fountain Square",
+  "date": "2026-07-31",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-07-26T22:47:54",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-07-28T09:15:31",
+      "note": "27 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-07-27T08:14:30",
+      "note": "fsq \u00b7 27 channels \u00b7 2nd Wind Conclave.ses"
+    },
+    "published": {
+      "at": "2026-07-28T09:33:15",
+      "note": "kb.tinydoorstudios.com/show-fsq-2026-07-31-2nd-wind-conclave"
+    }
+  }
+}

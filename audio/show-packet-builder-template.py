@@ -15,14 +15,44 @@ Document order:
   7. Stage Plot (5-zone grid, if available)
 """
 
+import math
+import re
+
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
+from reportlab.graphics.shapes import Drawing, Line, Polygon, PolyLine, Rect, String, Circle
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, HRFlowable
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, HRFlowable,
+    Flowable
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
+
+
+# ---------------------------------------------------------------------------
+# PAGE MARKS — feed the MASTER PDF's clickable quick-links page (2026-07-27)
+# ---------------------------------------------------------------------------
+
+class PageMark(Flowable):
+    """Zero-size flowable that records which page it landed on.
+
+    Dropped into the story right after a PageBreak so the recorded page is the
+    page the following block starts on. build_show_packet returns the collected
+    list; build_packet.py turns it into the MASTER's quick-links + bookmarks.
+    """
+
+    def __init__(self, sink, kind, label, **meta):
+        Flowable.__init__(self)
+        self._sink, self._kind, self._label, self._meta = sink, kind, label, meta
+        self.width = self.height = 0
+
+    def wrap(self, availWidth, availHeight):
+        return (0, 0)
+
+    def draw(self):
+        self._sink.append(dict(kind=self._kind, label=self._label,
+                               page=self.canv.getPageNumber(), **self._meta))
 
 # ---------------------------------------------------------------------------
 # COLOR SYSTEM
@@ -175,6 +205,245 @@ def engineer_notes_box(text, console="wing"):
 
 
 # ---------------------------------------------------------------------------
+# EQ RESPONSE CARD  (2026-07-28)
+# ---------------------------------------------------------------------------
+# One filled curve per input, drawn straight from the channel's own numbers, so
+# the shape of the move is readable before the table below is read. Same content
+# as the table it sits above: every active band marked with its gain, frequency
+# and Q, plus the HPF/LPF. Vector, not an image — it stays sharp at any zoom and
+# adds nothing to the file size worth counting.
+#
+# Filters are DRAWN at 12 dB/oct: the console stores a slope per channel but the
+# packet spec does not carry one, so the corner frequency is exact and the
+# steepness is a stand-in. Labelled on the card so nobody reads it as gospel.
+
+CURVE_FS = 48000.0          # sample rate the biquads are evaluated at
+CURVE_DB = 18.0             # vertical range, ±dB
+CURVE_STEPS = 190           # points across the plot
+
+
+def _bq_mag(c, w):
+    """|H(e^jw)| for a biquad [b0,b1,b2,a0,a1,a2]."""
+    b0, b1, b2, a0, a1, a2 = c
+    cw, sw = math.cos(w), math.sin(w)
+    c2, s2 = math.cos(2 * w), math.sin(2 * w)
+    nr, ni = b0 + b1 * cw + b2 * c2, -(b1 * sw + b2 * s2)
+    dr, di = a0 + a1 * cw + a2 * c2, -(a1 * sw + a2 * s2)
+    den = dr * dr + di * di
+    return math.sqrt((nr * nr + ni * ni) / den) if den else 1.0
+
+
+def _bq_peak(f, g, q):
+    A = 10 ** (g / 40.0)
+    w = 2 * math.pi * f / CURVE_FS
+    al = math.sin(w) / (2 * max(q, 0.1))
+    cw = math.cos(w)
+    return [1 + al * A, -2 * cw, 1 - al * A, 1 + al / A, -2 * cw, 1 - al / A]
+
+
+def _bq_shelf(f, g, q, high):
+    A = 10 ** (g / 40.0)
+    w = 2 * math.pi * f / CURVE_FS
+    cw, sw = math.cos(w), math.sin(w)
+    al = sw / 2 * math.sqrt((A + 1 / A) * (1 / max(q, 0.1) - 1) + 2)
+    tsa = 2 * math.sqrt(A) * al
+    if high:
+        return [A * ((A + 1) + (A - 1) * cw + tsa), -2 * A * ((A - 1) + (A + 1) * cw),
+                A * ((A + 1) + (A - 1) * cw - tsa), (A + 1) - (A - 1) * cw + tsa,
+                2 * ((A - 1) - (A + 1) * cw), (A + 1) - (A - 1) * cw - tsa]
+    return [A * ((A + 1) - (A - 1) * cw + tsa), 2 * A * ((A - 1) - (A + 1) * cw),
+            A * ((A + 1) - (A - 1) * cw - tsa), (A + 1) + (A - 1) * cw + tsa,
+            -2 * ((A - 1) + (A + 1) * cw), (A + 1) + (A - 1) * cw - tsa]
+
+
+def _bq_pole(f, hp):
+    """12 dB/oct Butterworth — see the note above about slope."""
+    w = 2 * math.pi * f / CURVE_FS
+    cw, al = math.cos(w), math.sin(w) / (2 * 0.7071)
+    if hp:
+        return [(1 + cw) / 2, -(1 + cw), (1 + cw) / 2, 1 + al, -2 * cw, 1 - al]
+    return [(1 - cw) / 2, 1 - cw, (1 - cw) / 2, 1 + al, -2 * cw, 1 - al]
+
+
+_NUM = re.compile(r'-?\d+(?:\.\d+)?')
+
+
+def _num(text):
+    """First number in a cell like '+4 dB', '2.5 kHz', '1.07k', '—'. None if absent."""
+    if text is None:
+        return None
+    s = str(text).strip()
+    m = _NUM.search(s.replace(",", ""))
+    if not m:
+        return None
+    v = float(m.group())
+    if re.search(r'k(?:hz)?\b', s, re.I):
+        v *= 1000
+    return v
+
+
+def curve_from_rows(rows):
+    """Build the numeric curve spec from the same rows eq_table() renders.
+
+    Lets a caller that only has the display strings still get a card. A caller
+    holding real numbers should pass `curve` directly instead — nothing is
+    re-parsed then.
+    """
+    hpf = lpf = None
+    bands = []
+    for r in rows:
+        typ = str(r.get("type", "")).strip()
+        if typ == "LC":
+            hpf = _num(r.get("freq"))
+            continue
+        if typ == "HC":
+            lpf = _num(r.get("freq"))
+            continue
+        if typ == "OFF":
+            continue
+        g, f = _num(r.get("gain")), _num(r.get("freq"))
+        if g is None or f is None:
+            continue
+        bands.append(dict(b=_num(r.get("band")) or 0, gain=g, freq=f,
+                          q=_num(r.get("q")) or 1.0, shelf=(typ.lower() == "shelf"),
+                          deq="DYNAMIC" in str(r.get("notes", "")).upper()))
+    return dict(hpf=hpf, lpf=lpf, bands=bands)
+
+
+def _fmt_hz(f):
+    if f is None:
+        return "off"
+    return f"{f / 1000:g}k" if f >= 1000 else f"{f:g}"
+
+
+def eq_curve_card(curve, accent, width=7.3 * inch, height=1.42 * inch):
+    """Filled EQ response curve for one input. Returns a Drawing (a flowable).
+
+    curve: {"hpf": Hz|None, "lpf": Hz|None,
+            "bands": [{"b":1-4, "gain":dB, "freq":Hz, "q":float,
+                       "shelf":bool, "deq":bool}, ...]}
+    accent: the channel's section accent colour — the curve is drawn in it and
+            filled with a wash of it, so the card reads as part of its section.
+    """
+    if not curve:
+        return Spacer(1, 0)
+    W, H = float(width), float(height)
+    PL, PR, PT, PB = 32.0, 8.0, 20.0, 15.0
+    x0, x1 = PL, W - PR
+    y0, y1 = PB, H - PT
+    lo = math.log10(20.0)
+    span = math.log10(20000.0) - lo
+
+    def X(f):
+        return x0 + (math.log10(max(f, 20.0)) - lo) / span * (x1 - x0)
+
+    def Y(db):
+        db = max(-CURVE_DB, min(CURVE_DB, db))
+        return y0 + (db + CURVE_DB) / (2 * CURVE_DB) * (y1 - y0)
+
+    if not isinstance(accent, colors.Color):
+        accent = colors.HexColor(str(accent))
+    wash = colors.Color(accent.red, accent.green, accent.blue, alpha=0.20)
+    faint = colors.HexColor("#E2E7EE")
+    axis = colors.HexColor("#9AA5B4")
+    ink = colors.HexColor("#3D4757")
+
+    d = Drawing(W, H)
+    d.add(Rect(0, 0, W, H, fillColor=colors.HexColor("#FBFCFD"),
+               strokeColor=colors.HexColor("#D3DAE4"), strokeWidth=0.5))
+
+    # grid
+    for f in (50, 100, 200, 500, 1000, 2000, 5000, 10000):
+        d.add(Line(X(f), y0, X(f), y1, strokeColor=faint, strokeWidth=0.4))
+    for db in (12, 6, -6, -12):
+        d.add(Line(x0, Y(db), x1, Y(db), strokeColor=faint, strokeWidth=0.4))
+    d.add(Line(x0, Y(0), x1, Y(0), strokeColor=axis, strokeWidth=0.6))
+    for db in (12, 0, -12):
+        d.add(String(4, Y(db) - 2.2, f"{db:+g}" if db else "0",
+                     fontName="Helvetica", fontSize=5.8, fillColor=axis))
+    for f, lbl in ((100, "100"), (1000, "1k"), (10000, "10k")):
+        d.add(String(X(f), y0 - 8.5, lbl, fontName="Helvetica", fontSize=5.8,
+                     fillColor=axis, textAnchor="middle"))
+
+    # response
+    chain = []
+    for b in curve.get("bands", []):
+        g = float(b.get("gain") or 0)
+        if abs(g) < 0.05:
+            continue
+        f, q = float(b["freq"]), float(b.get("q") or 1.0)
+        chain.append(_bq_shelf(f, g, q, int(b.get("b", 2)) >= 3) if b.get("shelf")
+                     else _bq_peak(f, g, q))
+    if curve.get("hpf") and float(curve["hpf"]) > 20:
+        chain.append(_bq_pole(float(curve["hpf"]), True))
+    if curve.get("lpf"):
+        chain.append(_bq_pole(float(curve["lpf"]), False))
+
+    pts = []
+    for i in range(CURVE_STEPS + 1):
+        f = 10 ** (lo + span * i / CURVE_STEPS)
+        w = 2 * math.pi * f / CURVE_FS
+        m = 1.0
+        for c in chain:
+            m *= _bq_mag(c, w)
+        pts.append((X(f), Y(20 * math.log10(max(m, 1e-6)))))
+
+    fill = [x0, Y(0)] + [v for p in pts for v in p] + [x1, Y(0)]
+    d.add(Polygon(fill, fillColor=wash, strokeColor=None))
+    d.add(PolyLine([v for p in pts for v in p], strokeColor=accent, strokeWidth=1.3,
+                   strokeLineJoin=1))
+
+    # filter markers
+    for f, lbl in ((curve.get("hpf"), "HPF"), (curve.get("lpf"), "LPF")):
+        if not f or (lbl == "HPF" and float(f) <= 20):
+            continue
+        xf = X(float(f))
+        d.add(Line(xf, y0, xf, y1, strokeColor=axis, strokeWidth=0.7,
+                   strokeDashArray=[2, 2]))
+        right = xf > x1 - 46          # flip the label inward near the plot edge
+        d.add(String(xf - 2 if right else xf + 2, y1 - 6,
+                     f"{lbl} {_fmt_hz(float(f))}", fontName="Helvetica-Bold",
+                     fontSize=5.8, fillColor=axis,
+                     textAnchor="end" if right else "start"))
+
+    # band markers — gain, frequency, Q, and a D when the band is dynamic.
+    # Labels are nudged vertically off each other so clustered bands stay legible.
+    placed = []
+    marks = []
+    for b in curve.get("bands", []):
+        g = float(b.get("gain") or 0)
+        if abs(g) < 0.05:
+            continue
+        f, q = float(b["freq"]), float(b.get("q") or 1.0)
+        tag = f"B{int(b.get('b', 0))} {g:+g} @{_fmt_hz(f)} Q{q:g}"
+        if b.get("deq"):
+            tag += " D"
+        marks.append((X(f), Y(g), g, tag))
+    for bx, by, g, tag in sorted(marks, key=lambda m: m[0]):
+        d.add(Circle(bx, by, 2.3, fillColor=accent, strokeColor=colors.white,
+                     strokeWidth=0.6))
+        tw = len(tag) * 3.0
+        tx = min(max(bx - tw / 2, x0 + 1), x1 - tw - 1)
+        step = 7.0 if g >= 0 else -7.0
+        ty = by + 5 if g >= 0 else by - 10
+        for _ in range(5):
+            box = (tx, ty, tx + tw, ty + 6)
+            if not any(box[0] < p[2] and p[0] < box[2] and box[1] < p[3] and p[1] < box[3]
+                       for p in placed):
+                break
+            ty += step
+        ty = min(max(ty, y0 + 2), y1 - 7)
+        placed.append((tx, ty, tx + tw, ty + 6))
+        d.add(String(tx, ty, tag, fontName="Helvetica-Bold", fontSize=5.8, fillColor=ink))
+
+    d.add(String(x0, H - 11, "EQ RESPONSE", fontName="Helvetica-Bold", fontSize=6.4,
+                 fillColor=ink))
+    d.add(String(x1, H - 11, "HPF/LPF drawn at 12 dB/oct — corner exact, slope indicative",
+                 fontName="Helvetica", fontSize=5.6, fillColor=axis, textAnchor="end"))
+    return d
+
+
+# ---------------------------------------------------------------------------
 # EQ TABLE
 # ---------------------------------------------------------------------------
 
@@ -244,10 +513,13 @@ def eq_table(rows, console="wing"):
 # EQ PAGE ASSEMBLY
 # ---------------------------------------------------------------------------
 
-def build_eq_pages(channels, console="wing"):
+def build_eq_pages(channels, console="wing", marks=None):
     """
     channels: list of dicts with keys:
       ch, name, mic, section, accent (HexColor), mic_notes, bands (list), summary
+      curve: optional numeric response spec for the EQ card (see eq_curve_card).
+             Omit it and the card is derived from `bands` by curve_from_rows().
+    marks: optional list — collects PageMark entries for the MASTER quick-links page.
     """
     story = []
     sections_grouped = {}
@@ -256,10 +528,18 @@ def build_eq_pages(channels, console="wing"):
 
     for section_label, section_channels in sections_grouped.items():
         accent_bg = section_channels[0]["accent"]
+        if marks is not None:
+            story.append(PageMark(marks, "section", section_label))
         story.append(section_bar(f"━  {section_label}  ━", bg=accent_bg))
         story.append(Spacer(1, 8))
         for ch in section_channels:
+            if marks is not None:
+                story.append(PageMark(marks, "channel", str(ch["name"]),
+                                      ch=ch["ch"], section=section_label))
             story.append(channel_header(ch["ch"], ch["name"], ch["mic"], ch["accent"]))
+            story.append(Spacer(1, 4))
+            story.append(eq_curve_card(ch.get("curve") or curve_from_rows(ch["bands"]),
+                                       ch["accent"]))
             story.append(Spacer(1, 4))
             story.append(mic_notes_box(ch["mic_notes"]))
             story.append(Spacer(1, 4))
@@ -485,7 +765,11 @@ def build_show_packet(output_path, show_data, input_list_channels,
     eq_channels:          list of dicts for EQ pages (ch, name, mic, section, accent,
                                                        mic_notes, bands, summary)
     console:              'wing' or 'digico'
+
+    Returns the page map (list of dicts: kind, label, page, + ch/section on
+    channel entries) — the MASTER PDF's quick-links page is built from it.
     """
+    marks = []
     doc = SimpleDocTemplate(
         output_path,
         pagesize=letter,
@@ -502,6 +786,7 @@ def build_show_packet(output_path, show_data, input_list_channels,
         "Reference — EQ structure, pan guide, bus grouping, soundcheck order",
     ]
 
+    story.append(PageMark(marks, "doc", "Cover"))
     story += build_cover_page(
         show_name=show_data["show_name"],
         venue=show_data["venue"],
@@ -517,6 +802,7 @@ def build_show_packet(output_path, show_data, input_list_channels,
         console=console,
     )
 
+    story.append(PageMark(marks, "doc", "Input List"))
     story += build_input_list_page(
         channels=input_list_channels,
         show_name=show_data["show_name"],
@@ -529,10 +815,11 @@ def build_show_packet(output_path, show_data, input_list_channels,
         console=console,
     )
 
-    story += build_eq_pages(eq_channels, console=console)
+    story += build_eq_pages(eq_channels, console=console, marks=marks)
 
     doc.build(story)
     print(f"Packet built: {output_path}")
+    return marks
 
 
 # ---------------------------------------------------------------------------

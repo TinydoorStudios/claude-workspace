@@ -184,7 +184,7 @@ committing any EQ, with the locker forks at the top of it. **Record every answer
 Part II Step 5 applies the venue filter per channel. At the show level, record a **room_context**
 line. **Outdoor shows: pull the show-time weather — fetched, never assumed.** For FSQ / WP / ESP /
 CSP / ZP / IA, fetch the forecast for the actual show window (Open-Meteo; the Tempest stations for
-current conditions) and put the numbers in the `research_summary` (temp, RH, wind, rain risk, with
+current conditions) and put the numbers in `research.conditions` (temp, RH, wind, rain risk, with
 the source named). Seasonal priors are banned — "July = warm and dry" is exactly the assumption
 the 2026-07-08 A/B caught being wrong (actual forecast: 74% RH). Apply the real numbers: wind →
 windscreen/mic-choice flags and open-mic wash; hot + DRY → extra HF air loss over distance
@@ -194,8 +194,12 @@ the why is on paper. Indoor venues skip this. Note every divergence from the KB 
 the `changes` list.
 
 ### 5. Build everything from one spec
-Write **`spec.json`** (`references/spec-schema.md`): metadata, `artist_profile`,
-`research_summary`, `room_context`, `changes`, `decisions`, optional `monitors`, **required
+Write **`spec.json`** (`references/spec-schema.md`): metadata, `artist_profile`, **structured
+`research`** (`genre_verified` · `gig` · `conditions` · one `units` row per instrument × mic —
+finding, named external `sources`, one-word `verdict`, five-layer `trace` object — plus
+`reconciliation` and any `kb_writeback`; the Rationale renders it as a per-unit TABLE, so never
+dump it as one prose blob — the legacy free-text `research_summary` still builds but warns),
+`room_context`, `changes`, `decisions`, optional `monitors`, **required
 `reverbs` + `reverb_pairing`** (every show, FSQ included — 3 complementary vocal options, 1–2
 instrument (horn-specific when asked), 1 general when warranted; Seventh Heaven Pro preset names
 verbatim from the reverb KB, each with `settings`, `plugin_eq`, `why`; every settings value
@@ -220,7 +224,10 @@ the SNARE PL8 return; the OH pair is STEREO on fader 9, never split 9/10 — the
 errors abort with nothing written), auto-lints the `.md` (`audio/_shared/md_lint.py`), and writes
 the `.md`, `.xlsx` (+ Monitors/Reverbs sheets), Show Packet PDF, **EQ Rationale PDF**, and
 **MASTER PDF** (packet + rationale + any band-provided `<Show> - Stage Plot.pdf` / `- Rider.pdf`
-in the folder — stage plots are band-provided, never generated). Deps: openpyxl + reportlab
+in the folder — stage plots are band-provided, never generated). The MASTER opens on a clickable
+**QUICK LINKS** page (2026-07-27) — every document, EQ section and channel is one click away, and
+the same map ships as PDF bookmarks; page numbers come from real page marks, so nothing to hand-
+maintain. Deps: openpyxl + reportlab
 (installed `--user`, 2026-07-06). Then the `.ses`:
 
 ```
@@ -378,9 +385,9 @@ same source in the same room — KB-grade evidence, used beside the fresh pass, 
    every show — there is no "familiar mic" exemption: an SM57, a Beta 58A, an i5, a D6 all get
    searched. A unit is not researched until the summary can state at least one QUANTITATIVE
    capsule fact for it — a frequency and a dB value (a baked peak, a scoop, a roll-off point) —
-   with an EXTERNAL source named. The `research_summary` in a show spec must name the external
-   source per unit ("SOS/Gearspace i5 (+9 dB @ 5.5k baked peak)") and close with an explicit
-   reconciliation line: either "no web↔KB disagreements" or the list of them.
+   with an EXTERNAL source named. Every `research.units` row in a show spec must name its external
+   source ("SOS/Gearspace i5 (+9 dB @ 5.5k baked peak)"), and the block closes with an explicit
+   `reconciliation`: either "no web↔KB disagreements" or the list of them.
 
 2. **Cross-check the KB**: `mic-library.md` (mic character + blend logic), `eq-starting-points.md`
    (per-instrument approach). The KB is Brian's verified operational knowledge — authoritative for
@@ -445,8 +452,10 @@ control, not taste). Whole-dB only. No high-shelf band unless Brian asks.** Typi
 −7 dB tight Q (1.5–2.0), boosts +3 to +6 dB on non-vocal sources — with the outdoor override above.
 
 ### The per-unit layer trace (2026-07-19)
-In show builds, every unit's `research_summary` entry closes with a compact **TRACE** line
-showing the whole chain, each layer carrying a value or an explicit "no change":
+In show builds, every unit carries a five-layer **TRACE** showing the whole chain, each layer
+holding a value or an explicit "no change". In a show spec it's the `trace` object on the unit's
+`research.units` row (`base` · `equip` · `genre` · `artist` · `venue`), which the Rationale prints
+one layer per line; inline and in standalone answers, the same thing as one line:
 
 `TRACE: base(57 on 4x12 — −5@450, SOS baked-presence fact) · equip(Twin Reverb bright top —
 trim 3k, no boost) · genre(blues-rock — keep low-mid) · artist(dark tape tone — no HF lift) ·
@@ -471,6 +480,16 @@ the top of the script); save to the show folder if it's show work, else Desktop/
 `<Show> - FOH Channel Processing.md` · `<Show>.ses` · `<Show> - Input List.xlsx` ·
 `<Show> - Show Packet.pdf` · `<Show> - FOH EQ Reasoning.pdf` · `<Show> - MASTER.pdf` ·
 `<Show>.spec.json` — plus the required reverb section. No generated stage plot, ever.
+
+**EQ response card, every input (2026-07-28).** Each EQ channel page in the Show Packet opens with
+a filled response curve drawn from that channel's own numbers — every active band as a biquad, HPF
+and LPF folded in, filled and stroked in the section's accent colour, each band dotted and labelled
+`B3 -5 @300 Q2` (`D` appended when the band is dynamic). Automatic: `build_packet.py` hands
+`show-packet-builder-template.py` a numeric `curve` per channel and `eq_curve_card()` draws it. It
+adds no pages and flows into the MASTER. Two limits are printed on the card itself — filters are
+drawn at 12 dB/oct because the spec carries no slope (corner exact, steepness indicative), and the
+curve is the EQ section only, so the documented Mustard dynamics are not in it. Nothing to do per
+show; it is only worth mentioning if Brian asks why a curve and a table disagree.
 
 ## Guardrails
 - Q225 (Memo/FSQ) or Wing only. **Never CL3/M32 unless Brian names that desk.**

@@ -274,3 +274,37 @@ Full audit + fix pass on the Claude structure itself. The changes that affect ho
 **Two defaults I set (Brian to correct if wrong):** on a mult the *named* input carries the deep-built EQ while the wireless fader keeps its template baseline curve and gets no second EQ card; and the shared-socket gain note (two channels off one socket share the Q225 analog gain — ride digital trim on the mult) goes in the channel `notes`.
 
 **Files:** show-deep-build SKILL.md (new wireless block in Part I + validator line + constraint card), references/spec-schema.md (`patch` note), scripts/build_packet.py (map, parser, four checks, docstring), KB pipeline-spec-fsq (channel range ×2 + Input Format gotcha) and pipeline-spec-memo (Input Format block), project CLAUDE.md Patching Conventions, KB CHANGELOG. `.skill` zip rebuilt.
+
+## 2026-07-27 — MASTER quick-links page + the research section made readable
+
+**Two asks from Brian, both about reading the paperwork rather than building it.**
+
+**1. The MASTER opens on a clickable QUICK LINKS page.** Page 1 of `<Show> - MASTER.pdf` is now an index: DOCUMENTS (cover, input list, EQ rationale, what-changed, question round, reverb, research, stage plot/rider when present), then EQ PAGES grouped by section with a chip per channel — "17 Conga 1 · p15" — and the rationale's sections. Every row is a real PDF link, and the same map ships as PDF bookmarks for the reader's sidebar. No more scrolling 45 pages to reach the vocals.
+
+**Page numbers are measured, not guessed.** A zero-height `PageMark` flowable rides the story in both `show-packet-builder-template.py` and the rationale builder and records `canvas.getPageNumber()` where it lands; `build_master_pdf` offsets those marks by the real page counts of every merged part, draws the nav page with a reportlab canvas (so every row's rect is known exactly), and hangs pypdf `Link` annotations off them. The nav length is settled in a loop — adding a second nav page shifts every target, so it re-renders until stable. `build_packet_pdf` / `build_rationale_pdf` now return `(path, marks)` and `build_master_pdf` takes `[(pdf, marks), …]`.
+
+**2. Research is a section, not a paragraph.** The rationale used to render `research_summary` as one 15 kB block of prose — unreadable at the desk. The spec now carries a structured **`research`** object: `genre_verified` / `gig` / `conditions` as three framing boxes, then one table row per researched unit — CH · source/mic · the quantitative finding with its named external source · a colour-chipped AGREE/DISAGREE/THIN verdict · the five TRACE layers each on its own line — closing with the reconciliation and KB write-back boxes. Artist and room context became titled boxes with paragraph breaks at their enumerated turns.
+
+**Legacy specs still build.** A free-text `research_summary` gets chunked on the lead-ins the deep build actually writes (GENRE VERIFIED / THE GIG / WEATHER / CH<n> / RECONCILIATION), the mic pulled into the row head, the verdict chipped, and the TRACE exploded onto its own lines — so the 27 already-built shows read fine without a rewrite. It warns, pointing at the structured form.
+
+**Validator additions (warnings, never blocking):** missing `genre_verified`, a unit with no finding or no named external source, a verdict that isn't one of the three words, any TRACE layer left blank, missing `reconciliation`, and free-text-only research.
+
+**Regenerated 2nd Wind Conclave in place** — `.md` byte-identical to what its `.ses` was built from, so the showfile stays valid; it just gets the new MASTER.
+
+**Files:** `audio/show-packet-builder-template.py` (PageMark + marks through cover/input-list/EQ pages, `build_show_packet` returns the map), `_skills/show-deep-build/scripts/build_packet.py` (research formatting helpers, structured + legacy renderers, `build_nav_pdf`, rewritten `build_master_pdf`, research validation), SKILL.md, references/spec-schema.md (`research` object), references/pre-commit-audit.md (lines 8/9/15 now point at `research.units[]`), references/deep-research-workflow.md, references/decision-flow.md.
+
+## 2026-07-28 — EQ response card on every input page
+
+**Ask:** Brian wanted the preset cards from the FSQ template preset browser — a filled EQ curve with the numbers on it — carried into the show pipeline, one per input.
+
+**What landed.** Every EQ channel page in `<Show> - Show Packet.pdf` now opens with a vector EQ response card, sitting between the channel header and the mic notes. It draws the channel's actual curve — every active band as an RBJ biquad, HPF and LPF folded in — filled with a wash of that section's accent colour so the card reads as part of its section, with the section accent as the stroke. Each active band gets a dot on the curve labelled `B3 -5 @300 Q2`, plus a `D` when the band is dynamic; HPF and LPF get dashed verticals labelled with their corner. Same information as the table below it, read as a shape instead of six rows. It flows into the MASTER unchanged, and page counts don't move — the card fits in the space each channel page already had.
+
+**Numbers come from the spec, never re-parsed.** `build_packet.py` now hands the packet builder a numeric `curve` dict alongside the display rows. `curve_from_rows()` is the fallback for any caller that only has the formatted strings ("2.5 kHz", "+4 dB") — it exists so the packet builder still works standalone, not as the normal path.
+
+**Two honest limits, both stated on the card.** Filters are drawn at 12 dB/oct because the packet spec carries no slope — the corner frequency is exact, the steepness is indicative. And the curve is the EQ section only; Mustard dynamics are paperwork-only and not in it.
+
+**Labels de-collide.** Clustered bands would have stacked their labels on top of each other, so placed labels are tracked and later ones nudged vertically away from the curve until they clear, then clamped inside the plot. Filter labels flip to right-aligned near the plot edge so an LPF at 16k doesn't run off the card.
+
+**Files:** `audio/show-packet-builder-template.py` (biquad helpers, `eq_curve_card`, `curve_from_rows`, card inserted in `build_eq_pages`), `_skills/show-deep-build/scripts/build_packet.py` (numeric `curve` per channel in `build_packet_pdf`).
+
+**Not done:** the standalone `build_eq_pdf.py` (eq-advisor output) and the rationale PDF's compact per-channel blocks don't carry the card — different layouts, and Brian asked for the input pages.

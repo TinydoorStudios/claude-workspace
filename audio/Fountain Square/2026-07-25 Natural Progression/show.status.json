@@ -8,12 +8,16 @@
       "note": "venue=fsq console=DiGiCo Quantum 225"
     },
     "packet_built": {
-      "at": "2026-07-23T23:12:41",
+      "at": "2026-07-28T09:23:43",
       "note": "31 channels, full packet"
     },
     "ses_built": {
       "at": "2026-07-25T19:55:24",
       "note": "fsq \u00b7 31 channels \u00b7 Natural Progression.ses"
+    },
+    "published": {
+      "at": "2026-07-28T09:33:15",
+      "note": "kb.tinydoorstudios.com/show-fsq-2026-07-25-natural-progression"
     }
   }
 }
