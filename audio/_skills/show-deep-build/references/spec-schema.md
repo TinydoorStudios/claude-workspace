@@ -27,8 +27,38 @@ auto-lints the written `.md` with `audio/_shared/md_lint.py`. A failed validatio
 
   // --- deep-research narrative (drives the Rationale PDF) ---
   "artist_profile": "Who they are + sonic references + what it means for the mix.",
-  "research_summary": "Sources used (artist + per-source), one or two sentences.",
   "room_context": "Venue/room filter — e.g. open-air FSQ: no room gain, support lows + presence.",
+
+  // --- research: STRUCTURED, one object per researched unit (2026-07-27) ---
+  // Renders as the Rationale's RESEARCH section: three framing boxes, then a
+  // per-unit table (capsule fact + external source · verdict chip · the five
+  // TRACE layers on their own lines). Write it structured — a free-text
+  // "research_summary" string still builds (it gets chunked) but warns, and it
+  // reads worse. Don't write both.
+  "research": {
+    "genre_verified": "The genre + the NAMED evidence it was verified against, before any research ran.",
+    "gig": "What the event actually is (optional but usually worth it).",
+    "conditions": "Outdoor shows: the FETCHED weather for the show window, source + pull date.",
+    "units": [
+      { "ch": "1",                       // "6/7" and "33–36" are fine for shared units
+        "source": "Kick in",
+        "mic": "Shure Beta 91A",
+        "finding": "The QUANTITATIVE capsule fact — a frequency and a dB value.",
+        "sources": "The external source(s), named. The KB alone is never research.",
+        "verdict": "AGREE",              // AGREE | DISAGREE | THIN — one word, decided first
+        "trace": {                       // all five layers; value or an explicit "no change"
+          "base":   "91A boundary — 400 Hz box is the capsule's own documented problem, −8@400",
+          "equip":  "no kit sizes notated — no change",
+          "genre":  "R&B dance kick wants weight not click — top lift held to +3",
+          "artist": "programmed kick in the Track channel — live kick narrowed to the attack lane",
+          "venue":  "FSQ outdoor — box cut deepened to −8, HPF up to 60"
+        } }
+    ],
+    "reconciliation": ["One line per web-vs-KB fork and how it was settled — or a single "
+                       "\"no web/KB disagreements\" line."],
+    "kb_writeback": ["Sources with no KB row yet — the write-back candidates."]
+  },
+  "research_summary": "LEGACY free-text fallback. Structured `research` supersedes it.",
   "style_note": "Short show-style line for the packet cover (optional; falls back to room_context).",
   "changes": [
     "Vocal: static -5@8k -> dynamic de-ess + HPF 130->110 — KMS 105 isn't sibilant; protect the air.",
@@ -97,6 +127,9 @@ auto-lints the written `.md` with `audio/_shared/md_lint.py`. A failed validatio
 ```
 
 Notes:
+- `research` is the readable research section (2026-07-27). One `units` row per instrument × mic
+  unit, in channel order — the same units the Part II pass ran. The validator warns on a missing
+  verdict word, a missing external source, and any TRACE layer left blank.
 - `mic_notes` + `eq_summary` carry the reasoning into both the Show Packet (per-channel) and the
   Rationale PDF. Write them like Brian talks — direct, the *why*, not just the number.
 - `changes` is the Rationale's amber "what changed and why" box. Populate it with every divergence

@@ -17,11 +17,12 @@ the judgment lines (5, 6, 8, 13, 14, 15) are on you.
 7. **Two-mic pairs** — lane ownership stated in both channels' `mic_notes`, no stacked low boost,
    polarity/mono check planned?
 8. **Research floor** — per unit, quote the quantitative capsule fact + named external source that
-   rides `research_summary`; confirm the closing reconciliation line ("no web↔KB disagreements" or
-   the list) and each unit's one-word AGREE/DISAGREE/THIN verdict.
+   rides its `research.units` row; confirm `research.reconciliation` ("no web↔KB disagreements" or
+   the list) and each unit's one-word AGREE/DISAGREE/THIN verdict. Structured object, not one
+   prose blob — every channel that was researched has a row.
 9. **Venue** — Memo: any boost in 63/125/200/250–315? FSQ/outdoor: are the cuts at outdoor depth
    (−6 to −9), not polite indoor depth? Outdoor: real fetched weather numbers with source named in
-   `research_summary`?
+   `research.conditions`?
 10. **Reverbs** — preset names verbatim from the reverb KB, every settings value anchored
     "(factory)" or "(from X factory)", selection justified by THIS band's material?
 11. **Reserved faders** — FSQ ch 10 = SNARE PL8 return; OH stereo on fader 9, never split 9/10?
@@ -32,7 +33,7 @@ the judgment lines (5, 6, 8, 13, 14, 15) are on you.
     swap he took is carried through the mic, 48V, stand and patch columns — not just the EQ?
 14. **eq_summary spot-check** — read three at random; if any would fit a different band's show
     unchanged, it's generic — rewrite it around the channel's role in THIS band.
-15. **TRACE lines** — every unit's `research_summary` closes with the five-layer TRACE
-    (base(instr+mic) · equip · genre · artist · venue), each layer a value or "no change"; pick
+15. **TRACE lines** — every unit's `research.units[].trace` carries all five layers
+    (base(instr+mic) · equip · genre · artist · venue), each a value or "no change"; pick
     two at random and check the trace against the channel's actual band values — a trace the
     numbers don't back is a failed line.

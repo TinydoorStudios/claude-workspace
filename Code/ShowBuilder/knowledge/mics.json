@@ -115,9 +115,9 @@
       "type": "dynamic",
       "phantom": false,
       "ribbon": false,
-      "notes": "Snare/cab workhorse. Presence around 3-5kHz; box/mud at 300-500Hz on cabs.",
+      "notes": "Snare/cab workhorse. Presence peak is at 6-7kHz (+5 to +7dB), not 3-5kHz — flat 200Hz-1kHz, only ~+2dB by 3kHz (Shure published curve, corrected 2026-07-26). Box/mud 300-500Hz on cabs, but the capsule dips slightly at 300-600 so cut lighter than reflex.",
       "eq": {
-        "character": "Mid-forward workhorse, presence 3-5kHz, proximity-prone. On cabs/snare builds box/honk 300-500Hz. Weakness: thin lows, can be honky/harsh in upper mids.",
+        "character": "Mid-forward workhorse, 40Hz-15kHz. Presence peak 6-7kHz (+5 to +7dB) — an upward ramp from ~2kHz, only ~+2dB by 3kHz, hard rolloff above 10k; -10dB at 40Hz. Proximity +6 to +10dB below 100Hz at 6mm. Small dip 300-600Hz. Weakness: thin lows, and that 6-7k peak stabs on bright transient sources.",
         "tame": [
           {
             "freq": 400,

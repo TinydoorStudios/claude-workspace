@@ -13,7 +13,8 @@ know the answer cold from a prior show, the KB is the right source — but say s
 ## Per-source order (each step narrows the last)
 Order of importance = order of process (locked 2026-07-05; equipment named 2026-07-19):
 instrument (+its notated equipment) → mic → genre → venue. Genre is verified with named evidence
-before research starts; every unit closes with the five-layer TRACE line.
+before research starts; every unit closes with the five-layer TRACE (a `trace` object on
+its `research.units` row in a show spec, one line inline).
 The room bends hardest in dB but ranks last in authority — it trims and vetoes, never rewrites
 the instrument + mic foundation.
 

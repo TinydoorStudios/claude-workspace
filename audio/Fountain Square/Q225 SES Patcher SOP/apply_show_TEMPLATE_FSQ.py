@@ -8,8 +8,21 @@ This file holds only the FSQ template's calibration. Fix bugs in the
 engine (both venues inherit); recalibrate templates here.
 
 TEMPLATE: `Fountain Square/_TEMPLATE/brian fsq start.ses`
-(39,910,618 bytes — full console save, 2026-07-25; recalibrated same day
-against the desk-written USB original, calibration-test PASS).
+(39,910,618 bytes — full console save, installed 2026-07-26 from
+`~/.wine/drive_c/Projects/brian fsq start july 2026.ses`).
+
+The 2026-07-26 save is a RESAVE of the 2026-07-25 template, not a new
+layout: same size, byte-identical surface table, identical block bounds
+and EQ windows on all 64 faders. Constants below were re-verified, not
+changed; calibration test (ch 1/13/25) PASS on the new file.
+Audio deltas vs 2026-07-25 — Brian's console edits, all outside the
+patcher's write paths:
+  - faders 6/7/8 (Rack 1 / Rack 2 / Floor): native gate ENABLED,
+    thr -36.2 dB, rel 227 ms, sidechain band 130 Hz - 317 Hz.
+  - faders 45/46 (Dante 57/58): HPF value 1 -> 0.
+  - fader 10 (SNARE PL8): one enum byte 09 -> 02.
+Everything else that differs is the desk's object-ID renumbering.
+
 Retired constants for reference:
   - 3,779,766-byte template (resaved 2026-06-21): SURF_BASE 0xA5571,
     SCAN 0x2D3000..0x33F000 — archived at `_TEMPLATE/_retired/`.

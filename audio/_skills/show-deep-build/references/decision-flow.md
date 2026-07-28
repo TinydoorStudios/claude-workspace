@@ -17,7 +17,7 @@ Step 2a). Notated equipment (amp/cab model, drum sizes, strings, pickup type) ri
 instrument layer with the same research floor as a mic — a quantitative fact with a named source
 before it bends a value, cited in `mic_notes`/`eq_summary`. The room is often the biggest single
 bend in dB, but it ranks last in decision authority — it trims and vetoes, it never replaces the
-instrument + mic foundation. Each unit's chain lands in a closing TRACE line (base · equip ·
+instrument + mic foundation. Each unit's chain lands in a closing TRACE (base · equip ·
 genre · artist · venue, value or "no change" per layer — SKILL.md, audit line 15).
 
 Confidence is cumulative too. If you finished a step on a guess, you carry that uncertainty forward
@@ -181,8 +181,12 @@ A move that survives all five steps and doesn't trip a stop-and-ask is ready to 
 2. **Mic:** SM57. KB tendency: mid-forward workhorse, builds box/honk 300–500 Hz, thin lows, can be
    harsh upper-mids → *tame box ~400 Hz.*
 3. **Web → KB:** LAB/Gearspace consensus on 57-on-cab: HPF ~80–100, cut the 300–500 mud, presence
-   lives 2.5–4 k. KB agrees (box ~400, presence 3–5 k). **Agree → baseline:** HPF 100, cut ~400 box,
-   cut ~450 mud, lift presence ~2.5 k if the amp's dull.
+   lives 2.5–4 k. KB agrees on the box (~400) and adds the number the forums don't: the capsule's
+   own peak is at **6–7 k (+5 to +7 dB)**, not 3–5 k, and it dips slightly at 300–600 (Shure's
+   published curve — the row was corrected 2026-07-26). **Agree → baseline:** HPF 100, cut ~400 box
+   *lighter than reflex* because the capsule already dips there, cut ~450 mud, lift presence ~2.5 k
+   if the amp's dull — which is safe precisely because it's well below the 6–7 k peak. A lift at
+   5–6 k would have stacked that peak; that's the gate doing its job.
 4. **Genre (blues-rock):** wants body and warmth, moderate aggression; keep some low-mid, don't
    over-scoop. Tonal target: thick but present.
 5. **Venue (Memo, Q225):** 250–315 Hz standing wave overlaps the cab's low-mid mud — favor the cut at
