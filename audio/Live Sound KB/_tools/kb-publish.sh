@@ -57,7 +57,7 @@ if git diff --cached --quiet; then
 else
   git commit -m "$MSG" >/dev/null && ok "committed: $MSG"
 fi
-git push origin main && ok "pushed to origin/main" || warn "git push FAILED (PAT invalid?) — continuing to asset sync anyway"
+git push origin main && ok "pushed to origin/main" || warn "git push FAILED (deploy key? run: ssh -T git@github.com) — continuing to asset sync anyway"
 
 # ---- 3. rsync binary assets to the n8n VM ----
 log "rsync assets → n8n VM ($N8N_HOST:$KB_ASSETS)"

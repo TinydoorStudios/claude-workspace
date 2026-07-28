@@ -22,6 +22,11 @@ export KB_BASIC_AUTH="tds:CHANGE_ME"
 # Leave blank to skip the sidebar step (the home page still works as nav).
 export KB_WIKI_API_KEY=""
 
-# NOTE: the GitHub PAT lives in the repo's git remote URL, not here.
-# It is flagged COMPROMISED in the handoff — rotate it and update the remote:
-#   git -C "$KB_WIKI" remote set-url origin https://USER:NEW_TOKEN@github.com/TinydoorStudios/live-sound-kb.git
+# NOTE (2026-07-28): GitHub auth is SSH now — no PAT anywhere, nothing to put here.
+# The Wiki repo remote is git@github.com:TinydoorStudios/live-sound-kb.git and auth
+# comes from the ~/.ssh/config block for Host github.com → IdentityFile ~/.ssh/github_kb.
+# That key is registered as a WRITE DEPLOY KEY on the live-sound-kb repo (repo Settings →
+# Deploy keys, "brian mac (github_kb)"), not as an account key — it works for this repo
+# and no other. Sanity check:  ssh -T git@github.com
+#   → "Hi TinydoorStudios/live-sound-kb! You've successfully authenticated"
+# If that says Permission denied, the deploy key was removed or the key file moved.

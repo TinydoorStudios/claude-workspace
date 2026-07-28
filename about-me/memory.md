@@ -465,3 +465,15 @@ Regenerated the 2nd Wind Conclave packet in place (`.md` byte-identical, `.ses` 
 - Added: 2 entries to `active-projects.md` Q225 Show Pipeline (2026-07-27 FSQ template resave — tom gate on faders 6/7/8 now template baseline, calibration re-verified not changed; MASTER PDF quick-links + structured research-section upgrade) · 1 entry to `questions.md` (three pre-existing Wiki.js `errorCode 1` page failures — `/fx-echoes-t7e`, `/sop-esp-magewell-rx-recycle`, `/sop-esp-ndi-bridge-keeper` — surfaced 2026-07-26 but never flagged) · Updated: 2 (active-projects.md's 2nd Wind Conclave Completed Shows row — noted the template reconfirmation + MASTER regen; header/sync date bumped to 2026-07-28 — 0 contradictions resolved)
 - Archived/trimmed: 0 (oldest Session Notes entry is still 2026-06-29–30, inside the 30-day window — cutoff is 2026-06-28, one day off; next run rotates it)
 - Flagged to questions.md: 1 (Wiki.js publish failures, see Added above)
+
+### 2026-07-28 — KB GitHub push fixed: SSH deploy key replaces the compromised PAT
+
+The Wiki repo remote had been moved to SSH (`git@github.com:TinydoorStudios/live-sound-kb.git`) with a new `~/.ssh/github_kb` key and a `Host github.com` block in `~/.ssh/config`, retiring the PAT that had been in the remote URL and flagged compromised since June. Every push was failing with `Permission denied (publickey)` — Brian believed the key was on his GitHub account.
+
+It wasn't on GitHub at all. `github.com/TinydoorStudios.keys` returned empty (that endpoint lists every account authentication key, so an empty result rules out the whole account — and if the key had been on any other account, `ssh -T` would have authenticated and named it), and `gh api /repos/TinydoorStudios/live-sound-kb/keys` returned `[]`. Most likely it was pasted into the website's key form with the type left on Signing Key, which doesn't authenticate. Told Brian to delete it if it's still there.
+
+Fixed by registering the pubkey as a write deploy key on the repo via `gh api -X POST /repos/.../keys` (id 158595812, "brian mac (github_kb)") — the `gh` token has `repo` scope but not `admin:public_key`, so a repo-scoped deploy key was the path I could take without an interactive scope refresh. Verified: `ssh -T` answers `Hi TinydoorStudios/live-sound-kb!`, `ls-remote` and `push --dry-run` both clean.
+
+**The gotcha to remember:** a deploy key works for one repo, but the ssh config block is global and uses `IdentitiesOnly yes` — so every GitHub SSH connection from the Mac offers only this key. Any other repo over SSH from this Mac will fail identically. `claude-workspace` is on HTTPS via the `gh` credential helper, so it's fine. Account-level Authentication Key is the fix if SSH is ever wanted repo-wide.
+
+Docs/scripts brought in line: `kb-secrets.example.sh` PAT note replaced with the deploy-key note + `ssh -T` check, `kb-publish.sh` and `~/.claude/scripts/kb-git-push.sh` failure messages point at `ssh -T`, and the launchd auto-sync now logs `push FAILED` instead of only logging successes — a silent push failure is exactly what let the June ref-lock rejection sit unnoticed in `kb-git-push.err`. KB CHANGELOG entry added.

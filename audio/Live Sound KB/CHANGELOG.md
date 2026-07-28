@@ -1,3 +1,15 @@
+## 2026-07-28 — KB push moves off the PAT to an SSH deploy key
+
+The Wiki repo's remote is now `git@github.com:TinydoorStudios/live-sound-kb.git`, and the plaintext PAT that used to sit in the remote URL is gone — the one that had been flagged compromised since June. Auth comes from a `Host github.com` block in `~/.ssh/config` pointing at `~/.ssh/github_kb`.
+
+That key was created but never actually landed on GitHub, so every push failed with `Permission denied (publickey)` until today. Two checks proved where it wasn't: `github.com/TinydoorStudios.keys` came back empty, meaning no authentication key on the account at all, and `gh api /repos/TinydoorStudios/live-sound-kb/keys` returned `[]`. The likely cause is a paste into the website's key form with the type left on Signing Key, which authenticates nothing. Worth deleting if it's still sitting there.
+
+Fixed by registering the pubkey as a write-enabled deploy key on the repo (Settings → Deploy keys, "brian mac (github_kb)"). `ssh -T git@github.com` now answers `Hi TinydoorStudios/live-sound-kb!` and `git push --dry-run` from the Wiki repo reports up to date.
+
+The catch to remember: a deploy key is scoped to one repo, and the `~/.ssh/config` block is not — `IdentitiesOnly yes` means every GitHub SSH connection from the Mac offers this key and only this key. Any other repo pushed over SSH from here will fail the same way. `claude-workspace` is on HTTPS with the `gh` credential helper, so it's unaffected. An account-level Authentication Key is the fix if SSH is ever wanted repo-wide.
+
+Docs and scripts updated to match: `_tools/kb-secrets.example.sh` no longer tells you to put a token in the remote URL, `_tools/kb-publish.sh` and `~/.claude/scripts/kb-git-push.sh` point at `ssh -T` in their failure messages, and the launchd auto-sync now writes a `push FAILED` line to `kb-git-push.log` instead of only logging successes — a silent push failure is what let the June ref-lock rejection sit unnoticed in the `.err` file.
+
 ## 2026-07-26 — House wireless gets fixed faders and a mult rule
 
 Wireless 1–4 land on **FSQ faders 33–36** and **Memo faders 41–44** — put anything on a wireless row of the input list and that's where it goes, no thought required. Both numbers were checked against the patcher templates' surface-label tables rather than taken on faith: FSQ 33–36 read 'Wireless 1'–'Wireless 4', Memo 41–44 the same with the W1–W4 monitor sends following at 45–48.
