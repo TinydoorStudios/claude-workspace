@@ -173,11 +173,20 @@ def channel_header(ch_num, ch_name, mic_name, accent_bg):
     return t
 
 
+def _esc(s):
+    """Escape user prose for reportlab's Paragraph markup parser.
+
+    An unescaped "&" (e.g. "R&B") is read as a malformed entity and renders as
+    "R&B;". Caught on the 2026-08-01 Repertoire build.
+    """
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
 def mic_notes_box(text):
     """Warm cream box for mic character notes."""
     s = mks('mn', 'Normal', fontSize=8.5, textColor=colors.HexColor("#333333"),
             fontName='Helvetica', alignment=TA_LEFT, leading=12)
-    t = Table([[Paragraph(f'<b>Mic Notes:</b> {text}', s)]], colWidths=[7.3 * inch])
+    t = Table([[Paragraph(f'<b>Mic Notes:</b> {_esc(text)}', s)]], colWidths=[7.3 * inch])
     t.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), SECTION_BG),
         ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor("#3A3A3A")),
@@ -193,7 +202,7 @@ def engineer_notes_box(text, console="wing"):
     dark, mid, accent = get_console_colors(console)
     s = mks('su', 'Normal', fontSize=8.5, textColor=colors.HexColor("#333333"),
             fontName='Helvetica-Oblique', alignment=TA_LEFT, leading=12)
-    t = Table([[Paragraph(f'<b>Engineer Notes:</b> {text}', s)]], colWidths=[7.3 * inch])
+    t = Table([[Paragraph(f'<b>Engineer Notes:</b> {_esc(text)}', s)]], colWidths=[7.3 * inch])
     t.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#FAF6EE")),
         ('BOX', (0, 0), (-1, -1), 0.6, accent),
@@ -736,7 +745,7 @@ def build_cover_page(show_name, venue, date, console_label, foh_engineer,
     story.append(cnt_t)
     story.append(Spacer(1, 0.2 * inch))
 
-    style_t = Table([[Paragraph(f"<b>SHOW STYLE:</b> {style_note}", note_s)]],
+    style_t = Table([[Paragraph(f"<b>SHOW STYLE:</b> {_esc(style_note)}", note_s)]],
                     colWidths=[7.3 * inch])
     style_t.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#FEF3C7")),

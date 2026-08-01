@@ -3246,6 +3246,89 @@
           "/venue-memorial-hall"
         ]
       ]
+    },
+    {
+      "slug": "shure-pg52",
+      "name": "Shure PG52",
+      "category": "Dynamic",
+      "owned": true,
+      "status": "Owned — in locker",
+      "tags": [
+        "mic",
+        "dynamic",
+        "cardioid",
+        "shure",
+        "kick",
+        "bass-cab",
+        "discontinued",
+        "owned"
+      ],
+      "description": "Cardioid dynamic kick mic — the pre-PG-ALTA generation. Its real strength is bass cabinets.",
+      "summary": "Sold as a budget kick mic and judged as one it comes up short against a Beta 52. Point it at a bass cabinet instead and the same voicing — a hump at 60–100 Hz over a broad midrange dip — turns into exactly the right shape.",
+      "sources": "Shure PG52 Product Specifications, ©2008 Shure Incorporated (spec sheet, including the published response and polar plots); RecordingHacks PG52; live-sound forum consensus (Gearspace \"Shure Pg52\", HomeRecording \"PG52 vs Beta 52\", TalkBass \"Shure PG-52 for miking bass amp?\")",
+      "photo_source_url": "Brian Lloyd — photograph of his own unit (mic is discontinued; no current manufacturer product shot).",
+      "intro": "Shure's pre-ALTA budget kick mic, discontinued and superseded by the PGA52. On kick it is honestly a step down from a Beta 52 — less detailed, less open — and the forums say so without much hedging. What the same forums also say, consistently, is that it finds its place on bass cabinets, and the published response explains why: a hump around 60–100 Hz sitting over a broad dip through the low mids is a mediocre kick voicing and a very good bass-cab one. Worth knowing which of those two jobs you handed it.",
+      "specs": {
+        "Type": "Dynamic (moving coil, neodymium magnet)",
+        "Polar pattern": "Cardioid (unidirectional)",
+        "Frequency response": "30 Hz – 13,000 Hz",
+        "Output impedance": "300 Ω",
+        "Sensitivity (at 1 kHz)": "−55 dBV/Pa (1.8 mV), 1 Pascal = 94 dB SPL",
+        "Electromagnetic hum sensitivity": "25 dB equivalent SPL in a 1 millioersted field (60 Hz)",
+        "Polarity": "Positive pressure on the diaphragm produces positive voltage on pin 2",
+        "Output connector": "3-pin XLRM",
+        "Phantom power": "Not required",
+        "Weight": "470 g (16.8 oz) net",
+        "Case": "Die-cast metal, black matte; hardened silver tapered steel mesh grille; built-in locking stand adapter",
+        "Mounting": "Integral swivel stand mount",
+        "Environmental": "−29 to 57 °C, 0 to 95% RH",
+        "Status": "Discontinued — superseded by the PGA52 (PG ALTA, 50 Hz – 12 kHz)"
+      },
+      "sound": "The published curve does three things and you can hear all of them. There is a hump around 60–100 Hz, then a broad dip through roughly 200–800 Hz, then a presence rise at 4–5 kHz before it rolls off hard above 10 kHz. On a kick that reads as a scooped, slightly one-dimensional sound — the mid dip takes out the body a Beta 52 keeps, and the top is not detailed enough to make the beater interesting. On a bass cabinet the same curve is a gift: the hump is the cab moving air, the dip sits exactly where a bass DI is already carrying the note, and the presence rise is easy to trim away. Distance sets the hump. It also does honest work on a floor tom, where the bottom is right and the snap is the thing you will miss.",
+      "bestfit": [
+        "Bass cabinet — the one place the forums put it above its price. Let the 60–100 Hz hump through and take the definition from the DI.",
+        "Floor tom — good reproduction of the bottom; expect to want more snap than it gives.",
+        "Kick — it works, but it is the mic you use when the Beta 52 and the D6 are already committed elsewhere.",
+        "Any large, loud low-frequency source where a rugged dynamic and a 470 g body are the practical answer."
+      ],
+      "notes": [
+        "Do not boost 60–100 Hz — the capsule already humps there. Own the low end by letting it through, not by adding to it.",
+        "Do not cut 200–800 Hz either. The mic dips through that region by design, and cutting into a baked scoop hollows the source out. If a box cut is needed, sit it at ~160 Hz on the shoulder instead.",
+        "Trim the 4–5 kHz presence rise rather than boosting anywhere near it.",
+        "Rolls off hard above 10 kHz, so an LPF around 6 kHz costs nothing on a bass cab and keeps stage bleed down outdoors.",
+        "Against a Beta 52 on kick: the Beta 52 is more detailed and more open, with its own baked 400 Hz dip and 4 kHz beater peak. The consensus is blunt — the PG52 is not a replacement for it on kick.",
+        "Against the PGA52 that replaced it: the PGA52 publishes 50 Hz – 12 kHz, so the PG52 reaches lower on paper.",
+        "No phantom required. 300 Ω output and a −55 dBV/Pa sensitivity mean it wants a bit more gain than a Beta 52.",
+        "Discontinued — no service parts from Shure. Brian's own unit, confirmed 2026-07-30."
+      ],
+      "comparable": [
+        [
+          "Shure Beta 52",
+          "The step up on kick — more detail and openness, baked 4 kHz beater peak"
+        ],
+        [
+          "Audix D6",
+          "Pre-scooped modern kick voicing; needs almost no EQ"
+        ],
+        [
+          "Sennheiser MD 421-U (Silver Tail)",
+          "More low-mid girth on a cab, at the cost of 200–400 Hz bloat up close"
+        ]
+      ],
+      "related": [
+        [
+          "Mic Library",
+          "/mic-library"
+        ],
+        [
+          "EQ Starting Points",
+          "/eq-starting-points"
+        ],
+        [
+          "Fountain Square (FSQ)",
+          "/venue-fountain-square"
+        ]
+      ]
     }
   ]
 }

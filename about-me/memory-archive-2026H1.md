@@ -151,3 +151,34 @@
 - **Tailscale `-J tds` jump no longer prompts for browser re-auth.** Root cause: the tailnet policy's default `ssh` rule used `"action": "check"` (periodic re-auth for `autogroup:self`/root, ~12h). Changed it to `"action": "accept"` in the Tailscale admin ACL (line 54). Brian made the save (I won't commit access-control changes); I gave the exact one-word edit and re-ran the jump test = clean. Applies to all `-J tds` jumps (SPL + KB stack). Updated `~/.claude/CLAUDE.md` SPL section + `spl-monitor-host` memory.
 - Durable facts promoted before archiving (2026-07-19 consolidation): 63 Hz band + Bass Watch panel already folded into `active-projects.md` SPL Monitor entry (2026-07-16 pass); Tailscale ACL fix already lives in `~/.claude/CLAUDE.md` SPL section + `spl-monitor-host` auto-memory.
 
+### 2026-06-29–30 — FSQ L-Acoustics Network Manager SOP built + published
+- Built from 8+ screenshots in `SOP Stuff/FSQ/L-Acoustics Network Manager/`: connect to amps, load checker, restore session, confirm restore flow. Output: `FSQ-SOP-LA-Network-Manager.pdf`.
+- Pushed to the wiki: `kb.tinydoorstudios.com/sop-fsq-la-network-manager`, PDF at `/assets/sops/fsq/fsq-la-network-manager-sop.pdf`. GitHub push + n8n VM asset sync confirmed; Wiki.js force-sync and nav-sidebar rebuild both skipped (normal — same known gaps as every other wiki-publish run, auto-resolve within 5 min / need `WIKI_API_KEY`).
+- Durable facts promoted before archiving (2026-07-29 consolidation): this SOP had no canonical-file presence outside the wiki page itself — pointer entry added to `active-projects.md` Tools & Infrastructure.
+
+### Hog5 lighting programming (session date not captured — flagging, not asserting)
+- A session covered Hog5 command-key cue programming (toggle-style engage/release on a blue-out look, fade-in/release timing, kind-mask discipline at Record) and researched whether Hog5 showfiles (`.h3`) can be processed externally — they're SQLite databases under the hood, readable but ETC doesn't publish the schema, so editing is possible but risky. This is a new domain — not lighting console work Brian's about-me/CLAUDE.md currently covers at all.
+- Durable fact preserved before archiving (2026-07-29 consolidation): the open question (recurring responsibility or one-off?) already lives in `questions.md` under Lighting — nothing else here to promote.
+
+### July 1, 2026 (SPL Monitor — show/engineer banner + nightly email)
+- Shipped the show/engineer banner (tonight's FSQ show + mix engineer, cross-referenced from three public Google Sheets) and a matching lead-in on the nightly summary email. New `backend/showinfo.py` (`ShowInfoTracker`), `GET /api/show-info` endpoint, frontend banner under the top bar. Verified live against 7/1/26 data (schedule + band + crew-code sheets all resolved correctly).
+- Config (sheet IDs/gids/columns) lives in `config.json` under `showInfo`, no secrets. Dependency: VM needs outbound HTTPS to `docs.google.com`, fails soft if blocked.
+- Also fixed: Tailscale `-J tds` jump no longer prompts for browser re-auth (tailnet ACL `ssh` rule `"action": "check"` → `"action": "accept"`).
+- Not yet done at the time: non-technical dashboard guide didn't cover the new banner — flagged, not blocking.
+- Durable facts promoted before archiving (2026-07-31 consolidation): show/engineer banner + nightly email already folded into `active-projects.md`'s SPL Monitor entry (added same week); Tailscale ACL fix already lives in `~/.claude/CLAUDE.md` SPL section + `spl-monitor-host` auto-memory (per the 2026-06-17 entry above).
+
+### July 1, 2026 (evening — Memo template swap + pipeline review)
+- Replaced the Memo `.ses` template (`brian memo june 2026.ses`, full console save) and rebuilt the Memo patcher on the FSQ engine — calibration derived by structural scan, smoke test PASS. First show build still needed a console load + Brian's "verified" at the time (later closed 2026-07-16).
+- Wrote Deep Think EQ into both pipeline specs (every channel's EQ from show-deep-build driving eq-advisor; EQ Rationale PDF required).
+- Delivered a pipeline efficiency review (6 improvement candidates) — all approved and shipped the same night (see next entry).
+- Durable facts promoted before archiving (2026-07-31 consolidation): Memo template replacement + patcher rebuild + console-verification gate (opened/closed) already fully documented in `active-projects.md`'s "Q225 Show Pipeline" entry.
+
+### July 1, 2026 (late — efficiency pass executed)
+- Shipped all six approved pipeline improvements same night: shared `.ses` engine (`_shared/q225_ses_engine.py`, both venue patchers now thin wrappers), `md_lint.py` auto-gate, full every-channel readback on every build, new-show scaffold skill, send-it KB-mirror retirement (reads live KB), CLAUDE.md slim-down.
+- Durable facts promoted before archiving (2026-07-31 consolidation): shared engine + auto-lint + readback already documented in `active-projects.md`'s "Q225 Show Pipeline" entry ("Shared engine" bullet).
+
+### July 1, 2026 (late night — ShowBuilder improvement pass + VM redeploy)
+- Reviewed the ShowBuilder app end-to-end, shipped and deployed the same night. New standing rule: every show starts at a 32-channel baseline (crowd mics on top, not counted) — wizard defaults to 32 rows everywhere.
+- Wizard: genre field, Patch column for explicit overrides, localStorage autosave with Restore/Discard banner, Import brief… flow, venue-switch/set-rows guards. Server: overwrite confirm, unauth `GET /health`, package-role inbox, hardened auth, mobile card layout <760px. Ops: one-shot redeploy script, DEPLOY.md rewrite, live VM e2e verified.
+- Durable facts promoted before archiving (2026-07-31 consolidation): this entire pass had never been promoted into `active-projects.md`'s ShowBuilder entry (which was still dated June 16, 2026) — added in full this pass, including the 32-channel-baseline standing rule, which existed nowhere outside this memory.md entry until now.
+

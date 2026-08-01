@@ -129,6 +129,7 @@ Read this at the start of every Cowork session. No need to confirm you've read i
 | Beta 58A | Shure Beta 58A | Supercardioid dynamic | Vocals |
 | Beta 98H/C | Shure Beta 98H/C | Clip-on condenser | Horns (clip-on) |
 | ND408 | Electro-Voice N/D 408 — vintage first-gen (no letter suffix), supercardioid N/DYM. Any "408" I write on a snare = the Lauten LS-408, not this | Dynamic | Rack toms (small-footprint 421 alternative), guitar cab, snare |
+| PG52 | Shure PG52 — discontinued pre-ALTA kick mic (superseded by the PGA52) | Dynamic | **Bass cabinet** (its real strength), floor tom; kick only when the Beta 52 and D6 are both committed |
 | MD421 | Sennheiser MD 421-U (Silver Tail) — vintage 1970s, native XLR, NOT the MD 421-II. Any "421" I write = the 421-U | Dynamic | Toms (first choice), brass, guitar cabs |
 | RNDI | Rupert Neve Designs RNDI | Active transformer DI | Bass, electric guitar, keys |
 | J48 | Radial J48 | Active DI | Bass DI |

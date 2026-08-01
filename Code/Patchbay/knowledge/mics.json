@@ -492,6 +492,18 @@
       "type": "dynamic",
       "phantom": false,
       "ribbon": false
+    },
+    {
+      "name": "Shure PG52",
+      "aka": [
+        "PG52",
+        "PG-52",
+        "Shure PG52",
+        "pg52"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false
     }
   ]
 }

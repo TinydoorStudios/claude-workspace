@@ -1,0 +1,19 @@
+{
+  "show": "Repertoire",
+  "venue": "Fountain Square",
+  "date": "2026-08-01",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-07-30T21:42:41",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-07-30T22:24:40",
+      "note": "17 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-07-30T22:24:40",
+      "note": "fsq \u00b7 17 channels \u00b7 Repertoire.ses"
+    }
+  }
+}

@@ -93,6 +93,10 @@
         {
           "label": "Echoes T7E mkII (FX)",
           "path": "/fx-echoes-t7e"
+        },
+        {
+          "label": "Echoes T7E — Preset Library",
+          "path": "/fx-echoes-t7e-presets"
         }
       ]
     },

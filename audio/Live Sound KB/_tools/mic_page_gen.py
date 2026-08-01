@@ -213,17 +213,22 @@ def main():
                     help="(re)write library thumbnails, index links, nav")
     args = ap.parse_args()
     data = json.load(open(args.data))
-    mics = data["mics"] if isinstance(data, dict) else data
+    all_mics = data["mics"] if isinstance(data, dict) else data
+    mics = all_mics
     if args.slug:
-        mics = [m for m in mics if m["slug"] == args.slug]
+        mics = [m for m in all_mics if m["slug"] == args.slug]
         if not mics:
             sys.exit(f"no mic with slug {args.slug}")
     built = [build_one(m) for m in mics]
     print(f"built {len(built)} page(s): {', '.join(built)}")
     if args.wire:
+        # Always wire from the FULL record set. wire_all() regenerates the whole
+        # gallery block between its markers, so handing it a --slug-filtered list
+        # wiped every other tile — which is how the gallery ended up holding a
+        # single mic. (Fixed 2026-07-30, caught adding the Shure PG52.)
         from mic_wire import wire_all
-        wire_all(mics)
-        print("wired library / index / nav")
+        wire_all(all_mics)
+        print(f"wired library / index / nav — gallery rebuilt from {len(all_mics)} records")
 
 if __name__ == "__main__":
     main()

@@ -308,3 +308,27 @@ Full audit + fix pass on the Claude structure itself. The changes that affect ho
 **Files:** `audio/show-packet-builder-template.py` (biquad helpers, `eq_curve_card`, `curve_from_rows`, card inserted in `build_eq_pages`), `_skills/show-deep-build/scripts/build_packet.py` (numeric `curve` per channel in `build_packet_pdf`).
 
 **Not done:** the standalone `build_eq_pdf.py` (eq-advisor output) and the rationale PDF's compact per-channel blocks don't carry the card — different layouts, and Brian asked for the input pages.
+
+## 2026-07-30 — two builder bugs fixed during the Repertoire FSQ build
+
+**1. `mic_page_gen.py --slug X --wire` was wiping the Locker Gallery.** `main()` filtered the
+record list down to the requested slug and then passed that filtered list to `wire_all()`, which
+regenerates the entire gallery block between its `MIC-GALLERY` markers. Net effect: every wire
+run left the gallery holding exactly one mic — which is why it had contained only the EV N/D 408
+since 2026-07-26, and presumably only the previous mic before that. `wire_all()` now always
+receives the full record set regardless of `--slug`; the gallery rebuilt from all 55 records
+across all seven categories. Follow-on flagged to `questions.md`: 53 of the 55 tiles have no
+photo and render as navy placeholders, so either bulk-source product shots (`import_photos.py`
++ `PHOTO-MANIFEST.md`) or filter the gallery to photographed mics.
+
+**2. `show-packet-builder-template.py` was not escaping user prose into reportlab markup.**
+Show style, mic notes and engineer notes went straight into `Paragraph()`, so a bare `&` is read
+as a malformed entity — "R&B" rendered as "R&B;" on the packet cover and in the engineer notes.
+`build_packet.py` already had an `esc()` for the Rationale PDF; the packet builder had none.
+Added a shared `_esc()` and applied it to all three call sites. Caught by eyeballing the rendered
+MASTER before delivery, which is exactly what that step is for.
+
+Also this session: the **Audix D4** mic-library character row was corrected against Audix's
+current published chart (+6 dB @ 5 kHz, rolloff below 70 Hz — not "reaches 35 Hz, less upper-mid
+attack"), and the **Shure PG52** was researched and added to the locker via the full
+NEW-MIC-WORKFLOW. Both logged in the KB CHANGELOG.

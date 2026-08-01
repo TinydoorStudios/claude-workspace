@@ -1012,6 +1012,32 @@
         ],
         "research": "web-verified 2026-07-26 (EV N/D 408B data sheet 531818-201; Gearspace / HomeRecording / Tape Op consensus)"
       }
+    },
+    {
+      "name": "Shure PG52",
+      "aka": [
+        "PG52",
+        "PG-52",
+        "Shure PG52",
+        "pg52"
+      ],
+      "type": "dynamic",
+      "phantom": false,
+      "ribbon": false,
+      "notes": "Discontinued Shure kick mic (pre-PG-ALTA). Best use is a BASS CABINET, not kick.",
+      "eq": {
+        "character": "Cardioid dynamic, 30Hz-13kHz, 300 ohm, -55 dBV/Pa, neodymium, internal shock mount, 470g. Published curve humps 60-100Hz, dips broadly through 200-800Hz, rises at 4-5kHz, rolls off hard above 10kHz. Sold as a kick mic and a step below a Beta 52 there; community rates it well above its price on BASS CABINETS, where that curve is the right shape. Weakness: less detailed and open than a Beta 52; lacks snap on toms.",
+        "soften": {
+          "presence": 0.6
+        },
+        "never_boost": [
+          "60-100Hz hump — own the low end by letting it through"
+        ],
+        "never_cut": [
+          "200-800Hz dip — put a box cut at ~160Hz instead"
+        ],
+        "research": "web-verified 2026-07-30 (Shure PG52 spec sheet (c)2008; RecordingHacks; Gearspace/HomeRecording/TalkBass)"
+      }
     }
   ]
 }
