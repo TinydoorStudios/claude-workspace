@@ -8,20 +8,28 @@ This file holds only the FSQ template's calibration. Fix bugs in the
 engine (both venues inherit); recalibrate templates here.
 
 TEMPLATE: `Fountain Square/_TEMPLATE/brian fsq start.ses`
-(39,910,618 bytes — full console save, installed 2026-07-26 from
+(39,910,700 bytes — full console save, installed 2026-08-01 from
 `~/.wine/drive_c/Projects/brian fsq start july 2026.ses`).
 
-The 2026-07-26 save is a RESAVE of the 2026-07-25 template, not a new
-layout: same size, byte-identical surface table, identical block bounds
-and EQ windows on all 64 faders. Constants below were re-verified, not
-changed; calibration test (ch 1/13/25) PASS on the new file.
-Audio deltas vs 2026-07-25 — Brian's console edits, all outside the
-patcher's write paths:
-  - faders 6/7/8 (Rack 1 / Rack 2 / Floor): native gate ENABLED,
-    thr -36.2 dB, rel 227 ms, sidechain band 130 Hz - 317 Hz.
-  - faders 45/46 (Dante 57/58): HPF value 1 -> 0.
-  - fader 10 (SNARE PL8): one enum byte 09 -> 02.
-Everything else that differs is the desk's object-ID renumbering.
+The 2026-08-01 save is a RENAME-ONLY RESAVE of the 2026-07-26 template:
+identical block bounds, EQ windows and LPF offsets on all 64 faders, and
+ZERO changes to any EQ / filter / DEQ / Mustard / protected-tag value
+anywhere in the channel blocks (parameter-level diff, not a byte guess).
+Only two constants changed below — template_size and two surface names.
+Calibration test (ch 1/13/25) PASS on the new file.
+Deltas vs 2026-07-26:
+  - fader 57 'Ch 57' -> 'Click - Tempo'   (all 20 name copies)
+  - fader 58 'Ch 58' -> 'FOH Playback'    (all 20 name copies)
+  - +82 bytes at 0x260F569, in the macro/panel table well past every
+    patcher write path: a new macro entry 'Auto Tempo' (sits right after
+    'Aux to Faders panel'). Name slots are fixed width, so the renames
+    themselves cost nothing and shifted no offsets.
+Everything else that differs is the desk's object-ID renumbering
+(~3,100 six-byte runs).
+
+Prior template (2026-07-26, 39,910,618 bytes) audio baseline, still true:
+faders 6/7/8 (Rack 1 / Rack 2 / Floor) ship the native gate ENABLED —
+thr -36.2 dB, rel 227 ms, sidechain band 130 Hz - 317 Hz.
 
 Retired constants for reference:
   - 3,779,766-byte template (resaved 2026-06-21): SURF_BASE 0xA5571,
@@ -33,9 +41,10 @@ wholesale: surface table at 0x231A42C, current-scene channel blocks at
 0x2548000..0x25A3200 on a uniform 0x16AE stride, 19 in-block name copies
 per fader (+1 surface slot = name×20). Block mode stays 'scan'.
 
-CHANGED FADERS vs the retired template: 45/46 are no longer 'Ch 45'/'Ch 46'
-— the desk auto-named them '4:Dnt64 57'/'4:Dnt64 58' (Dante card ports
-57/58). All other 62 surface names are unchanged.
+NAMED SPARES: 45/46 are '4:Dnt64 57'/'4:Dnt64 58' (the desk auto-named
+them after the Dante card ports). As of 2026-08-01, 57/58 are named too —
+'Click - Tempo' and 'FOH Playback' — so the free spare range is now
+faders 47-56, not 47-58.
 
 BASELINE: vocals/wireless (faders 25-36) ship a starting curve (HPF 184,
 B4 -18 @5k Q20, B2 -6.3 @335); instrument channels 1-24 are flat.
@@ -63,7 +72,7 @@ from q225_ses_engine import main_cli   # noqa: E402
 
 CAL = dict(
     venue='fsq',
-    template_size=39_910_618,
+    template_size=39_910_700,
     # Template channel-map gotchas (Brian, 2026-07-08, Hot Magnolias):
     #   fader 9 'Overheads' is a STEREO channel — BOTH overhead mics live on
     #   that one fader; never split an OH pair across 9/10.
@@ -91,8 +100,8 @@ CAL = dict(
         'Bricasti 3', 'Bricasti 4', '4:Dnt64 57', '4:Dnt64 58', 'Ch 47',
         'Ch 48',
         'Ch 49', 'Ch 50', 'Ch 51', 'Ch 52', 'Ch 53', 'Ch 54', 'Ch 55',
-        'Ch 56', 'Ch 57', 'Ch 58', 'Mon 2 FOH', 'RTA', 'Hotshot 2 FOH',
-        'Tech Feed', 'Crowd', 'Pandora',
+        'Ch 56', 'Click - Tempo', 'FOH Playback', 'Mon 2 FOH', 'RTA',
+        'Hotshot 2 FOH', 'Tech Feed', 'Crowd', 'Pandora',
     ],
 )
 
