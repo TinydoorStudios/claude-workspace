@@ -1,3 +1,15 @@
+## 2026-08-02 — Gear Tickets goes live: one QR code, a model doing triage, and five n8n traps
+
+The crew can now report broken gear by scanning a sticker — [Gear Tickets](/gear-tickets), live at tickets.tinydoorstudios.com. Name, contact, site, what happened, photos, and it's filed in about thirty seconds with no login. Postgres holds the ledger, a Groq model writes the title and category and flags duplicates, Monday carries the working queue, and Slack `#gear-repair` gets a real-time post led by the severity.
+
+It shipped with one code, not five. The original build made a code per venue with the Venue field prefilled, which is tidy right up until a case moves from Fountain Square to Washington Park and starts filing every ticket against the wrong plaza. Gear moves and stickers don't, so venue is a required dropdown and the crew taps once.
+
+Monday failures are soft on purpose. The Slack post used to sit downstream of the Monday nodes and read the item ID directly, so a Monday outage would have cost the alert too — the opposite of what the design promised. It now posts unlinked with a line saying the ticket is in Postgres only. Tested by pointing the Monday nodes at a deliberately broken URL and confirming the post still arrived.
+
+Five things about n8n came out of this build that apply to every workflow on that VM, not just this one. **Postgres node Query Parameters comma-split the resolved value**, so one comma in a description shifts every parameter into the wrong column, silently — pass an array expression instead. **A node returning zero items ends the branch and still reports success**: the duplicate-check query excludes the current ticket, so on an empty database the very first ticket died with a green tick and no triage, no Monday item and no Slack. **Binary data is only reachable from the node it arrives at** — `getBinaryStream` and `getBinaryPath` are both blocked in the Code sandbox and binary is stored as `filesystem-v2`, so photos are written straight off the form trigger and moved later. **`$json` after a Postgres node holds only what that query RETURNED.** And **`$env` in expressions needs `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`**, with the compose file's explicit environment list meaning a variable in `.env` alone never reaches the container.
+
+Two things left open. The Slack credential is a user token, so posts appear as Brian — fine while the channel is his alone, worth swapping to a bot before crew are added. And there's no gate on the form; the `k=fsq26` parameter the old QR URLs carried was never checked by anything, so it was dropped rather than left implying a check that didn't exist.
+
 ## 2026-07-31 — Echoes T7E preset library documented, and two corrections to the control article
 
 All 51 presets installed in Audiority Echoes T7E mkII are now mapped in [Echoes T7E mkII — Preset Library](/fx-echoes-t7e-presets), read straight out of their `.aup` files at `/Users/Shared/Audiority/Presets/Echoes T7E mkII/` rather than from Audiority's marketing list. Each preset carries a written description of what it actually does, a use case, and its stored settings — play mode, echo mode, head-matrix position, every knob value, and per-head volume, tone, error and pan. The [spreadsheet](/assets/fx/echoes-t7e/echoes-t7e-mkii-preset-reference.xlsx) has the full grid across three tabs.
@@ -352,4 +364,25 @@ The finding worth keeping: it is sold as a kick mic and the forums are blunt tha
 **3. `mic_page_gen.py --slug X --wire` was wiping the Locker Gallery.** `main()` filtered the record list down to the requested slug and then handed that filtered list to `wire_all()`, which regenerates the entire gallery block between its markers — so every wire run left the gallery holding exactly one mic. That is why it had contained only the N/D 408 since 2026-07-26. `wire_all()` now always receives the full record set; the gallery rebuilt from all 55 records across all seven categories. Worth knowing that mics without photos render as navy placeholders, which is the documented and intended state.
 
 Also fixed the same day, outside the KB: `show-packet-builder-template.py` was passing show style, mic notes and engineer notes into reportlab `Paragraph` markup unescaped, so an "&" rendered as a malformed entity — "R&B" came out as "R&B;" on the cover and in the notes of the Repertoire packet. A shared `_esc()` helper now escapes all three.
+
+## 2026-08-02 — FSQ double-header built (The Shades + Ric Sexton)
+
+Two separate Fountain Square shows for the same night on a shared backline, built through the
+full deep pipeline: `Fountain Square/2026-08-02 The Shades/` and `2026-08-02 Ric Sexton/`.
+Both ship packet + Input List xlsx + Show Packet PDF + EQ Reasoning PDF + MASTER PDF + `.ses`
+(spec validation PASS 0 warnings, md_lint PASS, patcher 0 bytes changed outside mic'd blocks,
+readback PASS on all 17 faders, output size identical to the template). Neither is published.
+
+Learning-log entry written to `_learning/eq-advisor-log.md`; both rows added to
+`active-projects.md` → Completed Shows.
+
+Standing KB gaps re-confirmed and still unfixed (staged, not written):
+- **Audix D6 row** — mid scoop should read 700–750 Hz, not ~600, and the +17 dB @ 10–12 kHz
+  peak is missing. Third consecutive show log to flag this.
+- **Bass DI + cab blend** — no row anywhere. The researched rule is concrete: DI owns below
+  100 Hz, cab mic above 100 Hz, HPF the cab at 100 as the lane boundary.
+- **Keyboards / line-level boards** — still no row after three builds.
+- **Processed artist pedal → XLR line feeds** — no guidance at all.
+- **Humidity-inverts-the-HF-call** — now holds on two consecutive FSQ shows (96% RH on 8/1,
+  87–94% on 8/2). Ready to promote from the auto-memory note into `eq-starting-points`.
 

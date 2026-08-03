@@ -1,0 +1,19 @@
+{
+  "show": "Ric Sexton",
+  "venue": "Fountain Square",
+  "date": "2026-08-02",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-08-01T23:59:10",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-08-02T00:19:31",
+      "note": "17 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-08-02T00:19:55",
+      "note": "fsq \u00b7 17 channels \u00b7 Ric Sexton.ses"
+    }
+  }
+}

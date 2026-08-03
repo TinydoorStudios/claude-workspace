@@ -112,11 +112,11 @@
           "path": "/show-processing-pipeline"
         },
         {
-          "label": "Pipeline Spec \u2014 Memo",
+          "label": "Pipeline Spec — Memo",
           "path": "/pipeline-spec-memo"
         },
         {
-          "label": "Pipeline Spec \u2014 FSQ",
+          "label": "Pipeline Spec — FSQ",
           "path": "/pipeline-spec-fsq"
         },
         {
@@ -134,6 +134,10 @@
         {
           "label": "SPL Monitor — Compliance Dashboard",
           "path": "/spl-monitor"
+        },
+        {
+          "label": "Gear Tickets — QR Reporting",
+          "path": "/gear-tickets"
         }
       ]
     },
@@ -145,11 +149,11 @@
           "path": "/sops"
         },
         {
-          "label": "FSQ \u2014 Hotshot Comms",
+          "label": "FSQ — Hotshot Comms",
           "path": "/sop-fsq-hotshot-comms"
         },
         {
-          "label": "FSQ \u2014 M32 Failover",
+          "label": "FSQ — M32 Failover",
           "path": "/sop-fsq-m32-failover"
         },
         {
@@ -157,15 +161,15 @@
           "path": "/sop-fsq-la-network-manager"
         },
         {
-          "label": "Memo \u2014 One-Button Record Chain",
+          "label": "Memo — One-Button Record Chain",
           "path": "/sop-memo-reaper-record-chain"
         },
         {
-          "label": "ESP \u2014 Magewell RX Recycle",
+          "label": "ESP — Magewell RX Recycle",
           "path": "/sop-esp-magewell-rx-recycle"
         },
         {
-          "label": "ESP \u2014 NDI Bridge Keeper",
+          "label": "ESP — NDI Bridge Keeper",
           "path": "/sop-esp-ndi-bridge-keeper"
         }
       ]
@@ -191,7 +195,7 @@
       "header": "Misc",
       "links": [
         {
-          "label": "Grow Tent \u2014 Propagation Reference",
+          "label": "Grow Tent — Propagation Reference",
           "path": "/misc-grow-tent-propagation"
         }
       ]

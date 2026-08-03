@@ -1,0 +1,215 @@
+{
+  "id": "GearTixSheetSync",
+  "name": "Gear Tickets — Sheet Log Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "sheet-sync-trigger",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.monday.com/v2",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "API-Version",
+              "value": "2024-10"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: 'query { boards(ids: 18405931866) { groups(ids: \"group_mm5vwbn1\") { items_page(limit: 500) { items { id name updated_at column_values(ids: [\"text_mm5vaz0\",\"project_status\",\"color_mm5vz074\"]) { id text } } } } } }' }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "sheet-sync-monday",
+      "name": "Pull Monday Board",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GearTixMondayAPI",
+          "name": "Monday API"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT ticket_id, created_at, venue, gear_item, category, severity,\n       COALESCE(NULLIF(triage_notes,''), left(raw_description, 200)) AS summary,\n       troubleshooting, submitter_name, COALESCE(submitter_email, submitter_phone, '') AS contact,\n       (SELECT count(*) FROM ticket_photos p WHERE p.ticket_id = tickets.ticket_id) AS photo_count,\n       status, resolved_at, monday_item_id,\n       date_part('day', COALESCE(resolved_at, now()) - created_at)::INT AS days_open\nFROM tickets\nWHERE duplicate_of IS NULL\nORDER BY id;",
+        "options": {}
+      },
+      "id": "sheet-sync-ledger",
+      "name": "Pull Full Ledger",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        440,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "GearTixPostgres1",
+          "name": "Tickets Postgres"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// One row per ticket, keys matching the sheet's header text exactly so the\n// Sheets node can auto-map. Monday is the authority on whether something is\n// finished - Brian works the board, not the database - so Status and Completed\n// come from there, with Postgres resolved_at preferred for the date once the\n// nightly reconcile has stamped it (it's exact; Monday's updated_at only\n// approximates when the item was ticked).\n\nconst monday = $('Pull Monday Board').first().json?.data?.boards?.[0]?.groups?.[0]?.items_page?.items || [];\nconst ledger = $input.all().map(i => i.json);\n\nconst col = (item, id) => (item.column_values.find(c => c.id === id)?.text || '').trim();\n\nconst byTicket = {};\nfor (const it of monday) {\n  const tid = col(it, 'text_mm5vaz0');\n  if (tid) byTicket[tid] = { id: it.id, status: col(it, 'project_status'), updated_at: it.updated_at };\n}\n\nconst day = v => v ? new Date(v).toISOString().slice(0, 10) : '';\nconst stamp = v => v ? new Date(v).toISOString().slice(0, 16).replace('T', ' ') : '';\nconst now = new Date().toISOString().slice(0, 16).replace('T', ' ');\n\nreturn ledger.map(t => {\n  const m = byTicket[t.ticket_id] || null;\n  const status = m ? (m.status || 'Not Started') : (t.status === 'resolved' ? 'Done' : 'Not on board');\n  const done = status === 'Done';\n  const completed = done ? day(t.resolved_at || (m && m.updated_at)) : '';\n\n  return { json: {\n    'Ticket ID':   t.ticket_id,\n    'Submitted':   stamp(t.created_at),\n    'Venue':       t.venue || '',\n    'Gear':        t.gear_item || '',\n    'Category':    t.category || '',\n    'Severity':    t.severity || '',\n    'Summary':     t.summary || '',\n    'Already Tried': t.troubleshooting || '',\n    'Reported By': t.submitter_name || '',\n    'Contact':     '',\n    'Photos':      Number(t.photo_count || 0) || '',\n    'Monday Item': m ? `https://3cdc-cast.monday.com/boards/18405931866/pulses/${m.id}`\n                     : (t.monday_item_id ? `https://3cdc-cast.monday.com/boards/18405931866/pulses/${t.monday_item_id}` : ''),\n    'Status':      status,\n    'Completed':   completed,\n    // Once it's finished this is how long it actually took; until then it's how\n    // long it has been sitting.\n    'Days Open':   Number(t.days_open ?? 0),\n    'Last Synced': now\n  }};\n});"
+      },
+      "id": "sheet-sync-build",
+      "name": "Build Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1NbUaOk_G190KHEoY2lwdcgo6WqvcZ-W-9RdCuqgEt_A",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "2051872321",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [
+            "Ticket ID"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "sheet-sync-write",
+      "name": "Sync to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WlsPOlQWuCSPKoPx",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "sheet-sync-manual",
+      "name": "Run Now (manual)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        180
+      ]
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Pull Monday Board",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Monday Board": {
+      "main": [
+        [
+          {
+            "node": "Pull Full Ledger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Full Ledger": {
+      "main": [
+        [
+          {
+            "node": "Build Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Rows": {
+      "main": [
+        [
+          {
+            "node": "Sync to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Now (manual)": {
+      "main": [
+        [
+          {
+            "node": "Pull Monday Board",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

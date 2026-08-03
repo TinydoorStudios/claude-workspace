@@ -1,0 +1,620 @@
+{
+  "id": "GearTixIntake001",
+  "name": "Gear Tickets — Intake",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "gear-ticket",
+        "formTitle": "Report a Problem",
+        "formDescription": "Broken gear, missing gear, a showfile that isn't right, anything at the venues. Takes about 30 seconds. Photos help a lot.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Your Name",
+              "fieldType": "text",
+              "placeholder": "So Brian knows who to ask",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Venue",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Fountain Square"
+                  },
+                  {
+                    "option": "Washington Park"
+                  },
+                  {
+                    "option": "Elm Street Plaza"
+                  },
+                  {
+                    "option": "Memorial Hall"
+                  },
+                  {
+                    "option": "Shop / Storage"
+                  },
+                  {
+                    "option": "Other"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "What's the problem?",
+              "fieldType": "textarea",
+              "placeholder": "What happened, what you were doing, and whether you worked around it. Plain language is fine.",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "What gear?",
+              "fieldType": "text",
+              "placeholder": "Model or nickname if you know it — 'stage left wedge', 'the tall boom', 'Wireless 3'",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "What have you already tried?",
+              "fieldType": "textarea",
+              "placeholder": "Swapped the cable, reseated the card, tried a different input - anything you ruled out. 'Nothing yet' is a fine answer.",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "How bad is it?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "It breaks a show — need this now"
+                  },
+                  {
+                    "option": "Needs fixing before it's used again"
+                  },
+                  {
+                    "option": "Annoying but it still works"
+                  },
+                  {
+                    "option": "Just putting it on the record"
+                  }
+                ]
+              },
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Photos",
+              "fieldType": "file",
+              "multipleFiles": true,
+              "acceptFileTypes": ".jpg,.jpeg,.png,.heic,.webp",
+              "requiredField": false
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Send it",
+          "respondWithOptions": {
+            "values": {
+              "respondWith": "text",
+              "formSubmittedText": "Got it — thanks. Brian's been pinged. For questions, call Brian Lloyd at 315-404-5648."
+            }
+          }
+        }
+      },
+      "id": "form-trigger",
+      "name": "QR Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        0
+      ],
+      "webhookId": "gear-ticket"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT next_ticket_id() AS ticket_id;",
+        "options": {}
+      },
+      "id": "next-id",
+      "name": "Reserve Ticket ID",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -340,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "GearTixPostgres1",
+          "name": "Tickets Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalise the form payload into one clean object, and keep every binary\n// (the photos) attached so the next node can write them to disk.\n\nconst form = $('QR Form').first().json;\nconst ticketId = $input.first().json.ticket_id;\n\nconst severityMap = {\n  \"It breaks a show — need this now\": \"Show-stopper\",\n  \"Needs fixing before it's used again\": \"Fix before next use\",\n  \"Annoying but it still works\": \"Annoying but working\",\n  \"Just putting it on the record\": \"Note for the record\"\n};\n\nconst binary = $('QR Form').first().binary || {};\nconst photoKeys = Object.keys(binary);\n\nreturn [{\n  json: {\n    ticket_id: ticketId,\n    submitter_name: (form['Your Name'] || '').trim(),\n    // Contact details are deliberately not collected - the name is enough,\n    // and a repair ticket is no place to accumulate crew phone numbers.\n    submitter_email: null,\n    submitter_phone: null,\n    raw_venue: form['Venue'] || null,\n    venue: form['Venue'] || null,\n    raw_description: (form[\"What's the problem?\"] || '').trim(),\n    gear_item: (form['What gear?'] || '').trim() || null,\n    troubleshooting: (form['What have you already tried?'] || '').trim() || null,\n    submitter_severity: severityMap[form['How bad is it?']] || null,\n    photo_count: photoKeys.length,\n    photo_keys: photoKeys,\n    submitted_at: new Date().toISOString()\n  },\n  binary\n}];"
+      },
+      "id": "normalise",
+      "name": "Normalise",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO tickets (ticket_id, raw_description, raw_venue, venue, submitter_name, submitter_phone, submitter_email, gear_item, severity, troubleshooting, status)\nVALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'new')\nRETURNING ticket_id, id;",
+        "options": {
+          "queryReplacement": "={{ [ $json.ticket_id, $json.raw_description, $json.raw_venue, $json.venue, $json.submitter_name, $json.submitter_phone, $json.submitter_email, $json.gear_item, $json.submitter_severity, $json.troubleshooting ] }}"
+        }
+      },
+      "id": "save-ticket",
+      "name": "Save Ticket (never skipped)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        100,
+        0
+      ],
+      "notes": "This write happens before any AI touches the ticket. If everything downstream fails, the ticket still exists.",
+      "credentials": {
+        "postgres": {
+          "id": "GearTixPostgres1",
+          "name": "Tickets Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Move the staged photos into their ticket folder now that the ticket row\n// exists, and emit one item per photo for Record Photos.\n\nconst fs = require('fs');\nconst path = require('path');\n\nconst st = $('Stage Photos').first().json;\nconst ticketId = $('Normalise').first().json.ticket_id;\n\nif (!st.staged || !st.staged.length) {\n  return [{ json: { ticket_id: ticketId, seq: 0, no_photos: true } }];\n}\n\nconst dir = path.join('/opt/gear-tickets/photos', ticketId);\nfs.mkdirSync(dir, { recursive: true });\n\nconst out = [];\nfor (const s of st.staged) {\n  const dst = path.join(dir, s.filename);\n  try {\n    fs.renameSync(path.join(st.stage_dir, s.filename), dst);\n  } catch (e) {\n    // A photo that won't move must not cost us the ticket.\n    out.push({ json: { ticket_id: ticketId, seq: 0, no_photos: true,\n                       photo_error: `${s.filename}: ${e.message}` } });\n    continue;\n  }\n  out.push({\n    json: {\n      ticket_id: ticketId,\n      seq: s.seq,\n      filename: s.filename,\n      stored_path: dst,\n      public_url: `https://tickets.tinydoorstudios.com/p/${ticketId}/${s.filename}`,\n      mime_type: s.mime_type,\n      bytes: s.bytes\n    }\n  });\n}\n\ntry { fs.rmdirSync(st.stage_dir); } catch (e) {}\n\nreturn out;"
+      },
+      "id": "save-photos",
+      "name": "Save Photos to Disk",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO ticket_photos (ticket_id, seq, filename, stored_path, public_url, mime_type, bytes)\nSELECT $1, $2, $3, $4, $5, $6, $7\nWHERE $2 > 0\nON CONFLICT (ticket_id, seq) DO NOTHING;",
+        "options": {
+          "queryReplacement": "={{ [ $json.ticket_id, $json.seq, $json.filename, $json.stored_path, $json.public_url, $json.mime_type, $json.bytes ] }}"
+        }
+      },
+      "id": "record-photos",
+      "name": "Record Photos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        540,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "GearTixPostgres1",
+          "name": "Tickets Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT ticket_id, title, venue, category, severity, raw_description, created_at\nFROM tickets\nWHERE status IN ('new','open','blocked')\n  AND ticket_id <> $1\n  AND created_at > now() - interval '90 days'\nORDER BY created_at DESC\nLIMIT 40;",
+        "options": {
+          "queryReplacement": "={{ [ $('Normalise').first().json.ticket_id ] }}"
+        }
+      },
+      "id": "fetch-open",
+      "name": "Fetch Open Tickets (for dedupe)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        760,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "GearTixPostgres1",
+          "name": "Tickets Postgres"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.TRIAGE_API_URL }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: $env.TRIAGE_MODEL,\n  temperature: 0.1,\n  max_tokens: 700,\n  response_format: { type: 'json_object' },\n  messages: [\n    { role: 'system', content: 'You triage maintenance tickets for a live-sound and events crew running six outdoor plazas in Cincinnati plus Memorial Hall. Reply with JSON only, no prose. Fields: title (short, specific, under 90 chars, leads with the venue and the gear), category (one of: Damaged Gear, Missing Gear, Showfile Issue, Venue / Facility, Vehicle, Supplies / Restock, Other), severity (one of: Show-stopper, Fix before next use, Annoying but working, Note for the record), gear_item (best guess at the specific piece, or null), duplicate_of (ticket_id of an open ticket describing the same problem, or null), notes (one or two sentences for Brian: what you think this is and what to check FIRST - if the submitter lists steps they already tried, do not repeat them, pick up where they left off). Trust the submitter severity unless the description clearly contradicts it. Show-stopper means a show tonight or tomorrow is affected.' },\n    { role: 'user', content: JSON.stringify({\n        new_ticket: (({ submitter_name, submitter_email, submitter_phone, photo_keys, ...t }) => t)($('Normalise').first().json),\n        currently_open: $input.all().map(i => i.json).filter(x => x && x.ticket_id)\n      }) }\n  ]\n}) }}",
+        "options": {
+          "timeout": 120000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "triage",
+      "name": "AI Triage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        0
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "Any OpenAI-compatible endpoint: Gemini, Groq, OpenCode Zen, OpenRouter, or a local model. Set TRIAGE_API_URL and TRIAGE_MODEL in the n8n env. If this fails the ticket still lands — it just arrives untriaged.",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GearTixTriageLLM",
+          "name": "Triage LLM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the triage response defensively. A bad model reply must never lose a ticket.\n\nconst base = $('Normalise').first().json;\nconst photos = $('Save Photos to Disk').all()\n  .filter(p => !p.json.no_photos)\n  .map(p => p.json.public_url);\n\nconst VALID_CAT = ['Damaged Gear','Missing Gear','Showfile Issue','Venue / Facility','Vehicle','Supplies / Restock','Other'];\nconst VALID_SEV = ['Show-stopper','Fix before next use','Annoying but working','Note for the record'];\n\nlet ai = {};\ntry {\n  const raw = $input.first().json;\n  const content = raw?.choices?.[0]?.message?.content ?? raw?.content ?? '';\n  ai = typeof content === 'string' ? JSON.parse(content) : content;\n} catch (e) {\n  ai = {};\n}\n\nconst clean = s => (typeof s === 'string' && s.trim()) ? s.trim() : null;\n\nconst fallbackTitle = `${base.venue || 'Unknown venue'} — ${(base.gear_item || base.raw_description || 'ticket').slice(0, 70)}`;\n\nconst category = VALID_CAT.includes(ai.category) ? ai.category : 'Other';\nconst severity = VALID_SEV.includes(ai.severity)\n  ? ai.severity\n  : (base.submitter_severity || 'Fix before next use');\n\nreturn [{\n  json: {\n    ...base,\n    title: clean(ai.title)?.slice(0, 90) || fallbackTitle,\n    category,\n    severity,\n    gear_item: clean(ai.gear_item) || base.gear_item,\n    troubleshooting: base.troubleshooting,\n    duplicate_of: clean(ai.duplicate_of),\n    triage_notes: clean(ai.notes),\n    triage_model: $env.TRIAGE_MODEL || 'unknown',\n    triage_ok: Object.keys(ai).length > 0,\n    photo_urls: photos,\n    photo_count: photos.length\n  }\n}];"
+      },
+      "id": "apply-triage",
+      "name": "Apply Triage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE tickets SET\n  title = $2, category = $3, severity = $4, gear_item = COALESCE($5, gear_item),\n  duplicate_of = $6, triage_notes = $7, triage_model = $8,\n  triaged_at = now(), status = 'open'\nWHERE ticket_id = $1\nRETURNING ticket_id;",
+        "options": {
+          "queryReplacement": "={{ [ $json.ticket_id, $json.title, $json.category, $json.severity, $json.gear_item, $json.duplicate_of, $json.triage_notes, $json.triage_model ] }}"
+        }
+      },
+      "id": "store-triage",
+      "name": "Store Triage",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1420,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "GearTixPostgres1",
+          "name": "Tickets Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.monday.com/v2",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "API-Version",
+              "value": "2024-10"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (() => {\n  // Store Triage is an UPDATE ... RETURNING ticket_id, so $json here holds ONLY\n  // ticket_id. Every field for the Monday item has to come from Apply Triage.\n  const t = $('Apply Triage').first().json;\n  return JSON.stringify({\n    query: 'mutation($b: ID!, $g: String!, $n: String!, $v: JSON!) { create_item(board_id: $b, group_id: $g, item_name: $n, column_values: $v) { id url } }',\n    variables: {\n      b: '18405931866',\n      g: 'group_mm5vwbn1',\n      n: t.title,\n      v: JSON.stringify({\n        dropdown_mm5v46m2: { labels: [t.venue] },\n        color_mm5v67cy:    { label: t.category },\n        color_mm5vz074:    { label: t.severity },\n        text_mm5vavpx:     t.submitter_name || '',\n        text_mm5vhr68:     '',\n        date_mm5vyxxq:     { date: new Date().toISOString().slice(0,10) },\n        text_mm5vaz0:      t.ticket_id,\n        project_status:    { label: 'Not Started' },\n        long_text_mm5v24v2:{ text: (t.photo_urls || []).join('\\n') }\n      })\n    }\n  });\n})() }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "monday-create",
+      "name": "Create Monday Item",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1640,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GearTixMondayAPI",
+          "name": "Monday API"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.monday.com/v2",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "API-Version",
+              "value": "2024-10"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (() => {\n  const t = $('Apply Triage').first().json;\n  const photos = (t.photo_urls || []).map((u,i) => `<a href=\"${u}\">Photo ${i+1}</a>`).join(' &nbsp;·&nbsp; ') || 'none';\n  const contact = t.submitter_name || 'unknown';\n  const body = `<b>Submitted via QR — ${t.venue}</b><br><br>`\n    + `<b>What happened:</b><br>${t.raw_description}<br><br>`\n    + (t.gear_item ? `<b>Gear:</b> ${t.gear_item}<br>` : '')\n    + (t.troubleshooting ? `<b>Already tried:</b> ${t.troubleshooting}<br>` : '')\n    + `<b>Reported by:</b> ${contact}<br>`\n    + `<b>Photos:</b> ${photos}<br>`\n    + `<b>Ticket:</b> ${t.ticket_id}<br><br>`\n    + (t.triage_notes ? `<i>${t.triage_notes}</i>` : '<i>Not triaged — the model was unreachable. Category and severity came from the submitter.</i>');\n  return JSON.stringify({\n    query: 'mutation($i: ID!, $b: String!) { create_update(item_id: $i, body: $b) { id } }',\n    variables: { i: String($json.data.create_item.id), b: body }\n  });\n})() }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "monday-update",
+      "name": "Post Full Detail to Monday",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1860,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GearTixMondayAPI",
+          "name": "Monday API"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE tickets SET monday_item_id = COALESCE($2, monday_item_id),\n       monday_synced_at = CASE WHEN $2 IS NULL THEN monday_synced_at ELSE now() END\nWHERE ticket_id = $1;\nINSERT INTO ticket_events (ticket_id, actor, event, detail)\nVALUES ($1, 'form', 'submitted', jsonb_build_object('monday_item_id', $2));",
+        "options": {
+          "queryReplacement": "={{ [ $('Apply Triage').first().json.ticket_id, ($('Create Monday Item').first().json?.data?.create_item?.id ?? null) ] }}"
+        }
+      },
+      "id": "link-monday",
+      "name": "Link + Log Event",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2080,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "GearTixPostgres1",
+          "name": "Tickets Postgres"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "messageType": "block",
+        "blocksUi": "={{ (() => {\n  const t = $('Apply Triage').first().json;\n  // Monday may have failed - the post still goes out, and it has to say so.\n  const m = $('Create Monday Item').first().json?.data?.create_item ?? null;\n  const icon = { 'Show-stopper': ':rotating_light:', 'Fix before next use': ':wrench:', 'Annoying but working': ':warning:', 'Note for the record': ':memo:' }[t.severity] || ':inbox_tray:';\n  const photos = (t.photo_urls || []);\n  // The model's note is already a one-line summary; fall back to the raw report.\n  const summary = t.triage_notes || (t.raw_description || '').slice(0, 240);\n  const heading = m && m.url ? `*<${m.url}|${t.title}>*` : `*${t.title}*`;\n  const facts = [t.ticket_id, t.venue, t.category, t.gear_item, `by ${t.submitter_name}`]\n    .filter(Boolean).join(' · ');\n  const blocks = [\n    { type: 'header', text: { type: 'plain_text', text: `${icon} ${String(t.severity).toUpperCase()}`, emoji: true } },\n    { type: 'section', text: { type: 'mrkdwn', text: `${heading}\\n${summary}` } },\n    { type: 'context', elements: [ { type: 'mrkdwn', text: facts } ] }\n  ];\n  if (t.troubleshooting) {\n    blocks.push({ type: 'context', elements: [ { type: 'mrkdwn', text: `:mag: Already tried: ${t.troubleshooting.slice(0, 300)}` } ] });\n  }\n  if (photos.length) {\n    // Block-kit messages do NOT unfurl links, so a bare URL shows as text and\n    // nothing else - an image block is the only way to actually see the photo\n    // in the channel. Slack does its own downscaling of the full-size original.\n    blocks.push({ type: 'image', image_url: photos[0], alt_text: t.title || 'ticket photo' });\n    blocks.push({ type: 'context', elements: [ { type: 'mrkdwn', text: photos.map((u,i) => `<${u}|Photo ${i+1} (full size)>`).join('  ·  ') } ] });\n  }\n  if (t.duplicate_of) {\n    blocks.push({ type: 'context', elements: [ { type: 'mrkdwn', text: `:link: Might be a duplicate of *${t.duplicate_of}*` } ] });\n  }\n  if (!m) {\n    blocks.push({ type: 'context', elements: [ { type: 'mrkdwn', text: ':warning: Monday did not accept this one - it is in Postgres only. Add it to the board by hand.' } ] });\n  }\n  return JSON.stringify({ blocks });\n})() }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "C0BMLG10FAQ",
+          "mode": "id"
+        }
+      },
+      "id": "slack",
+      "name": "Post to #gear-repair",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        2300,
+        0
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "3xjCpEYkIsnToSko",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Photos land here FIRST, straight off the form trigger, because this is the\n// only node in the chain whose *input* still carries binary data.\n// helpers.getBinaryDataBuffer reads from the current node's input, and every\n// other candidate (getBinaryStream, getBinaryPath) is blocked in the Code\n// sandbox. Ticket ID doesn't exist yet, so files go to a staging dir keyed by\n// execution id and get moved into place once the ticket row is written.\n// Staging deliberately sits OUTSIDE /opt/gear-tickets/photos so nginx never\n// serves a half-finished ticket.\n\nconst fs = require('fs');\nconst path = require('path');\n\nconst binary = $input.first().binary || {};\nconst keys = Object.keys(binary);\nconst stageDir = path.join('/opt/gear-tickets/staging', String($execution.id));\nconst staged = [];\n\nif (keys.length) {\n  fs.mkdirSync(stageDir, { recursive: true });\n  let seq = 0;\n  for (const key of keys) {\n    seq += 1;\n    const b = binary[key];\n    const ext = (b.fileExtension || 'jpg').replace(/^\\./, '');\n    const filename = `${seq}.${ext}`;\n    const buf = await this.helpers.getBinaryDataBuffer(0, key);\n    fs.writeFileSync(path.join(stageDir, filename), buf);\n    staged.push({ seq, filename, mime_type: b.mimeType || null, bytes: buf.length });\n  }\n}\n\n// One item out, always - the next node is a Postgres query that must run once.\nreturn [{ json: { stage_dir: stageDir, staged } }];"
+      },
+      "id": "gear-stage-photos-0001",
+      "name": "Stage Photos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        160
+      ]
+    }
+  ],
+  "connections": {
+    "QR Form": {
+      "main": [
+        [
+          {
+            "node": "Stage Photos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reserve Ticket ID": {
+      "main": [
+        [
+          {
+            "node": "Normalise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise": {
+      "main": [
+        [
+          {
+            "node": "Save Ticket (never skipped)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Ticket (never skipped)": {
+      "main": [
+        [
+          {
+            "node": "Save Photos to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Photos to Disk": {
+      "main": [
+        [
+          {
+            "node": "Record Photos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Photos": {
+      "main": [
+        [
+          {
+            "node": "Fetch Open Tickets (for dedupe)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Open Tickets (for dedupe)": {
+      "main": [
+        [
+          {
+            "node": "AI Triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Triage": {
+      "main": [
+        [
+          {
+            "node": "Apply Triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Triage": {
+      "main": [
+        [
+          {
+            "node": "Store Triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Triage": {
+      "main": [
+        [
+          {
+            "node": "Create Monday Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Monday Item": {
+      "main": [
+        [
+          {
+            "node": "Post Full Detail to Monday",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Full Detail to Monday": {
+      "main": [
+        [
+          {
+            "node": "Link + Log Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link + Log Event": {
+      "main": [
+        [
+          {
+            "node": "Post to #gear-repair",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stage Photos": {
+      "main": [
+        [
+          {
+            "node": "Reserve Ticket ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {},
+  "active": false
+}

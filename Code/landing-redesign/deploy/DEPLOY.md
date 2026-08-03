@@ -22,6 +22,9 @@ Container recreate after compose/nginx edits: `cd /opt/landing && sudo docker co
 
 ## Redeploying the pages
 
+Easiest: run `../deploy-landing.command` from the Mac (picks direct-LAN or the `tds`
+jump automatically, backs up both pages on the VM first). Manual equivalent:
+
 ```
 scp -o ProxyJump=tds -i ~/.ssh/proxmox_tds deploy/index.html brian@192.168.200.84:/tmp/main-index.html
 scp -o ProxyJump=tds -i ~/.ssh/proxmox_tds deploy/rack/index.html brian@192.168.200.84:/tmp/rack-index.html

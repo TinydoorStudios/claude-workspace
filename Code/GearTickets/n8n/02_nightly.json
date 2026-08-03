@@ -1,0 +1,217 @@
+{
+  "id": "GearTixNightly01",
+  "name": "Gear Tickets — Nightly Caretaker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "cron",
+      "name": "7am Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -560,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.monday.com/v2",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "API-Version",
+              "value": "2024-10"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: 'query { boards(ids: 18405931866) { groups(ids: \"group_mm5vwbn1\") { items_page(limit: 250) { items { id name column_values(ids: [\"text_mm5vaz0\",\"project_status\",\"color_mm5vz074\"]) { id text } } } } } }' }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "pull-monday",
+      "name": "Pull Monday Board",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -340,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GearTixMondayAPI",
+          "name": "Monday API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT ticket_id, title, venue, category, severity, status, monday_item_id,\n       date_part('day', now() - created_at)::INT AS age_days\nFROM tickets\nWHERE status IN ('new','open','blocked') AND duplicate_of IS NULL;",
+        "options": {}
+      },
+      "id": "pull-db",
+      "name": "Pull Ledger",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -120,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "GearTixPostgres1",
+          "name": "Tickets Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compare Monday against the ledger and work out what drifted.\n// Nothing is deleted here — the worst this does is flag and re-sync.\n\nconst mondayItems = $('Pull Monday Board').first().json?.data?.boards?.[0]?.groups?.[0]?.items_page?.items || [];\nconst ledger = $input.all().map(i => i.json);\n\nconst col = (item, id) => (item.column_values.find(c => c.id === id)?.text || '').trim();\n\nconst byTicket = {};\nfor (const it of mondayItems) {\n  const tid = col(it, 'text_mm5vaz0');\n  if (tid) byTicket[tid] = { id: it.id, name: it.name, status: col(it, 'project_status'), severity: col(it, 'color_mm5vz074') };\n}\n\nconst missingFromMonday = [];   // in the ledger, not on the board — needs re-pushing\nconst closedInMonday = [];      // marked Done on the board — close it in the ledger\nconst severityDrift = [];       // Brian changed severity on the board — ledger should follow\n\nfor (const t of ledger) {\n  const m = byTicket[t.ticket_id];\n  if (!m) { missingFromMonday.push(t); continue; }\n  if (m.status === 'Done') closedInMonday.push({ ...t, monday_item_id: m.id });\n  else if (m.severity && m.severity !== t.severity) severityDrift.push({ ...t, new_severity: m.severity, monday_item_id: m.id });\n}\n\nconst orphans = mondayItems\n  .filter(it => !col(it, 'text_mm5vaz0'))\n  .map(it => ({ id: it.id, name: it.name }));\n\nconst stale = ledger.filter(t =>\n  (t.severity === 'Show-stopper' && t.age_days >= 1) ||\n  (t.severity === 'Fix before next use' && t.age_days >= 7) ||\n  (!['Show-stopper','Fix before next use'].includes(t.severity) && t.age_days >= 30)\n);\n\nreturn [{ json: {\n  open_count: ledger.length,\n  missingFromMonday, closedInMonday, severityDrift, orphans, stale,\n  drift_count: missingFromMonday.length + closedInMonday.length + severityDrift.length + orphans.length,\n  by_venue: ledger.reduce((a, t) => { a[t.venue || 'Unknown'] = (a[t.venue || 'Unknown'] || 0) + 1; return a; }, {}),\n  by_severity: ledger.reduce((a, t) => { a[t.severity || 'Untriaged'] = (a[t.severity || 'Untriaged'] || 0) + 1; return a; }, {})\n} }];"
+      },
+      "id": "reconcile",
+      "name": "Reconcile",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE tickets SET status = 'resolved', resolved_at = now(), resolution = 'Marked Done on the Monday board'\nWHERE ticket_id = ANY($1::text[]);\nUPDATE tickets t SET severity = d.sev\nFROM (SELECT unnest($2::text[]) AS tid, unnest($3::text[]) AS sev) d\nWHERE t.ticket_id = d.tid;\nINSERT INTO ticket_events (ticket_id, actor, event, detail)\nSELECT unnest($1::text[]), 'reconcile', 'resolved', '{\"source\":\"monday\"}'::jsonb;",
+        "options": {
+          "queryReplacement": "={{ [ '{' + $json.closedInMonday.map(t=>t.ticket_id).join(',') + '}', '{' + $json.severityDrift.map(t=>t.ticket_id).join(',') + '}', '{' + $json.severityDrift.map(t=>'\"'+t.new_severity+'\"').join(',') + '}' ] }}"
+        }
+      },
+      "id": "apply-recon",
+      "name": "Apply Reconciliation",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        320,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "GearTixPostgres1",
+          "name": "Tickets Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "messageType": "block",
+        "blocksUi": "={{ (() => {\n  const r = $('Reconcile').first().json;\n  const sevLine = Object.entries(r.by_severity).map(([k,v]) => `${v} ${k.toLowerCase()}`).join(' · ') || 'nothing open';\n  const venueLine = Object.entries(r.by_venue).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `${k}: ${v}`).join('  ·  ') || '—';\n  const blocks = [\n    { type: 'header', text: { type: 'plain_text', text: `:clipboard: Gear tickets — ${r.open_count} open`, emoji: true } },\n    { type: 'section', text: { type: 'mrkdwn', text: `*${sevLine}*\\n${venueLine}` } }\n  ];\n  if (r.stale.length) {\n    blocks.push({ type: 'divider' });\n    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*Been sitting a while:*\\n' + r.stale.slice(0,8).map(t => `• _${t.age_days}d_ — ${t.title} (${t.venue})`).join('\\n') } });\n  }\n  if (r.drift_count) {\n    const bits = [];\n    if (r.closedInMonday.length) bits.push(`closed ${r.closedInMonday.length} that you marked Done`);\n    if (r.severityDrift.length) bits.push(`matched ${r.severityDrift.length} severity change${r.severityDrift.length===1?'':'s'}`);\n    if (r.missingFromMonday.length) bits.push(`*${r.missingFromMonday.length} missing from the board* — needs a re-push`);\n    if (r.orphans.length) bits.push(`${r.orphans.length} item${r.orphans.length===1?'':'s'} on the board with no ticket ID`);\n    blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: ':gear: ' + bits.join(' · ') }] });\n  }\n  return JSON.stringify({ blocks });\n})() }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "C0BMLG10FAQ",
+          "mode": "id"
+        }
+      },
+      "id": "digest",
+      "name": "Morning Digest",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        540,
+        0
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "3xjCpEYkIsnToSko",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "7am Daily": {
+      "main": [
+        [
+          {
+            "node": "Pull Monday Board",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Monday Board": {
+      "main": [
+        [
+          {
+            "node": "Pull Ledger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Ledger": {
+      "main": [
+        [
+          {
+            "node": "Reconcile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reconcile": {
+      "main": [
+        [
+          {
+            "node": "Apply Reconciliation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Reconciliation": {
+      "main": [
+        [
+          {
+            "node": "Morning Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {},
+  "active": false
+}

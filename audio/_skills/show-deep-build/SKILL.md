@@ -528,6 +528,9 @@ After any recommendation — especially a Brian override or a resolved stop-and-
 - `references/decision-flow.md` — the EQ method end-to-end with worked examples.
 - `references/forum-research.md` — PSW/Gearspace query patterns + source weighting.
 - `references/genre-profiles.md` — genre signatures → EQ influence.
+- `references/genre-geometry.md` — Celtic transient/gating rules + Celtic instrument fundamentals;
+  classical recording geometry (Memo wire array, ORTF, R88 — incl. NO phantom on the passive
+  R88 mk2 — and classical spot-mic placements). Moved out of the root CLAUDE.md 2026-08-02.
 - `references/console-bands.md` — Q225/Wing band layouts (CL3/M32 documented, ask-only).
 - `references/deep-research-workflow.md` — visible-research rules, note-mining table, evidence
   channels, two-mic sources, WHY capture.

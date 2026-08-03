@@ -140,3 +140,75 @@ audio* that has already been EQ'd by someone else, so the gate question becomes 
 already been made?" and the honest answer is one moderate venue-driven trim, not a full curve.
 
 None of the write-backs above have been written to the wiki — staged for Brian, per the rule.
+
+---
+
+## 2026-08-02 — FSQ double-header: The Shades + Ric Sexton
+
+Two separate shows, one night, one shared backline at Fountain Square. Mic. Carr & Shades
+(live-instrument soul / alternative R&B) and Ric Sexton (smooth/contemporary jazz, alto and
+soprano sax). 17 active channels each; the only channel that differs between them is CH 19.
+
+**Conditions drove the whole top end.** Open-Meteo for the show window: 71–75 °F, **RH 87–94%**,
+wind 1–4 mph gusting 9. Second saturated-air FSQ night in two days (8/1 Repertoire was 96%).
+Result: **not one HF boost in either show**, every capsule's baked presence peak trimmed, and the
+hat's genre-standard 8–10 kHz shimmer lift inverted to a −3 cut at 9 kHz. Benign wind put the
+overhead pair at HPF 300 rather than the gusty-night 400. The humidity-inverts-HF rule has now
+held on two consecutive shows and is ready to be promoted into `eq-starting-points`.
+
+**Genre-over-venue trade, second confirmation.** Full FSQ depth (−7/−8) spent on kick box, snare,
+hat, overheads and guitar cab — the mechanical mud. Withheld at −5 on keyboards, vocals and
+(on the Sexton show) the sax line feed. Same reconciliation as 8/1: outdoor mud is mechanical,
+not room buildup, so an open plaza has nothing to add to a Rhodes' 300 Hz or a singer's chest
+register. Two shows agreeing makes this a real rule rather than a one-off call.
+
+**Locker fork — Brian delegated the decision.** CH 3 snare top specified e604; offered the Audix
+i5 and Brian said "you choose, I'll follow." Chose the i5 on three grounds: its +5 dB @ 150 Hz
+(RecordingHacks/SOS) is the body a soul snare lives on where the e604 is documented thin and
+boxy; outdoors with no room gain a thin snare vanishes; and the i5's only liability, +9 dB @
+5.5 kHz, was getting trimmed on a 90% RH night regardless. Bonus that decided it: the i5's low
+1.6 mV/Pa sensitivity measurably limits hat spill, and this show's hat mic is mounted UNDER the
+hats. Cost paid: a stand where the e604 clipped to the rim.
+
+**Two-mic lane discipline, twice per show.**
+- Kick: 91A owns attack and mid-definition (HPF 60, B1 flat); D6 owns low and body (HPF 35).
+  The D6's baked +14 dB @ 60 is why the 91A's bottom was vacated rather than boosted.
+- Bass: the web pass produced a hard number the KB doesn't have — **DI below 100 Hz, cab mic
+  above 100 Hz, and the phase problem disappears** (TalkBass consensus + SOS "Matching The Phase
+  Of Mic & DI Signals"). The PG52's HPF at 100 is literally the lane boundary.
+
+**Capsule gate did real work, in both directions.** Only three boosts across both shows: +4 @ 180
+and +4 @ 150 on the rack toms (filling the e604's *documented* low-mid scoop) and +3 @ 60 on the
+bass DI (no capsule, nothing to stack on). Reverse-gate calls: the D6's B2 left flat and its B3
+moved to 1200 Hz rather than cutting into a baked −15 dB scoop at 700–750; the Beta 52A on floor
+tom held at −3/−5 instead of the outdoor −7/−8 because its low-mids are already scooped and the
+forums' one warning is that it gets lost in a dense mix.
+
+**One channel, two horns.** Sexton swaps alto and soprano on CH 19 (his own mic → his own FX
+pedal → XLR line feed, TOUR flagged, locker-exempt twice over). Built for the union: B3 at
+3500 Hz sits inside the soprano's harsh 3–5 kHz band — the worse-behaved horn — while
+landing just above the alto's 2–4 kHz presence, so the alto pays almost nothing. This approach
+isn't written down anywhere and is a write-back candidate.
+
+**Vocals: the honest THIN.** Six vocal channels, cuts-only, zero boosts. Brian didn't know the
+voice types and asked me to research them; the web named Sexton's vocalists (Mr. Wynn, Feyth
+from the *Fruition* credits) and confirmed Mic. Carr as the male lead, but **no source classifies
+any of these voices.** Rather than guess, all six were built as role slots: the FSQ template's
+184 Hz baseline HPF overridden to 90 on leads and 110 on the rest (110 being the safe overlap of
+the male 60–100 and female 80–120 live-HPF ranges), both baked Beta 58A peaks trimmed on every
+fader, and separation taken entirely in the B2 nasal lane with no two channels cut at the same
+frequency — Shades 700/1500/1200, Sexton 700/1400/400. Documented swap procedure if the roles
+land differently at soundcheck. Sexton's third wireless was built as a **host/talk mic** (tighter,
+darker, HPF 120, LPF 12k) because he is a working host and DJ and it is his show.
+
+**Web↔KB disagreements: one.** Audix D6 mid scoop — KB says ~600 Hz, the Audix spec sheet and
+RecordingHacks put it at **700–750 Hz**, and the KB row lacks the **+17 dB @ 10–12 kHz** peak
+entirely. Taken the web value; consequence on the desk was real (B3 moved to 1200). Note this is
+the *third* consecutive log entry flagging the D6 row — the 7/31 entry put it at 700–800 Hz
+at −17 dB. It should be fixed.
+
+**Verdicted THIN, no KB row exists:** bass DI + cab blend, keyboards / line-level boards (third
+build running), and processed artist pedal → XLR line feeds.
+
+Nothing here has been written to the wiki — staged for Brian, per the rule.
+

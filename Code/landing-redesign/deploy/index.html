@@ -64,7 +64,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
 @media(max-width:980px){.hero{grid-template-columns:1fr}}
 
 /* ── SPL ── */
-.spl-grid{display:grid;grid-template-columns:205px 1fr;gap:8px;align-items:center}
+a.spl-grid{display:grid;grid-template-columns:205px 1fr;gap:8px;align-items:center;
+  text-decoration:none;color:inherit;padding:4px;margin:-4px;border-radius:3px;
+  transition:background .15s,box-shadow .15s}
+a.spl-grid:hover{background:rgba(55,200,255,.05);box-shadow:inset 0 0 0 1px var(--edge2)}
 .gauge{width:205px}
 .spl-big{font-size:56px;font-weight:700;line-height:.95;letter-spacing:-2px;
   color:#fff;text-shadow:0 0 18px rgba(55,200,255,.35);font-variant-numeric:tabular-nums}
@@ -88,7 +91,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
 /* ── weather ── */
 .wx{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media(max-width:680px){.wx{grid-template-columns:1fr}}
-.station{background:var(--inset);border:1px solid var(--edge);border-radius:3px;padding:12px 12px 10px}
+.station{display:block;background:var(--inset);border:1px solid var(--edge);border-radius:3px;
+  padding:12px 12px 10px;text-decoration:none;color:inherit;transition:border-color .15s,background .15s}
+a.station:hover{border-color:var(--cy-dim);background:#0b1119}
 .station .name{font-size:9px;letter-spacing:2px;color:var(--cy);text-transform:uppercase;
   margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .station .name::before{content:'▸ ';color:var(--dim)}
@@ -144,7 +149,7 @@ a.row:hover{background:rgba(55,200,255,.06);border-left-color:var(--cy)}
   <div class="panel" id="splPanel">
     <span class="ck"></span>
     <div class="plabel">SPL · FOH<span class="rule"></span><a href="https://spl.tinydoorstudios.com">FULL MONITOR ⇗</a></div>
-    <div class="spl-grid">
+    <a class="spl-grid" href="https://spl.tinydoorstudios.com" title="Open the SPL monitor">
       <svg class="gauge" viewBox="0 0 200 120" id="gaugeSvg"></svg>
       <div>
         <div class="spl-big" id="splVal">--.-<span class="u"> dBA</span></div>
@@ -152,7 +157,7 @@ a.row:hover{background:rgba(55,200,255,.06);border-left-color:var(--cy)}
         <div class="spl-long" id="splLong"></div>
         <span class="badge b-stby" id="splBadge"><span class="led"></span><span id="splBadgeTxt">CONNECTING…</span></span>
       </div>
-    </div>
+    </a>
     <div class="showline" id="showLine" style="display:none"></div>
   </div>
 
@@ -160,9 +165,9 @@ a.row:hover{background:rgba(55,200,255,.06);border-left-color:var(--cy)}
     <span class="ck"></span>
     <div class="plabel">WX · TEMPEST NET<span class="rule"></span><a href="https://tempest.tinydoorstudios.com">FULL DASHBOARD ⇗</a></div>
     <div class="wx" id="wx">
-      <div class="station"><div class="name">Fountain Square</div><div class="temp">--</div></div>
-      <div class="station"><div class="name">Elm Street Plaza</div><div class="temp">--</div></div>
-      <div class="station"><div class="name">Zeigler Park</div><div class="temp">--</div></div>
+      <a class="station" href="https://tempest.tinydoorstudios.com"><div class="name">Fountain Square</div><div class="temp">--</div></a>
+      <a class="station" href="https://tempest.tinydoorstudios.com"><div class="name">Elm Street Plaza</div><div class="temp">--</div></a>
+      <a class="station" href="https://tempest.tinydoorstudios.com"><div class="name">Zeigler Park</div><div class="temp">--</div></a>
     </div>
   </div>
 </div>
@@ -358,7 +363,7 @@ function renderWx(stations){
     const t  = o.air_temperature != null ? cToF(o.air_temperature) : null;
     const fl = o.feels_like      != null ? cToF(o.feels_like)      : null;
     const gust = o.wind_gust, rh = o.relative_humidity;
-    return '<div class="station">'+
+    return '<a class="station" href="https://tempest.tinydoorstudios.com" title="Open the Tempest dashboard">'+
       '<div class="name">' + s.name + '</div>'+
       '<div class="st-row"><div><div class="temp">' + (t != null ? Math.round(t) + '<small>°F</small>' : '--') + '</div>'+
       (fl != null ? '<div class="feels">FEELS ' + Math.round(fl) + '°</div>' : '') + '</div>'+
@@ -369,7 +374,7 @@ function renderWx(stations){
       '</div>'+
       sparkline(s.history) +
       lightningLine(s) +
-      '</div>';
+      '</a>';
   }).join('');
 }
 
