@@ -37,6 +37,18 @@ const MIN_HISTORY_GAP = 60 * 1000;              // one point per minute max
 // window is the resetting clock — old strikes age out, no server state needed.
 const LIGHTNING_THRESHOLDS_MI = [1, 5, 30];     // red / orange / not-clear gates
 const LIGHTNING_WINDOW_S = 30 * 60;             // resetting-clock window
+
+// Corroboration gate (2026-08-07). The AS3935 sensor in each Tempest reports a
+// "1 km" bucket that is really its overhead/unknown flag, and it fires on noise:
+// on 2026-08-07 the FSQ unit logged 1 km four times while ESP and ZP — one block
+// away — logged 20-38 km in the same minute. Raw device obs are unfiltered
+// (WeatherFlow only de-noises cloud-side, which is why the app chart showed
+// nothing), so a single unit could redden the whole cluster on its own.
+// Close rings now require a second station to have seen a strike inside the same
+// ring in the same 30-min window. The 30 mi not-clear gate is untouched, and if
+// fewer than two devices are reporting we fall back to uncorroborated (sensitive)
+// behavior rather than going quiet.
+const CORROB_MAX_RING_MI = 10;                  // rings at/below this need a second station
 const KM_TO_MI = 0.621371;
 const DEV_LTNG_DIST = 14;  // Tempest obs_st array index: lightning avg distance (km)
 const DEV_LTNG_COUNT = 15; // Tempest obs_st array index: lightning strike count
@@ -108,6 +120,7 @@ function computeLightning(devObs) {
   });
 
   return {
+    ok: Array.isArray(devObs) && devObs.length > 0,                           // false = fetch failed; "no strikes" is NOT the same as "no data"
     within,                                                                   // last in-range strike epoch per ring (0 = none)
     closestMi: win30.length ? Math.round(Math.min(...win30.map(s => s.mi))) : null,
     lastEpoch: win30.length ? Math.max(...win30.map(s => s.ep)) : null,
@@ -169,15 +182,31 @@ async function pollAll() {
 // the whole cluster. Temp / wind / rain stay per-station; only lightning shares.
 function clusterLightning() {
   const all = Object.values(lightningByStation);
+  const reporting = all.filter(L => L && L.ok);
+  // Two live devices are the minimum for a second opinion. Below that, a quiet
+  // dashboard would be the dangerous answer, so drop back to raw max/min.
+  const canCorroborate = reporting.length >= 2;
+
   const within = {};
   LIGHTNING_THRESHOLDS_MI.forEach(r => {
-    within[r] = Math.max(0, ...all.map(L => (L.within && L.within[r]) || 0));
+    const eps = all.map(L => (L.within && L.within[r]) || 0);
+    const seen = eps.filter(e => e > 0);
+    within[r] = (canCorroborate && r <= CORROB_MAX_RING_MI && seen.length < 2)
+      ? 0
+      : Math.max(0, ...eps);
   });
-  const closest = all.map(L => L.closestMi).filter(v => v != null);
+
+  // Closest strike: with corroboration available, take the second-lowest so one
+  // outlier unit can't set the number the whole cluster displays.
+  const closest = all.map(L => L.closestMi).filter(v => v != null).sort((a, b) => a - b);
+  const closestMi = !closest.length ? null
+    : (canCorroborate && closest.length > 1) ? closest[1]
+    : closest[0];
+
   const lastEp  = Math.max(0, ...all.map(L => L.lastEpoch || 0));
   return {
     within,
-    closestMi: closest.length ? Math.min(...closest) : null,
+    closestMi,
     lastEpoch: lastEp || null,
     count1hr:  Math.max(0, ...all.map(L => L.count1hr || 0)),
   };
