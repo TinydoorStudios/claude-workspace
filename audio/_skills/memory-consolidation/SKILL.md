@@ -51,8 +51,10 @@ flat file, and there's no CLI hook to piggyback on — the trigger is a real Cow
 Before assuming memory.md is complete, check what's happened since the last consolidation that
 hasn't been written down yet.
 
-1. Check `about-me/memory.md` for the date of the last "Memory Consolidation" session note (see
-   Phase 4) — that's the watermark. First run ever: look back 7 days.
+1. Read the `*Last consolidation: YYYY-MM-DD*` line near the top of `about-me/memory.md` — that's
+   the watermark (see Phase 4). Missing or unreadable: fall back to the newest
+   `### Memory Consolidation` entry in the current `memory-archive-YYYYHn.md`. First run ever:
+   look back 7 days.
 2. Call `list_sessions` to see recent Cowork sessions. For any session active since the
    watermark that this run can inspect, pull the transcript and scan for:
    - **Corrections** — Brian saying something was wrong, backwards, or not what he meant.
@@ -90,9 +92,13 @@ makes them explicit and consistent:
 
 - Keep `memory.md`'s "Session Notes" section chronological and don't let old resolved entries
   bloat it — items fully superseded by KB content can be trimmed to a one-line pointer.
-- **Rolling window (added 2026-07-14): Session Notes keep roughly the last 30 days.** Each run,
-  move entries older than 30 days to `about-me/memory-archive-YYYYHn.md` (one archive file per
-  half-year; create the next one when the half rolls over; append, keep chronological order).
+- **Rolling window (tightened 2026-08-11): Session Notes keep the current calendar month, and
+  `memory.md` stays under 30KB.** Each run, move older entries to
+  `about-me/memory-archive-YYYYHn.md` (one archive file per half-year; create the next one when
+  the half rolls over; append, keep chronological order). If the file is still over 30KB after
+  the month cut, keep cutting oldest-first until it isn't. Check the byte count every run — the
+  old "roughly 30 days" wording was never enforced and the file reached 117KB (~29K tokens
+  re-billed on every turn of every session) before the 2026-08-11 cleanup.
   Before an entry rotates out, confirm anything durable in it (standing rule, correction,
   infrastructure fact) was promoted to CLAUDE.md, the KB, or auto-memory — promote it now if
   not. memory.md is loaded at every session start; the archive never is, so the window is what
@@ -104,14 +110,22 @@ makes them explicit and consistent:
 - Confirm `active-projects.md` entries marked `[DONE]` actually have their paperwork/output filed
   where `NEW-SHOW.md`/`ROUTING.md` says it should be; flag mismatches to `questions.md` rather
   than moving files yourself (file moves are a stop-and-ask action per Brian's rules).
-- End every run by appending one short entry to `memory.md` under **Session Notes**:
-  ```
-  ### Memory Consolidation — YYYY-MM-DD
-  - Scanned: [N sessions / M days back]
-  - Added: X entries · Updated: Y (Z contradictions resolved) · Archived/trimmed: W
-  - Flagged to questions.md: [list, or "none"]
-  ```
-  This entry is also the watermark Phase 2 reads next time.
+- End every run by logging in two places (changed 2026-08-11 — the old rule appended a full stub
+  to `memory.md` every single day, and 30 of them had accumulated into 29.5KB of pure bookkeeping
+  that loaded at every session start):
+  1. **Overwrite** the watermark line near the top of `memory.md` — one line, never appended to:
+     ```
+     *Last consolidation: YYYY-MM-DD — log in memory-archive-YYYYHn.md*
+     ```
+     This is the watermark Phase 2 reads next time.
+  2. Append the full run log to the current `memory-archive-YYYYHn.md`, not to `memory.md`:
+     ```
+     ### Memory Consolidation — YYYY-MM-DD
+     - Scanned: [N sessions / M days back]
+     - Added: X entries · Updated: Y (Z contradictions resolved) · Archived/trimmed: W
+     - Flagged to questions.md: [list, or "none"]
+     ```
+  If a run found nothing, the watermark line is the only write — don't log an empty pass anywhere.
 
 ## Safety
 

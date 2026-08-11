@@ -1,4 +1,6 @@
 # memory.md
+*Last consolidation: 2026-08-11 — log in memory-archive-2026H2.md*
+
 *Living document — newest entries at the top of Session Notes. Never delete — archive instead.*
 *SIZE RULE (2026-08-11): this file loads in full at every session start, so it stays under ~30KB. Keep the current month of session notes here; roll anything older into `memory-archive-2026H2.md`. Consolidation passes log to the archive, not here, unless the pass actually found something.*
 
