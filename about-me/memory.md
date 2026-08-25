@@ -52,6 +52,20 @@ Reference notes moved to the KB 2026-08-11 — canonical source is `Live Sound K
 
 *Trimmed 2026-08-11: entries before 2026-08-01 and all consolidation-pass stubs live in `memory-archive-2026H2.md`. Keep this file lean — it loads in full at every session start. Consolidation passes should log to the archive, not here, unless the pass actually found something.*
 
+### 2026-08-25 — Workflow self-audit: backed up 2 weeks of stranded work, fixed a month-stale Cowork skill, cut the session-start tax
+Repo had drifted: `main` was 13 commits ahead of origin with 20 untracked items on top (three FSQ
+show builds incl. Buffalo Wabs 8/28, the mobile patch-sheet tool, KNOWLEDGE runbooks, six new
+`Code/` projects) — none of it off the Mac. Sorted keep-vs-junk, committed in 5 topical groups,
+pushed. gitignored root `IMG_*.JPG` + `handoff-*.md`, versioned `_inbox/README.md`, pruned a
+merged abandoned worktree + its branch. **`show-deep-build.skill` was a month stale** (July 26
+zip: missing `genre-geometry.md`, the one-question-at-a-time rewrite, and a doubled `build_packet.py`)
+— rebuilt from source; **Brian must re-upload it in Cowork to take effect there.** Session-start
+tax: `memory.md` was 27.6KB read cold every session, ~80% a journal duplicating git + auto-memory +
+KB active-projects. Rolled the oldest notes to archive (→20KB) and tightened the consolidation
+janitor from calendar-month/30KB to a trailing-2-week/18KB window (the calendar rule sawtoothed to
+the cap monthly). Note: the four new show `.ses` (~152MB) went into git history per existing
+convention — if repo size ever bites, git-LFS or excluding `.ses` is the lever.
+
 ### 2026-08-14 — ESP NDI-audio nightly recycle had been silently dead for six weeks
 
 The ESP Magewell RX nightly recycle (refreshes the two FSQ audio NDI receivers) stopped working 2026-06-29 and nobody noticed until the audio kept going stale. Three stacked bugs, all fixed: (1) a 2026-06-28 script edit introduced smart-dash mojibake that broke the PowerShell script's string terminators — a script that won't parse exits 1 and logs nothing, so the task kept firing nightly and doing nothing, with the log frozen in June; script is now ASCII-only. (2) The connection-verify step read the wrong JSON key (`gst`, not `channels/rx-channels/rx/data/list`), so every recycle false-failed even with both streams live. (3) The scheduled task had always been registered "Interactive only," so it would've died on any reboot/logoff regardless — now runs as SYSTEM. All three fixed in the canonical script, the wiki asset copy, and the box; live-verified end to end. **Still open: no failure webhook, so a real future failure still alerts nobody** — flagged to questions.md. (from KB CHANGELOG 2026-08-14 — no memory.md session note existed for this work until this consolidation pass added one.)
