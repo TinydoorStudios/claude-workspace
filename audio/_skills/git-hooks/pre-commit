@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Keep the Cowork .skill packages in lockstep with their source on every commit.
+# Tracked in-repo and wired via core.hooksPath, so it survives a re-clone. If hooks
+# ever stop firing after a fresh clone, re-enable with one command:
+#   git config core.hooksPath audio/_skills/git-hooks
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+BUILDER="$ROOT/audio/_skills/build-packages.sh"
+[ -x "$BUILDER" ] && "$BUILDER" --staged
+exit 0
