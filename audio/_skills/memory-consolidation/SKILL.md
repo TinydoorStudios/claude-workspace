@@ -92,11 +92,14 @@ makes them explicit and consistent:
 
 - Keep `memory.md`'s "Session Notes" section chronological and don't let old resolved entries
   bloat it — items fully superseded by KB content can be trimmed to a one-line pointer.
-- **Rolling window (tightened 2026-08-11): Session Notes keep the current calendar month, and
-  `memory.md` stays under 30KB.** Each run, move older entries to
+- **Rolling window (tightened 2026-08-25): Session Notes keep a TRAILING ~2 weeks from today, and
+  `memory.md` stays under 18KB.** Not the calendar month — the calendar rule sawtoothed the file
+  up to the cap by month-end (it sat at 27.6KB of all-August notes on 2026-08-25, under the old
+  30KB bar, so the janitor correctly did nothing while startup cost stayed high). A trailing
+  window holds the size flat instead. Each run, move older entries to
   `about-me/memory-archive-YYYYHn.md` (one archive file per half-year; create the next one when
-  the half rolls over; append, keep chronological order). If the file is still over 30KB after
-  the month cut, keep cutting oldest-first until it isn't. Check the byte count every run — the
+  the half rolls over; append, keep chronological order). If the file is still over 18KB after
+  the window cut, keep cutting oldest-first until it isn't. Check the byte count every run — the
   old "roughly 30 days" wording was never enforced and the file reached 117KB (~29K tokens
   re-billed on every turn of every session) before the 2026-08-11 cleanup.
   Before an entry rotates out, confirm anything durable in it (standing rule, correction,
