@@ -33,11 +33,17 @@ was skipped. If the artist, a mic, an instrument, the genre, the venue, or any v
 **stop and ask Brian.** Never paper a gap with a confident guess. A clean "here's what I know,
 here's the fork, which way?" is always the right call.
 
-**In show builds, batch the round (locked 2026-07-05):** the plan pass (dedupe + locker fork loop +
-note mining) collects every stop-and-ask trigger and every locker fork into **one question
-round** before any EQ is committed. **Locker forks are gate items, not FYIs** (2026-07-26) — they
-head the round, each carries its three-sentence reason, and no build passes the round with one
-unanswered; see Step 2b. Brian answers once; the build runs straight through. Stop
+**In show builds, collect the round up front but ASK ONE AT A TIME (Brian, 2026-08-08 — this
+supersedes the 2026-07-05 "batch the round" rule):** the plan pass (dedupe + locker fork loop +
+note mining) still collects every stop-and-ask trigger and every locker fork into one ordered
+round before any EQ is committed — that preparation is unchanged. What changed is delivery:
+**present ONE fork or question at a time with an interactive prompt (AskUserQuestion), stop, and
+collect Brian's answer before asking the next.** Never dump the round as a numbered list in prose
+for him to answer in one long reply — that makes him hold every answer in his head and lets a
+skipped item turn silently into a guess. One question per call, recommended option first and
+marked "(Recommended)", his read attached. **Locker forks are gate items, not FYIs** (2026-07-26) —
+they come FIRST in the sequence, each carries its three-sentence reason, and no build passes with
+one unanswered; see Step 2b. The build runs straight through once the sequence is done. Stop
 mid-build only for a genuinely new fork the scan missed. **Carried flags count as questions:**
 any open FLAG inherited from a prior rev or run (a mic-choice flag, a mono/stereo question, an
 unassigned vocal) goes INTO the round and comes out either as a recorded decision or as an
@@ -60,7 +66,8 @@ TOUR flagged never swapped · locker fork on every mic'd input, DI/XLR exempt, t
 reason, unanswered fork blocks the build · cut/boost ranges incl. the outdoor override · Memo standing waves +
 fixed crowd rig · FSQ ch 10 reserved / OH stereo on 9 · wireless faders FSQ 33–36 / Memo 41–44,
 multed when a channel names one, bare W58 = ask · research floor · capsule gate · reverbs
-anchored to factory · one batched round · genre verified first (split evidence = ask now) ·
+anchored to factory · one question at a time, forks first · genre verified first (split
+evidence = ask now) ·
 equipment rides the instrument layer · per-unit TRACE line. **Re-read the card immediately before the question round
 and again before writing spec.json, and say that you did.** Late-context constraint loss (a half-dB
 or a vocal boost appearing at channel 24) is the failure this closes.
@@ -144,7 +151,8 @@ state from folder recency.
 evidence — the act's own materials, streaming/venue listings, live footage, a prior verified
 show. Write one line: `Genre: X — <evidence>`. This is verification, not a guess: if the
 evidence is split or the act is hybrid, **stop and ask Brian right then** — the one exception
-to the batched round, because the genre shapes every downstream search and can't wait for it.
+to the round's normal sequence, because the genre shapes every downstream search and can't
+wait its turn.
 The verified genre also rides the plan table, so Brian can veto it before any EQ commits.
 
 **2b. Artist research.** Web-search the artist: who they are, sonic references, real
@@ -176,7 +184,7 @@ note on the floor. What a note changed shows up in `mic_notes`/`eq_summary`, and
 it moved you off the KB default. Table of worked examples: `references/deep-research-workflow.md`.
 
 Then run **Part II per unit** — including the **locker fork loop on every mic'd input** (Step 2b;
-DI and XLR line feeds are exempt) — and fire the **single batched question round** before
+DI and XLR line feeds are exempt) — and walk the **question round one prompt at a time** before
 committing any EQ, with the locker forks at the top of it. **Record every answer in the spec's
 `decisions` list** — the question round is research output; it rides the Rationale PDF.
 
@@ -361,8 +369,8 @@ and the fork shouldn't be raised.
 
 **Where it lands:**
 
-- **Show build** — forks batch into the single up-front question round (locked 2026-07-05),
-  listed first, before the other questions. Brian answers all of them in one pass.
+- **Show build** — forks come first in the up-front question round, ahead of the other
+  questions, and are asked ONE AT A TIME with an interactive prompt (Brian, 2026-08-08).
 - **Standalone EQ question** — ask immediately, same card.
 - **Accepted** → re-enter Step 2 for that channel with the new mic, and carry the swap through the
   Input List (48V, stand, split patch), the patcher, and `changes` (`Locker fork — swapped …`).
