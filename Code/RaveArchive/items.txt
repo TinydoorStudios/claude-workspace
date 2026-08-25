@@ -1,0 +1,25 @@
+# RaveArchive sync queue - one Internet Archive identifier per line.
+# Worked top to bottom inside the nightly window; whatever doesn't finish
+# resumes the next night. Identifiers are CASE SENSITIVE (Bassdrive, not
+# bassdrive - lowercase silently matches nothing).
+#
+# Edit this file to add or drop an item. The cron entry never changes.
+# Sizes are the original-file totals as of 2026-08-09.
+
+RaveDownloads                                              # 369.9 GB - complete, nightly no-op check
+Bassdrive                                                  # 206.4 MB
+rave-london                                                # 228.5 MB
+musik-hertz-spartanz-movements-raiders-of-the-old-school   # 687.0 MB
+definition-biological-beats                                # 808.5 MB
+scenic-advisory                                            #   1.5 GB
+random-concept                                             #   1.6 GB
+green-apple-radio                                          #   2.2 GB
+wbmx-chicago                                               #   2.8 GB
+kiss-london                                                #   3.6 GB
+upfront-radio                                              #   4.7 GB
+fantasy-london                                             #   5.6 GB
+bbc-radio                                                  #  11.2 GB
+solid-steel                                                #  15.6 GB
+kool-london                                                #  58.5 GB
+rave-library-online                                        # 234.8 GB
+mediatimeline                                              # 298.7 GB

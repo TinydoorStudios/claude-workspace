@@ -1,0 +1,98 @@
+{
+  "name": "Band Advancing — Intake",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "advancing",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8097/render",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "render",
+      "name": "Render DOCX → Dropbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "jsСode": "// placeholder"
+      },
+      "id": "normalize",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "notesInFlow": true,
+      "notes": "Flattens the form payload into the submissions columns + the Dropbox link from the previous node."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO submissions (email, venue, act, show_date, contact_name, dayof_phone, performers, large_vehicle, stageplot_link, monitor_needs, own_engineer, selling_merch, private_tent, wristbands, escort_rep, special_guests, notes, acks, raw, advance_doc) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18::jsonb,$19::jsonb,$20) RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ $json.q }}"
+        }
+      },
+      "id": "insert",
+      "name": "Insert Submission",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [920, 300],
+      "credentials": { "postgres": { "id": "REPLACE", "name": "Advancing Postgres" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE shows SET status='Received', advance_doc=$1, updated_at=now() WHERE (contact_email IS NOT NULL AND lower(contact_email)=lower($2)) OR (lower(act)=lower($3) AND lower(venue)=lower($4)) RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ $node['Normalize'].json.match }}"
+        }
+      },
+      "id": "matchshow",
+      "name": "Match & Flip Show → Received",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1160, 300],
+      "credentials": { "postgres": { "id": "REPLACE", "name": "Advancing Postgres" } }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": { "__rl": true, "value": "REPLACE_CHANNEL", "mode": "id" },
+        "text": "={{ '📋 Advance received: *' + $node['Normalize'].json.act + '* — ' + $node['Normalize'].json.venue + ' (' + $node['Normalize'].json.show_date + ')\\nDoc: ' + ($node['Render DOCX → Dropbox'].json.dropbox_link || $node['Render DOCX → Dropbox'].json.dropbox_path) }}",
+        "otherOptions": {}
+      },
+      "id": "slack",
+      "name": "Slack Notify",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1400, 300],
+      "credentials": { "slackApi": { "id": "REPLACE", "name": "Slack" } }
+    }
+  ],
+  "connections": {
+    "Form Webhook": { "main": [[{ "node": "Render DOCX → Dropbox", "type": "main", "index": 0 }]] },
+    "Render DOCX → Dropbox": { "main": [[{ "node": "Normalize", "type": "main", "index": 0 }]] },
+    "Normalize": { "main": [[{ "node": "Insert Submission", "type": "main", "index": 0 }]] },
+    "Insert Submission": { "main": [[{ "node": "Match & Flip Show → Received", "type": "main", "index": 0 }]] },
+    "Match & Flip Show → Received": { "main": [[{ "node": "Slack Notify", "type": "main", "index": 0 }]] }
+  },
+  "settings": {},
+  "_notes": "Import, then: (1) attach Postgres creds (db 'advancing') to both Postgres nodes and Slack creds to Slack; (2) paste the Normalize code from n8n/normalize.js into the Normalize node's JS field (the JSON export mangles the param name); (3) set the Slack channel; (4) copy the Webhook Production URL into the Apps Script CONFIG.n8nWebhookUrl. The docx service must be reachable at localhost:8097 on the n8n VM."
+}

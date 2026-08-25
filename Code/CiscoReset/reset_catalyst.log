@@ -1,0 +1,7 @@
+19:50:04  === catcher v5 armed — idle until the console drops ===
+19:50:04  *** console APPEARED — switch already up, idle ***
+19:54:11  *** console DISAPPEARED — powered down ***
+19:54:46  *** console APPEARED — T0 set, sequence armed ***
+19:54:50  >>> T+4.0s  ESC (abort autoboot)
+19:54:53  >>> T+6.5s  '2' Restore Factory Defaults
+19:54:55  >>> T+8.5s  'Y' confirm

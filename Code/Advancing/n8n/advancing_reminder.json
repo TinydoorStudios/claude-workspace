@@ -1,0 +1,69 @@
+{
+  "name": "Band Advancing — Reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "days", "triggerAtHour": 8 }] }
+      },
+      "id": "sched",
+      "name": "Daily 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT act, venue, show_date, status FROM shows WHERE status NOT IN ('Received','Complete') AND show_date IS NOT NULL AND show_date >= CURRENT_DATE AND show_date <= CURRENT_DATE + INTERVAL '10 days' ORDER BY show_date;",
+        "options": {}
+      },
+      "id": "query",
+      "name": "Upcoming, Not Advanced",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [440, 300],
+      "credentials": { "postgres": { "id": "REPLACE", "name": "Advancing Postgres" } }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $items().length }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "ifany",
+      "name": "Any missing?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": { "__rl": true, "value": "REPLACE_CHANNEL", "mode": "id" },
+        "text": "={{ '⚠️ *Shows not advanced (within 10 days):*\\n' + $items().map(i => '• ' + i.json.act + ' — ' + i.json.venue + ' — ' + i.json.show_date + ' (' + (i.json.status||'blank') + ')').join('\\n') }}",
+        "otherOptions": {}
+      },
+      "id": "slack",
+      "name": "Slack Nudge",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [920, 220],
+      "credentials": { "slackApi": { "id": "REPLACE", "name": "Slack" } }
+    }
+  ],
+  "connections": {
+    "Daily 8am": { "main": [[{ "node": "Upcoming, Not Advanced", "type": "main", "index": 0 }]] },
+    "Upcoming, Not Advanced": { "main": [[{ "node": "Any missing?", "type": "main", "index": 0 }]] },
+    "Any missing?": { "main": [[{ "node": "Slack Nudge", "type": "main", "index": 0 }]] }
+  },
+  "settings": {},
+  "_notes": "Reminder tier. Change the '10 days' window and channel to taste. Attach the same Advancing Postgres + Slack creds. Publish per-workflow: on the TDS VM, cd /opt/n8n && sudo docker compose exec -T n8n n8n publish:workflow --id=<id>."
+}

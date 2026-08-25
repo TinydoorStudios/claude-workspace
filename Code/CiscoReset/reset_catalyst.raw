@@ -1,0 +1,86 @@
+BOOTP ubi: Starting Boot...
+
+Hardware Revision   : 00.00.04
+Serial Number       : PVN29281C6K
+MAC address         : 30:01:af:88:27:52
+SW version          : 4.1.3.36
+
+Autoboot in 2 seconds - press RETURN or Esc. to abort and enter prom.
+[2J
+     Startup Menu
+
+[1]  Image menu
+[2]  Restore Factory Defaults
+[3]  Password Recovery Procedure
+[4]  Back
+ Enter your choice or press 'ESC' to exit: 
+Warning! About to restore factory defaults.
+
+Are you sure (Y/N) ? 
+==== Press Enter To Continue ====
+[2J
+     Startup Menu
+
+[1]  Image menu
+[2]  Restore Factory Defaults
+[3]  Password Recovery Procedure
+[4]  Back
+ Enter your choice or press 'ESC' to exit: [2J
+
+Exit from boot menu. Continue with flow.
+Allocated DMA buffer from mvDmaDrv (v1)
+Generating 256 bit AES encryption key
+secure file encryption policy supported
+Device SN, PID and SUDI certificate chain were successfully validated
+
+*****************************************************************
+*** Running SW Ver. 4.1.3.36  Date May 19 2024  Time 11:30:08 ***
+*****************************************************************
+
+HW Revision is V04
+Dram size is  : 1024M bytes
+Flash size is: 512M
+19-May-2024 11:31:37 %CDB-I-LOADCONFIG: Loading running configuration.
+19-May-2024 11:31:37 %CDB-I-LOADCONFIG: Loading startup configuration.
+CPLD version: 0x0113
+MCU version: 0x19
+CPU speed: 1400 MHz
+Coredump mode 1 (disabled)
+
+--------------------------------
+Unit factory default
+--------------------------------
+
+MPD VERSION: MPD_V03_062
+Coredump mode 1
+19-May-2024 11:32:00 %INIT-I-InitCompleted: Initialization task is completed
+
+
+>
+--------------------------------
+Unit number 1 active enabled
+--------------------------------
+
+19-May-2024 11:32:04 %Entity-I-SEND-ENT-CONF-CHANGE-TRAP: entity configuration change trap.
+MCU RTC Date (dd/mm/yyyy) - 11/08/2026
+MCU RTC Time - 00:02:28
+19-May-2024 11:32:12 %MLDP-I-CONTROLLER: Switching to the active mode.
+11-Aug-2026 00:02:28 %TIMEMANAGE-N-CLOCKSRCUPDATE: Operational clock source changed from None to RTC
+11-Aug-2026 00:02:28 %TIMEMANAGE-N-CLOCKSRCLSTUPDATE: Clock source list changed by user: Old clock source list None; New clock source list SNTP
+11-Aug-2026 00:02:28 %TIMEMANAGE-N-CLOCKUPDATE: System clock has been updated from 19-May-2024 11:32:12 UTC to 11-Aug-2026 00:02:28 UTC, Reason: RTC update
+11-Aug-2026 00:02:28 %TIMEMANAGE-N-RTCUPDATE: The system clock was updated to 11-Aug-2026 00:02:28 UTC by the RTC component of unit 1
+
+11-Aug-2026 00:02:28 %SNMP-I-CDBITEMSNUM: Number of running configuration items loaded: 0
+
+11-Aug-2026 00:02:28 %SNMP-I-CDBITEMSNUM: Number of startup configuration items loaded: 0
+The SSH Server is generating a default RSA key.
+This may take a few minutes, depending on the key size.
+The SSH Server is generating a default DSA key.
+This may take a few minutes, depending on the key size.
+The SSH Client is generating a default RSA key.
+This may take a few minutes, depending on the key size.
+The SSH Client is generating a default DSA key.
+This may take a few minutes, depending on the key size.
+11-Aug-2026 00:02:39 %SSL-N-SSLCTASK: Starting autogeneration of self-signed certificate - 2048 bits
+
+Generating RSA private key, 2048 bit long modulus

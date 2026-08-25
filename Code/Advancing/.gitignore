@@ -1,0 +1,4 @@
+deploy/deploy.log
+docx-service/*.env
+docx-service/sample_output.docx
+docx-service/render_test.docx

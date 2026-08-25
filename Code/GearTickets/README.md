@@ -21,7 +21,7 @@ QR sticker  →  n8n form (crew picks venue)  →  photos staged to disk
                                                      ↓
                                 Monday item  +  post to #gear-repair
                                                      ↓
-                                   7am daily: reconcile, chase stale, digest
+                                   7am daily: reconcile against the board
 ```
 
 The Postgres write happens **before** any AI touches the ticket. If the model is
@@ -53,7 +53,7 @@ own hostname exposing only the form paths.
 | Thing | Value |
 |---|---|
 | Intake workflow | `GearTixIntake001` — published |
-| Nightly workflow | `GearTixNightly01` — published, runs 7am |
+| Nightly workflow | `GearTixNightly01` — published, runs 7am; **digest node disabled** |
 | Sheet sync workflow | `GearTixSheetSync` — published, every 15 min + a manual **Run Now** trigger |
 | Postgres credential | `GearTixPostgres1` "Tickets Postgres" |
 | LLM credential | `GearTixTriageLLM` "Triage LLM (Groq) - value = Bearer gsk_..." |
@@ -330,3 +330,20 @@ the sheet's own column. The triage prompt is explicitly told not to repeat steps
 the submitter already listed and to pick up where they left off — so a report
 saying "swapped the battery, moved the antenna, rescanned" gets a note about
 checking the antenna cable and the receiver, not a suggestion to swap the battery.
+
+
+## Why there's no daily digest
+
+The `Morning Digest` node in the nightly caretaker is disabled, at Brian's call.
+The workflow still runs at 7am and still reconciles — that half is what closes
+tickets marked Done on the board, stamps `resolved_at`, and follows severity
+changes, and the sheet's Completed date depends on it.
+
+The digest became noise once tickets started posting to `#gear-repair` the moment
+they arrive and the Google Sheet started refreshing every 15 minutes. A daily
+recap of things you already saw is a message you learn to skip, which is worse
+than no message — it trains you to ignore the channel the show-stoppers arrive
+in.
+
+Re-enable by clearing `disabled` on that node if the queue ever grows past what
+the channel alone keeps visible.

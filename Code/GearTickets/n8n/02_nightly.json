@@ -148,7 +148,8 @@
           "id": "3xjCpEYkIsnToSko",
           "name": "Slack account"
         }
-      }
+      },
+      "disabled": true
     }
   ],
   "connections": {
