@@ -1,0 +1,957 @@
+{
+ "venue": "fsq",
+ "venue_label": "Fountain Square (outdoor)",
+ "console_label": "DiGiCo Quantum 225",
+ "show_name": "Buffalo Wabs and the Price Hill Hustle",
+ "artist": "Buffalo Wabs & The Price Hill Hustle",
+ "genre": "Americana / roots-rock",
+ "show_date": "2026-08-28",
+ "foh_engineer": "Brian Lloyd",
+ "mon_engineer": "",
+ "show_time": "",
+ "rev": "Rev 1.0 Deep Think",
+ "app_version": "deep-think-1.0",
+ "eq_on": true,
+ "comp_on": false,
+ "artist_profile": "Cincinnati four-piece Americana/roots-rock band (2016 CEA Best Folk/Americana). Matt Wabnitz 'Buffalo Wabs' — lead guitar + lead vocal; Scott Risner 'Kentucky Waterfall' — mandolin/resonator/tenor banjo + vocal; Casey Campbell 'The Deacon' — drums/percussion + vocal; Bill Baldock 'Bullseye Bill' — upright bass + vocal. All four sing (four-part harmony on the ballads). Sound moves from fast foot-stompers to harmony-laden ballads and labor dirges — Lead Belly/Prine/Guthrie roots pulled through modern rock/folk. Acoustic-forward stage (piezo strings + upright) driven by a real kit; the guests Joe Macheret (fiddle) and John K. Victor (harmonica) are NOT on this show. Mix priority: intelligible four-part harmony, clear acoustic pickers cutting the open air, a kick/snare that drives without going metal-rock.",
+ "room_context": "Open-air Fountain Square — no room gain, so cuts run deeper than indoors (−6 to −9 typical, up to −10 on mud/box) and the low end is supported by the L-Acoustics KS21 subs rather than room reinforcement. Show window is warm-dry early (83°F/48% RH at 6pm) rising to humid by the main set (72°F/75% at 9pm, 82% by 11pm), wind light 4–8 mph, rain 1%. Humid-but-not-extreme: HF carries fine, so presence is protected and no aggressive HF boosts are used; the Beta 27 9 k fizz and Beta 58A baked top are trimmed rather than lifted. Casey sings from the kit, so the drum-mic patterns (i5 focus, D2/D4 hypercardioid, B27 supercardioid) were kept over any more-open Earthworks alternative for rejection.",
+ "changes": [
+  "Overheads mapped to the FSQ STEREO fader 9 (both Beta 27s, one fader) — NOT split across 9/10; ch10 stays the protected SNARE PL8 reverb return.",
+  "Four singers routed to house wireless 33–36 (Beta 58A); template Vocal faders 25–32 unused this show.",
+  "Vocal wireless curves OVERRIDE the FSQ template stock wireless curve/notch — voice-slotted HPFs 100/120/150/90 (lead/harmony/at-kit/low).",
+  "FSQ-deep cuts applied throughout (piezo quack −6, mud −6@250) vs a lighter indoor depth.",
+  "Kick de-stacked across the two-mic pair — 91A owns 3.5k attack, 52 trimmed −2@4k; 52 owns +2@70 low, 91A flat low.",
+  "Dynamics REASONED and documented in notes (COMP/GATE lines) but NOT patched into the .ses (Q225 build rule)."
+ ],
+ "decisions": [
+  "Date confirmed Fri 2026-08-28, FSQ (the Aug 13 listing is a separate Washington Park show).",
+  "Vocals: all four members on house wireless 33–36, Beta 58A capsules; Vocal 25–32 unused (Brian confirmed).",
+  "Guests: none — four-piece as listed, no fiddle/harmonica channel (Brian confirmed).",
+  "Locker fork loop ran on every mic'd input; none raised — outdoor rejection with a singing drummer favors the specified kit mics over any Earthworks swap."
+ ],
+ "research": {
+  "genre_verified": "Americana / roots-rock — verified against the band's own bio ('the timeless echoes of traditional Americana with the turbulent force of modern rock and folk'), their 2016 CEA Best Folk/Americana Band win, and WhizzBang/Purple Fiddle booking listings. Energetic foot-stompers + harmony-laden ballads; a string band WITH a real drum kit, so roots-ROCK, not delicate bluegrass.",
+  "gig": "Fountain Square, Fri 2026-08-28, evening set. Four-piece (no guests). Cincinnati hometown band.",
+  "conditions": "Open-Meteo forecast pulled 2026-08-24 for the 8/28 show window: 6pm 83°F/48% RH, 8pm 75°F/69%, 9pm 72°F/75%, 11pm 70°F/82%; wind 4–8 mph; rain 1%. Warm-dry early, HUMID by the main set — below the 95% no-HF threshold, so: protect presence, no aggressive HF boosts, deep FSQ clarity cuts.",
+  "units": [
+   {
+    "ch": "1/2",
+    "finding": "Beta 91A boundary owns attack; Beta 52A capsule bakes a ~400 Hz scoop + ~60 Hz & ~4 kHz lifts (Shure two-mic-kick guide, Sweetwater).",
+    "sources": "Shure 'Two Shure Mics on Kick', Sweetwater, Gearspace",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "91A=attack/click, 52=bottom; split the lanes",
+     "equip": "no kit sizes notated — generic kit, no change",
+     "genre": "Americana kick = weight + moderate beater, not metal click — 91A top held to +3",
+     "artist": "foot-stomper energy — kept the beater present but not clicky",
+     "venue": "FSQ outdoor — box cut deepened to −6@400; low left flat (52 bakes ~60, subs carry it)"
+    }
+   },
+   {
+    "ch": "3",
+    "finding": "Audix i5 bakes +5 dB @150 Hz and +9 dB @5.5 kHz, broad 3–8 k presence.",
+    "sources": "RecordingHacks, SoundOnSound, Barry Rudolph",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "crack + body baked in → cut-only shaping",
+     "equip": "no snare size notated — no change",
+     "genre": "roots-rock snare wants crack that cuts — kept, not boosted",
+     "artist": "energetic backbeat — ring controlled at 900, crack preserved",
+     "venue": "FSQ outdoor — box −6@400; baked 5.5k softened −2@6k for humid air only"
+    }
+   },
+   {
+    "ch": "5",
+    "finding": "SM81 is a flat SDC with no baked hype — all shaping is subtractive spill control.",
+    "sources": "Shure SM81 datasheet, KB",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "flat mic → cut spill, add nothing",
+     "equip": "no change",
+     "genre": "no change",
+     "artist": "no change",
+     "venue": "FSQ — HPF up to 200, −5@300 snare bleed, no air boost (humid carries HF)"
+    }
+   },
+   {
+    "ch": "6",
+    "finding": "Audix D2 voiced +150 body, 500 Hz–1 k DIP, upper-mid lift, hypercardioid 30 dB+ rejection.",
+    "sources": "Audix, Thomann, RecordingHacks",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "mud pre-scooped → mid cut light",
+     "equip": "one rack tom only — no change",
+     "genre": "roots-rock tom attack wanted — +3@4k",
+     "artist": "no change",
+     "venue": "FSQ — attack lane split from floor tom; −3@450 kept light vs the baked dip"
+    }
+   },
+   {
+    "ch": "8",
+    "finding": "Audix D4 40 Hz–18 k, focused low-mid, punchy without mud, less LF boost than D2.",
+    "sources": "Audix, RecordingHacks",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "real low extension → +2@90 body",
+     "equip": "no change",
+     "genre": "kit floor tom should ring — long gate release (doc)",
+     "artist": "no change",
+     "venue": "FSQ — box −5@350; attack +3@3.5k a notch below the rack's 4k"
+    }
+   },
+   {
+    "ch": "9",
+    "finding": "Beta 27 flat 60 Hz–3 k, +2 dB peaks @5.5 k & 9 k, supercardioid consistent <6.4 k; known 9 k fizz.",
+    "sources": "RecordingHacks, Shure, KB",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "flat + supercardioid → cut-only spill/cymbal mic",
+     "equip": "no change",
+     "genre": "string-band OH = cymbals + stage wash, no boosts",
+     "artist": "no change",
+     "venue": "FSQ — HPF 300, −6@400 bleed box, −3@9k fizz worse in humidity"
+    }
+   },
+   {
+    "ch": "11",
+    "finding": "Piezo/pickup upright through a passive DI — mud ~250 and honk ~800 are the problems; Whirlwind IMP adds no color.",
+    "sources": "TalkBass, Gollihur pickup guide, KB (Whirlwind IMP)",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "pickup character only → clear mud/honk, keep fundamental",
+     "equip": "passive DI, no active sparkle — +2@2.5k for pizz attack",
+     "genre": "Americana upright = warm pizz, note clarity outdoors",
+     "artist": "Bill's bottom is the band's foundation — low band flat",
+     "venue": "FSQ — mud cut deepened to −6@250, HPF 35 preserves low E"
+    }
+   },
+   {
+    "ch": "13",
+    "finding": "Piezo mandolin quack centers 2.5–3 kHz; 400 box, 6–8 k brittle.",
+    "sources": "Premier Guitar, Mandolin Cafe, Gearspace piezo threads",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "piezo quack primary target",
+     "equip": "onboard pickup — no change",
+     "genre": "bluegrass/Americana mando chop wants clarity not zing",
+     "artist": "Scott's lead instrument — quack cut hard",
+     "venue": "FSQ — quack −6@2.5k narrow, box −5@400, HPF 120"
+    }
+   },
+   {
+    "ch": "14",
+    "finding": "Electric mandolin pickup has far less piezo quack than an acoustic mando — lighter shaping.",
+    "sources": "Gearspace piezo vs magnetic threads",
+    "verdict": "THIN",
+    "trace": {
+     "base": "magnetic/active tone → light quack trim only",
+     "equip": "electric mando — the equip layer IS the difference vs ch13",
+     "genre": "kept present to cut on leads",
+     "artist": "no change",
+     "venue": "FSQ — −4@2.5k, −4@400, top left present"
+    }
+   },
+   {
+    "ch": "15",
+    "finding": "Resonator: metal-cone harshness at 3–4 k + piezo; forum standard cut ~250 Hz by ~6 dB.",
+    "sources": "Gearspace 'Taming Dobro Harshness', Banjo Hangout",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "metallic bark + mud are the signatures",
+     "equip": "reso onboard pickup — no change",
+     "genre": "reso is a bright lead voice in Americana — tame, don't dull",
+     "artist": "Scott doubles reso — bright but controlled",
+     "venue": "FSQ — mud −6@250, metallic −5@3.5k, brittle −3@8k humid"
+    }
+   },
+   {
+    "ch": "16",
+    "finding": "Banjo piezo is bright + feedback-prone; EQ fix = 250 boom, 1–2 k honk, 4–6 k brightness.",
+    "sources": "Banjo Hangout, HomeRecording banjo EQ",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "bright/feedback-prone piezo",
+     "equip": "tenor banjo pickup — no change",
+     "genre": "banjo ring wanted but controlled outdoors",
+     "artist": "Scott's tenor banjo — feedback margin matters at level",
+     "venue": "FSQ — boom −5@250, honk −4@1.5k, brightness −3@5k, HPF 120"
+    }
+   },
+   {
+    "ch": "17/18",
+    "finding": "Piezo acoustic five-fix: 2.5–3 k quack primary, 400 box, 6–8 k brittle.",
+    "sources": "Fader&Knob, Premier Guitar acoustic-EQ series",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "piezo quack primary",
+     "equip": "onboard pickup — ch18 is a swap channel, retune per instrument",
+     "genre": "Americana rhythm acoustic — clear, not scooped",
+     "artist": "Matt's acoustic (17); Scott's doubling utility (18)",
+     "venue": "FSQ — quack −6@2.8k, box −5@400, HPF 90/100"
+    }
+   },
+   {
+    "ch": "33–36",
+    "finding": "Beta 58A bakes presence peaks ~4 k & ~10 k, <500 Hz attenuated (proximity-controlled), brighter than SM58.",
+    "sources": "MusicOnStage 2026 analysis, Shure spec, higherhertz",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "baked presence → CUTS ONLY, no vocal boosts (rule)",
+     "equip": "house wireless handhelds",
+     "genre": "four-part Americana harmony — slot by voice type, not hierarchy",
+     "artist": "Matt lead / Scott harmony / Casey at-kit / Bill low — four distinct HPFs (100/120/150/90)",
+     "venue": "FSQ — overrides template wireless curve; Casey tightest for kit bleed, deep mud cuts for outdoor intelligibility"
+    }
+   }
+  ],
+  "reconciliation": [
+   "No web↔KB disagreements — every unit AGREE except the electric mandolin (THIN: the KB has no electric-mando row and web piezo-vs-magnetic guidance is general, so the light-touch curve is a reasoned starting point to confirm at line check)."
+  ],
+  "kb_writeback": [
+   "Electric mandolin DI on a string-band show — candidate new mic-library/eq-starting-points note if the light curve lands.",
+   "Beta 58A four-voice slotting by HPF (100/120/150/90) for an Americana harmony band — candidate eq-starting-points example."
+  ]
+ },
+ "reverbs": [
+  {
+   "role": "vocal",
+   "preset": "Plates 1 / #06 Vocal Plate",
+   "settings": "Decay 1.5s (factory) · PreDelay 24ms (factory) · VLF −19 (factory) · E/L Max Early · Late −6 (raised from the factory reference — outdoors carries the late field) · Late Rolloff 6400 (factory)",
+   "plugin_eq": "Return LC 160 Hz; ducker Reverb mode, Thr −22 dB, Rel ~250 ms",
+   "why": "The harmony-ballad + lead workhorse. Plate sheen sits the four-part harmony forward with no room outdoors to muddy it — the big-moment ballad throw."
+  },
+  {
+   "role": "vocal",
+   "preset": "Chambers 1 / #10 Vocal Chamber",
+   "settings": "Decay 1.6s (factory) · PreDelay 0 (factory) · VLF −10 (factory) · E/L Max Early · Late −8 (near factory ref) · Late Rolloff 8000 (factory)",
+   "plugin_eq": "Return LC 150 Hz; ducker Reverb mode, Thr −22 dB",
+   "why": "Warmer, more natural than the plate — flatters a roots baritone lead on mid-tempo numbers. Hands off with the Vocal Plate song to song."
+  },
+  {
+   "role": "vocal",
+   "preset": "Rooms 1 / #27 Small Room",
+   "settings": "Decay 0.6s (factory) · PreDelay 0 (factory) · VLF −12 (factory) · E/L Max Early · Late −10 · Late Rolloff 6800 (factory)",
+   "plugin_eq": "Return LC 200 Hz",
+   "why": "The dry option for the fast foot-stompers — a short tail keeps consonants crisp in the open air so the lyric survives the tempo."
+  },
+  {
+   "role": "instrument",
+   "preset": "Rooms 1 / #36 Long Wood Room",
+   "settings": "Decay 1.2s (factory) · PreDelay 0 (factory) · VLF −9 (factory) · E/L Max Early · Late −8 · Late Rolloff 7600 (factory)",
+   "plugin_eq": "Return LC 200 Hz, HS −2 @ 8 k",
+   "why": "Wood-room glue for the acoustic pickers (mando/reso/banjo/acoustic) — the woody character matches the instruments and cohere them outdoors without the artificial sheen a plate would put on a banjo."
+  },
+  {
+   "role": "instrument",
+   "preset": "Chambers 1 / #09 Snare Chamber",
+   "settings": "Decay 1.2s (factory) · PreDelay 10ms (factory) · VLF −19 (factory) · E/L Max Early · Late −10 · Late Rolloff 5600 (factory)",
+   "plugin_eq": "Return LC 250 Hz",
+   "why": "A short snare splash for the big backbeats on the foot-stompers — snap without mud. Ride it up only on the uptempo numbers, off under the ballads."
+  },
+  {
+   "role": "general",
+   "preset": "Ambiences 1 / #01 Large Ambience",
+   "settings": "Decay 0.8s (factory) · PreDelay 10ms (factory) · VLF −10 (factory) · E/L Max Early · Late −10 · Late Rolloff 6000 (factory)",
+   "plugin_eq": "none",
+   "why": "A whisper of overall air so the open-air stage isn't bone-dry — no audible tail, just glue under the whole band when a number wants it."
+  }
+ ],
+ "reverb_pairing": "Two lead vocal returns hand off song to song: Vocal Plate is the default forward lead + the ballad harmony bed; Vocal Chamber is the warmer mid-tempo option; on the fast foot-stompers ride the dry Small Room instead so the lyric stays articulate outdoors. Long Wood Room is the acoustic-instrument glue — mandolin, resonator, banjo, acoustic guitar feed it as a group for cohesion; keep the upright out of it. Snare Chamber is a backbeat-only splash on uptempo numbers, off under ballads. Large Ambience is a whisper of overall band air, ridden up only when a number feels bone-dry. All returns 100% wet, level ridden by the sends.",
+ "no_reverb": false,
+ "channels": [
+  {
+   "ch": 1,
+   "name": "Kick In",
+   "instrument": "Kick (in)",
+   "mic": "Shure Beta 91A",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "—",
+   "hpf": 35,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 3500,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -6,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Two-mic kick with CH2 (Beta 52). Treat the pair as ONE signal — same VCA, panned together, blend constant. Polarity: sum in mono at soundcheck, flip one if thinner. 91A HPF'd to hand the real bottom to the 52.",
+   "mic_notes": "Beta 91A boundary INSIDE the kick — owns the ATTACK/click lane (Shure/Sweetwater: built-in contour switch tightens lows to complement the outside mic). GATE (doc only): Green/FET, thr ~−28, atk fast, keeps foot-stomp dynamics.",
+   "eq_summary": "91A owns attack: +3@3.5k gives the beater snap the Americana kick needs (moderate, not metal-click). −6@400 kills the boxy shell boom the boundary picks up inside — FSQ-deep. Lows left flat here; the 52 owns bottom, so no low stacking across the pair. HPF 35."
+  },
+  {
+   "ch": 2,
+   "name": "Kick Out",
+   "instrument": "Kick (out)",
+   "mic": "Shure Beta 52A",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Short",
+   "hpf": 30,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -2,
+     "freq": 4000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Outside/resonant-head mic of the two-mic kick. Owns BOTTOM + punch. Little/no HPF so it delivers the real low weight.",
+   "mic_notes": "Beta 52A — tailored kick capsule (Shure): baked scoop ~400 Hz + lifts ~60 Hz & ~4 kHz. Capsule gate: don't stack a full 400 cut (already scooped) or a 4k boost (91A owns attack).",
+   "eq_summary": "52 owns the low weight — left FLAT: the capsule already bakes a ~60 Hz lift and the KS21 subs carry the bottom outdoors, so a boost here would stack on the voiced peak. −3@400 is LIGHT because the capsule already scoops there. −2@4k DE-STACKS from the 91A's 3.5k attack so the beater isn't doubled. HPF 30."
+  },
+  {
+   "ch": 3,
+   "name": "Snare Top",
+   "instrument": "Snare (top)",
+   "mic": "Audix i5",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Short",
+   "hpf": 80,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -2,
+     "freq": 6000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 900,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "No snare bottom this show (ch4 unused).",
+   "mic_notes": "Audix i5 — baked +5 dB @150 Hz (body) and +9 dB @5.5 kHz (crack), broad 3–8 kHz presence (RecordingHacks/SoundOnSound/Barry Rudolph). Capsule gate: crack is IN the mic → NO presence boost.",
+   "eq_summary": "Cut-only shaping — the capsule already delivers body (150) and crack (5.5k). −6@400 clears the box for outdoor clarity (FSQ-deep); −3@900 tames snare ring; −2@6k just softens the baked-peak clang in the humid evening air while keeping the cut that lets it slice the open field. HPF 80 preserves the 150 body."
+  },
+  {
+   "ch": 5,
+   "name": "Hat",
+   "instrument": "Hi-Hat",
+   "mic": "Shure SM81",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Boom",
+   "hpf": 200,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 3000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 300,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "SM81 SDC on a boom over the hats.",
+   "mic_notes": "SM81 — flat, honest SDC (Shure), no baked hype. Nothing to un-do; shape is all subtractive to remove kit spill.",
+   "eq_summary": "HPF 200 — the hat has no useful lows and this dumps snare/kick spill. −5@300 kills the boxy snare bleed the mic picks up; −3@3k tames stick clang. No air boost — SM81 top is clean and the humid evening carries HF fine."
+  },
+  {
+   "ch": 6,
+   "name": "Rack 1",
+   "instrument": "Rack Tom",
+   "mic": "Audix D2",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Clip",
+   "hpf": 60,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 4000,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 450,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "One rack tom only (ch7 unused). GATE (doc only): Green/FET thr ~−30, atk 5–10 ms (let the tom bloom), so ghost hits and press rolls live.",
+   "mic_notes": "Audix D2 — voiced for rack toms: +150 Hz body, a 500 Hz–1 kHz DIP, subtle upper-mid lift, fast transient, tight hypercardioid 30 dB+ off-axis rejection (Audix/Thomann/RecordingHacks). Capsule gate: mud already scooped → mid cut is LIGHT.",
+   "eq_summary": "+3@4k gives the stick attack that lets the tom cut the outdoor mix (D2 owns this lane — floor tom's attack sits lower). −3@450 is deliberately light because the capsule already dips 500–1k; a full FSQ-deep cut would hollow it. Body left to the baked 150. HPF 60."
+  },
+  {
+   "ch": 8,
+   "name": "Floor",
+   "instrument": "Floor Tom",
+   "mic": "Audix D4",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "Clip",
+   "hpf": 45,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 3500,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -5,
+     "freq": 350,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 2,
+     "freq": 90,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "GATE (doc only): Green/FET thr ~−30, atk 5–10 ms, long release — floor tom should ring in an Americana kit, don't choke it.",
+   "mic_notes": "Audix D4 — 40 Hz–18 k, focused low-mid, punchy low end without mud, less LF boost than the D2 (Audix/RecordingHacks). Handles 144 dB SPL.",
+   "eq_summary": "+2@90 adds the floor weight the D4 extends to (subs carry it outdoors but the tom wants its own body). −5@350 clears the box. +3@3.5k gives stick definition a notch below the rack's 4k so the two toms occupy different attack lanes. HPF 45."
+  },
+  {
+   "ch": 9,
+   "name": "Overheads",
+   "instrument": "Overheads (STEREO)",
+   "mic": "2× Shure Beta 27",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "stand": "Boom",
+   "hpf": 300,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 9000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -6,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "STEREO pair on ONE fader (FSQ template fader 9 is a stereo channel — both B27s live here, never split 9/10; ch10 is the SNARE PL8 reverb return).",
+   "mic_notes": "Shure Beta 27 — flat 60 Hz–3 k, small +2 dB peaks at 5.5 k & 9 k, supercardioid consistent below 6.4 k (RecordingHacks/Shure). KB weakness: slight 9 k fizz on bright cymbals — the target here.",
+   "eq_summary": "Cut-only — an OH pair on a string-band stage is a cymbal + spill mic, not a boost source. HPF 300 dumps kit lows and stage rumble. −3@9k tames the Beta 27's known fizz (worse in humid air). −6@400 kills snare/tom bleed box for outdoor separation. No air boost — supercardioid rejection is why these mics stay over an open stage."
+  },
+  {
+   "ch": 11,
+   "name": "Upright Bass",
+   "instrument": "Upright Bass",
+   "mic": "Whirlwind IMP (DI)",
+   "section": "RHYTHM",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 35,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 2,
+     "freq": 2500,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -4,
+     "freq": 800,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 250,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Pickup/piezo upright into a passive DI (Whirlwind IMP). No bass mic this show (ch12 unused). COMP (doc only): Purple/opto, ~3:1, 4–6 dB GR to even out pizz note-to-note.",
+   "mic_notes": "Whirlwind IMP — passive, honest DI (KB): no coloration, slight HF/level loss into low-Z. All character is the pickup; upright pizz through piezo = mud + honk to clear.",
+   "eq_summary": "−6@250 is the main move — pickup mud that fogs pitch outdoors (FSQ-deep). −4@800 clears piezo honk. +2@2.5k adds the finger/pizz attack that carries note definition across the open field. HPF 35 keeps the low E (41 Hz) fundamental intact — this is the band's bottom, so the low band stays flat."
+  },
+  {
+   "ch": 13,
+   "name": "Mandolin",
+   "instrument": "Mandolin",
+   "mic": "XLR (pickup DI)",
+   "section": "STRINGS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 120,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 7000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -6,
+     "freq": 2500,
+     "q": 3.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Onboard pickup, XLR line feed (locker-exempt). Confirm phantom need at line check.",
+   "mic_notes": "Piezo/pickup mandolin — the 2.5–3 kHz quack is the signature problem, plus 400 box and 6–8 k brittle (Premier Guitar / Mandolin Cafe / Gearspace piezo threads).",
+   "eq_summary": "−6@2.5k (narrow Q3) is the quack cut that does the heavy lifting — FSQ-deep for a piezo. −5@400 clears box. −3@7k tames brittle chop attack. HPF 120 (mandolin bottoms at G3 ~196 Hz). Cut-forward — piezo mandolin needs no boosts."
+  },
+  {
+   "ch": 14,
+   "name": "Elec Mando",
+   "instrument": "Electric Mandolin",
+   "mic": "XLR (DI)",
+   "section": "STRINGS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -4,
+     "freq": 2500,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Electric mandolin, XLR (locker-exempt). Warmer/fuller than the acoustic mando — lighter piezo character.",
+   "mic_notes": "Electric mando pickup — magnetic/active tone has far less piezo quack than the acoustic mandolin, so the 2.5k cut is lighter and the top is left alone.",
+   "eq_summary": "−4@2.5k a lighter quack/nasal trim than the acoustic mando; −4@400 box. No HF cut — the electric top wants to stay present to cut. HPF 100."
+  },
+  {
+   "ch": 15,
+   "name": "Resonator",
+   "instrument": "Resonator / Dobro",
+   "mic": "XLR (pickup DI)",
+   "section": "STRINGS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 90,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 8000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -5,
+     "freq": 3500,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 250,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Reso/dobro onboard pickup, XLR (locker-exempt).",
+   "mic_notes": "Resonator = metal-bar-on-metal-cone harshness + piezo. Forum standard: cut ~250 Hz by ~6 dB, and the 3–4 k metallic harshness is the amplified-tone problem (Gearspace 'Taming Dobro Harshness' / Banjo Hangout).",
+   "eq_summary": "−6@250 clears the mud/honk (per the dobro-live consensus, FSQ-deep). −5@3.5k tames the metallic bark that gets brutal amplified. −3@8k softens the brittle cone top in the humid air. Cut-only — the reso is bright by nature, nothing to add. HPF 90."
+  },
+  {
+   "ch": 16,
+   "name": "Banjo",
+   "instrument": "Tenor Banjo",
+   "mic": "XLR (pickup DI)",
+   "section": "STRINGS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 120,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 5000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -4,
+     "freq": 1500,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 250,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Tenor banjo onboard pickup, XLR (locker-exempt). Feedback-prone outdoors at level.",
+   "mic_notes": "Banjo piezo — bright, cutting, feedback-prone; the fix lives in EQ (Banjo Hangout / HomeRecording): control 250 boom, 1–2 k honk, and the 4–6 k brightness.",
+   "eq_summary": "−5@250 kills boom/mud (FSQ-deep). −4@1.5k pulls the piezo honk. −3@5k tames the banjo brightness enough for the humid evening without dulling the ring. HPF 120 (banjo has no useful lows). Cut-only."
+  },
+  {
+   "ch": 17,
+   "name": "Acoustic Gtr",
+   "instrument": "Acoustic Guitar",
+   "mic": "XLR (pickup DI)",
+   "section": "STRINGS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 90,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 7000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -6,
+     "freq": 2800,
+     "q": 3.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Matt's acoustic, onboard pickup XLR (locker-exempt).",
+   "mic_notes": "Piezo acoustic — the classic five-fix (Fader&Knob / Premier Guitar): 2.5–3 k quack is primary, 400 box, 6–8 k brittle.",
+   "eq_summary": "−6@2.8k narrow is the quack cut that makes a piezo sound like a guitar (FSQ-deep). −5@400 box; −3@7k brittle. Body left alone (DI is thin, no reason to cut it, no vocal-style boost). HPF 90."
+  },
+  {
+   "ch": 18,
+   "name": "Mando/Bjo/Gtr",
+   "instrument": "Doubling (Scott)",
+   "mic": "XLR (pickup DI)",
+   "section": "STRINGS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "DI",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 7000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -5,
+     "freq": 2500,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Utility instrument-swap channel (mandolin / 5-string banjo / acoustic). RETUNE the 2.5k quack cut per whichever instrument is live at soundcheck — banjo wants it narrower, acoustic a hair lower.",
+   "mic_notes": "Shared piezo channel — set to a middle-ground piezo curve; not simultaneous with the dedicated mando/banjo/acoustic channels.",
+   "eq_summary": "Compromise piezo curve: −5@2.5k quack, −4@400 box, −3@7k brittle. Flag on the input list to match the active instrument at line check. HPF 100."
+  },
+  {
+   "ch": 33,
+   "name": "W1 Scott",
+   "instrument": "Vocal (harmony)",
+   "mic": "Shure Beta 58A (wireless)",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "—",
+   "hpf": 120,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 7000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 2000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "House wireless 1 (FSQ fader 33). Overrides the template's stock wireless curve/notch — ring out at soundcheck. COMP (doc only): Blue/Neve ~2.5:1, 3–4 dB GR.",
+   "mic_notes": "Beta 58A — baked presence peaks ~4 k & ~10 k, <500 Hz attenuated (proximity-controlled), supercardioid/high GBF (MusicOnStage/Shure). Harmony voicing: rolled higher than the lead to sit behind it.",
+   "eq_summary": "Cut-only. −4@300 trims mud so the harmony doesn't crowd the lead's body. −3@2k separates it from Matt's lead (own nasal lane). −3@7k tames the baked top for the humid evening. HPF 120 rolls it up under the lead. No boosts — the capsule bakes the presence."
+  },
+  {
+   "ch": 34,
+   "name": "W2 Wabbs",
+   "instrument": "LEAD Vocal (Matt)",
+   "mic": "Shure Beta 58A (wireless)",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "—",
+   "hpf": 100,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 7000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": {
+      "thr": -18,
+      "atk_ms": 3,
+      "rel_ms": 120
+     }
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 1000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "House wireless 2 (FSQ fader 34) — Matt 'Buffalo Wabs', LEAD. Overrides template wireless curve — most body kept of the four. COMP (doc only): Blue/Neve ~3:1, 3–4 dB GR.",
+   "mic_notes": "Beta 58A — baked ~4 k & ~10 k peaks; brighter than an SM58, so the top can get strident on a hard lead. Dynamic de-ess sits on the baked top only when he leans in.",
+   "eq_summary": "Cut-only. Dynamic −3@7k (DEQ, thr −18) de-esses the baked top only on the loud consonants — the air stays between sibilants. −3@1k pulls honk; −4@300 mud for outdoor intelligibility. HPF 100 keeps the most low body of the four voices — he's the lead. No presence boost; the capsule bakes it."
+  },
+  {
+   "ch": 35,
+   "name": "W3 Casey",
+   "instrument": "Vocal (drummer, at kit)",
+   "mic": "Shure Beta 58A (wireless)",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "—",
+   "hpf": 150,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 7000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -5,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 200,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "House wireless 3 (FSQ fader 35) — Casey sings FROM THE KIT, so kit bleed into this mic is the constraint. Ride the digital trim; the supercardioid pattern is doing the rejection. GATE/DUCK (doc only): consider a shallow duck off the kit VCA. COMP (doc only): Blue/Neve ~3:1, 3–4 dB GR.",
+   "mic_notes": "Beta 58A at the drum throne — same baked ~4 k/10 k peaks, but the job here is stripping the kick/snare bleed that a kit vocal always carries.",
+   "eq_summary": "Cut-only + tightest HPF of the four. HPF 150 dumps the kick/low bleed. −5@200 and −5@400 strip the snare/shell wash that leaks into a drummer's mic so his voice stays a voice, not a room mic. −3@7k de-ess. No boosts."
+  },
+  {
+   "ch": 36,
+   "name": "W4 Bill",
+   "instrument": "Vocal (bass, low)",
+   "mic": "Shure Beta 58A (wireless)",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "stand": "—",
+   "hpf": 90,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 7000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 900,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "House wireless 4 (FSQ fader 36) — Bill 'Bullseye Bill', the upright player; treated as the low/bass voice of the harmony stack. Lowest HPF of the four. COMP (doc only): Blue/Neve ~2.5:1, 3–4 dB GR.",
+   "mic_notes": "Beta 58A — the <500 Hz roll is helpful on a low voice (keeps proximity in check) but HPF stays low so his register isn't thinned. Slotted low so the four-part stack has a real bottom.",
+   "eq_summary": "Cut-only. HPF 90 — lowest of the four so his low harmony keeps its body. −4@300 mud; −3@900 honk; −3@7k de-ess. No boosts. Slots UNDER the other three voices by keeping the low end the others roll off."
+  }
+ ]
+}

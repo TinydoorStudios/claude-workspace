@@ -1,0 +1,1239 @@
+{
+  "venue": "fsq",
+  "venue_label": "Fountain Square (outdoor)",
+  "console_label": "DiGiCo Quantum 225",
+  "show_name": "2nd Wind",
+  "artist": "2nd Wind Band",
+  "genre": "R&B / funk / soul show band (Motown + Top 40, jazz inflections)",
+  "show_date": "2026-08-08",
+  "foh_engineer": "Brian Lloyd",
+  "mon_engineer": "—",
+  "show_time": "7:00pm–10:00pm",
+  "rev": "Rev 2.0 Deep Build",
+  "app_version": "deep-think-1.0",
+  "artist_profile": "Cincinnati show band, voted the city's 2025 Best Performance Band, with four featured vocalists who front the show and work the crowd — Aretha (who also MCs), Heather, Vince, and Brandon, who is NEW this week in place of Markay. Their backing and opening credits are the tell for how they actually work: Kirk Whalum, The Whispers, Fantasia, John Legend, Charlie Wilson, the Clark Sisters. That means arrangements are tight and rehearsed, the vocal is unambiguously the show, and the rhythm section plays to a click with tracks underneath — ch 15 Click and ch 16 Track confirm it again this week. Four practical consequences, in order. One: four handheld vocals live on an open plaza all night makes gain-before-feedback the governing constraint of the whole build, so vocals stay cuts-only and the four voices are slotted against each other rather than given four copies of one curve. Two: there are no horn channels, again — the keys, the two sampling pads and the Track carry the horn and string parts their press sells, which is why the keys' 1–2 kHz window is deliberately left untouched and the guitar is cut at 800 and left alone above it. Three: the percussion rig is GONE this week (no congas, no bongos) and the kit grew instead, gaining a bottom snare and a dedicated under-ride mic — so last week's midrange fight between four hand drums and a full kit becomes a fight INSIDE the kit, between three tom mics, three cymbal mics and a bottom snare all pointed at the same shells. Four: the bass is now mic plus DI where last week it was DI plus synth DI, which is the single biggest change in the low end.",
+  "room_context": "Fountain Square, open-air plaza, Fifth & Vine Live — a free weekly Saturday series, 7–10 pm, walk-up downtown crowd rather than last week's destination conclave. L-Acoustics 4x A15 per side over 8x KS21 in a delayed arch. No room gain, no natural late field, nothing given back: cuts run at outdoor depth (−6 to −9, up to −10 on mud) and HPFs run high. The weather INVERTS last week's high-frequency call. Rev 1 on 2026-07-31 ran 80.6 F at 50 percent RH at doors climbing to 77 percent by 11 pm, so the note was 'protect presence, do not chase it with boosts that will be too bright by 10 pm.' This show is hot and genuinely dry for its entire length — 92.9 F at 38 percent RH at downbeat, only reaching 60 percent as the band loads out. Dry air absorbs high frequencies over distance far more than humid air, so the throw to the back of the plaza eats real top end all night and never gives it back. The move is to PROTECT presence and NOT over-trim the top: where a baked capsule peak would normally take a full trim, it takes a lighter one, because the air is already doing part of that job. Three values moved on that reasoning alone — the snare's 5.5 kHz trim from −4 to −3, the overheads' 9 kHz trim from −4 to −2 with the LPF opened from 16 k to 18 k, and the toys' 8 kHz trim from −3 to −2. Gusts of 15–16 mph run through the whole window: windscreens on every open mic, and the overheads, hat, ride and toys will all collect wash, which is a second reason the HPFs sit high. Precipitation risk peaks at 14 percent around 8–9 pm — low, but real in 90-degree air, so covers stay within reach. Load-in at 94 F dropping 12 degrees by load-out will drift drum tuning; worth a word to the band, nothing to do in EQ.",
+  "research": {
+    "genre_verified": "R&B / funk / soul show band (Motown + Top 40, jazz inflections) — verified fresh before any other research, not carried from rev 1. Evidence: the band's own artist page on The Bash (self-described 'high energy, jazz and R&B... inspired by Motown, funk and R&B', 200-plus song list), GigSalad and CincyMusic listings, and Memorial Hall OTR's billing of 'The Ultimate Usher Tribute Part II featuring 2nd Wind Band' (2026-06-27, live vocals plus dancers and production). Voted Cincinnati's 2025 Best Performance Band. Evidence is NOT split — no genre stop-and-ask.",
+    "gig": "Fifth & Vine Live at Fountain Square, Saturday 2026-08-08, 7:00–10:00 pm (myfountainsquare.com series page). Free, no tickets, Fifth Third Bank Center Stage, walk-up downtown Saturday crowd. Different event from rev 1's Omega Psi Phi 85th Grand Conclave on 2026-07-31 (18:00–23:00, 10,000-plus registrants): a shorter, tighter three-hour set with no long cool-down tail, so the whole show sits inside the hottest and driest part of the evening.",
+    "conditions": "Open-Meteo, fetched 2026-08-08 10:57 ET for 39.1012 / -84.5120, hourly. 17:00 (load-in/check) 94.4 F, 38 pct RH, dew 64.9 F, 3 pct precip, wind 10.5 mph, gusts 16.3. 19:00 (downbeat) 92.9 F, 38 pct RH, dew 63.6 F, 6 pct precip, wind 10.5, gusts 15.9. 20:00 90.3 F, 43 pct RH, 14 pct precip, gusts 16.3. 21:00 85.7 F, 53 pct RH, 14 pct precip, gusts 15.4. 22:00 (out) 82.8 F, 60 pct RH, 10 pct precip, gusts 11.4. Read: hot and DRY through the whole set, the inverse of rev 1's humid tail — protect presence, lighten baked-peak trims, windscreens on everything open. Dew point sits 63–68 F all evening, which FEELS humid; RH is what governs HF absorption and RH is low, so do not be misled into rev 1's humid-air call.",
+    "units": [
+      {
+        "ch": "1",
+        "source": "Kick in (boundary, inside shell)",
+        "mic": "Shure Beta 91A",
+        "finding": "Emphasis from 4 kHz to about 9 kHz with a presence boost around 7 kHz for attack definition; the two-step contour switch attenuates 400 Hz by 7 dB when engaged. Half-cardioid boundary, 20 Hz-20 kHz, 155 dB max SPL, -48.5 dBV/Pa. Mix Online's real-world review adds that the 91A is tighter in the low end than the original 91 with a more pronounced, better-balanced beater snap.",
+        "sources": "Shure Beta 91A product page; Gear4Music spec write-up (4-9 kHz emphasis, 7 kHz presence, 400 Hz/-7 dB contour); RecordingHacks Beta 91A profile; Mix Online real-world review",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "kick inside on a boundary condenser — 400 Hz shell box is the primary target, and the 4-9 kHz attack is BAKED so no click boost is available",
+          "equip": "no drum sizes or heads notated — no change",
+          "genre": "R&B/funk dance pulse wants weight and attack both — box cut unchanged by genre",
+          "artist": "plays to a click with programmed low end in the Track channel — ch 1 stays out of the sub region so it does not fight it",
+          "venue": "FSQ outdoor plus 38 pct RH — box cut deepened to -8@400, and B4 left FLAT because dry air is already eating the top the capsule bakes in (rev 1's +3@3500 withdrawn)"
+        }
+      },
+      {
+        "ch": "2",
+        "source": "Kick out (sound hole / port)",
+        "mic": "Shure Beta 52A",
+        "finding": "Presence boost at 4 kHz with response deliberately limited to 20 Hz-10 kHz, emphasising 50 Hz-4 kHz — so both the weight and the attack are voiced in and the capsule is already a low-pass filter. Forum consensus adds that the midrange attack can read a little harsh and a typical desk pass is +2@60, -4@500, roll off above 6 k.",
+        "sources": "Shure Beta 52A product page and spec sheet; FrontEndAudio and DrumHelper (4 kHz presence peak); Shure's own 'How to Get a Great Kick Drum Sound Using Two Shure Mics' (names the 91A-inside / 52A-at-the-sound-hole pairing explicitly); Gearspace and DFO threads",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "kick at the port on a band-limited dynamic — Shure's 4 kHz presence peak and 50 Hz-4 kHz emphasis mean weight AND attack are baked, so the desk only trims",
+          "equip": "no drum sizes or heads notated — no change",
+          "genre": "R&B/funk dance weight is the point — claimed by gain and capsule, never by a B1 boost",
+          "artist": "programmed low end in the Track channel — no low boost to fight it",
+          "venue": "FSQ outdoor — cardboard cut deepened to -6@250; dry air is a NO CHANGE layer on a capsule that stops at 10 kHz by design"
+        }
+      },
+      {
+        "ch": "3",
+        "source": "Snare top",
+        "mic": "Audix i5",
+        "finding": "+5 dB peak at 150 Hz and +9 dB peak at 5500 Hz, -3 dB points near 50 Hz and 16 kHz, with a broader presence boost across 3-8 kHz. Low sensitivity of 1.6 mV/Pa keeps hi-hat spill down.",
+        "sources": "RecordingHacks Audix i5 profile; Barry Rudolph review; Sound On Sound i5 review; Gearspace i5-vs-SM57 snare-top shoot-out",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "snare top on a cardioid dynamic — 400 Hz box is the target; +9@5.5k and +5@150 mean crack AND body are baked, so both reflexes reverse",
+          "equip": "no drum size, head or tuning notated — generic snare carries",
+          "genre": "funk/R&B backbeat needs the crack to cut — but the genre boost is REFUSED because the capsule already delivers it",
+          "artist": "rehearsed to a click, consistent hit to hit — EQ can be decisive",
+          "venue": "FSQ outdoor box deepened to -8@400; 38 pct RH dry air LIGHTENED the 5.5 kHz trim from rev 1's -4 to -3, and HPF sits at 130 not 150 so the filter does not claw back the capsule's baked body"
+        }
+      },
+      {
+        "ch": "4",
+        "source": "Snare bottom (claw / rim mount)",
+        "mic": "Electro-Voice N/D 408",
+        "finding": "30 Hz-22 kHz supercardioid N/DYM neodymium dynamic; brighter and more aggressive upper mids than an SM57 with a deliberate proximity lift, and a close working distance that piles low-mids. Bottom-mic physics: a stick hit drives the top head AWAY from a top mic (negative) while driving the bottom head TOWARD the bottom mic (positive), so the bottom mic inverts relative to the top, every time — and what it hears is the snare WIRES, which add brilliance and bite to the top mic's picture.",
+        "sources": "Electro-Voice N/D 408 literature (via Reverb listing) for the capsule; Sound On Sound 'Q. Why should a snare bottom mic be polarity inverted?' and Sweetwater InSync 'How to Mic a Snare Drum' for the physics and the lane",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "snare bottom = the WIRES per Sweetwater — sizzle and bite, never body; polarity inverted per SOS physics",
+          "equip": "claw / rim mount notated by the band — forces a close working distance, which the KB names as the cause of low-mid pile, so HPF pushed up to 200",
+          "genre": "funk/Motown articulation — ghost notes and press rolls read here, which is what earns the wire lane its +3@9000",
+          "artist": "gospel/R&B backing pedigree means a crisp forward snare, not fat vintage — supports sizzle over body",
+          "venue": "FSQ outdoor pile cut deepened to -7 and OFFSET to 500 against ch 3's 400; 38 pct RH dry air KEPT the 9 kHz lift in rather than trimming it away"
+        }
+      },
+      {
+        "ch": "5",
+        "source": "Hi-hat",
+        "mic": "Shure SM81",
+        "finding": "Flat 20 Hz-20 kHz with NO presence peak and no hyped top end — 'the brightness you get on playback is the brightness of the cymbal, not an artifact of the microphone.' Three-position low-cut quantified: flat / -6 dB per octave below 100 Hz / -18 dB per octave below 80 Hz, plus a lockable -10 dB pad.",
+        "sources": "SoundRef SM81 review; Shure SM81 product page; Thomann specs; Gearspace SM81 user review",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "hi-hat on a ruler-flat SDC — the template lands STRAIGHT, no capsule artifact to chase, so every move is mine and load-bearing",
+          "equip": "no cymbal sizes notated; onboard 18 dB/oct low-cut assumed ENGAGED per the KB's use-it-before-the-desk note, pad OUT",
+          "genre": "funk/R&B sixteenths make the hat a primary rhythmic voice — the 10 kHz sizzle lift is genre-driven and survives the gate only because the capsule is flat",
+          "artist": "tight rehearsed patterns to a click — a decisive lift is safe",
+          "venue": "FSQ outdoor — bleed cut deepened to -7@400, HPF up at 250 for 15-16 mph gusts, LPF 16 k for wash; 38 pct RH dry air is what makes the 10 kHz lift worth having at the back of the plaza"
+        }
+      },
+      {
+        "ch": "6",
+        "source": "Rack tom 1 (high)",
+        "mic": "Audix D2",
+        "finding": "Response boost around 150 Hz, a dip between 500 Hz and 1 kHz, and a subtle upper-mid presence lift, over a stated 80 Hz-18 kHz range; hypercardioid VLM diaphragm, >144 dB SPL, 1.2 mV/Pa. Described as a scooped-mids curve with a larger low-frequency boost than the D4, delivering the expected modern rack-tom sound WITHOUT EQ.",
+        "sources": "Audix D2 cutsheet via RecordingHacks; Audix D2 product page; Thomann and FrontEndAudio spec pages",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "high rack tom on a purpose-built hypercardioid — +150 body, 500 Hz-1 kHz dip and a subtle upper-mid lift mean body AND attack are both baked",
+          "equip": "no tom sizes or heads notated — no change",
+          "genre": "funk/R&B fills want attack and pitch over size — but BOTH genre boosts are REFUSED because the capsule already delivers them (rev 1's +3@130 and +3@4000 withdrawn)",
+          "artist": "placed fills in rehearsed arrangements — nothing needs over-emphasis to be caught",
+          "venue": "FSQ outdoor box cut at full depth -7 but MOVED to 350 to stay out of the capsule's own 500 Hz-1 kHz dip; LPF 12 k for cymbal bleed"
+        }
+      },
+      {
+        "ch": "7",
+        "source": "Rack tom 2 (low)",
+        "mic": "Audix D4",
+        "finding": "Audix's CURRENT response chart shows a +6 dB peak at 5 kHz, a secondary peak above 10 kHz, and a low-frequency rolloff below 70 Hz. An earlier c.2001 chart showed a rising HF response peaking +9 dB at 10 kHz; either way the capsule is HF-forward, and the published 38 Hz figure does not translate into usable deep low end.",
+        "sources": "RecordingHacks Audix D4 profile reading Audix's current chart; Audix D4 product page; RecordingHacks D4/OM6 review",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "low rack tom on a hypercardioid dynamic — +6 dB at 5 kHz means attack is baked and must be TRIMMED, and the sub reach is simply absent",
+          "equip": "no tom sizes or heads notated; the mic CHANGE from rev 1's second D2 is what re-derived this channel from scratch",
+          "genre": "funk/R&B fills want pitch and attack — attack refused as baked, pitch restored at 130",
+          "artist": "placed fills, rehearsed to a click — no over-emphasis needed",
+          "venue": "FSQ outdoor box -7 OFFSET to 450 against ch 6's 350; weight at 130 rather than the KB's generic 80 to stay clear of the kick and bass lanes; 38 pct RH dry air did NOT lighten the 5 kHz trim here because tom ring outlives the air loss in a way snare crack does not"
+        }
+      },
+      {
+        "ch": "8",
+        "source": "Floor tom",
+        "mic": "Audix D6",
+        "finding": "The low end peaks at 60 Hz, the high end peaks at 4 kHz AND 10 kHz, and the midrange at 750 Hz sits about 15 dB below those peaks. On floor toms specifically the D6 gives 'well-defined lows coupled with a prominent stick sound even when the mic was pointed towards the edge of the drum head.' Audix names floor tom as an intended application.",
+        "sources": "Tape Op's measured D6 review via RecordingHacks (60 Hz / 4 k / 10 k peaks, 750 Hz down ~15 dB); Audix D6 product page; ADI Global product listing naming floor tom",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "floor tom on a KICK capsule — bottom and stick are baked, midrange body is absent by design, and the 750 Hz dip forbids a box cut there",
+          "equip": "no drum size or head notated; the D6 itself IS the equipment story, locked by Brian's declined locker fork",
+          "genre": "R&B/funk scooped dance-floor floor tom is the intended sound — the bend is DO NOT fight the capsule, no midrange reconstruction",
+          "artist": "click plus programmed low end in the Track channel makes a 60 Hz-peaking tom a real collision risk",
+          "venue": "FSQ outdoor — HPF pushed to 80 specifically to trim the capsule's 60 Hz peak OFF the kick and bass lanes, ring cut at FSQ depth -6@300, and 38 pct RH dry air kept the 4 kHz trim at de-stack size rather than deeper"
+        }
+      },
+      {
+        "ch": "9",
+        "source": "Drum overheads (stereo pair)",
+        "mic": "Shure Beta 27",
+        "finding": "Nominally flat from about 60 Hz to 3 kHz with two SMALL HF peaks of +2 dB or less at 5500 Hz and 9 kHz, plus a -15 dB switchable attenuator and a 3-position low-frequency filter. Shure explicitly names 'drum and percussion overheads' as an optimal application.",
+        "sources": "RecordingHacks Beta 27 profile; Shure Beta 27 product page and user guide; Studiocare and FrontEndAudio spec pages",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "drum overheads on a near-flat supercardioid LDC — with peaks of only +2 dB the trims must be SIZED to small peaks, not applied at dynamic-mic depth",
+          "equip": "no cymbal sizes notated; pad assumed OUT and LF filter ENGAGED, with a gain re-check fallback written in",
+          "genre": "R&B/Motown wants record-like sheen and glue rather than crash — a flat capsule means the genre bend applies directly in the numbers",
+          "artist": "four live vocals on an open plaza make every open condenser a gain-before-feedback cost, so the overheads are filtered hard at the bottom and asked to do exactly one job",
+          "venue": "FSQ outdoor — HPF 300 for gusts, bleed -7@400 at FSQ depth; 38 pct RH dry air OPENED the LPF from rev 1's 16 k to 18 k and LIGHTENED the 9 kHz trim from -4 to -2 because -4 removed more than the capsule added"
+        }
+      },
+      {
+        "ch": "11",
+        "source": "Bass guitar — amp XLR out, POST-EQ",
+        "mic": "XLR line feed (band-provided)",
+        "finding": "A post-EQ amp DI is typically noisier and often excessively BRIGHT, and the mechanism is named: 'a traditional bass speaker functions like a high pass filter and rolls off the highs — if the player cranks the highs to compensate, the sound coming out of the post DI will be obnoxiously bright.' Alongside that, 'most amps have a baked-in EQ curve... typically a cut to the mids and/or boost of lows and highs, which makes them sound great through the amp's speakers but not in a full range system.' The remedy these threads land on is a cut around 250 Hz for mud, shaped at the console rather than on stage.",
+        "sources": "TalkBass 'Why do so many amps have an XLR out that is only post-EQ?', 'DI vs amp XLR?' and 'How to EQ live shows'; Gearspace 'Live bass tones through DIs vs XLR outs'; Sonicbids EQ reference for the 250 Hz figure",
+        "verdict": "THIN",
+        "trace": {
+          "base": "electric bass, the arrangement's spine — 250 Hz mud is the primary target per FOH consensus",
+          "equip": "post-EQ amp XLR out (Brian's answer, Q4) — the baked amp curve cuts mids and boosts lows/highs, and a post DI runs bright because the player compensated for the cab's HF rolloff. THIS LAYER REVERSED rev 1's +3@2500 presence boost into a -3 trim",
+          "genre": "Motown/funk wants a round singing fundamental with no clank — delivered by REMOVAL, not addition",
+          "artist": "disciplined and locked to a click alongside programmed low end — narrow decisive cuts are safe",
+          "venue": "FSQ outdoor — 250 mud cut deepened to -7; HPF 50 hands the deep weight to ch 12 per Brian's lane call; dry air = NO CHANGE on a source whose problem is too much high end arriving"
+        }
+      },
+      {
+        "ch": "12",
+        "source": "Bass cabinet (close-miked)",
+        "mic": "Shure PG52",
+        "finding": "30 Hz-13 kHz cardioid, 1.8 mV/Pa — the 13 kHz upper limit is the externally sourced roll-off point. The PG52's own curve is published only as an image, so the SHAPE is corroborated through its direct successor: Shure/Sweetwater describe the PGA52 as having 'a slight presence peak in the upper mids to capture the click of the kick beater and the snap attack of a bass string, with a scoop in the midsection and not a lot of upper top end.' Shure's own copy names close-miked bass amps as an intended application.",
+        "sources": "RecordingHacks PG52 profile (fetched directly, 2026-08-08); Shure PGA52 product page and Sweetwater PGA52 review copy; TalkBass 'Shure PG-52 for miking bass amp?'",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "bass cabinet close-miked — 200-800 Hz box is the usual target, but the capsule's own midsection scoop and upper-mid presence peak MOVE both the cut and the trim off their default frequencies",
+          "equip": "no cab model, driver count or string type notated — no rig-driven bend beyond the mic; if the band names an 8x10 or flatwounds at load-in, revisit 160",
+          "genre": "funk/Motown wants weight that stays a NOTE — served by the capsule's own 60-100 Hz hump rather than by the desk",
+          "artist": "programmed low end already occupies the sub region via the Track channel — ch 12 takes 60-100 and claims nothing below it",
+          "venue": "FSQ outdoor box cut at FSQ depth but MOVED to 160 to stay out of the capsule's 200-800 dip; HPF 35, the lowest on the show, because this is the designated bottom of the bass lane; dry air = no change on a 13 kHz-limited capsule"
+        }
+      },
+      {
+        "ch": "13",
+        "source": "Electric guitar — Marshall emulated line out",
+        "mic": "XLR line feed (band-provided)",
+        "finding": "The DSL's emulated output is a FREQUENCY-COMPENSATED line-level out running Softube-designed cabinet emulation of Marshall's 1960 4x12 — Marshall and Softube replicated the 1960-series cabs following their CODE-series partnership, and both the headphone and line outputs carry it. So the cab's own response is already in the signal: the Marshall midrange honk around 800 Hz-1 kHz, the presence shelf around 2-3 kHz, and the speaker's HF roll-off above roughly 5-6 kHz.",
+        "sources": "Marshall Amp Forum DSL/Softube threads and 'JVM line out sounds better than mic'd speaker'; Sweetwater DSL20HR product copy; Cream City Music 2018 DSL update write-up",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "electric guitar rhythm comping — 300 Hz mud and 800 Hz honk are the targets",
+          "equip": "Marshall emulated line out, Softube 1960 4x12 emulation, frequency-compensated (Brian's answer, Q3) — this layer REFUSED the presence boost outright and MOVED the honk cut from rev 1's generic 900 to 800 by naming the cab",
+          "genre": "funk/R&B chank wants dry tight articulation — achieved by clearing mud, never by lifting presence",
+          "artist": "no horn channels, so keys and pads own the 1-2 kHz window — the guitar is cut at 800 and left alone above it to interlock rather than mask",
+          "venue": "FSQ outdoor mud cut deepened to -8@300, HPF 150 to protect the bass lane; dry air = NO CHANGE, the emulation already rolled the top off around 5-6 kHz so there is nothing up there to protect"
+        }
+      },
+      {
+        "ch": "14",
+        "source": "Ride cymbal, mic'd FROM BELOW (claw)",
+        "mic": "Shure SM81",
+        "finding": "Capsule: flat 20 Hz-20 kHz, no presence peak, switchable low-cut flat / -6 / -18 dB per octave, -10 dB pad. Technique, which is what shaped this channel: under-miking a ride 'helps control the ping by providing decent rejection from other cymbals and deemphasizing the high pitch pings, while allowing you to add body back to the ride in the mix'; 'moving the mic closer to the bell will add more ping, while moving it to the edge will emphasize the overtones'; and critically, 'when you have mics under the cymbals pointing up in the opposite direction of other mics pointing down, the first thing to deal with is phase cancellation — reverse the phase on the cymbal mics pointing in the opposite direction.' The hierarchy is stated plainly: 'with bottom micing a ride, the primary mics are the overheads, and the bottom mic is to reinforce that sound.'",
+        "sources": "HomeRecording and DFO under-cymbal threads; Gearspace 'Ride Cymbal Micing'; Audio-Technica '2 Drum Mic Tips for Recording the Ride Cymbal'; Signaturesound 'Mic Positioning: Cymbals and Overheads'; SoundRef/Shure/Thomann for the SM81 capsule",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "ride from UNDERNEATH — the position itself rejects other cymbals and DE-emphasises the high ping, so the desk restores definition rather than exaggerating it; overheads remain the primary picture",
+          "equip": "claw mount and under-position notated by the band — this note drove the whole channel, including the POLARITY INVERT and the HPF at 300; onboard 18 dB/oct low-cut assumed engaged",
+          "genre": "R&B/funk with jazz inflections — the bell is a hook and stick definition carries the half-time feels, which is what earns the 2500 lift",
+          "artist": "gospel/R&B backing pedigree — a crisp forward ride bell is idiomatic",
+          "venue": "FSQ outdoor — HPF 300 for bleed from below and for gusts, bleed cut at FSQ depth -7@500; 38 pct RH dry air strengthens the case for the 2500 definition lift surviving the throw"
+        }
+      },
+      {
+        "ch": "15/16",
+        "source": "Click reference + backing Track (mastered playback)",
+        "mic": "XLR line feeds (band-provided)",
+        "finding": "A backing track from a playback rig arrives already MIXED AND MASTERED at line level — its spectral balance is a finished master, not a raw source, so shaping it broadly re-masters someone else's mix in public. The one defensible move is low-end overlap, since a mastered bed carries its own kick and bass energy colliding with ch 1/2 and ch 11/12. For the click, the only thing that matters is routing discipline, not tone.",
+        "sources": "Live-sound consensus on playback channels (TalkBass and Gearspace live-sound boards); Brian's own answers in the 2026-08-08 round (ch 15 is a REAL input; ch 16 is mono)",
+        "verdict": "THIN",
+        "trace": {
+          "base": "click reference plus a mastered backing bed — program material, not sources",
+          "equip": "line-level playback rig; the Track being already mixed and mastered is the fact that FORBIDS shaping it",
+          "genre": "the Track carries the horn and string parts an R&B show band needs — three other channels stay out of its window because of this",
+          "artist": "rehearsed to a click and Brian confirmed the click is a real input, so the Track is load-bearing rather than decorative",
+          "venue": "FSQ outdoor — a single 250 cut on the Track to make room for kick and bass, kept MODEST because it is a master; no venue treatment at all on the click, which never reaches the PA"
+        }
+      },
+      {
+        "ch": "17/18",
+        "source": "Sampling pad (SPD-SX class), two outputs panned mono",
+        "mic": "BSS AR-133 / Whirlwind IMP (DI)",
+        "finding": "A sampling pad's output is produced, pre-mixed material at line/instrument level — every sample was EQ'd and compressed before it reached the pad, and there is no capsule or transducer character to correct. These are level-and-routing channels with one corrective cut, not tone channels.",
+        "sources": "Live-sound consensus on pads and playback at FOH; Brian's rev-1 decision (2026-07-31) that these run as TWO MONO channels panned, not a stereo image",
+        "verdict": "THIN",
+        "trace": {
+          "base": "sampling pad, produced samples at line level — no transducer to correct",
+          "equip": "SPD-SX class pad, two outputs run as panned mono per Brian's rev-1 call; AR-133 and Whirlwind IMP carried forward from rev 1",
+          "genre": "the pad shares horn/string stab duty with the keys and the Track — 1-2 kHz window left untouched",
+          "artist": "placed hits in tight rehearsed arrangements — land them, do not shape them",
+          "venue": "FSQ outdoor — 300 cut for room-making against the guitar's -8 and the keys' -6 at the same octave, but SIZED DOWN to -5 because the material is already produced; HPF 40 keeps the programmed sub content"
+        }
+      },
+      {
+        "ch": "19",
+        "source": "Toys / aux percussion tray",
+        "mic": "Shure SM81",
+        "finding": "Flat 20 Hz-20 kHz, no presence peak, three-position low-cut (flat / -6 / -18 dB per octave), lockable -10 dB pad. Directly on point: 'percussion instruments with high-end detail — including tambourines, shakers and triangles — benefit from the smooth upper frequencies of the SM81', and 'small tambourines, bells and triangles will sound fine with the SM81.'",
+        "sources": "Shure SM81 applications copy and product page; MicrophoneGeeks SM81-LC review; SoundRef SM81 review; Thomann specs",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "aux percussion on a ruler-flat SDC — the 6-10 kHz glare is the INSTRUMENT's own and legitimate to cut, because the capsule reports it rather than creating it",
+          "equip": "toy tray, close-played; onboard 18 dB/oct low-cut assumed engaged, pad out",
+          "genre": "funk/Motown groove texture played continuously — the bend is RESTRAINT: cut the glare rather than lift the sparkle",
+          "artist": "percussion is texture not feature, and rev 1's congas and bongos are gone, so this is the only hand percussion on the show",
+          "venue": "FSQ outdoor — HPF 300 and FSQ-depth bleed cuts; 38 pct RH dry air LIGHTENED the 8 kHz trim from rev 1's -3 to -2 and OPENED the LPF to 18 k"
+        }
+      },
+      {
+        "ch": "20/21",
+        "source": "Keys (stereo pair)",
+        "mic": "XLR line feeds (band-provided)",
+        "finding": "A keyboard's stereo XLR out is a finished line-level signal whose voicing was chosen at the instrument — patch, onboard EQ and effects are all upstream, and a Rhodes/organ/piano patch already carries its own presence and brightness shaping. There is no transducer to correct. The single reliable FOH problem is 250-400 Hz accumulation, because a full-range keyboard patch overlaps guitar, bass and the sampling pad in that octave, and a stereo keyboard bed is the widest, most continuous thing in the mix so it will mask a vocal before any drum does.",
+        "sources": "Live-sound consensus for keys at FOH (subtractive and narrow); Brian's confirmation in the 2026-08-08 round that keys + pads + Track carry the horn and string parts",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "stereo keyboard line feed — 250-400 Hz accumulation is the only reliable FOH problem",
+          "equip": "keyboard rig XLR out, patch voicing chosen upstream — this forbids a presence boost",
+          "genre": "R&B/Motown Rhodes, organ and piano — warm and subtractive",
+          "artist": "NO horn channels: keys + pads + Track ARE the horn section, so the 1-2 kHz window is left COMPLETELY untouched. This layer overrides a cut the genre and venue layers would both otherwise call for, and it is the most consequential call on the channel",
+          "venue": "FSQ outdoor mud deepened to -6@300, but the honk HELD to -4@800 so it does not stack with the guitar's -5 at the same frequency and dig a hole where the comping interlocks; HPF 60 to protect the kick and bass lanes; dry air = no change"
+        }
+      },
+      {
+        "ch": "33–36",
+        "source": "Four handheld vocals (Aretha, Heather, Vince, Brandon)",
+        "mic": "Shure Beta 58A (house wireless 1–4)",
+        "finding": "TWO high-frequency presence peaks — one at 4 kHz and one at 10 kHz — with a pronounced presence region between 4 and 9 kHz, significantly more aggressive than an SM58's, over a 50 Hz-16 kHz response; and frequencies attenuated below 500 Hz to counter proximity effect, with a rolloff steeper than the SM58's. Reviewers name the consequence: 'the presence peak enhances consonants and sibilance... singers with naturally bright or thin voices may find the presence peak emphasises sibilance excessively.'",
+        "sources": "Shure Beta 58A specification sheet (content-files.shure.com); MusicOnStage Beta 58A technical analysis; SoundRef Beta 58A review",
+        "verdict": "AGREE",
+        "trace": {
+          "base": "four handhelds on a supercardioid dynamic — the 10 kHz peak is WHY the de-essers exist, the 4 kHz peak is why no vocal gets presence, and the sub-500 attenuation is why the box cuts use a tight Q 2.0 rather than a broad bell",
+          "equip": "house wireless on the template's reserved faders 33-36, no mults; windscreens on all four for 15-16 mph gusts",
+          "genre": "R&B/funk/Motown wants the vocal forward and it CANNOT have a boost — so presence is bought by clearing FIVE instrument channels' masking bands instead (keys 300, guitar 300 and 800, bass 250, pads 300, Track 250)",
+          "artist": "four featured vocalists trading leads, with a Whalum/Whispers/Fantasia/Clark Sisters backing lineage — the vocal is the feature. Brandon is NEW, so ch 36 ships FLAGGED with both alternate slots printed rather than a guess dressed up as a value",
+          "venue": "FSQ outdoor, the tightest feedback margin on the show — FSQ-depth box cuts at tight Q, the template's HPF 184 + 5 kHz notch + 335 cut ALL REMOVED, RING OUT AT SOUNDCHECK; 38 pct RH dry air did NOT lighten the de-essers because they are dynamic and self-regulating"
+        }
+      }
+    ],
+    "reconciliation": [
+      "No web-vs-KB disagreements requiring a fork this build. Every unit's verdict is AGREE except three THIN entries, and all three are THIN by KB ABSENCE rather than by conflict: ch 11 (post-EQ amp bass DI), ch 15/16 (click and mastered backing track) and ch 17/18 (sampling pad) have no eq-starting-points row at all. Each was closed by a decision rather than by inference — Brian named the bass source in Q4, confirmed the click is a real input, and his rev-1 call set how the pads run — and all four missing rows are in the approved KB write-back.",
+      "One KB row was found already CORRECTED and matching today's fresh pass: the Audix D4 (ch 7). The row was fixed on 2026-07-30 against the same RecordingHacks reading of Audix's current chart found again today (+6 dB at 5 kHz, secondary peak above 10 kHz, rolloff below 70 Hz), on Brian's own call during the 2026-08-01 Repertoire build. The pre-correction row would have put a click boost straight onto a baked peak.",
+      "One refinement the fresh pass adds to a KB row, and it changed a value: the mic-library D6 entry says 'deep mid scoop ~600 Hz (-15 dB), peaks ~63 Hz and ~5 kHz.' Tape Op's measured review puts the dip nearer 750 Hz and shows TWO high peaks, at 4 kHz and 10 kHz. That moved ch 8's HF trim to 4000 — the peak actually measured — instead of a 5 k figure sitting between the two real peaks and catching neither, and it is why LPF 10000 is doing real work shading the second peak. Staged as write-back item 4.",
+      "One KB row corrected by Brian's own answer rather than by research: mic-library lists a single Shure SM81 with no quantity marker, while marking multiples explicitly everywhere else (MKH 40 (pair), OM1 (pair), DPA 4099 (x4)). Three channels on this list call for an SM81. Raised as Q2; Brian confirmed he owns THREE, so the proposed M1280BHC / M1280B reallocation was withdrawn and all three channels build on the SM81. Staged as write-back item 1.",
+      "One shorthand rule corrected in the root CLAUDE.md, not the KB: it claimed a bare '408' written on a snare meant the Lauten LS-408. Brian's answer on Q1 — 'the EV. i will always refer to the lauten as the lauten or simply snare mic' — means a bare 408 is ALWAYS the Electro-Voice N/D 408, on any source. Corroborated at the time by ch 4's blank 48V cell, since the EV is a dynamic and the Lauten is a phantom-powered condenser. The bad rule had already cost a question round on rev 1's hat; the table was fixed 2026-08-08 and the KB gets the matching note as write-back item 2."
+    ],
+    "kb_writeback": [
+      "mic-library: mark the Shure SM81 quantity as x3 — the row carries no quantity marker so the file currently reads as one, which cost a question round today (Brian confirmed three, 2026-08-08).",
+      "mic-library / shorthand: a bare '408' is the Electro-Voice N/D 408 on ANY source including a snare; the Lauten LS-408 is referred to as 'the Lauten' or 'snare mic'. Root CLAUDE.md already corrected 2026-08-08 — the KB should match.",
+      "mic-library: correct the SM57 presence peak from 3-5 kHz to Shure's measured 6-7 kHz / +5-6 dB. Carried unactioned from 2026-07-31; the old figure puts a boost onto a baked peak.",
+      "mic-library: refine the Audix D6 row — dip nearer 750 Hz at about -15 dB below the peaks, and TWO high peaks at 4 kHz and 10 kHz rather than a single '~5 kHz'. Load-bearing on ch 8 of this very show.",
+      "eq-starting-points: add rows for synth bass, modeller / emulated direct guitar feed, sampling pad, and backing-track playback. Carried unactioned from 2026-07-31, and three of this build's four THIN verdicts are caused by exactly these gaps."
+    ]
+  },
+  "style_note": "Fifth & Vine Live, 7–10 pm on the plaza. Four handheld vocals over a rehearsed R&B/funk show band running to a click, in 93 F air at 38 percent humidity. Clarity first, cuts before boosts, and every dB of vocal presence bought by clearing the instruments rather than by lifting the voice.",
+  "changes": [
+    "This is a REVISION of the 2026-07-31 build, and every EQ value was re-derived rather than copied. Seven of twenty units changed mic or source, the weather inverted, and the percussion rig that shaped rev 1's whole midrange strategy is gone. 27 channels became 24.",
+    "Locker fork CH8 floor tom — MD 421-U offered over the D6, Brian KEPT the D6. The channel is therefore built FOR the scooped voicing: B3 left FLAT because the capsule already sits ~15 dB down at 750 Hz, and no attempt is made to reconstruct the midrange body it removes.",
+    "CH8 HPF set to 80 specifically to trim the D6's measured 60 Hz peak off the kick and bass lanes, then B1 +3@90 restores the drum's own note. Without that, a kick capsule on a floor tom reads as a second kick drum on a plaza.",
+    "CH1 — rev 1's +3@3500 WITHDRAWN. Shure emphasises 4-9 kHz with a 7 kHz presence peak on the 91A, so a Q1.5 bell at 3500 reaches straight into voiced response. B4 is FLAT rather than cut, because dry air is already attenuating that region.",
+    "CH2 mic changed D6 to Beta 52A, and the channel is rebuilt around it: B4 -4@4000 TRIMS the 52A's baked 4 kHz presence peak to de-stack it from ch 1's baked 4-9 kHz attack lane. B3 is only -5@500, lighter than FSQ default, because the capsule already scoops low-mids. B1 FLAT refuses the forums' typical +2@60 — Shure emphasises 50 Hz-4 kHz by design.",
+    "CH4 is now the snare BOTTOM head, not rev 1's ambiguous 'Snare 2'. POLARITY INVERT against ch 3, per the documented physics: a hit drives the top head away from the top mic and the bottom head toward the bottom mic. Its lane is the WIRES at 9 kHz, and it gets no body at all — HPF 200, B1 flat.",
+    "CH5 hat mic changed ND408 to SM81, which changed the channel's meaning. Rev 1's -6@4500 was fixing the 408's presence RISE; the SM81 is documented flat with no presence peak, so the new -6@3500 is fixing the CYMBAL, and the +3@10000 sizzle lift only becomes legal because the capsule is flat.",
+    "CH6 — rev 1's B2 +3@130 and B4 +3@4000 both WITHDRAWN. Audix bakes a lift at 150 Hz and a subtle upper-mid presence lift into the D2; both rev-1 boosts stacked on voiced response. The channel is deliberately light as a result, and the box cut MOVED from 450 to 350 to stay outside the capsule's own 500 Hz-1 kHz dip.",
+    "CH7 mic changed D2 to D4 and was re-derived from scratch. The D4's chart shows +6 dB at 5 kHz, so B4 TRIMS at 5000 rather than boosting; weight is restored at 130 because the chart rolls off below 70 Hz and there is no sub reach to lean on outdoors.",
+    "Tom section re-slotted after an audit failure: ch 7 +3@110 and ch 8 +3@105 were 5 Hz apart, which is one value on two section members. Re-derived to 130 (12-inch rack tom) and 90 (16-inch floor tom), matching each drum's own fundamental.",
+    "CH11 bass source changed from Brian's RNDI to the band's post-EQ amp XLR out, which REVERSED the top end. Rev 1's +3@2500 is withdrawn and replaced by trims at 5000 and 2000: a post DI runs bright because the player compensates for the cab's HF rolloff, and the amp's baked curve already cut its own mids.",
+    "CH12 repurposed from Bass Synth (J48) to Bass Mic (PG52). B1 and B3 are BOTH flat by capsule gate: never boost the published 60-100 Hz hump, and never cut into the 200-800 Hz dip — the box cut sits at 160 instead.",
+    "CH13 — the +3 presence boost stays withdrawn, now with the cab named. Marshall's emulated out is a frequency-compensated line-level feed running Softube's 1960 4x12 emulation, so the honk cut MOVED from rev 1's generic 900 to 800, the 1960's own midrange character, and LPF 8000 remains housekeeping rather than a cab replacement.",
+    "CH14 is a new channel — the under-ride. POLARITY INVERT, because a mic under the cymbals points opposite the overheads and the overheads are the PRIMARY cymbal picture here, so uncorrected cancellation would damage the main source rather than a garnish. Its +3@2500 has two independent justifications: a flat capsule, and a position that documentably de-emphasises the high ping.",
+    "Cymbal group re-slotted after an audit failure: ch 5's hat cut collided with ch 4's at 4000. Moved to 3500. Final map — hat cut 3500 / boost 10000, ride cut 700 / boost 2500, overheads cut 1200 / trim -2@9000. Exactly one member owns each lane.",
+    "THE WEATHER INVERTED rev 1's high-frequency call, and three values moved on that alone. Rev 1 ran 50 pct RH climbing to 77; this show runs 38 pct RH at downbeat reaching only 60 at load-out. Dry air eats HF over the throw and never gives it back, so: ch 3's 5.5 kHz trim lightened -4 to -3, ch 9's 9 kHz trim lightened -4 to -2 with its LPF opened 16 k to 18 k, and ch 19's 8 kHz trim lightened -3 to -2.",
+    "The dry-air logic was deliberately NOT applied in two places, and the reasons are on the channels. Ch 7's 5 kHz trim stays at -4 because on a ringy tom that region is ring, which the air does nothing to shorten, unlike snare crack. And the four vocal de-essers stay at -3/-2 because they are DYNAMIC bands that only act when sibilance arrives, so they self-regulate as the humidity climbs 22 points across the set.",
+    "Vocal presence is bought entirely by clearing instruments. Five channels are cut in the vocals' masking region so that four handhelds can sit forward with zero dB of vocal boost: keys -6@300, guitar -8@300 and -5@800, bass -7@250, pads -5@300, Track -4@250.",
+    "All four vocals override the FSQ template's wireless baseline completely — HPF 184, the -18@5k Q20 feedback notch and the -6.3@335 are all replaced. RING OUT AT SOUNDCHECK: removing that notch removes the protection with it.",
+    "CH36 is a different person from rev 1 (Brandon, not Markay) and his range is unknown, so the channel ships with a load-in FLAG and BOTH alternate slots printed on its EQ page — baritone (HPF 95, -4@750, -7@400) and tenor (HPF 120, -3@1400, -6@500). He is slotted BETWEEN Vince and the women at HPF 105 / box 450 so that whichever way his voice turns out he is not colliding with an already-slotted channel.",
+    "Rev 1's percussion channels (congas x2 on PRO 35, bongos on SM57) and the Edwin talkback are all GONE. Fader 14 became the ride, faders 17/18 became the sampling pads, 19 became the toys, 20/21 became the keys.",
+    "The OH pair again collapses onto STEREO fader 9 — the band listed OH L on 9 and OH R on 10, and fader 10 is the SNARE PL8 reverb return, hard-protected. That reconciliation makes the band's ch 11-21 land on the console 1:1 with no renumbering, which matters because this week's list was written to the house template: channels 1-12 match the template's own fader labels word for word, including 'Snare Bottom' on 4 and 'Bass Mic' on 12.",
+    "48V and Stand columns arrived blank except ch 1, and are filled from the resolved mic list: phantom on ch 1 (Beta 91A), 5 / 14 / 19 (the three SM81s), 9 (Beta 27 pair) and 17 (AR-133, active). Everything else is a dynamic or a line feed. Split Patch stays blank — Brian's load-in call, and the band's snake sheet is blank by design."
+  ],
+  "decisions": [
+    "Locker fork CH8 floor tom: Sennheiser MD 421-U offered over the Audix D6 -> Brian: KEEP the D6. Built for the scooped voicing; the 421-U stays unused this show.",
+    "Q1: which '408' is on ch 4, the EV N/D 408 or the Lauten LS-408? -> Brian: 'the EV. i will always refer to the lauten as the lauten or simply snare mic.' So a bare 408 is ALWAYS the EV, on any source. 48V stays OFF on ch 4. The root CLAUDE.md shorthand row was corrected the same day so this cannot recur.",
+    "Q1 secondary: ch 4 is treated as the BOTTOM HEAD (template fader 4 is natively named 'Snare Bottom', band's note says 'claw') — polarity invert against ch 3, wire lane at 9 kHz, no body boost. This closes rev 1's open flag about whether ch 4 was a second drum.",
+    "Q2: three channels call for an SM81 and mic-library lists one -> Brian: 'I have three — use all three.' The proposed M1280BHC (hat) / M1280B (toys) reallocation is withdrawn; hat, ride and toys all build on the SM81 and are slotted against each other in the numbers. KB quantity correction staged.",
+    "Q3: is the ch 13 Marshall 'Rec Out' speaker-emulated? -> Brian: EMULATED, DSL/JVM class. Treated as a mic'd cab: no presence boost into the Softube 1960 4x12 emulation, LPF 8000 as housekeeping rather than as a cab replacement, honk cut placed at 800.",
+    "Q4: whose bass DI is the ch 11 XLR, and pre- or post-EQ? -> Brian: the amp's XLR out, POST-EQ. Corrective only, do not re-voice. Lane split confirmed: ch 11 DI owns definition and the top, ch 12 PG52 owns the low body.",
+    "Q5: Wireless 4 is Brandon this week, not Markay — what is his range? -> Brian: don't know, he's new. Built as a deliberately offset middle-of-the-road male voice (HPF 105, box 450, mid 1100, de-ess 9000), with a load-in FLAG and both alternate sets printed on his EQ page.",
+    "Q6 carried flags -> Brian: 'whats on the list is what there is. different setup this week. click/Edwin TB dont exist.' That closes the no-horn-channels read (keys + pads + Track carry those parts) and Track-as-mono, and confirms the talkback is gone.",
+    "Follow-up to Q6: the list DID carry 'Click' on ch 15, so this was asked rather than assumed -> Brian: it's real, they run to a click. Ch 15 stays as a live input, MUTED from the mains and out of the record bus, no EQ beyond a housekeeping HPF.",
+    "Carried from rev 1, deliberately NOT re-litigated: ch 3 keeps the Audix i5 (Brian's own 2026-07-31 locker-fork swap), and the sampling pads run as two MONO channels panned rather than as a stereo image (his 2026-07-31 answer).",
+    "Renewed assumption: the house wireless handhelds are Beta 58A capsules, per the last several FSQ specs.",
+    "KB write-backs: all five approved for staging -> Brian: 'push all five.' (1) SM81 quantity x3, (2) the 408 shorthand rule, (3) the SM57 presence-peak correction, (4) the D6 scoop and twin-peak refinement, (5) four new eq-starting-points rows.",
+    "PROCESS, made permanent this session: ask ONE fork or question at a time with an interactive prompt and collect Brian's answer before the next — never a batched list in prose. Recorded in CLAUDE.md standing instructions, in auto-memory, and in the show-deep-build skill, which previously mandated the opposite."
+  ],
+  "reverbs": [
+    {
+      "role": "vocal",
+      "preset": "Plates 2 / #08 Vocal Plate B",
+      "settings": "Decay 1.5s (factory) · PreDelay 20ms (factory) · VLF −14 (factory) · E/L Max Early · Late −6 (from Equal factory) · Late Rolloff 8500Hz (from 6400Hz factory)",
+      "plugin_eq": "LC 200Hz on the return so it never thickens the 300–600Hz region five channels are cutting; no HS. Ducker in Reverb mode, Thr −22dB — with four handhelds live the tail has to get out of the way of the next line.",
+      "why": "The workhorse for four leads trading on up-tempo Motown and Top-40 material. Decay stays at factory 1.5s because FSQ adds no late field of its own, and the rolloff is opened from 6400 to 8500 because outdoors there is no audience absorption to match and 38 percent humidity is already eating the top — the KB's FSQ posture explicitly allows 8–10kHz here. Late comes up to −6 rather than being pulled down Memo-style, since outdoors the late field is doing work the room would otherwise do."
+    },
+    {
+      "role": "vocal",
+      "preset": "Plates 2 / #13 Vocal Shimmer",
+      "settings": "Decay 1.6s (from 1.80s factory) · PreDelay 20ms (factory) · VLF −14 (factory) · E/L Max Early · Late −4 (from Equal factory) · Late Rolloff 9000Hz (from 8000Hz factory)",
+      "plugin_eq": "LC 250Hz on the return to keep the shimmer off the chest voice; the baked 236ms delay stays IN — it is the shimmer, not an artifact to remove.",
+      "why": "The big-moment option, chosen for THIS band's material rather than as a default: they run an Usher tribute and back gospel acts like the Clark Sisters and Fantasia, so the set has features and sustained runs that earn bloom a plate cannot give. Decay pulled slightly under factory (1.8 to 1.6s) because a plaza dance set cannot carry a long tail through the next downbeat, but Late sits highest of the three options at −4 since bloom is the entire point of picking it."
+    },
+    {
+      "role": "vocal",
+      "preset": "Chambers 1 / #10 Vocal Chamber",
+      "settings": "Decay 1.1s (from 1.60s factory) · PreDelay 10ms (from 0 factory) · VLF −10 (factory) · E/L Max Early · Late −6 (from Equal factory) · Late Rolloff 8000Hz (factory)",
+      "plugin_eq": "LC 200Hz on the return; Ducker in Reverb mode, Thr −20dB — set tighter than the plate because this is the option that runs during the fastest material.",
+      "why": "V1 warmth for the traditional soul and Motown numbers where a V2 plate reads too modern, and the tightest of the three so it is also the safe choice on the fastest funk tunes where any tail turns to wash. Decay pulled hard from 1.6 to 1.1s and 10ms of pre-delay added from zero, to keep the onset clear of the consonants the Beta 58A's 4kHz peak is already pushing forward."
+    },
+    {
+      "role": "instrument",
+      "preset": "Plates 1 / #04 Snare Plate A",
+      "settings": "Decay 1.0s (from 1.20s factory) · PreDelay 0 (factory) · VLF −9 (factory) · E/L Max Early · Late −6 (from Equal factory) · Late Rolloff 8000Hz (from 6800Hz factory)",
+      "plugin_eq": "LC 300Hz on the return — three other channels are cutting 300 and the snare verb must not put it back.",
+      "why": "This band earns a snare splash rather than merely tolerating one: a Motown and funk backbeat is the hook, and the FSQ template already carries the return on fader 10 (SNARE PL8), so it is the one instrument verb that costs nothing to have available. Decay pulled slightly under factory to 1.0s so it reads as crack rather than as a room, and the rolloff opened to 8000 to keep it bright in dry air. Note the interaction with ch 4: the bottom-snare mic's +3@9000 wire lane and this return's opened rolloff both live up top, so bring the send up before reaching for more of either."
+    },
+    {
+      "role": "instrument",
+      "preset": "Halls 2 / #05 Small Hall",
+      "settings": "Decay 1.15s (factory) · PreDelay 24ms (factory) · VLF −10 (factory) · E/L Max Early · Late −6 (from Equal factory) · Late Rolloff 6000Hz (from 4400Hz factory)",
+      "plugin_eq": "LC 250Hz on the return; nothing else — the keys and pads are already cut at 300 and the verb should not reintroduce it.",
+      "why": "Chosen specifically because there are NO horn channels on this show: the keys and the two sampling pads are playing horn and string lines, and a real horn section would have had ensemble depth that a dry line-level patch does not. A short hall gives those parts that depth without the tail a 2.35s Large Hall would drag across a dance set. Kept at factory decay since 1.15s is already short, with the rolloff opened from 4400 to 6000 so the stabs keep their edge outdoors."
+    },
+    {
+      "role": "general",
+      "preset": "Rooms 1 / #01 Studio A",
+      "settings": "Decay 0.7s (factory) · PreDelay 4ms (factory) · VLF −3 (factory) · E/L Max Early · Late −6 (from Equal factory) · Late Rolloff 8400Hz (factory)",
+      "plugin_eq": "None. Everything at factory, and the send stays very low.",
+      "why": "Overall glue at a very low send, for the moments when a plaza sounds like a car park and the band needs to sound like it is in one place together. Modulation is 0 in this preset so it stays transparent behind everything. Warranted here because 24 channels of close mics outdoors have no shared acoustic at all — but it is the first thing to pull if the mix gets cloudy."
+    }
+  ],
+  "reverb_pairing": "Vocal Plate B is the default and stays up all night — the other two are handoffs, not layers. On the up-tempo Motown and funk material run Vocal Chamber instead (1.1s, tightest, hardest ducker) so nothing smears the sixteenths; on features and ballads hand off to Vocal Shimmer (1.6s, Late highest at −4, baked 236ms delay). Never run Shimmer and Plate B together on the same voice: both are V2 plates with overlapping late fields and the result is one long undefined tail rather than two characters. With four handhelds trading leads, keep the SAME option on all four for any given song and change it between songs, not between singers — otherwise the vocal picture moves when the lead changes. Snare Plate A sits underneath at low send and is the one thing safe to have up simultaneously with any vocal option, because its LC at 300Hz and the vocals' LC at 200–250Hz keep them from stacking in the mud region; the collision to watch is up top, not down low, since ch 4's wire lane at 9kHz and the plate's opened 8000Hz rolloff occupy the same air. Small Hall is for keys and pads only — do NOT send vocals to it, or the horn lines and the singers end up in the same space and the arrangement flattens. Studio A is glue at the lowest send of anything here and comes off first if the mix clouds. Outdoors this whole set exists so the choice is available at the desk; on a hot dry plaza with a walk-up crowd the honest starting position is Plate B up modestly, Snare Plate A barely up, and everything else off until the set asks for it.",
+  "no_reverb": false,
+  "channels": [
+    {
+      "ch": 1,
+      "name": "Kick In",
+      "instrument": "Kick Drum (inside)",
+      "mic": "Shure Beta 91A",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "Boundary mic inside the shell. Contour switch ASSUMED FLAT — if the low-mid scoop is engaged the capsule is already doing −7dB at 400, so halve B3 to −4.",
+      "hpf": 70,
+      "lpf": 10000,
+      "bands": [
+        {
+          "b": 3,
+          "gain": -8,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 200,
+          "q": 1.8,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Shure/Gear4Music: emphasis from 4kHz to ~9kHz with a presence boost around 7kHz — the beater attack is BAKED IN, which is why B4 is flat rather than boosted. Two-mic pair with ch 2: CH 1 OWNS ATTACK/TOP, ch 2 owns body/thump/bottom. Low end handed off deliberately — HPF 70 and B1 flat. Polarity-check the pair in mono at soundcheck.",
+      "eq_summary": "This is the attack half of a two-mic kick on a plaza dance floor, and its whole job is to be heard at the back of the square while ch 2 supplies what the crowd feels up front. The 4–9kHz beater snap is Shure's own voicing, so rev 1's +3@3500 came out — a Q1.5 bell there reaches into that emphasis and stacks on it, and at 38 percent humidity the air is already taking some of that top, so trimming it would be wrong in the other direction. What's left is the two problems the capsule doesn't solve: −8@400 for the shell box a boundary mic collects, at outdoor depth because a plaza gives nothing back, and −6@200 for the cardboard that would otherwise pile onto the 52A's low reach."
+    },
+    {
+      "ch": 2,
+      "name": "Kick Out",
+      "instrument": "Kick Drum (port)",
+      "mic": "Shure Beta 52A",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Short",
+      "notes": "At the sound hole / just outside the resonant head. Mic changed from rev 1's D6.",
+      "hpf": 35,
+      "lpf": 8000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -4,
+          "freq": 4000,
+          "q": 1.5,
+          "type": "BELL"
+        },
+        {
+          "b": 3,
+          "gain": -5,
+          "freq": 500,
+          "q": 1.8,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 250,
+          "q": 1.8,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Shure: presence boost at 4kHz, response deliberately limited to 20Hz–10kHz, emphasis across 50Hz–4kHz — so the capsule is already a low-pass filter and its weight is voiced in. Shure's own how-to names this exact pairing (91A inside, 52A at the sound hole). Two-mic pair with ch 1: CH 2 OWNS BODY/THUMP/BOTTOM. B1 flat because a low boost would stack on voiced response; B4 trimmed to keep out of ch 1's attack lane. Polarity-check in mono; flip this channel if the sum thins.",
+      "eq_summary": "The weight half of the kick, and on a plaza with 8 KS21s in a delayed arch this is the channel the dance floor actually feels. Everything here is a refusal or a de-stack. The forums' standard +2@60 is refused outright — Shure emphasises 50Hz–4kHz on purpose, so the bottom is claimed by gain and placement instead. The −4@4000 is not a tone decision but lane discipline: this capsule bakes a presence peak at 4k and ch 1 bakes an emphasis from 4–9k, so two voiced peaks on one drum in one zone is exactly the two-mic failure, and ch 1 wins that lane. B3 is only −5 despite the outdoor override because the capsule already scoops low-mids and deep-cutting a scoop digs a hole twice. LPF 8000 earns its place rejecting bleed from three cymbal mics and a bottom-snare."
+    },
+    {
+      "ch": 3,
+      "name": "Snare Top",
+      "instrument": "Snare Drum (top head)",
+      "mic": "Audix i5",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Short",
+      "notes": "Locker fork — Beta 98H/C was offered and the i5 taken on 2026-07-31; Brian's call stands, not re-litigated.",
+      "hpf": 130,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -3,
+          "freq": 5500,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 3,
+          "gain": -5,
+          "freq": 900,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -8,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "RecordingHacks / SOS / Barry Rudolph: +5dB at 150Hz and +9dB at 5500Hz, with a broader presence lift across 3–8kHz. BOTH reflexes are therefore reversed — no crack boost, no body boost. HPF is set at 130 rather than 150 on purpose, so the filter doesn't claw back the baked body lift this channel owns. Two-mic pair with ch 4: CH 3 OWNS CRACK (5.5k, baked) AND BODY (150, baked); ch 4 owns the wires. Ch 4 is polarity inverted against this channel.",
+      "eq_summary": "The two-and-four the crowd moves to, so this is the single most consequential channel on the kit. The genre says boost the crack and the mic already did it by +9dB, so the desk's move there is a trim — and at 38 percent humidity, with dry air eating high frequencies all the way to the back of the plaza, that trim is −3 rather than the −4 it was last week at 50 percent and rising. Same drum, same capsule, different air, and that is the only reason the number moved. The −5@900 is deliberately lighter than outdoor default because the i5's mids sit slightly scooped against a 57 already, while −8@400 gets the full outdoor treatment because shell box is a problem no capsule helps with and a plaza has no room gain to hide it. Ghost notes and press rolls have to survive, which is another reason nothing here is aggressive above 5k."
+    },
+    {
+      "ch": 4,
+      "name": "Snare Bottom",
+      "instrument": "Snare Drum (bottom head)",
+      "mic": "Electro-Voice N/D 408",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Clip",
+      "notes": "⚠ POLARITY INVERT against ch 3 — not optional. Claw / rim mount. Dynamic: 48V stays OFF. A bare '408' is always the EV N/D 408 (Brian, 2026-08-08).",
+      "hpf": 200,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 9000,
+          "q": 1.5,
+          "type": "BELL"
+        },
+        {
+          "b": 3,
+          "gain": -6,
+          "freq": 4000,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -7,
+          "freq": 500,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "⚠ POLARITY INVERT. SOS and Sweetwater: a stick hit moves the top head AWAY from the top mic while driving the bottom head TOWARD this one, so it inverts relative to ch 3 every time — and what it hears is the snare wires, which 'add brilliance and bite to the snare sound picked up from above.' EV N/D 408: supercardioid N/DYM, 30Hz–22kHz, brighter and more aggressive UPPER MIDS than a 57 with a deliberate proximity lift. That aggression is trimmed at 4000 and the +3 sits at 9000, where neither EV's spec nor the KB documents a peak. Two-mic pair with ch 3: CH 4 OWNS WIRE SIZZLE ONLY, no body — HPF 200 and B1 flat.",
+      "eq_summary": "One job: the wires. In funk and Motown the articulation is the music — ghost notes, press rolls, rimshots — and this is the channel where those read, layered under ch 3's crack rather than competing with it. The +3@9000 is the only real boost on the whole kit and it's earned twice over: the capsule has no documented peak up there, and it is the one zone ch 3 doesn't touch, so it stacks with nothing. The −6@4000 does double duty, taming the 408's spiky upper mids and keeping this channel out of ch 3's baked 5.5k crack lane. The claw mount puts it very close to the head, which is exactly what piles low-mids, so HPF runs high at 200 and the box cut sits at 500 — offset from ch 3's 400 on purpose, because two mics on one drum digging the identical hole is how a snare ends up hollow."
+    },
+    {
+      "ch": 5,
+      "name": "Hat",
+      "instrument": "Hi-Hat",
+      "mic": "Shure SM81",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Boom",
+      "notes": "One of three SM81s on this kit (5 / 14 / 19). Onboard low-cut ASSUMED 18dB/oct engaged, pad OUT — if left flat the desk HPF carries alone and there is more rumble to ride. Mic changed from rev 1's ND408.",
+      "hpf": 250,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 10000,
+          "q": 1.5,
+          "type": "BELL"
+        },
+        {
+          "b": 3,
+          "gain": -6,
+          "freq": 3500,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -7,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "SoundRef / Shure: flat 20Hz–20kHz with NO presence peak and no hyped top end — 'the brightness you get on playback is the brightness of the cymbal, not an artifact of the microphone.' That is precisely why the +3@10000 is legal here and why the KB's bias line for this mic is 'apply the template as-is.' Contrast rev 1, where the ND408's presence RISE made a 4500 cut load-bearing; this channel's 3500 cut is fixing the cymbal, not the mic. Cymbal group: HAT OWNS THE HIGH SIZZLE at 10k.",
+      "eq_summary": "In funk the hat is a lead rhythmic voice, not a garnish — sixteenths, open accents, the foot — and on this set it carries the groove's top layer for three hours. Because the SM81 flatters nothing, every move here is mine and every one is load-bearing. The 10k lift is the show's only high boost and it exists for a specific reason: 38 percent humidity means dry air strips high frequencies over the throw, so the sizzle that reads at the kit does not reach the back of the plaza on its own. The 3500 cut is the cymbal's own clank, moved off 4000 so it doesn't sit on top of the bottom-snare's cut at the same frequency. And −7@400 is snare bleed, which on a hat mic is the real enemy — a flat capsule reports all of it honestly."
+    },
+    {
+      "ch": 6,
+      "name": "Rack 1",
+      "instrument": "Rack Tom (high)",
+      "mic": "Audix D2",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Clip",
+      "notes": "Highest of three toms, each on a different capsule (D2 / D4 / D6).",
+      "hpf": 100,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 3,
+          "gain": -7,
+          "freq": 350,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Audix cutsheet: boost around 150Hz, a dip between 500Hz and 1kHz, and a subtle upper-mid presence lift, over 80Hz–18kHz. Both of rev 1's boosts came out because of that — +3@130 stacked on the baked 150 body, and +3@4000 stacked on the baked upper-mid lift. The box cut MOVED from 450 to 350 to stay outside the capsule's own 500Hz–1kHz dip. Tom section: RACK 1 OWNS BOX AT 350, and takes no boost at all.",
+      "eq_summary": "Toms are fill instruments in this band — they appear in turnarounds, not continuously — so the only thing that matters is that a fill lands clearly through a dance mix. This channel is deliberately the lightest on the kit, and that is a finding rather than an omission: Audix built the D2 for rack toms and reviewers are blunt that it delivers the modern rack-tom sound with no EQ at all, so the body and the attack are both already there. Even the ring cut a tom normally wants is unavailable, because tom ring on a small drum sits in the 600–900Hz window the capsule has already dipped. What is left is the shell box at 350, at full outdoor depth, placed below the dip where there is real response to remove — plus LPF 12k, which matters more than usual with three cymbal mics and a stereo overhead pair leaking into it."
+    },
+    {
+      "ch": 7,
+      "name": "Rack 2",
+      "instrument": "Rack Tom (low)",
+      "mic": "Audix D4",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Clip",
+      "notes": "Mic changed from rev 1's second D2 — re-derived from scratch, the D4's curve is nothing like the D2's.",
+      "hpf": 80,
+      "lpf": 12000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -4,
+          "freq": 5000,
+          "q": 1.5,
+          "type": "BELL"
+        },
+        {
+          "b": 3,
+          "gain": -7,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": 3,
+          "freq": 130,
+          "q": 1.2,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "RecordingHacks reading Audix's CURRENT chart: +6dB at 5kHz, a secondary peak above 10kHz, and a rolloff below 70Hz — so it does NOT lack attack and it does NOT reach into the 30s. The mic-library row was corrected to this on 2026-07-30 for exactly this reason; the old row would have put a click boost onto a +6dB baked peak. Weight is restored at 130, this drum's own note, where the chart documents no peak. Tom section: RACK 2 OWNS BOX AT 450 AND WEIGHT AT 130.",
+      "eq_summary": "The middle drum, and the only tom that gets its pitch put back by the desk. The D4 is voiced HF-forward with a +6dB peak right where a tom's click lives, so the reflex boost becomes a −4 trim — and unlike the snare, this trim is NOT lightened for dry air, because on a ringy tom that region is ring rather than crack and the air does nothing to shorten ring. Underneath, the chart rolls off below 70Hz, so there is no sub reach to lean on outdoors and the honest move is to restore the drum's own fundamental at 130 rather than reach for weight that isn't there. 130 also keeps it off the kick and bass lanes and clear of the other two toms. The 450 box cut is offset from rack 1's 350 so the pair reads as two drums, not one smeared one."
+    },
+    {
+      "ch": 8,
+      "name": "Floor",
+      "instrument": "Floor Tom",
+      "mic": "Audix D6",
+      "section": "DRUMS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Clip",
+      "notes": "Locker fork — MD 421-U offered, D6 KEPT (Brian, 2026-08-08). Built for the scooped voicing. Mic changed from rev 1's D4.",
+      "hpf": 80,
+      "lpf": 10000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -4,
+          "freq": 4000,
+          "q": 1.5,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 1,
+          "gain": 3,
+          "freq": 90,
+          "q": 1.2,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Locker fork — MD 421-U offered, D6 kept (Brian's call). Tape Op's measured review: the low end peaks at 60Hz, the high end peaks at 4kHz AND 10kHz, and the midrange at 750Hz sits about 15dB below those peaks. B3 is therefore FLAT — cutting box where the capsule is already 15dB down digs an existing hole twice. HPF 80 is set ABOVE the 60Hz peak on purpose, to keep a kick capsule from making this drum read as a second kick; B1 +3@90 then restores the drum's own note, on unvoiced slope between the peak and the dip. LPF 10000 shades the capsule's second documented peak. Tom section: FLOOR OWNS RING AT 300 AND NOTE AT 90.",
+      "eq_summary": "A kick capsule on a floor tom, kept deliberately, so this channel is built for that voicing rather than fighting it — Audix names floor tom as an intended application and reviewers report well-defined lows with a prominent stick sound, which is exactly the modern scooped dance-floor drum. The whole strategy is two moves in sequence: filter the capsule's 60Hz peak off the kick and bass lanes with an HPF at 80, then put the drum's actual note back at 90. Skip the first and the biggest punctuation drum in the fills turns into a second kick on a plaza with no room to absorb it. The 300 ring cut is available and needed because floor-tom ring sits well outside the 750Hz scoop — that band is what keeps this channel from being uselessly thin, given that its body was removed at the factory."
+    },
+    {
+      "ch": 9,
+      "name": "Overheads",
+      "instrument": "Drum Overheads (stereo pair)",
+      "mic": "Shure Beta 27 (pair)",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Boom",
+      "notes": "STEREO channel — both mics on this one fader. Band listed OH L/R on 9/10; fader 10 is the SNARE PL8 reverb return and is protected. Pad ASSUMED OUT, LF filter ENGAGED — if the pad is found engaged expect ~15dB more preamp and re-check gain before ringing out.",
+      "hpf": 300,
+      "lpf": 18000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -2,
+          "freq": 9000,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 3,
+          "gain": -5,
+          "freq": 1200,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -7,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "RecordingHacks / Shure: nominally flat 60Hz–3kHz with two SMALL HF peaks of +2dB or less at 5500Hz and 9kHz, plus a −15dB pad and a 3-position LF filter; Shure names drum overheads as an optimal application. The +2dB figure is why the 9k trim is only −2 — rev 1's −4 removed more than the capsule added, which on a near-flat mic means cutting real cymbal air. Cymbal group: OVERHEADS ARE THE PRIMARY PICTURE and take no boost; the hat owns 10k, the ride owns 2.5k.",
+      "eq_summary": "The overheads are the actual cymbal picture on this show — the hat and the under-ride reinforce them rather than replace them — and they are also what makes a drummer sound like one instrument instead of nine channels. Two values moved off rev 1 purely on the weather: at 38 percent humidity the air is already attenuating the top over the throw, so the 9k trim came down to −2 to net a flat capsule back to roughly flat, and the LPF opened from 16k to 18k rather than closing off air the plaza is removing anyway. What is refused is the obvious response to dry air, an air boost up top: the hat already carries the show's only high lift, and two condensers lifted in the same region stack into hiss and cost feedback margin with four handhelds live. Below the cymbals this channel does nothing at all — HPF 300 and −7@400 — because everything down there arrives as bleed and every open condenser on this stage is a gain-before-feedback cost."
+    },
+    {
+      "ch": 11,
+      "name": "Bass DI",
+      "instrument": "Bass Guitar (amp XLR out, post-EQ)",
+      "mic": "XLR line feed",
+      "section": "BASS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "Band-provided feed — confirm at load-in. POST-EQ: the player's tone shaping is already baked in, do not re-voice. Source changed from rev 1's RNDI.",
+      "hpf": 50,
+      "lpf": 8000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -3,
+          "freq": 5000,
+          "q": 1.5,
+          "type": "BELL"
+        },
+        {
+          "b": 3,
+          "gain": -4,
+          "freq": 2000,
+          "q": 1.8,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -7,
+          "freq": 250,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "POST-EQ FEED — DO NOT RE-VOICE. TalkBass consensus: a post DI is often excessively bright because 'a traditional bass speaker functions like a high pass filter and rolls off the highs — if the player cranks the highs to compensate, the sound coming out of the post DI will be obnoxiously bright', and the amp's baked curve has already cut its own mids. That is why rev 1's +3@2500 was withdrawn and replaced with trims. The 5000 trim is deliberately modest at −3 — 'often bright' is a tendency, not a measurement, so expect to want more and ride it at soundcheck. Two-mic pair with ch 12: CH 11 OWNS DEFINITION AND TOP. Polarity-check the pair in mono; flip ch 12 if the sum thins.",
+      "eq_summary": "The bass is the spine of every Motown walk and funk pocket in this set, and this leg is the one you follow the notes on. Because the feed is post-EQ, the job flips from creative to corrective: the player already decided the tone through their cab, and my adding presence on top of a signal they brightened to compensate for that cab's rolloff is how a bass turns to clank on a full-range PA. So all three bands are cuts. The 250 goes to full outdoor depth because bass mud on a plaza dance floor is what turns a line into a rumble, and it is also the biggest single favour I can do the four vocals. HPF at 50 keeps the low E's fundamental substantially intact while handing the deep weight to the cab mic, which is where the lane split puts it."
+    },
+    {
+      "ch": 12,
+      "name": "Bass Mic",
+      "instrument": "Bass Cabinet",
+      "mic": "Shure PG52",
+      "section": "BASS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Short",
+      "notes": "Channel repurposed — fader 12 was Bass Synth on a J48 in rev 1.",
+      "hpf": 35,
+      "lpf": 8000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -4,
+          "freq": 4500,
+          "q": 1.5,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 160,
+          "q": 1.8,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "RecordingHacks: 30Hz–13kHz cardioid, 1.8mV/Pa. Shure names close-miked bass amps as an intended application, and the successor PGA52's published description confirms the shape — 'a slight presence peak in the upper mids... with a scoop in the midsection and not a lot of upper top end.' All three KB bias rules are honoured literally: never boost the 60–100Hz hump (B1 FLAT — own the low end by letting it through), never cut into the 200–800Hz dip (B3 FLAT — the box cut sits at 160 instead), ease off presence at ~4500. Two-mic pair with ch 11: CH 12 OWNS THE LOW BODY. Polarity-check in mono; flip this channel if the sum thins.",
+      "eq_summary": "This is the weight the KS21 arch moves air with, and it is also the one channel on the show allowed to reach — HPF 35, the lowest anywhere here, because the lane split makes it the designated bottom. Almost everything about the channel is a refusal. The low end is claimed by letting the capsule's own 60–100Hz hump through rather than boosting it, because boosting a voiced hump outdoors turns weight into boom with nothing to absorb it. The box cut cannot go where a box cut normally goes, since 200–800Hz is inside the mic's own broad dip, so it sits at 160 where there is real response to remove. And the 4500 trim takes the presence rise off, offset from ch 11's 5000 so the two legs of one instrument aren't shaped at the same frequency. It is a short list of moves because the PG52 on a bass cab is one of the few pairings in the locker where the curve is already the right shape."
+    },
+    {
+      "ch": 13,
+      "name": "Guitar",
+      "instrument": "Electric Guitar (Marshall emulated line out)",
+      "mic": "XLR line feed",
+      "section": "GUITAR",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "Band-provided feed — confirm at load-in. 'Rec Out of Marshall', confirmed EMULATED (DSL/JVM class) — Softube 1960 4x12 emulation, frequency-compensated.",
+      "hpf": 150,
+      "lpf": 8000,
+      "bands": [
+        {
+          "b": 3,
+          "gain": -5,
+          "freq": 800,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -8,
+          "freq": 300,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "EMULATED OUT = TREAT AS A MIC'D CAB. Marshall/Softube: the DSL's emulated output is a frequency-compensated line-level out running Softube's emulation of the Marshall 1960 4x12, on both the headphone and line outs. The capsule gate covers analog cab emulation exactly as it covers an IR, so B4 stays FLAT — the emulation already supplies the cab's presence shaping around 2–3kHz. Naming the cab is what moved the honk cut from rev 1's generic 900 to 800, the 1960's own midrange character. LPF 8000 is housekeeping only; the emulation already rolls off above ~5–6kHz.",
+      "eq_summary": "Funk and Motown guitar is chank — tight sixteenth comping, wah figures, the occasional solo — and it has to be articulate without eating the space four vocals need. The single most important thing on this channel is a boost that isn't here: a presence lift would have stacked straight onto the 1960 emulation's own 2–3kHz shaping, and the same withdrawal happened on rev 1 the moment cab sim was confirmed. So the articulation comes from clearing instead: −8@300 at full outdoor depth, because guitar mud stacks directly onto bass and keys mud in the same octave and a plaza is unforgiving about it, and −5@800 for the Marshall honk. Above 800 the channel is left alone deliberately — with no horn channels on this show, the keys and pads are playing the horn lines in the 1–2kHz window, and this guitar's job is to interlock with them rather than mask them."
+    },
+    {
+      "ch": 14,
+      "name": "Ride",
+      "instrument": "Ride Cymbal (mic'd from below)",
+      "mic": "Shure SM81",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Clip",
+      "notes": "⚠ POLARITY INVERT — points opposite the overheads. 'Under mic w claw'. One of three SM81s (5 / 14 / 19). Onboard low-cut ASSUMED 18dB/oct engaged, pad OUT. New channel — fader 14 was the talkback in rev 1. PLACEMENT: closer to the bell = more ping, out to the edge = more overtones. Move the mic before adding dB.",
+      "hpf": 300,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": 3,
+          "freq": 2500,
+          "q": 1.5,
+          "type": "BELL"
+        },
+        {
+          "b": 3,
+          "gain": -6,
+          "freq": 700,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -7,
+          "freq": 500,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "⚠ POLARITY INVERT. External guidance is explicit: 'when you have mics under the cymbals pointing up in the opposite direction of other mics pointing down, the first thing to deal with is phase cancellation — reverse the phase on the cymbal mics pointing in the opposite direction.' The overheads are the PRIMARY picture here, so uncorrected cancellation damages the main source, not a garnish. The +3@2500 has two independent justifications: the SM81 is documented flat with no presence peak, AND the under-position itself 'deemphasizes the high pitch pings.' Cymbal group: RIDE OWNS BELL AND STICK DEFINITION at 2.5k.",
+      "eq_summary": "A new channel this week, and an unusual one: from underneath you get stick definition and bell without the wash the top of a ride throws at the overheads, at the cost of a phase relationship that has to be fixed rather than mixed around. In this band the ride carries the jazz-inflected numbers and the half-time feels, and the bell is a hook in the gospel-adjacent material, so it earns a real lift — the strongest-justified boost on the show, because both the flat capsule and the position's own documented loss of ping point the same way, and dry air over the plaza throw makes a third argument. What it does not get is a high-sizzle boost; the hat owns that lane and a second lifted condenser would just add wash. Below, this mic is aimed up past the floor tom and snare, so 700 takes the underside gong character and 500 takes the bleed — offset from the overheads' 400 because from down here it hears different drums."
+    },
+    {
+      "ch": 15,
+      "name": "Click",
+      "instrument": "Click Reference",
+      "mic": "XLR line feed",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "⚠ MUTED FROM THE MAINS. OUT OF THE RECORD BUS. Band-provided feed. Confirmed a real input (Brian, 2026-08-08) — they run to a click.",
+      "hpf": 200,
+      "lpf": null,
+      "bands": [],
+      "mic_notes": "Routing channel, not a tone channel. HPF 200 is housekeeping only. There is deliberately no EQ here: a click channel with EQ on it implies somebody once considered putting it in the PA.",
+      "eq_summary": "This channel exists so that it is accounted for and so nobody patches it into the PA by accident — that is the entire deliverable. The band's arrangements are locked to it and the Track rides underneath, so it has to be present and reliable at the drummer's end while being structurally incapable of reaching the square. It is muted from the mains, out of the record bus, and carries a single housekeeping HPF and nothing else."
+    },
+    {
+      "ch": 16,
+      "name": "Track",
+      "instrument": "Backing Track (playback, mono)",
+      "mic": "XLR line feed",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "Band-provided feed — confirm at load-in. MONO (confirmed).",
+      "hpf": 35,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 3,
+          "gain": -4,
+          "freq": 250,
+          "q": 1.8,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Finished, mixed and mastered program material — not a source to shape. Every boost would be re-EQing someone else's master through a plaza PA, so there are none. The single 250Hz cut is room-making rather than tone: the master carries its own kick and bass energy sitting on ch 1/2 and ch 11/12 in that octave. HPF 35 lets the programmed sub content through — the KS21 arch reproduces it and it is part of the arrangement.",
+      "eq_summary": "With no horn channels on the list, this bed and the keys and pads are the horn and string section, so the Track is load-bearing — if it goes away the arrangement has holes in it. That is exactly why it gets almost nothing done to it: it arrived finished, and the temptation on a plaza is to 'help' a master that is already balanced for full-range playback. The one cut at 250 is the collision that genuinely needs managing, because the master's own low end lands on top of a live kick pair and a live bass pair in the same octave, and something has to give way. HPF 35 rather than higher, because the programmed low end is a deliberate part of how this band sounds."
+    },
+    {
+      "ch": 17,
+      "name": "Pad 1",
+      "instrument": "Sampling Pad (mono, panned)",
+      "mic": "BSS AR-133 (DI)",
+      "section": "RHYTHM",
+      "phantom": true,
+      "ribbon": false,
+      "tour": false,
+      "stand": "DI",
+      "notes": "Sampling pad run as TWO MONO channels panned, not a stereo image (Brian, 2026-07-31 — carried, not re-asked). Renumbered from rev 1's fader 21.",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 3,
+          "gain": -5,
+          "freq": 300,
+          "q": 1.8,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Produced, pre-mixed material at line level — every sample was EQ'd and compressed before it reached the pad, so there is no capsule or transducer character to correct and no boost is available. The 300Hz cut is room-making against the guitar's −8 and the keys' −6 at the same octave, sized DOWN to −5 because deep-cutting finished material thins it. Identical values on ch 17 and 18 are correct: two halves of one instrument's output.",
+      "eq_summary": "The pad shares horn-and-string duty with the keys and the Track, firing stabs, risers and vocal hits that are already produced — so this is a level-and-routing channel with one corrective move, not a tone channel. Its 1–2kHz window is left completely alone for the same reason the keys' is: cutting there would gut the programmed brass. What it does get is a share of the 300Hz clearance, because three sources landing in that octave on a plaza is precisely where a dance mix goes opaque, and this is one of the five instrument channels being cleared so four handhelds can sit forward without a single dB of vocal boost. HPF 40 keeps the samples' sub content, which the arch can reproduce."
+    },
+    {
+      "ch": 18,
+      "name": "Pad 2",
+      "instrument": "Sampling Pad (mono, panned)",
+      "mic": "Whirlwind IMP (passive DI)",
+      "section": "RHYTHM",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "DI",
+      "notes": "Second output of the same pad, panned opposite ch 17. Renumbered from rev 1's fader 22.",
+      "hpf": 40,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 3,
+          "gain": -5,
+          "freq": 300,
+          "q": 1.8,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "See ch 17 — identical treatment by design. Produced material at line level, no transducer to correct, no boost available. Passive DI so no 48V. The pair is panned rather than summed; giving the two halves different curves would smear the pad's own image.",
+      "eq_summary": "The other half of the sampling pad, treated identically on purpose. When a source is panned rather than summed, matching the two channels is what preserves the image the programmer built — this is one of only two places on the show where identical values are the correct answer rather than a slotting failure, the other being the keys. Everything in ch 17's reasoning applies here unchanged: produced samples get room-made for, not shaped, and the 300Hz clearance is part of buying vocal presence without touching a vocal fader."
+    },
+    {
+      "ch": 19,
+      "name": "Toys",
+      "instrument": "Toys / Aux Percussion",
+      "mic": "Shure SM81",
+      "section": "DRUMS",
+      "phantom": true,
+      "ribbon": false,
+      "tour": false,
+      "stand": "Boom",
+      "notes": "The only hand percussion on this show — rev 1's congas x2 and bongos are gone. Third of three SM81s (5 / 14 / 19). Onboard low-cut ASSUMED 18dB/oct engaged, pad OUT. Renumbered from rev 1's fader 20.",
+      "hpf": 300,
+      "lpf": 18000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -2,
+          "freq": 8000,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 3,
+          "gain": -6,
+          "freq": 1000,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 400,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Shure/MicrophoneGeeks, directly on point: 'percussion instruments with high-end detail — including tambourines, shakers and triangles — benefit from the smooth upper frequencies of the SM81.' Flat 20Hz–20kHz with no presence peak, so the 6–10kHz glare a shaker piles up is the INSTRUMENT's and legitimate to cut. Trim sized to −2 rather than rev 1's −3 by the dry-air read, and the LPF opened to 18k for the same reason. No high boost by sectional decision, not by capsule limit — the hat owns 10k and the ride owns 2.5k.",
+      "eq_summary": "The only hand percussion left after the congas and bongos came off the list, which makes this the whole texture layer for a funk groove that wants to feel busy without adding another drum. Because the capsule flatters nothing, the sparkle is genuinely available for the taking — and it is deliberately not taken. Two other flat condensers on this stage already carry high lifts, and a third would stack into wash while costing feedback margin with four handhelds live, so the brightness comes from the LPF sitting at 18k rather than from a boost. What is cut is the tambourine and shaker glare piling up around 8k, lightened to −2 because dry air is already removing some of it over the throw, plus the woodblock honk at 1k and stage bleed at 400. HPF 300 because a toy tray has nothing musical below that and sits in the middle of a loud stage."
+    },
+    {
+      "ch": 20,
+      "name": "Key L",
+      "instrument": "Keys (stereo, left)",
+      "mic": "XLR line feed",
+      "section": "KEYS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "Band-provided feed — confirm at load-in. Stereo pair with ch 21. Renumbered from rev 1's fader 23.",
+      "hpf": 60,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 3,
+          "gain": -4,
+          "freq": 800,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 300,
+          "q": 1.8,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "THE 1–2kHz WINDOW IS LEFT UNTOUCHED ON PURPOSE — with no horn channels on this show, the keys carry horn and string lines and a cut there would gut them. That is the artist layer overriding a move the genre and venue layers would both otherwise call for. Patch voicing was chosen at the instrument, so no presence boost is available. The 800 honk cut is HELD to −4 rather than deepened, because the guitar already takes −5 at 800 and both channels cutting hard at the same frequency digs a hole where the comping interlocks. Identical values on 20 and 21 are correct — one instrument's stereo image.",
+      "eq_summary": "The keys are doing two jobs at once here: the Rhodes, organ and piano comping an R&B and Motown set needs, and a share of the horn section that does not exist on this input list. That second job is what makes this the most restrained channel on the show. A stereo keyboard bed is the widest and most continuous thing in the mix and will mask a vocal before any drum does, so on almost any other gig the 1–2kHz window is the first place I would go — and here it is off limits, because that is where the brass lines live. So the work happens around it: −6@300 at real outdoor depth for the accumulation this instrument shares with the guitar, bass and pads, a modest −4@800 that deliberately stops short of the guitar's cut at the same frequency, and HPF 60 so a piano patch keeps its low register without trespassing on the kick and bass."
+    },
+    {
+      "ch": 21,
+      "name": "Key R",
+      "instrument": "Keys (stereo, right)",
+      "mic": "XLR line feed",
+      "section": "KEYS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "Band-provided feed — confirm at load-in. Stereo pair with ch 20. Renumbered from rev 1's fader 24.",
+      "hpf": 60,
+      "lpf": null,
+      "bands": [
+        {
+          "b": 3,
+          "gain": -4,
+          "freq": 800,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 300,
+          "q": 1.8,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "See ch 20 — identical by design, because this is the right half of one stereo image and differing curves would smear it. The 1–2kHz window stays untouched on both sides for the horn lines. No presence boost: the patch voicing is upstream.",
+      "eq_summary": "The right half of the keyboard rig, matched to ch 20 on purpose. Matching is the correct answer for a genuine stereo source in a way it never is for members of a section — the three toms and the four vocals get separated in the numbers, but splitting a piano's image between two different curves just makes the instrument sound broken. Everything in ch 20's reasoning holds here: the horn-line window is protected, the 300 clearance is part of buying vocal headroom across five instrument channels, and 800 stays modest so it does not stack with the guitar's cut at the same spot."
+    },
+    {
+      "ch": 33,
+      "name": "Aretha",
+      "instrument": "Lead Vocal (female) + MC",
+      "mic": "Shure Beta 58A (Wireless 1)",
+      "section": "VOCALS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "Wireless 1. Windscreen — 15–16mph gusts all evening. RING OUT AT SOUNDCHECK: this MD removes the template's HPF 184, its −18@5k Q20 notch and its −6.3@335.",
+      "hpf": 130,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -3,
+          "freq": 10000,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": {
+            "thr": -18,
+            "atk_ms": 3,
+            "rel_ms": 80
+          }
+        },
+        {
+          "b": 3,
+          "gain": -2,
+          "freq": 1600,
+          "q": 1.8,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 600,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Shure/MusicOnStage: TWO presence peaks, at 4kHz and 10kHz, with a pronounced 4–9kHz region far more aggressive than an SM58's, and frequencies attenuated below 500Hz to counter proximity effect. Cuts only — the rule, and also nothing to add. The de-esser is DYNAMIC because the 10kHz peak only misbehaves on sibilants, and a static value set at 7pm in 38 percent RH would be wrong by 10pm at 60. B2 uses a tight Q2.0 deliberately: the capsule already attenuates below 500, so a broad cut would double-dip that rolloff. Vocal slot: HPF 130 · box 600 · mid 1600 · de-ess 10000.",
+      "eq_summary": "The lead voice and the MC, so this channel is live and talking between songs as well as singing, on the most exposed position of the four. Everything is subtractive, because with four handhelds on an open plaza gain-before-feedback is the whole game and because the Beta 58A's twin presence peaks mean there is nothing worth adding anyway. Her presence gets bought elsewhere: five instrument channels are cut in her masking region so she sits forward without a vocal fader moving. Her slot is the highest de-esser of the four at 10k and a box cut at 600, both placed to stay off the other three, and the 1600 cut is only −2 because as the lead she needs the most intelligibility left intact of anyone. The template's 184 HPF and its 5k feedback notch are both gone, which means the feedback protection has to be re-earned by hand at soundcheck."
+    },
+    {
+      "ch": 34,
+      "name": "Heather",
+      "instrument": "Vocal (female)",
+      "mic": "Shure Beta 58A (Wireless 2)",
+      "section": "VOCALS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "Wireless 2. Windscreen. RING OUT AT SOUNDCHECK — template baseline removed.",
+      "hpf": 140,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -3,
+          "freq": 9500,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": {
+            "thr": -18,
+            "atk_ms": 3,
+            "rel_ms": 80
+          }
+        },
+        {
+          "b": 3,
+          "gain": -3,
+          "freq": 1800,
+          "q": 1.8,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 550,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Same capsule as ch 33/35/36 — 4kHz and 10kHz presence peaks, sub-500Hz attenuation. Cuts only, dynamic de-esser, tight-Q box cut. Vocal slot: HPF 140 · box 550 · mid 1800 · de-ess 9500. No value is shared with any other vocal channel.",
+      "eq_summary": "The second female voice, and the closest of the four to Aretha, which is exactly why the slotting matters most here — two women trading and stacking harmonies on the same capsule model will mask each other before anything in the band does. So she sits above Aretha on the HPF at 140, below her on the box at 550, above her on the nasal cut at 1800 and below her on the de-esser at 9500: adjacent in every band, identical in none. Her 1800 cut is a full −3 rather than Aretha's −2 because she is not carrying the between-song talking and can afford slightly more nasal control. Like all four, no boosts anywhere, dynamic de-esser rather than static so it tracks the humidity climbing 22 points across the set."
+    },
+    {
+      "ch": 35,
+      "name": "Vince",
+      "instrument": "Vocal (male, bass-range)",
+      "mic": "Shure Beta 58A (Wireless 3)",
+      "section": "VOCALS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "Wireless 3. Windscreen. RING OUT AT SOUNDCHECK. Fundamentals reach ~82Hz — the template's HPF 184 is flatly wrong for this voice and is removed.",
+      "hpf": 90,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -2,
+          "freq": 8500,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": {
+            "thr": -18,
+            "atk_ms": 3,
+            "rel_ms": 80
+          }
+        },
+        {
+          "b": 3,
+          "gain": -4,
+          "freq": 700,
+          "q": 2.0,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -7,
+          "freq": 350,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "Same Beta 58A capsule facts. THE UPPER-MID CUT SITS AT 700Hz — BELOW his presence region — on purpose: for a bass voice, cutting inside the 1.2–1.8kHz nasal window removes the intelligibility he depends on, which is why the other three are cut in there and he is not. HPF 90 because his fundamentals reach ~82Hz; the template's 184 would have removed the bottom of his voice. Lightest de-esser of the four at −2, and the lowest frequency at 8500. Vocal slot: HPF 90 · box 350 · mid 700 · de-ess 8500.",
+      "eq_summary": "The bass voice, and the channel where the template's baseline was most dangerous — an HPF at 184 on a singer whose fundamentals reach into the low 80s removes the part of him that makes him worth featuring. So he gets the lowest HPF of the four at 90 and the deepest box cut at 350, which is the one place a low male voice genuinely piles up on a plaza. The move that matters most is where his upper-mid cut is NOT: everyone else is cut inside 1.2–1.8kHz because their presence regions sit higher, and cutting him there would take the intelligibility a bass voice has least of to spare, so his sits at 700 instead. His de-esser is the lightest and lowest of the four, because a bass-baritone's sibilance arrives lower and quieter than a soprano's and the Beta 58A's 10k peak has less to grab."
+    },
+    {
+      "ch": 36,
+      "name": "Brandon",
+      "instrument": "Vocal (male, range TBD)",
+      "mic": "Shure Beta 58A (Wireless 4)",
+      "section": "VOCALS",
+      "phantom": false,
+      "ribbon": false,
+      "tour": false,
+      "stand": "—",
+      "notes": "⚑ LOAD-IN FLAG — NEW vocalist, range unknown (replaces Markay). Wireless 4. Windscreen. RING OUT AT SOUNDCHECK. ALTERNATES, printed here for a 20-second change once you hear him: if BARITONE (like Vince) HPF 95 · B3 −4@750 · B2 −7@400. If TENOR (like Markay) HPF 120 · B3 −3@1400 · B2 −6@500.",
+      "hpf": 105,
+      "lpf": 16000,
+      "bands": [
+        {
+          "b": 4,
+          "gain": -3,
+          "freq": 9000,
+          "q": 2.0,
+          "type": "BELL",
+          "deq": {
+            "thr": -18,
+            "atk_ms": 3,
+            "rel_ms": 80
+          }
+        },
+        {
+          "b": 3,
+          "gain": -3,
+          "freq": 1100,
+          "q": 1.8,
+          "type": "BELL"
+        },
+        {
+          "b": 2,
+          "gain": -6,
+          "freq": 450,
+          "q": 2.0,
+          "type": "BELL"
+        }
+      ],
+      "mic_notes": "⚑ RANGE UNKNOWN — built as a deliberately offset middle-of-the-road male voice, placed BETWEEN Vince and the two women in every band so that whichever way his voice turns out he is not colliding with an already-slotted channel. Same Beta 58A capsule facts as 33/34/35: cuts only, dynamic de-esser, tight-Q box. Both alternate sets are in the notes above and neither displaces another singer's slot. Vocal slot: HPF 105 · box 450 · mid 1100 · de-ess 9000.",
+      "eq_summary": "A new person on a fader that was somebody else last week, and the honest position is that I have not heard him — so rather than dress a guess up as a value, this channel is built in the gap. HPF 105 sits between Vince's 90 and Aretha's 130, box 450 between Vince's 350 and Heather's 550, nasal cut 1100 just below the women's 1600 and 1800 and well above Vince's 700. That placement is the point: it is defensible for a baritone, a tenor or anything between, and it collides with nobody. Both alternate sets are printed on this page so the change is a 20-second job at the desk once he opens his mouth, and either one still leaves all four singers on unique values. Cuts only and a dynamic de-esser, same as the other three."
+    }
+  ]
+}

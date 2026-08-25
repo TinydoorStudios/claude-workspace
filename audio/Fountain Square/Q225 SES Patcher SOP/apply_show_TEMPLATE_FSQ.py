@@ -27,9 +27,32 @@ Deltas vs 2026-07-26:
 Everything else that differs is the desk's object-ID renumbering
 (~3,100 six-byte runs).
 
-Prior template (2026-07-26, 39,910,618 bytes) audio baseline, still true:
-faders 6/7/8 (Rack 1 / Rack 2 / Floor) ship the native gate ENABLED —
-thr -36.2 dB, rel 227 ms, sidechain band 130 Hz - 317 Hz.
+TOM GATE — confirmed, and it MOVED in the 2026-08-01 drop (checked 2026-08-06).
+Faders 6/7/8 (Rack 1 / Rack 2 / Floor) ship the console's NATIVE gate enabled.
+It lives in the native-dynamics family (0x05xx tags, bidx 3 = the gate slot),
+NOT in the Mustard D2 block (0x1Exx) — reading TAG_D2_EN says 0.0 here and
+means nothing about this gate. The records:
+
+    0x50E/3  gate enable   1.0 on 6/7/8, 0.0 elsewhere
+    0x511/3  threshold     -36.2353 dB
+    0x50A/3  release       0.2273 s (227 ms)
+    0x505/2  sidechain lo  see below
+    0x516/0  sidechain hi  see below
+
+Sidechain bands per template — this is the part the "rename-only" note missed:
+
+    2026-07-25   gate OFF on all three faders
+    2026-07-26   all three share 129.7 - 317.0 Hz
+    2026-08-01   RETUNED PER DRUM: Rack 1 216.9-262.2, Rack 2 152.5-241.8,
+                 Floor 96.2-116.3 Hz
+
+So the 2026-08-01 save is NOT purely a rename: threshold and release held,
+but the three sidechain bands were re-tuned per drum. Note for any show whose
+input list disagrees with the template's assumption — e.g. a kit whose
+"Rack 2" is physically a 16" floor tom — the fader-7 sidechain is listening in
+a rack-tom band (152-242 Hz) and wants moving at the desk.
+
+The other non-flat standing baseline is faders 25-36 (vocals + wireless), below.
 
 Retired constants for reference:
   - 3,779,766-byte template (resaved 2026-06-21): SURF_BASE 0xA5571,

@@ -1,0 +1,27 @@
+{
+  "show": "Bright Light Social Hour + J Roddy Walston",
+  "venue": "Fountain Square",
+  "date": "2026-08-07",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-08-06T20:28:23",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-08-06T22:05:05",
+      "note": "Rebuilt on the reconciled main (FF to show-pipeline-2026-07-26): structured research object, quick-links MASTER, eq_curve_card on every input page. BLSH 23 ch + J Roddy 19 ch, two packets + Band Changeover + combined MASTER 81 pp"
+    },
+    "ses_built": {
+      "at": "2026-08-06T22:05:05",
+      "note": "fsq - both .ses rebuilt with the COMMITTED patcher calibration against template cb3f85be: 0 stray bytes, 0 do-not-write, readback PASS, size identical"
+    },
+    "verified": {
+      "at": "2026-08-06T22:05:05",
+      "note": "Brian confirmed 2026-08-06: both files load and work on the console"
+    },
+    "published": {
+      "at": "2026-08-06T22:13:08",
+      "note": "kb.tinydoorstudios.com/show-fsq-2026-08-07-bright-light-social-hour + /show-fsq-2026-08-07-j-roddy-walston (double bill, cross-linked, night-level changeover + 81pp MASTER on both)"
+    }
+  }
+}

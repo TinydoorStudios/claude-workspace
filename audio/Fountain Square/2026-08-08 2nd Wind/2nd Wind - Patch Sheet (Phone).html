@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1A3A5C" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+<title>2nd Wind — Patch Sheet</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f6f7f9; --fg:#111827; --dim:#6b7280; --card:#fff; --line:#e5e7eb;
+  --nav:#1A3A5C; --accent:#2E6DA4; --ok:#065F46;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#0b1220; --fg:#e9edf3; --dim:#94a3b8; --card:#151d2b; --line:#243247;
+          --nav:#0e1729; --accent:#5b9bd5; --ok:#34D399; }
+}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font:400 17px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:20;background:var(--nav);color:#fff;
+  padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+header h1{margin:0;font-size:21px;font-weight:700;letter-spacing:.2px}
+header .sub{margin-top:3px;font-size:13px;opacity:.85}
+.bar{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.bar button{flex:1 1 auto;min-height:40px;min-width:76px;border:0;border-radius:9px;
+  background:rgba(255,255,255,.14);color:#fff;font:600 14px/1 inherit;padding:0 10px}
+.bar button[aria-pressed="true"]{background:#fff;color:var(--nav)}
+.prog{margin-top:8px;font-size:13px;opacity:.9;display:flex;align-items:center;gap:8px}
+.prog .track{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
+.prog .fill{height:100%;width:0;background:#fff;transition:width .2s}
+.zones{padding:10px 14px;font-size:13px;color:var(--dim);border-bottom:1px solid var(--line)}
+.alerts{padding:12px 12px 2px;display:grid;gap:8px}
+.alert{border-radius:11px;padding:10px 12px;font-size:14.5px;display:grid;gap:2px;
+  border-left:5px solid currentColor}
+.alert b{font-size:13px;letter-spacing:.5px}
+.alert span{color:var(--fg);opacity:.9}
+.alert.danger{color:#B91C1C;background:#FEE2E2}
+.alert.power{color:#065F46;background:#D1FAE5}
+.alert.tour{color:#92400E;background:#FFF3CD}
+@media (prefers-color-scheme:dark){
+  .alert.danger{color:#FCA5A5;background:#2a1416} .alert.power{color:#6EE7B7;background:#0e2620}
+  .alert.tour{color:#FCD34D;background:#2a2110}
+}
+main{padding:8px 12px calc(env(safe-area-inset-bottom) + 28px)}
+.s-DRUMS { --tint:#FEF3C7; --head:#FDE68A; --ink:#92400E; --dk:#FBBF24; }
+.s-BASS { --tint:#DCFCE7; --head:#BBF7D0; --ink:#065F46; --dk:#34D399; }
+.s-RHYTHM { --tint:#DCFCE7; --head:#BBF7D0; --ink:#065F46; --dk:#34D399; }
+.s-GUITAR { --tint:#D1FAE5; --head:#A7F3D0; --ink:#047857; --dk:#6EE7B7; }
+.s-PIANO { --tint:#FCE7F3; --head:#FBCFE8; --ink:#9D174D; --dk:#F472B6; }
+.s-KEYS { --tint:#EDE9FE; --head:#DDD6FE; --ink:#5B21B6; --dk:#A78BFA; }
+.s-STRINGS { --tint:#DBEAFE; --head:#BFDBFE; --ink:#1E40AF; --dk:#60A5FA; }
+.s-HORNS { --tint:#FFEDD5; --head:#FCD9B4; --ink:#9A3412; --dk:#FB923C; }
+.s-VOCALS { --tint:#EDE9FE; --head:#DDD6FE; --ink:#4338CA; --dk:#818CF8; }
+.s-AMBIENT { --tint:#E0E7FF; --head:#C7D2FE; --ink:#3730A3; --dk:#818CF8; }
+.s-SPARE { --tint:#F3F4F6; --head:#E5E7EB; --ink:#374151; --dk:#9CA3AF; }
+.sechead{position:sticky;top:0;z-index:10;margin:16px 0 8px;padding:8px 12px;border-radius:9px;
+  font-size:13.5px;font-weight:800;letter-spacing:1px;background:var(--head);color:var(--ink)}
+@media (prefers-color-scheme:dark){ .sechead{background:#1c2942;color:var(--dk)} }
+.card{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+  border-left:6px solid var(--head);border-radius:13px;padding:12px;margin:0 0 8px;min-height:76px;
+  -webkit-tap-highlight-color:transparent;cursor:pointer}
+@media (prefers-color-scheme:dark){ .card{border-left-color:var(--dk)} }
+.num{flex:0 0 46px;text-align:center;font:800 27px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color:var(--ink);padding-top:2px}
+@media (prefers-color-scheme:dark){ .num{color:var(--dk)} }
+.main{flex:1;min-width:0}
+.inst{font-weight:700;font-size:18px;line-height:1.25}
+.sub{margin-top:1px;font-size:14.5px;color:var(--dim)}
+.mic{margin-top:3px;font-size:16px;color:var(--fg);opacity:.92}
+.meta{margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--dim)}
+.meta .patch{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:600;color:var(--accent)}
+.chips{margin-top:7px;display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-style:normal;font-size:11.5px;font-weight:800;letter-spacing:.5px;padding:4px 8px;border-radius:99px;white-space:nowrap}
+.c-power{background:#D1FAE5;color:#065F46} .c-danger{background:#FEE2E2;color:#B91C1C}
+.c-tour{background:#FFF3CD;color:#92400E} .c-info{background:#E0E7FF;color:#3730A3}
+@media (prefers-color-scheme:dark){
+  .c-power{background:#0e2620;color:#6EE7B7} .c-danger{background:#2a1416;color:#FCA5A5}
+  .c-tour{background:#2a2110;color:#FCD34D} .c-info{background:#18213a;color:#A5B4FC}
+}
+.note{margin-top:7px;font-size:13.5px;color:var(--dim);line-height:1.35}
+.tick{flex:0 0 30px;height:30px;border-radius:50%;border:2px solid var(--line);margin-top:2px;position:relative}
+.card.done{opacity:.5}
+.card.done .tick{background:var(--ok);border-color:var(--ok)}
+.card.done .tick:after{content:"";position:absolute;left:9px;top:4px;width:8px;height:15px;
+  border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
+.card.hide{display:none}
+footer{padding:6px 14px 30px;font-size:12.5px;color:var(--dim);text-align:center}
+</style></head><body>
+<header>
+  <h1>2nd Wind — Patch</h1>
+  <div class="sub">Fountain Square (outdoor) · 2026-08-08 · 7:00pm–10:00pm · 24 ch</div>
+  <div class="bar">
+    <button id="f-all" aria-pressed="true">All</button>
+    <button id="f-todo" aria-pressed="false">To do</button>
+    <button id="f-48v" aria-pressed="false">48V only</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="prog"><span id="count">0 / 24</span><span class="track"><span class="fill" id="fill"></span></span></div>
+</header>
+<div class="zones">Split patch zones: <b>R-1…R-16</b> red · <b>G-1…G-12</b> green · <b>B-1…B-12</b> blue · <b>O-1…O-12</b> orange · <b>WIRELESS</b> for the handhelds.</div>
+<section class="alerts">
+<div class="alert danger"><b>POLARITY INVERT</b><span>Ch 4, 14. Set on the desk, not at the mic. If it&#x27;s missed, these channels cancel against the ones they&#x27;re paired with.</span></div>
+<div class="alert power"><b>48V ON THESE ONLY</b><span>Ch 1, 5, 9, 14, 17, 19. Everything else is a dynamic or a line feed — leave phantom off.</span></div>
+</section>
+<main id="list">
+<h2 class="sechead s-DRUMS">DRUMS / PERC</h2>
+<article class="card s-DRUMS" data-ch="1" data-phantom="1">
+  <div class="num">1</div>
+  <div class="main">
+    <div class="inst">Kick In</div>
+    <div class="sub">Kick Drum (inside)</div>
+    <div class="mic">Shure Beta 91A</div>
+    <div class="meta"><span class="patch">Local 1</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    <div class="note">Boundary mic inside the shell.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="2" data-phantom="0">
+  <div class="num">2</div>
+  <div class="main">
+    <div class="inst">Kick Out</div>
+    <div class="sub">Kick Drum (port)</div>
+    <div class="mic">Shure Beta 52A</div>
+    <div class="meta"><span class="patch">Local 2</span><span class="stand">Stand: Short</span></div>
+    
+    <div class="note">At the sound hole / just outside the resonant head.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="3" data-phantom="0">
+  <div class="num">3</div>
+  <div class="main">
+    <div class="inst">Snare Top</div>
+    <div class="sub">Snare Drum (top head)</div>
+    <div class="mic">Audix i5</div>
+    <div class="meta"><span class="patch">Local 3</span><span class="stand">Stand: Short</span></div>
+    
+    
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="4" data-phantom="0">
+  <div class="num">4</div>
+  <div class="main">
+    <div class="inst">Snare Bottom</div>
+    <div class="sub">Snare Drum (bottom head)</div>
+    <div class="mic">Electro-Voice N/D 408</div>
+    <div class="meta"><span class="patch">Local 4</span><span class="stand">Stand: Clip</span></div>
+    <div class="chips"><i class="chip c-danger">POLARITY INVERT</i></div>
+    <div class="note">POLARITY INVERT against ch 3 — not optional. Claw / rim mount. Dynamic: 48V stays OFF. A bare &#x27;408&#x27; is always the EV N/D 408 (Brian, 2026-08-08).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="5" data-phantom="1">
+  <div class="num">5</div>
+  <div class="main">
+    <div class="inst">Hat</div>
+    <div class="sub">Hi-Hat</div>
+    <div class="mic">Shure SM81</div>
+    <div class="meta"><span class="patch">Local 5</span><span class="stand">Stand: Boom</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    <div class="note">One of three SM81s on this kit (5 / 14 / 19). Onboard low-cut ASSUMED 18dB/oct engaged, pad OUT — if left flat the desk HPF carries alone and there is more rumble to ride.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="6" data-phantom="0">
+  <div class="num">6</div>
+  <div class="main">
+    <div class="inst">Rack 1</div>
+    <div class="sub">Rack Tom (high)</div>
+    <div class="mic">Audix D2</div>
+    <div class="meta"><span class="patch">Local 6</span><span class="stand">Stand: Clip</span></div>
+    
+    <div class="note">Highest of three toms, each on a different capsule (D2 / D4 / D6).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="7" data-phantom="0">
+  <div class="num">7</div>
+  <div class="main">
+    <div class="inst">Rack 2</div>
+    <div class="sub">Rack Tom (low)</div>
+    <div class="mic">Audix D4</div>
+    <div class="meta"><span class="patch">Local 7</span><span class="stand">Stand: Clip</span></div>
+    
+    
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="8" data-phantom="0">
+  <div class="num">8</div>
+  <div class="main">
+    <div class="inst">Floor</div>
+    
+    <div class="mic">Audix D6</div>
+    <div class="meta"><span class="patch">Local 8</span><span class="stand">Stand: Clip</span></div>
+    
+    <div class="note">Locker fork — MD 421-U offered, D6 KEPT (Brian, 2026-08-08). Built for the scooped voicing.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="9" data-phantom="1">
+  <div class="num">9</div>
+  <div class="main">
+    <div class="inst">Overheads</div>
+    <div class="sub">Drum Overheads (stereo pair)</div>
+    <div class="mic">Shure Beta 27 (pair)</div>
+    <div class="meta"><span class="patch">Local 9</span><span class="stand">Stand: Boom</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-info">STEREO</i></div>
+    <div class="note">STEREO channel — both mics on this one fader. Band listed OH L/R on 9/10; fader 10 is the SNARE PL8 reverb return and is protected. Pad ASSUMED OUT, LF filter ENGAGED — if the pad is found engaged expect ~15dB more preamp and re-check gain before ringing out.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-BASS">BASS</h2>
+<article class="card s-BASS" data-ch="11" data-phantom="0">
+  <div class="num">11</div>
+  <div class="main">
+    <div class="inst">Bass DI</div>
+    <div class="sub">Bass Guitar (amp XLR out, post-EQ)</div>
+    <div class="mic">XLR line feed</div>
+    <div class="meta"><span class="patch">Local 11</span><span class="stand">Stand: —</span></div>
+    
+    <div class="note">Band-provided feed — confirm at load-in. POST-EQ: the player&#x27;s tone shaping is already baked in, do not re-voice.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-BASS" data-ch="12" data-phantom="0">
+  <div class="num">12</div>
+  <div class="main">
+    <div class="inst">Bass Mic</div>
+    <div class="sub">Bass Cabinet</div>
+    <div class="mic">Shure PG52</div>
+    <div class="meta"><span class="patch">Local 12</span><span class="stand">Stand: Short</span></div>
+    
+    
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-GUITAR">GUITAR</h2>
+<article class="card s-GUITAR" data-ch="13" data-phantom="0">
+  <div class="num">13</div>
+  <div class="main">
+    <div class="inst">Guitar</div>
+    <div class="sub">Electric Guitar (Marshall emulated line out)</div>
+    <div class="mic">XLR line feed</div>
+    <div class="meta"><span class="patch">Local 13</span><span class="stand">Stand: —</span></div>
+    
+    <div class="note">Band-provided feed — confirm at load-in. &#x27;Rec Out of Marshall&#x27;, confirmed EMULATED (DSL/JVM class) — Softube 1960 4x12 emulation, frequency-compensated.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-DRUMS">DRUMS / PERC</h2>
+<article class="card s-DRUMS" data-ch="14" data-phantom="1">
+  <div class="num">14</div>
+  <div class="main">
+    <div class="inst">Ride</div>
+    
+    <div class="mic">Shure SM81</div>
+    <div class="meta"><span class="patch">Local 14</span><span class="stand">Stand: Clip</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-danger">POLARITY INVERT</i></div>
+    <div class="note">POLARITY INVERT — points opposite the overheads. &#x27;Under mic w claw&#x27;. One of three SM81s (5 / 14 / 19). Onboard low-cut ASSUMED 18dB/oct engaged, pad OUT. PLACEMENT: closer to the bell = more ping, out to the edge = more overtones. Move the mic before adding dB.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-RHYTHM">RHYTHM</h2>
+<article class="card s-RHYTHM" data-ch="15" data-phantom="0">
+  <div class="num">15</div>
+  <div class="main">
+    <div class="inst">Click</div>
+    
+    <div class="mic">XLR line feed</div>
+    <div class="meta"><span class="patch">Local 15</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-danger">MUTED FROM MAINS</i></div>
+    <div class="note">MUTED FROM THE MAINS. OUT OF THE RECORD BUS. Band-provided feed. Confirmed a real input (Brian, 2026-08-08) — they run to a click.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-RHYTHM" data-ch="16" data-phantom="0">
+  <div class="num">16</div>
+  <div class="main">
+    <div class="inst">Track</div>
+    <div class="sub">Backing Track (playback, mono)</div>
+    <div class="mic">XLR line feed</div>
+    <div class="meta"><span class="patch">Local 16</span><span class="stand">Stand: —</span></div>
+    
+    <div class="note">Band-provided feed — confirm at load-in. MONO (confirmed).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-RHYTHM" data-ch="17" data-phantom="1">
+  <div class="num">17</div>
+  <div class="main">
+    <div class="inst">Pad 1</div>
+    <div class="sub">Sampling Pad (mono, panned)</div>
+    <div class="mic">BSS AR-133 (DI)</div>
+    <div class="meta"><span class="patch">Local 17</span><span class="stand">Stand: DI</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-RHYTHM" data-ch="18" data-phantom="0">
+  <div class="num">18</div>
+  <div class="main">
+    <div class="inst">Pad 2</div>
+    <div class="sub">Sampling Pad (mono, panned)</div>
+    <div class="mic">Whirlwind IMP (passive DI)</div>
+    <div class="meta"><span class="patch">Local 18</span><span class="stand">Stand: DI</span></div>
+    
+    <div class="note">Second output of the same pad, panned opposite ch 17.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-DRUMS">DRUMS / PERC</h2>
+<article class="card s-DRUMS" data-ch="19" data-phantom="1">
+  <div class="num">19</div>
+  <div class="main">
+    <div class="inst">Toys</div>
+    
+    <div class="mic">Shure SM81</div>
+    <div class="meta"><span class="patch">Local 19</span><span class="stand">Stand: Boom</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    <div class="note">Third of three SM81s (5 / 14 / 19). Onboard low-cut ASSUMED 18dB/oct engaged, pad OUT.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-KEYS">KEYS</h2>
+<article class="card s-KEYS" data-ch="20" data-phantom="0">
+  <div class="num">20</div>
+  <div class="main">
+    <div class="inst">Key L</div>
+    <div class="sub">Keys (stereo, left)</div>
+    <div class="mic">XLR line feed</div>
+    <div class="meta"><span class="patch">Local 20</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">STEREO</i></div>
+    <div class="note">Band-provided feed — confirm at load-in. Stereo pair with ch 21.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-KEYS" data-ch="21" data-phantom="0">
+  <div class="num">21</div>
+  <div class="main">
+    <div class="inst">Key R</div>
+    <div class="sub">Keys (stereo, right)</div>
+    <div class="mic">XLR line feed</div>
+    <div class="meta"><span class="patch">Local 21</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">STEREO</i></div>
+    <div class="note">Band-provided feed — confirm at load-in. Stereo pair with ch 20.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-VOCALS">VOCALS</h2>
+<article class="card s-VOCALS" data-ch="33" data-phantom="0">
+  <div class="num">33</div>
+  <div class="main">
+    <div class="inst">Aretha</div>
+    <div class="sub">Lead Vocal (female) + MC</div>
+    <div class="mic">Shure Beta 58A (Wireless 1)</div>
+    <div class="meta"><span class="patch">Local 33</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WINDSCREEN</i><i class="chip c-info">WIRELESS 1</i></div>
+    <div class="note">Wireless 1. Windscreen — 15–16mph gusts all evening. RING OUT AT SOUNDCHECK: this MD removes the template&#x27;s HPF 184, its −18@5k Q20 notch and its −6.3@335.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="34" data-phantom="0">
+  <div class="num">34</div>
+  <div class="main">
+    <div class="inst">Heather</div>
+    <div class="sub">Vocal (female)</div>
+    <div class="mic">Shure Beta 58A (Wireless 2)</div>
+    <div class="meta"><span class="patch">Local 34</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WINDSCREEN</i><i class="chip c-info">WIRELESS 2</i></div>
+    <div class="note">Wireless 2. Windscreen. RING OUT AT SOUNDCHECK — template baseline removed.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="35" data-phantom="0">
+  <div class="num">35</div>
+  <div class="main">
+    <div class="inst">Vince</div>
+    <div class="sub">Vocal (male, bass-range)</div>
+    <div class="mic">Shure Beta 58A (Wireless 3)</div>
+    <div class="meta"><span class="patch">Local 35</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WINDSCREEN</i><i class="chip c-info">WIRELESS 3</i></div>
+    <div class="note">Wireless 3. Windscreen. RING OUT AT SOUNDCHECK. Fundamentals reach ~82Hz — the template&#x27;s HPF 184 is flatly wrong for this voice and is removed.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="36" data-phantom="0">
+  <div class="num">36</div>
+  <div class="main">
+    <div class="inst">Brandon</div>
+    <div class="sub">Vocal (male, range TBD)</div>
+    <div class="mic">Shure Beta 58A (Wireless 4)</div>
+    <div class="meta"><span class="patch">Local 36</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WINDSCREEN</i><i class="chip c-info">WIRELESS 4</i><i class="chip c-tour">CONFIRM AT LOAD-IN</i></div>
+    <div class="note">LOAD-IN FLAG — NEW vocalist, range unknown (replaces Markay). Wireless 4. Windscreen. RING OUT AT SOUNDCHECK.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+</main>
+<footer>Tap a channel to check it off — saved on this phone only.<br>
+Generated from 2nd Wind.spec.json · Rev 2.0 Deep Build</footer>
+<script>
+(function(){
+  var KEY = 'patch:' + "2nd Wind";
+  var done = {};
+  try { done = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { done = {}; }
+  var cards = [].slice.call(document.querySelectorAll('.card'));
+  var total = cards.length, mode = 'all';
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(done)); } catch(e) {} }
+  function paint(){
+    var n = 0;
+    cards.forEach(function(c){
+      var id = c.dataset.ch, on = !!done[id];
+      c.classList.toggle('done', on);
+      if (on) n++;
+      var hide = (mode === 'todo' && on) || (mode === '48v' && c.dataset.phantom !== '1');
+      c.classList.toggle('hide', hide);
+    });
+    document.getElementById('count').textContent = n + ' / ' + total;
+    document.getElementById('fill').style.width = (total ? (n / total * 100) : 0) + '%';
+  }
+  cards.forEach(function(c){
+    c.addEventListener('click', function(){
+      var id = c.dataset.ch;
+      if (done[id]) { delete done[id]; } else { done[id] = 1; }
+      save(); paint();
+      if (navigator.vibrate) navigator.vibrate(8);
+    });
+  });
+  function setMode(m, btn){
+    mode = m;
+    ['f-all','f-todo','f-48v'].forEach(function(i){
+      document.getElementById(i).setAttribute('aria-pressed', i === btn ? 'true' : 'false');
+    });
+    paint();
+  }
+  document.getElementById('f-all').onclick  = function(){ setMode('all','f-all'); };
+  document.getElementById('f-todo').onclick = function(){ setMode('todo','f-todo'); };
+  document.getElementById('f-48v').onclick  = function(){ setMode('48v','f-48v'); };
+  document.getElementById('reset').onclick  = function(){
+    if (confirm('Clear every check mark?')) { done = {}; save(); paint(); }
+  };
+  paint();
+})();
+</script>
+</body></html>

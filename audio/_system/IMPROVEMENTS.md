@@ -332,3 +332,145 @@ Also this session: the **Audix D4** mic-library character row was corrected agai
 current published chart (+6 dB @ 5 kHz, rolloff below 70 Hz — not "reaches 35 Hz, less upper-mid
 attack"), and the **Shure PG52** was researched and added to the locker via the full
 NEW-MIC-WORKFLOW. Both logged in the KB CHANGELOG.
+
+## 2026-08-06 — I built this show on `main`, which is 10 commits behind `show-pipeline-2026-07-26`
+
+**CORRECTED 2026-08-06, after Brian pushed back on the claim.** My original entry here said
+this work lived in "the Cowork-side workspace" and had never made it into this repo. That was
+wrong, and I had not checked before asserting it. All of it is committed in THIS repo, on the
+branch **`show-pipeline-2026-07-26`** — 10 commits ahead of `main`, with `main` strictly behind
+it (fast-forwardable, nothing on main that isn't on the branch). The branch carries the
+recalibrated FSQ patcher (`d206792`), the EQ response card (`522ddc6`), the Q225 preset browser,
+the wiki pushes, and every show folder from 2026-07-24 through 2026-08-02.
+
+The real fault is simpler and entirely mine: **the session opened on `main` and I never checked
+what branch the recent work was on.** I treated "not in the working tree" as "does not exist",
+twice, instead of running `git log --all` on the file I was about to rewrite. Concretely, on
+`main` at the start of this session:
+
+- `Fountain Square/_TEMPLATE/brian fsq start.ses` was the **retired** 3,779,766-byte file,
+  and `apply_show_TEMPLATE_FSQ.py` was calibrated to match it — mutually consistent, so
+  nothing would have errored. A build would have silently produced a session off a
+  starting point Brian retired on 2026-08-01.
+- `.claude/skills/show-deep-build/scripts/build_packet.py` is still the 2026-07-11 build:
+  no `WIRELESS_CH` validation, no structured `research` object, no MASTER quick-links /
+  `PageMark` bookmarks. Auto-memory describes all three as shipped.
+
+What I did on `main` as a result — all of it **redundant re-derivation of work already
+committed on the branch**: installed the template, recalibrated the patcher, and rebuilt the
+EQ response card from its documentation. The outputs are correct and verified, but they are a
+second, differently-named implementation of things that already existed:
+
+| Thing | Branch (committed) | What I wrote on main |
+|---|---|---|
+| Patcher scan window | `scan_lo=0x2548000` / `scan_hi=0x25A3200` | `0x2547EBB` / `0x25B3EBB` |
+| EQ card entry point | `eq_curve_card()` → Drawing, 1.42" | `eq_response_card()` → `EQResponseCard` Flowable, 1.5" |
+| Biquad helpers | `_bq_mag` / `_bq_peak` / `_bq_shelf` / `_bq_pole` | `_rbj` / `_mag_db` / `_stages` |
+
+Both patcher calibrations resolve the same blocks and both pass readback; both cards render to
+the documented spec. But two implementations of one feature is exactly the drift this file
+exists to stop, so **the branch versions should win and my four file edits on `main` should be
+dropped** — `apply_show_TEMPLATE_FSQ.py`, `show-packet-builder-template.py`,
+`_skills/show-deep-build/scripts/build_packet.py`, and the `_TEMPLATE/*.ses` swap. The only work
+worth keeping off this session is the 2026-08-07 show folder itself (which should then be
+re-rendered with the branch's builder so its packets match every other show) plus the memory,
+active-projects and IMPROVEMENTS entries.
+
+**The guard that actually matters going forward:** check `git log --all --oneline -- <file>` and
+`git branch -a` before concluding a feature is missing. The patcher's size tripwire did its job
+tonight — it correctly aborted on the retired template — but nothing was ever going to catch
+"the code is on another branch" except looking.
+
+Also logged: on `main`, `Fountain Square/Q225 SES Patcher SOP/rename_fsq.py` is still
+calibrated to the 3,779,766-byte template and will abort on the current one. Not touched this
+session (nothing needed it); check whether the branch already fixed it before touching it.
+
+### Method note worth keeping — vetting a template drop by parsed value
+Brian re-dropped the template mid-session; same filename, same 39,910,700 bytes,
+different md5 (`8723eda8` → `6e1bb3b4`). Raw diff: 18,305 bytes. Parsed diff across all
+56 resolvable faders (EQ gain/freq/Q/type, DEQ, HPF, LPF, Mustard D1/D2): **zero**. That
+is the whole argument for diffing by value — a byte diff on these files is dominated by
+the desk's object-ID renumbering and tells you nothing. Deriving the calibration is also
+cheaper than the documented ZZTOP save-diff: locate the surface table by searching for
+consecutive `expected_names` at a fixed stride (the finder reproduced the known-good
+`0xA5571 / 125` on the old file before being trusted on the new one), then take the
+uniform offset shift and apply it to `scan_lo` / `scan_hi`.
+
+### 2026-08-06 (later) — EQ response card was MISSING from this workspace's builder; rebuilt to the documented spec
+
+Brian: "i know for a fact the last build we did last weekend i asked for the eq graphs to
+be included in the workflow." Correct, and I shipped the 2026-08-07 packets without them.
+
+The feature was added 2026-07-28 and is documented in two places — `show-processing-pipeline`
+("Each EQ channel page opens with a filled response curve… Automatic; nothing to request")
+and `active-projects`. **CORRECTED: the code was already committed in this repo**, as
+`eq_curve_card()` in `audio/show-packet-builder-template.py` on branch
+`show-pipeline-2026-07-26` (commit `522ddc6`, "EQ response card on every input page"). It is
+absent only from `main`, which is where this session was working. I did not check, and rebuilt
+it instead — see the corrected entry above.
+
+**Process failure worth naming:** I read the skill and the venue KB articles, but not
+`show-processing-pipeline`, which is where the packet's own output contract is written. The
+skill file is not the spec for what a packet CONTAINS. Reading the pipeline spec for the
+venue's stage-3 requirements belongs in the build, not just the routing step.
+
+Rebuilt on `main` from the documented behaviour, in ignorance of the committed version.
+Kept here as a record of what was written, not as a recommendation to keep it — the branch's
+`eq_curve_card()` is the one that should survive:
+
+- `show-packet-builder-template.py` — new `EQResponseCard` flowable, `_rbj()` / `_mag_db()` /
+  `_stages()` (RBJ cookbook biquads, magnitude by DTFT at 48 kHz), `curve_from_rows()` fallback,
+  and `eq_response_card()`. Called from `build_eq_pages()` between the channel header and the
+  mic-notes box.
+- `build_packet.py` — hands the builder a numeric `curve` dict per channel (hpf/lpf/bands with
+  a `deq` flag) so the card is drawn from real values instead of re-parsed display strings.
+
+Matches the documented spec on every point: filled + stroked in the section accent, every band
+dotted and labelled `B3 -5 @300 Q2` with `D` appended when dynamic, dashed verticals at the
+filter corners, filters at 12 dB/oct (the spec carries no slope — corner exact, steepness
+indicative), EQ section only so doc-only Mustard dynamics stay out of it. Shelf bands map to
+low shelf on B1/B2 and high shelf on B3/B4.
+
+**Verified against the 2026-07-28 re-render guardrail:** hashed the FOH `.md` and `.ses` before
+re-rendering both packets, re-ran, and confirmed all four byte-identical afterwards. Page counts
+unchanged (28 / 10 / 2 / 23 / 9, MASTER still 72) — the card genuinely adds no pages.
+
+### 2026-08-06 (later still) — the FSQ tom gate: a wrong "correction", then the real find
+
+Sequence worth keeping, because the failure mode is subtle. Auto-memory and the FSQ patcher
+docstring both said faders 6/7/8 ship a native gate enabled (thr −36.2 dB, rel 227 ms,
+sidechain 130–317 Hz). I read `TAG_D2_EN` with the engine, got 0.0 on all three, and
+"corrected" both files to say there is no gate. **That was wrong.** `TAG_D2_*` is the
+**Mustard** gate/duck/MSE block (`0x1Exx`). The gate Brian set is the console's **native**
+dynamics, a different family entirely: `0x05xx` tags at **bidx 3**.
+
+    0x50E/3  enable      1.0 on faders 6/7/8, 0.0 elsewhere
+    0x511/3  threshold   −36.2353 dB
+    0x50A/3  release     0.2273 s
+    0x505/2  sc lo   /   0x516/0  sc hi
+
+Both files are now corrected back, with the tag map recorded so the same mistake is not
+available next time. **Lesson: "the tag I know reads zero" is not "the feature is off" —
+find the record that actually holds the value before contradicting a documented fact.**
+Reading the two blocks side by side against a known-ungated channel (snare, fader 3) is what
+settled it in about a minute; that diff should have been the first move, not the third.
+
+**The real find, which the existing notes had missed.** Comparing the three 39.9 MB templates
+by these records:
+
+| template | gate on 6/7/8 | sidechain band |
+|---|---|---|
+| 2026-07-25 | OFF | — |
+| 2026-07-26 | ON | all three share 129.7–317.0 Hz |
+| **2026-08-01 (current)** | ON | **re-tuned per drum**: Rack 1 216.9–262.2, Rack 2 152.5–241.8, Floor 96.2–116.3 Hz |
+
+So the 2026-08-01 drop is **not** the pure rename-only resave it is documented as — threshold
+and release held, but three sidechain bands moved. The "ZERO parameter changes, byte-identical
+on all 64 faders" line in `fsq-template-current` was reached by diffing only the EQ/DEQ/filter/
+Mustard tags, which is exactly the set that did not change. **Widen the vetting sweep to the
+native-dynamics family**, or the next retune goes unnoticed the same way.
+
+Consequence carried into the 2026-08-07 build: that show's ch 7 is physically a 16" floor tom
+(backline mismatch), so the template's 152–242 Hz rack-tom sidechain on that fader is listening
+in the wrong band. Documented in both specs' `changes` and in the ch 6/7/8 channel notes as a
+soundcheck move, not patched.

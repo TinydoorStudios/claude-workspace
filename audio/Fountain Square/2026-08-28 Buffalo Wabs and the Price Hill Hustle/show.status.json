@@ -1,0 +1,23 @@
+{
+  "show": "Buffalo Wabs and the Price Hill Hustle",
+  "venue": "Fountain Square",
+  "date": "2026-08-28",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-08-24T17:56:24",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-08-24T18:07:24",
+      "note": "18 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-08-24T18:07:34",
+      "note": "fsq \u00b7 18 channels \u00b7 Buffalo Wabs and the Price Hill Hustle.ses"
+    },
+    "published": {
+      "at": "2026-08-24T18:14:41",
+      "note": "kb.tinydoorstudios.com/show-fsq-2026-08-28-buffalo-wabs-and-the-price-hill-hustle"
+    }
+  }
+}
