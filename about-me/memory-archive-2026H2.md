@@ -401,3 +401,10 @@ These are the critical facts to know when working with Seventh Heaven Pro at Mem
 **Reference PDF:** `~/Documents/Claude/audio/Memo Work/Seventh Heaven Pro Reference.pdf`
 **KB article:** `reverb-reference-memo.md`
 
+---
+
+### Memory Consolidation — 2026-08-15
+- Scanned: KB CHANGELOG tail + `list_sessions` back to the 2026-08-14 watermark (3 non-audio sessions checked, no relevant signal; 1 audio-adjacent Q&A session, no standing facts to capture)
+- Added: 1 entry (ESP NDI-audio nightly recycle fix, 2026-08-14 — had a KB CHANGELOG entry but no memory.md session note or active-projects.md project-state entry) · Updated: 0 · Archived/trimmed: 0
+- Flagged to questions.md: ESP NDI-audio recycle has no failure webhook (low priority)
+

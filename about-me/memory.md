@@ -1,5 +1,5 @@
 # memory.md
-*Last consolidation: 2026-08-11 — log in memory-archive-2026H2.md*
+*Last consolidation: 2026-08-16 — log in memory-archive-2026H2.md*
 
 *Living document — newest entries at the top of Session Notes. Never delete — archive instead.*
 *SIZE RULE (2026-08-11): this file loads in full at every session start, so it stays under ~30KB. Keep the current month of session notes here; roll anything older into `memory-archive-2026H2.md`. Consolidation passes log to the archive, not here, unless the pass actually found something.*
@@ -51,6 +51,16 @@ Reference notes moved to the KB 2026-08-11 — canonical source is `Live Sound K
 ## Session Notes
 
 *Trimmed 2026-08-11: entries before 2026-08-01 and all consolidation-pass stubs live in `memory-archive-2026H2.md`. Keep this file lean — it loads in full at every session start. Consolidation passes should log to the archive, not here, unless the pass actually found something.*
+
+### 2026-08-14 — ESP NDI-audio nightly recycle had been silently dead for six weeks
+
+The ESP Magewell RX nightly recycle (refreshes the two FSQ audio NDI receivers) stopped working 2026-06-29 and nobody noticed until the audio kept going stale. Three stacked bugs, all fixed: (1) a 2026-06-28 script edit introduced smart-dash mojibake that broke the PowerShell script's string terminators — a script that won't parse exits 1 and logs nothing, so the task kept firing nightly and doing nothing, with the log frozen in June; script is now ASCII-only. (2) The connection-verify step read the wrong JSON key (`gst`, not `channels/rx-channels/rx/data/list`), so every recycle false-failed even with both streams live. (3) The scheduled task had always been registered "Interactive only," so it would've died on any reboot/logoff regardless — now runs as SYSTEM. All three fixed in the canonical script, the wiki asset copy, and the box; live-verified end to end. **Still open: no failure webhook, so a real future failure still alerts nobody** — flagged to questions.md. (from KB CHANGELOG 2026-08-14 — no memory.md session note existed for this work until this consolidation pass added one.)
+
+### 2026-08-11 — NAS backup "no space" was a bug; built the sync + 7-day prune
+
+Backup email screamed "No space left on device" on Cold Storage. It was NOT full (96TB pool, 2% used). Root cause: `backup-to-coldstorage.sh` used `rsync --temp-dir=/tmp`, and `--temp-dir` is the RECEIVER-side scratch dir — Cold Storage `/tmp` is a 7.6G RAM tmpfs, so the 17.8G brooks Record Feed overflowed it. Removed the flag (backup saved as `.bak-20260811`), backfilled the 4 missing files (~19G, brooks Media), verified byte-identical on Cold Storage.
+
+Got SSH into both TrueNAS boxes with the `claude_backup` key as `brian@` (set up .36's brian user via the UI over AnyDesk: SSH key + real home `/mnt/AudioNas/brian` + passwordless sudo — `/var/empty` home breaks key auth). Built `prune-synced-recordings.sh` (04:00 cron): deletes local recordings >7 days old, scope `Audio/<YYYY>` + `Audio/FSQ/<YYYY>` only, delete gated by `rsync --remove-source-files` (removed locally only after confirmed on Cold Storage). First run pruned 540 files / 228 GiB, small pool 50%→13%, kept only Bright Light (<7d). Full detail in auto-memory [[nas-backup-prune-pipeline]]. Tailscale on .36 still open (Apps service unconfigured; LAN SSH works).
 
 ### 2026-08-08 — FSQ 2nd Wind rev 2, a phone patch sheet, and one-question-at-a-time
 

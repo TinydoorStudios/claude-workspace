@@ -45,3 +45,12 @@ _ARCHIVE/handoffs-done/2026-06-11_Wiki-Asset-Setup-Handoff.md
 _ARCHIVE/2026-06-wiki-setup/*.command
 _ARCHIVE/2026-06-wiki-setup/wiki-asset-setup.sh
 _ARCHIVE/2026-06-wiki-setup/wiki-complete-setup.sh
+
+# root-level camera dumps + transient handoff files (handoffs belong in audio/handoffs/)
+/IMG_*.JPG
+/IMG_*.jpg
+/handoff-*.md
+
+# _inbox is a drop folder: version the README, ignore whatever gets dropped in
+_inbox/*
+!_inbox/README.md

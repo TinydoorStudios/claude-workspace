@@ -128,7 +128,8 @@ Read this at the start of every Cowork session. No need to confirm you've read i
 | U87 Jr / 87 JR | Warm Audio WA-87 — my only 87; NO Neumann U87 in the kit. Any "87"/"U87" I write = the WA-87 | LDC clone | Trombone (primary use) |
 | Beta 58A | Shure Beta 58A | Supercardioid dynamic | Vocals |
 | Beta 98H/C | Shure Beta 98H/C | Clip-on condenser | Horns (clip-on) |
-| ND408 | Electro-Voice N/D 408 — vintage first-gen (no letter suffix), supercardioid N/DYM. Any "408" I write on a snare = the Lauten LS-408, not this | Dynamic | Rack toms (small-footprint 421 alternative), guitar cab, snare |
+| 408 / ND408 | Electro-Voice N/D 408 — vintage first-gen (no letter suffix), supercardioid N/DYM. **Any bare "408" I write, on any source including a snare, is THIS mic** (corrected 2026-08-08 — the old rule said a "408" on a snare meant the Lauten; wrong) | Dynamic | Rack toms (small-footprint 421 alternative), guitar cab, snare |
+| the Lauten / "snare mic" | Lauten LS-408 — I never call it "408". It's "the Lauten" or just "snare mic" (2026-08-08) | FET LDC, snare-voiced | Snare top. Needs 48V; onboard HPF 80/140, LPF 5/12k — always ask the switch positions |
 | PG52 | Shure PG52 — discontinued pre-ALTA kick mic (superseded by the PGA52) | Dynamic | **Bass cabinet** (its real strength), floor tom; kick only when the Beta 52 and D6 are both committed |
 | MD421 | Sennheiser MD 421-U (Silver Tail) — vintage 1970s, native XLR, NOT the MD 421-II. Any "421" I write = the 421-U | Dynamic | Toms (first choice), brass, guitar cabs |
 | RNDI | Rupert Neve Designs RNDI | Active transformer DI | Bass, electric guitar, keys |
@@ -386,6 +387,15 @@ Live at **https://spl.tinydoorstudios.com** — systemd service on the n8n VM. F
 
 ## Standing Instructions (Corrections)
 
+- **Ask ONE question at a time — all work, permanent (2026-08-08).** Every fork, every
+  stop-and-ask, every clarifying question gets its own interactive prompt (AskUserQuestion). Ask
+  it, stop, get Brian's answer, then ask the next. **Never** dump a numbered list of questions in
+  prose for him to answer in one long reply — a batch makes him hold every answer in his head and
+  lets a skipped item turn silently into a guess. Recommended option first, marked
+  "(Recommended)", with your read attached. Do all the up-front thinking that produces the
+  questions and sequence them the way the work needs (locker forks first on a show build) — the
+  change is delivery, not preparation. This supersedes show-deep-build's old "batch the round"
+  rule; that skill was amended the same day.
 - **Never rewrite a VM/Pi .env file partially.** Always include the full set of vars. Partial rewrites silently drop critical overrides (learned: dropped SPL_PORT=8090, caused 502 on public URL).
 - **Do NOT narrate work — hard rule, escalated 2026-06-07.** No "I'll now…", "Next…", "while that runs…", no step-by-step play-by-play during execution. Work silently; speak only for a finished result, a real blocker, or a genuine question. Also enforced by a `UserPromptSubmit` hook in `~/.claude/settings.json` that re-injects the rule each prompt — do not remove it.
 - **n8n CLI gotchas** (per-workflow publish, sudo'd compose, active-state not carried by import) moved to the **tds-infrastructure** skill 2026-08-02.
