@@ -65,6 +65,14 @@ KB active-projects. Rolled the oldest notes to archive (→20KB) and tightened t
 janitor from calendar-month/30KB to a trailing-2-week/18KB window (the calendar rule sawtoothed to
 the cap monthly). Note: the four new show `.ses` (~152MB) went into git history per existing
 convention — if repo size ever bites, git-LFS or excluding `.ses` is the lever.
+Follow-on memory-architecture talk: confirmed the three systems (KB active-projects = canonical
+state, auto-memory = atomic facts, memory.md = session journal) are already role-separated — the
+old section duplication was fixed back in July. Brian's call: **keep memory.md as the lean journal,
+no merge.** Root-caused the stale-skill class of bug: Cowork runs frozen uploaded snapshots (per
+[[deep-think-default]]), so the `.skill` re-zip kept getting skipped — it's bitten three times.
+Built a guard: `audio/_skills/build-packages.sh` + a tracked pre-commit hook
+(`core.hooksPath=audio/_skills/git-hooks`) rebuild show-deep-build/fable-parity packages from
+source on every commit. Re-upload into Cowork is still the one manual step.
 
 ### 2026-08-14 — ESP NDI-audio nightly recycle had been silently dead for six weeks
 
