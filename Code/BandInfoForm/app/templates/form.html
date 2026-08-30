@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3CDC Band Advance</title>
+<style>
+  :root{
+    --navy:#1A3A5C; --accent:#2E6DA4; --ink:#1f2937; --muted:#6b7280;
+    --line:#d9dee5; --bg:#eef1f5; --card:#ffffff; --req:#b02a37;
+    --gap:26px;               /* the single spacing value between every question */
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    font-size:15px;line-height:1.45;}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px 64px;}
+  header{background:var(--navy);color:#fff;padding:28px 0;margin-bottom:24px;}
+  header .wrap{padding-bottom:0;}
+  header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.2px;}
+  header p{margin:6px 0 0;font-size:14px;color:#c7d6e6;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:28px 26px;box-shadow:0 1px 2px rgba(16,24,40,.04);}
+
+  /* Every question is a .field with the SAME bottom gap — this is the even spacing */
+  .field{margin-bottom:var(--gap);}
+  .field:last-child{margin-bottom:0;}
+  label.q{display:block;font-weight:600;font-size:15px;margin-bottom:6px;}
+  .req{color:var(--req);margin-left:2px;}
+  .help{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.4;}
+
+  input[type=text],input[type=tel],input[type=number],input[type=date],select,textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+    font:inherit;color:var(--ink);background:#fff;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(46,109,164,.15);}
+  textarea{min-height:84px;resize:vertical;}
+  input[type=file]{width:100%;font-size:14px;padding:8px 0;}
+
+  .section{margin:34px 0 18px;padding-bottom:8px;border-bottom:2px solid var(--navy);}
+  .section:first-of-type{margin-top:4px;}
+  .section h2{margin:0;font-size:13px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--navy);}
+
+  .ack{background:#f6f8fb;border:1px solid var(--line);border-radius:8px;padding:14px 16px;}
+  .ack ul{margin:8px 0 0;padding-left:18px;}
+  .ack li{margin:4px 0;font-size:13.5px;color:#374151;}
+  .checkrow{display:flex;gap:10px;align-items:flex-start;margin-top:12px;}
+  .checkrow input{margin-top:3px;flex:0 0 auto;width:17px;height:17px;}
+  .checkrow label{font-size:14px;font-weight:600;}
+
+  .hidden{display:none;}
+  .conditional{border-left:3px solid var(--accent);padding-left:14px;margin-left:2px;
+    background:#f7fafd;border-radius:0 8px 8px 0;padding-top:14px;padding-bottom:2px;padding-right:12px;}
+
+  button{background:var(--navy);color:#fff;border:0;border-radius:8px;
+    padding:13px 22px;font-size:15px;font-weight:600;cursor:pointer;margin-top:30px;}
+  button:hover{background:#12293f;}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Band Advance / Show Details</h1>
+  <p>Please complete this so we have everything we need to run your show.</p>
+</div></header>
+
+<div class="wrap">
+<form class="card" action="submit" method="post" enctype="multipart/form-data">
+
+  <div class="section"><h2>Show Basics</h2></div>
+
+  <div class="field">
+    <label class="q">Band / Group Name<span class="req">*</span></label>
+    <input type="text" name="band_name" required>
+  </div>
+
+  <div class="field">
+    <label class="q">Venue<span class="req">*</span></label>
+    <select name="venue" required>
+      <option value="" disabled selected>Select a venue…</option>
+      {% for v in venues %}<option>{{ v }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div class="field">
+    <label class="q">Show Date<span class="req">*</span></label>
+    <input type="date" name="show_date" required>
+  </div>
+
+  <div class="field">
+    <label class="q">Performer Contact — best day-of cell phone<span class="req">*</span></label>
+    <input type="tel" name="contact_phone" required>
+    <p class="help">Best point of contact from the group. Please text or call this person when you are about 5 minutes out, and introduce yourself onsite as soon as you arrive.</p>
+  </div>
+
+  <div class="section"><h2>Stage &amp; Technical</h2></div>
+
+  <div class="field">
+    <label class="q">Stage Plot / Input List — upload</label>
+    <input type="file" name="stage_plot_file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx">
+    <p class="help">Please provide a current stage plot / input list. Accepts PDF, image, Word, or Excel. No file handy? Use the description box below instead.</p>
+  </div>
+
+  <div class="field">
+    <label class="q">Stage Plot / Input List — description or link</label>
+    <textarea name="stage_plot_desc"></textarea>
+    <p class="help">If you can't upload a file, describe your input list / stage layout here, or paste a shareable link.</p>
+  </div>
+
+  <div class="field">
+    <label class="q">Would you prefer a flat stage or a drum riser?<span class="req">*</span></label>
+    <select name="stage_type" required>
+      <option value="" disabled selected>Select…</option>
+      <option>Flat stage</option>
+      <option>Drum riser</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label class="q">How many monitors do you need?<span class="req">*</span></label>
+    <input type="number" name="monitors" min="0" step="1" required>
+  </div>
+
+  <div class="field">
+    <label class="q">Are you bringing your own in-ears (IEMs)?<span class="req">*</span></label>
+    <select name="own_iems" id="own_iems" required>
+      <option value="" disabled selected>Select…</option>
+      <option>No</option>
+      <option>Yes</option>
+    </select>
+  </div>
+
+  <div class="field conditional hidden" id="split_field">
+    <label class="q">Are you providing a split snake?<span class="req">*</span></label>
+    <select name="split_snake" id="split_snake">
+      <option value="" disabled selected>Select…</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+    <p class="help">Since you're bringing your own in-ears, let us know if you're providing the split.</p>
+  </div>
+
+  <div class="field">
+    <label class="q">Backline / Instrumentation — are you sharing with another artist on the event?</label>
+    <textarea name="backline"></textarea>
+    <p class="help">Artists provide all instruments, including amps and 1/4-inch cables. If you've coordinated to share backline with another artist on the event, note it here.</p>
+  </div>
+
+  <div class="field">
+    <label class="q">Are you bringing your own sound engineer?<span class="req">*</span></label>
+    <select name="own_engineer" required>
+      <option value="" disabled selected>Select…</option>
+      <option>No — use house engineers</option>
+      <option>Yes — bringing our own (we'll coordinate)</option>
+    </select>
+    <p class="help">We provide audio engineers to mix FOH and monitors. If you plan to bring your own, please coordinate in advance. All engineers must mix within the 95 dB ordinance; the 3CDC engineer reserves the right to baffle amps to reduce stage volume if necessary.</p>
+  </div>
+
+  <div class="field">
+    <label class="q">Do you have a backdrop or any scenic elements we should be aware of?</label>
+    <textarea name="scenic"></textarea>
+  </div>
+
+  <div class="field">
+    <label class="q">Lighting requests</label>
+    <textarea name="lighting"></textarea>
+    <p class="help">We provide a house LD. Let us know any specific requests and we'll do our best to accommodate.</p>
+  </div>
+
+  <div class="section"><h2>Hospitality &amp; Site</h2></div>
+
+  <div class="field">
+    <label class="q">Are you selling merch?<span class="req">*</span></label>
+    <select name="merch" required>
+      <option value="" disabled selected>Select…</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+    <p class="help">If yes, you're responsible for providing a seller, point of sale, and bank. We provide a tent next to the stage with a table and chairs.</p>
+  </div>
+
+  <div class="field">
+    <label class="q">Do you want a private band tent? (10×10 with sidewalls)<span class="req">*</span></label>
+    <select name="band_tent" required>
+      <option value="" disabled selected>Select…</option>
+      <option>Yes, please provide the tent</option>
+      <option>No, not needed</option>
+    </select>
+    <p class="help">We do not have indoor dressing rooms. On request we can provide a 10×10 tent with sidewalls for private band space.</p>
+  </div>
+
+  <div class="field">
+    <label class="q">Total number of performers and crew<span class="req">*</span></label>
+    <input type="number" name="performers" min="1" step="1" required>
+    <p class="help">Drink tickets and water are provided for all performers and crew.</p>
+  </div>
+
+  <div class="field">
+    <label class="q">Do you need large vehicle parking?<span class="req">*</span></label>
+    <select name="large_vehicle" required>
+      <option value="" disabled selected>Select…</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+    <p class="help">Includes any vehicle over 6&nbsp;ft&nbsp;8&nbsp;in (the garage clearance), large vans, any vehicle with a trailer, and tour buses.</p>
+  </div>
+
+  <div class="section"><h2>Acknowledgments</h2></div>
+
+  <div class="field">
+    <div class="ack">
+      The load-in process at 3CDC has changed — please review the document your contact sent. Each vehicle needs its own parking QR validation before arriving; scan at the kiosk on entry or exit (please don't pay).
+      <div class="checkrow">
+        <input type="checkbox" id="ack_loadin" name="ack_loadin" value="yes" required>
+        <label for="ack_loadin">I have reviewed the load-in document.<span class="req">*</span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="ack">
+      We're required by the city to maintain a strict 95 dB limit, measured at the FOH position. All engineers (house or talent) are held to that level.
+      <div class="checkrow">
+        <input type="checkbox" id="ack_95db" name="ack_95db" value="yes" required>
+        <label for="ack_95db">I understand and acknowledge the 95 dB limit.<span class="req">*</span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="ack">
+      Failure to comply with the below may result in a warning or termination of the show, with payment canceled or delayed. Please read and acknowledge:
+      <ul>
+        <li><b>Content:</b> Family-friendly only — no foul language or gestures. Applies to prerecorded tracks, live vocals, and sound check.</li>
+        <li><b>Sound limit:</b> Strict 95 dB at FOH for all engineers, house or talent.</li>
+        <li><b>Performer safety:</b> Stay on the stage. No crowd surfing, climbing, jumping off stage, or stepping on sound equipment.</li>
+        <li><b>Audience safety:</b> Do not throw or shoot anything into the crowd (confetti, t-shirts, bottles, merch/CDs, etc.).</li>
+        <li><b>Weather:</b> Rain or shine. Booking evaluates weather about 3 hours before start. If you don't hear otherwise, assume the show goes on.</li>
+        <li><b>Payment:</b> All groups are paid after the performance, not before.</li>
+      </ul>
+      <div class="checkrow">
+        <input type="checkbox" id="ack_reqs" name="ack_reqs" value="yes" required>
+        <label for="ack_reqs">I have read and acknowledge all performance requirements.<span class="req">*</span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="q">Additional questions or concerns?</label>
+    <textarea name="additional"></textarea>
+  </div>
+
+  <button type="submit">Submit show details</button>
+</form>
+</div>
+
+<script>
+  var iem = document.getElementById('own_iems');
+  var splitField = document.getElementById('split_field');
+  var split = document.getElementById('split_snake');
+  function syncSplit(){
+    var show = iem.value === 'Yes';
+    splitField.classList.toggle('hidden', !show);
+    split.required = show;
+    if(!show){ split.value = ''; }
+  }
+  iem.addEventListener('change', syncSplit);
+  syncSplit();
+</script>
+</body>
+</html>

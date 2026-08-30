@@ -1,0 +1,279 @@
+{
+  "name": "Band Advance Form",
+  "id": "band-advance-form",
+  "active": false,
+  "settings": {
+    "saveDataSuccessExecution": "all",
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "3CDC — Band Advance / Show Details",
+        "formDescription": "Please complete this so we have everything we need to run your show.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Band / Group Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Venue",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "Fountain Square" },
+                  { "option": "Washington Park" },
+                  { "option": "Elm Street Plaza" },
+                  { "option": "Court Street Plaza" },
+                  { "option": "Zeigler Park" },
+                  { "option": "Imagination Alley" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Show Date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Performer Contact — best day-of cell phone",
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">Best point of contact from the group. Please text or call this person when you are about 5 minutes out, and introduce yourself onsite as soon as you arrive.</p>"
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">Please provide a current stage plot / input list. Upload accepts PDF, image, Word, or Excel. No file handy? Use the description box below instead, or paste a shareable link.</p>"
+            },
+            {
+              "fieldLabel": "Stage Plot / Input List — upload (optional)",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Stage Plot / Input List — description or link (optional)",
+              "fieldType": "textarea",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Would you prefer a flat stage or a drum riser?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "Flat stage" },
+                  { "option": "Drum riser" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "How many monitors do you need?",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Are you bringing your own in-ears (IEMs)?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "No" },
+                  { "option": "Yes" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "If bringing your own in-ears — are you providing a split snake?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "N/A — not bringing our own in-ears" },
+                  { "option": "Yes" },
+                  { "option": "No" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Backline / Instrumentation — are you sharing with another artist on the event?",
+              "fieldType": "textarea",
+              "requiredField": false
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">Artists provide all instruments, including amps and 1/4-inch cables. If you have coordinated to share backline with another artist on the event, note it above.</p>"
+            },
+            {
+              "fieldLabel": "Are you bringing your own sound engineer?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "No — use house engineers" },
+                  { "option": "Yes — bringing our own (we'll coordinate)" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">We provide audio engineers to mix FOH and monitors. If you plan to bring your own, please coordinate in advance. All engineers must mix within the 95 dB ordinance; the FSQ engineer reserves the right to baffle amps to reduce stage volume if necessary.</p>"
+            },
+            {
+              "fieldLabel": "Do you have a backdrop or any scenic elements we should be aware of?",
+              "fieldType": "textarea",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Lighting requests",
+              "fieldType": "textarea",
+              "requiredField": false
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">We provide a house LD. Let us know any specific requests and we will do our best to accommodate.</p>"
+            },
+            {
+              "fieldLabel": "Are you selling merch?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "Yes" },
+                  { "option": "No" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">If yes, you are responsible for providing a seller, point of sale, and bank. We provide a tent next to the stage with a table and chairs.</p>"
+            },
+            {
+              "fieldLabel": "Do you want a private band tent? (10x10 w/ sidewalls)",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "Yes, please provide the tent" },
+                  { "option": "No, not needed" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">We do not have indoor dressing rooms. On request we can provide a 10x10 tent with sidewalls for private band space.</p>"
+            },
+            {
+              "fieldLabel": "Total number of performers",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">Drink tickets and water are provided for all performers.</p>"
+            },
+            {
+              "fieldLabel": "Do you need large vehicle parking?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "Yes" },
+                  { "option": "No" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">Includes any vehicle over 6 ft 8 in (the garage clearance), large vans, any vehicle with a trailer, and tour buses.</p>"
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">The load-in process at Fountain Square has changed — please review the document your contact sent. Each vehicle needs its own parking QR validation before arriving; scan at the kiosk on entry or exit (please do not pay).</p>"
+            },
+            {
+              "fieldLabel": "Load-in document — I have reviewed it",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "Yes, I have reviewed the load-in document" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "html": "<p style=\"margin:0;font-size:13px;line-height:1.4;color:#555\">We are required by the city to maintain a strict 95 dB limit, measured at the FOH position. All engineers (house or talent) are held to that level.</p>"
+            },
+            {
+              "fieldLabel": "95 dB sound limit — I acknowledge",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "I understand and acknowledge the 95 dB limit at FOH" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldType": "html",
+              "html": "<div style=\"font-size:13px;line-height:1.5;color:#555\"><p style=\"margin:0 0 6px\">Failure to comply with the below may result in a warning or termination of the show, with payment canceled or delayed. Please read and acknowledge:</p><ul style=\"margin:0;padding-left:18px\"><li><b>Content:</b> Family-friendly only — no foul language or gestures. Applies to prerecorded tracks, live vocals, and sound check.</li><li><b>Sound limit:</b> Strict 95 dB at FOH for all engineers, house or talent.</li><li><b>Performer safety:</b> Stay on the stage. No crowd surfing, climbing, jumping off stage, or stepping on sound equipment.</li><li><b>Audience safety:</b> Do not throw or shoot anything into the crowd (confetti, t-shirts, bottles, merch/CDs, etc.).</li><li><b>Weather:</b> Rain or shine. Booking evaluates weather about 3 hours before start. If you do not hear otherwise, assume the show goes on.</li><li><b>Payment:</b> All groups are paid after the performance, not before.</li></ul></div>"
+            },
+            {
+              "fieldLabel": "Performance Requirements — I have read and acknowledge all of the above",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "I have read and acknowledge all performance requirements" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Additional questions or concerns?",
+              "fieldType": "textarea",
+              "requiredField": false
+            }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "path": "band-advance",
+          "formSubmittedText": "Thanks — we've got your show details. Your booking contact will follow up if anything's missing."
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [0, 0],
+      "id": "form-trigger-band-advance",
+      "name": "Band Advance Form",
+      "webhookId": "band-advance"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [260, 0],
+      "id": "noop-captured",
+      "name": "Captured (routing TBD)"
+    }
+  ],
+  "connections": {
+    "Band Advance Form": {
+      "main": [
+        [
+          {
+            "node": "Captured (routing TBD)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
