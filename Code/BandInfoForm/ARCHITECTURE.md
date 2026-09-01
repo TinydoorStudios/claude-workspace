@@ -35,7 +35,9 @@ The database is the spine both halves touch.
 | Form config | `app/forms_config.py` | venue/series form variants (one engine, many variants) |
 | Database | `advance-db` docker container, `127.0.0.1:5433` | dedicated Postgres 16 (isolated from n8n's PG) |
 | Email drafts | `tools/draft_emails.py` | batch list → NEW/RETURNING → draft `.md` files. **Never sends.** |
-| Doc fill | `tools/docfill.py` | submission → filled `.docx` (docxtpl) |
+| Events | `tools/event.py` + `events`/`event_acts` tables | group up to 3 band submissions into opener/support/headliner slots |
+| Day-sheet fill | `tools/daysheet.py` | event → filled 513 Airwaves day-sheet `.docx` (writes band cells per act column) |
+| Doc fill (generic) | `tools/docfill.py` | single submission → filled `.docx` (docxtpl) — stand-in template |
 | Backfill | `tools/backfill.py` | replay disk JSON into the DB (safety net) |
 
 ## Database schema
@@ -69,6 +71,33 @@ break because of the database.
 returns it if its show date is within the window — **deliberately cross-venue**. Played
 Washington Park in June, booked for Fountain Square in September → returning, and the
 draft prefills from the June submission.
+
+## Events and the day-sheet
+
+The advance form is per-band; the 513 Airwaves day-sheet is per-event with three act
+columns (Opener / Direct Support / Headliner) — and most bills are 1–2 acts. An
+**event** groups band submissions into slots; `daysheet.py` then writes each act's
+**band-provided** cells (Stage Plot, Engineer, Monitors/IEM, Scenic, Merch, Parking,
+Drink Tix, Dressing-room tent, Backline, Contact) into that act's column of your real
+template. The schedule and internal cells (PA, consoles, lead, "are we paying them?")
+are left exactly as the template has them — those aren't band data, and you finish them.
+
+```
+python3 event.py create --name "513 Airwaves w/ Inhailer" --venue "Fountain Square" --date 2026-09-20
+python3 event.py add-act --event 1 --slot headliner --artist "Buffalo Wabs and the Price Hill Hustle"
+python3 event.py add-act --event 1 --slot opener    --artist "The Cincy Suns"
+python3 daysheet.py --event 1        # -> tools/filled/<event>__daysheet.docx
+```
+
+Field→cell mapping lives in `daysheet.py::act_cells` — edit there to change what fills.
+
+## Sending (the front half)
+
+Decided: **Gmail now, Outlook in production.** `draft_emails.py` only writes drafts and
+never sends. The send step is Nyquist-driven: hand over the batch, drafts are generated,
+then the drafts are created as Gmail drafts (via the Gmail connector) for you to review
+and send — approve-each, not auto. No throwaway Gmail-OAuth sender is built, since the
+plan is to swap to Outlook; the interim path is drafts-you-approve.
 
 ## Security
 
