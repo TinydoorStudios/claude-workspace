@@ -6,19 +6,15 @@ Columns: Event Name, Event Date, Venue, Series, Slot, Set Time, Artist Name,
 Contact Email, Notes.
 """
 import datetime as dt
+import sys
 from pathlib import Path
 
-FIELDS = {
-    "event name": "event_name",
-    "event date": "event_date",
-    "venue": "venue",
-    "series": "series",
-    "slot": "slot",
-    "set time": "set_time",
-    "artist name": "artist_name",
-    "contact email": "contact_email",
-    "notes": "notes",
-}
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import fieldspec as fs
+
+# column label (lowercased) -> internal key, for every column in the spec
+FIELDS = {lbl.lower(): key for (lbl, key, _ch) in fs.ALL_COLUMNS}
+FIELDS["notes"] = "notes"  # tolerate a legacy Notes column if present
 
 
 def _norm_date(v):

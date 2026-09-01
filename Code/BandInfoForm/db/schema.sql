@@ -96,10 +96,14 @@ CREATE TABLE IF NOT EXISTS events (
     event_date  DATE,
     series      TEXT,
     notes       TEXT,
+    -- event-level fields from the spreadsheet: event_type, paying_band, mc, dj,
+    -- lead_name, lead_phone (and future schedule)
+    details     JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_events_date ON events (event_date);
+ALTER TABLE events ADD COLUMN IF NOT EXISTS details JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 CREATE TABLE IF NOT EXISTS event_acts (
     id            SERIAL PRIMARY KEY,
@@ -110,11 +114,14 @@ CREATE TABLE IF NOT EXISTS event_acts (
     -- specific submission to fill from; NULL = use the artist's newest
     submission_id INTEGER REFERENCES submissions(id) ON DELETE SET NULL,
     set_time      TEXT,                            -- e.g. "9:00p-10:00p" (from the advance sheet)
+    -- band-detail overrides typed into the spreadsheet; win over the form submission
+    sheet_fields  JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uq_event_acts_slot ON event_acts (event_id, slot);
--- for DBs created before set_time existed:
+-- for DBs created before these columns existed:
 ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS set_time TEXT;
+ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS sheet_fields JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 -- keep updated_at honest
 CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $$

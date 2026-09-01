@@ -19,6 +19,7 @@ for _cand in (HERE.parent, HERE.parent / "app"):
         break
 import advance_db as db
 from sheet import read_advance_sheet
+import fieldspec as fs
 
 SLOTS = ("opener", "direct_support", "headliner")
 
@@ -66,9 +67,16 @@ def main():
     with db.get_conn() as conn:
         for (ename, edate, evenue), acts in groups.items():
             series = next((a.get("series") for a in acts if a.get("series")), None)
+            # event-level details: first non-empty value across the group's rows
+            details = {}
+            for k in fs.EVENT_DETAIL_KEYS:
+                v = next((a.get(k) for a in acts if a.get(k) not in (None, "")), None)
+                if v is not None:
+                    details[k] = v
             with conn.cursor() as cur:
                 eid = get_or_create_event(cur, ename or None, evenue or None,
                                           to_date(edate), series)
+                db.update_event_details(cur, eid, details)
                 events_made += 1
                 for a in acts:
                     slot = (a.get("slot") or "").strip().lower() or "headliner"
@@ -77,7 +85,11 @@ def main():
                         continue
                     artist_id = db.upsert_artist(cur, a["artist_name"],
                                                  email=a.get("contact_email"))
-                    db.add_act(cur, eid, slot, artist_id, set_time=a.get("set_time"))
+                    # band-detail overrides typed into the sheet (non-empty only)
+                    sheet_fields = {k: a[k] for k in fs.BAND_KEYS
+                                    if a.get(k) not in (None, "")}
+                    db.add_act(cur, eid, slot, artist_id, set_time=a.get("set_time"),
+                               sheet_fields=sheet_fields)
                     acts_made += 1
             conn.commit()
             print(f"  event: {ename or '(unnamed)'} @ {evenue or '?'} {edate or '?'} "

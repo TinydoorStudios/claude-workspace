@@ -269,30 +269,47 @@ def get_submission(cur, submission_id):
 SLOT_ORDER = {"opener": 1, "direct_support": 2, "headliner": 3}
 
 
-def create_event(cur, name, venue, event_date, series=None, notes=None):
+def create_event(cur, name, venue, event_date, series=None, notes=None, details=None):
+    import json
     cur.execute(
-        """INSERT INTO events (name, venue, event_date, series, notes)
-           VALUES (%s,%s,%s,%s,%s) RETURNING id""",
-        (name, venue, event_date, series, notes),
+        """INSERT INTO events (name, venue, event_date, series, notes, details)
+           VALUES (%s,%s,%s,%s,%s,%s) RETURNING id""",
+        (name, venue, event_date, series, notes, json.dumps(details or {})),
     )
     return cur.fetchone()["id"]
 
 
+def update_event_details(cur, event_id, details):
+    """Merge new detail keys into the event's details JSONB (non-empty win)."""
+    import json
+    cur.execute("SELECT details FROM events WHERE id=%s", (event_id,))
+    row = cur.fetchone()
+    cur_details = dict(row["details"] or {}) if row else {}
+    for k, v in (details or {}).items():
+        if v not in (None, ""):
+            cur_details[k] = v
+    cur.execute("UPDATE events SET details=%s WHERE id=%s",
+                (json.dumps(cur_details), event_id))
+
+
 def add_act(cur, event_id, slot, artist_id, submission_id=None, slot_order=None,
-            set_time=None):
+            set_time=None, sheet_fields=None):
+    import json
     if slot_order is None:
         slot_order = SLOT_ORDER.get(slot, 99)
     cur.execute(
         """INSERT INTO event_acts (event_id, slot, slot_order, artist_id,
-                                   submission_id, set_time)
-           VALUES (%s,%s,%s,%s,%s,%s)
+                                   submission_id, set_time, sheet_fields)
+           VALUES (%s,%s,%s,%s,%s,%s,%s)
            ON CONFLICT (event_id, slot) DO UPDATE SET
              artist_id=EXCLUDED.artist_id,
              submission_id=EXCLUDED.submission_id,
              slot_order=EXCLUDED.slot_order,
-             set_time=COALESCE(EXCLUDED.set_time, event_acts.set_time)
+             set_time=COALESCE(EXCLUDED.set_time, event_acts.set_time),
+             sheet_fields=event_acts.sheet_fields || EXCLUDED.sheet_fields
            RETURNING id""",
-        (event_id, slot, slot_order, artist_id, submission_id, set_time),
+        (event_id, slot, slot_order, artist_id, submission_id, set_time,
+         json.dumps(sheet_fields or {})),
     )
     return cur.fetchone()["id"]
 
