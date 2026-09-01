@@ -7,7 +7,8 @@ db/.env
 app/data/
 tools/drafts/
 tools/filled/
-tools/doc_templates/*.docx
+tools/doc_templates/advance_sheet*.docx   # generated stand-in; real templates ARE tracked
+tools/doc_templates/._*
 deploy_log.txt
 
 # python

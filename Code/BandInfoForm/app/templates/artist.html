@@ -64,6 +64,7 @@
         <div class="k">Merch</div><div>{{ 'Yes' if sub.merch else ('No' if sub.merch is false else '—') }}</div>
         <div class="k">Band tent</div><div>{{ sub.band_tent or '—' }}</div>
         <div class="k">Large vehicle</div><div>{{ 'Yes' if sub.large_vehicle else ('No' if sub.large_vehicle is false else '—') }}</div>
+        {% if sub.data.get('changed_notes') %}<div class="k" style="color:#b45309">Changed since last</div><div style="color:#b45309">{{ sub.data.get('changed_notes') }}</div>{% endif %}
         {% if sub.data.get('backline') %}<div class="k">Backline</div><div>{{ sub.data.get('backline') }}</div>{% endif %}
         {% if sub.data.get('stage_plot_desc') %}<div class="k">Stage plot notes</div><div>{{ sub.data.get('stage_plot_desc') }}</div>{% endif %}
         {% if sub.data.get('lighting') %}<div class="k">Lighting</div><div>{{ sub.data.get('lighting') }}</div>{% endif %}

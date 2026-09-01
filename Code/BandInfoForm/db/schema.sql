@@ -86,6 +86,33 @@ CREATE TABLE IF NOT EXISTS files (
 CREATE INDEX IF NOT EXISTS idx_files_submission ON files (submission_id);
 CREATE INDEX IF NOT EXISTS idx_files_artist     ON files (artist_id);
 
+-- events: a bill/day-sheet grouping up to 3 acts (opener / direct support / headliner).
+-- The advance form is per-band; the day-sheet DOC is per-event. An event ties
+-- band submissions to act slots so doc-fill can populate the three columns.
+CREATE TABLE IF NOT EXISTS events (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT,                              -- e.g. "513 Airwaves w/ Inhailer Radio"
+    venue       TEXT,
+    event_date  DATE,
+    series      TEXT,
+    notes       TEXT,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_events_date ON events (event_date);
+
+CREATE TABLE IF NOT EXISTS event_acts (
+    id            SERIAL PRIMARY KEY,
+    event_id      INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    slot          TEXT NOT NULL,                   -- opener | direct_support | headliner
+    slot_order    INTEGER NOT NULL,                -- 1,2,3 -> column order in the day-sheet
+    artist_id     INTEGER REFERENCES artists(id) ON DELETE SET NULL,
+    -- specific submission to fill from; NULL = use the artist's newest
+    submission_id INTEGER REFERENCES submissions(id) ON DELETE SET NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_event_acts_slot ON event_acts (event_id, slot);
+
 -- keep updated_at honest
 CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END;

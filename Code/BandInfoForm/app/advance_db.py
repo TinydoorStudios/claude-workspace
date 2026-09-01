@@ -262,3 +262,65 @@ def submission_files(cur, submission_id):
 def get_submission(cur, submission_id):
     cur.execute("SELECT * FROM submissions WHERE id=%s", (submission_id,))
     return cur.fetchone()
+
+
+# ── events (day-sheet bills) ────────────────────────────────────────────────
+
+SLOT_ORDER = {"opener": 1, "direct_support": 2, "headliner": 3}
+
+
+def create_event(cur, name, venue, event_date, series=None, notes=None):
+    cur.execute(
+        """INSERT INTO events (name, venue, event_date, series, notes)
+           VALUES (%s,%s,%s,%s,%s) RETURNING id""",
+        (name, venue, event_date, series, notes),
+    )
+    return cur.fetchone()["id"]
+
+
+def add_act(cur, event_id, slot, artist_id, submission_id=None, slot_order=None):
+    if slot_order is None:
+        slot_order = SLOT_ORDER.get(slot, 99)
+    cur.execute(
+        """INSERT INTO event_acts (event_id, slot, slot_order, artist_id, submission_id)
+           VALUES (%s,%s,%s,%s,%s)
+           ON CONFLICT (event_id, slot) DO UPDATE SET
+             artist_id=EXCLUDED.artist_id,
+             submission_id=EXCLUDED.submission_id,
+             slot_order=EXCLUDED.slot_order
+           RETURNING id""",
+        (event_id, slot, slot_order, artist_id, submission_id),
+    )
+    return cur.fetchone()["id"]
+
+
+def get_event(cur, event_id):
+    cur.execute("SELECT * FROM events WHERE id=%s", (event_id,))
+    return cur.fetchone()
+
+
+def list_events(cur):
+    cur.execute(
+        """SELECT e.*, COUNT(a.id) AS acts
+           FROM events e LEFT JOIN event_acts a ON a.event_id=e.id
+           GROUP BY e.id ORDER BY e.event_date DESC NULLS LAST, e.id DESC"""
+    )
+    return cur.fetchall()
+
+
+def event_acts(cur, event_id):
+    """Acts in column order, each with its artist + the submission to fill from
+    (the linked submission, or the artist's newest)."""
+    cur.execute(
+        "SELECT * FROM event_acts WHERE event_id=%s ORDER BY slot_order", (event_id,)
+    )
+    acts = cur.fetchall()
+    for a in acts:
+        a["artist"] = get_artist(cur, a["artist_id"]) if a.get("artist_id") else None
+        if a.get("submission_id"):
+            a["submission"] = get_submission(cur, a["submission_id"])
+        elif a.get("artist_id"):
+            a["submission"] = newest_submission(cur, a["artist_id"])
+        else:
+            a["submission"] = None
+    return acts

@@ -86,6 +86,7 @@ def form():
     return render_template(
         "form.html", venues=forms_config.VENUES, cfg=cfg,
         prefill={}, returning=False, artist_name=None,
+        tech_packs=forms_config.tech_packs(),
     )
 
 
@@ -116,6 +117,7 @@ def prefilled_form(token):
     return render_template(
         "form.html", venues=forms_config.VENUES, cfg=cfg,
         prefill=prefill, returning=returning, artist_name=artist_name,
+        tech_packs=forms_config.tech_packs(),
     )
 
 

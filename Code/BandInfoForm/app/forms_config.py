@@ -12,6 +12,25 @@ VENUES = [
     "Court Street Plaza", "Zeigler Park", "Imagination Alley",
 ]
 
+# Per-venue "tech pack" — a link (PDF or page) showing what 3CDC provides at that
+# venue: PA, consoles, monitors, mic inventory, backline, stage size. Best practice
+# is to show bands this up front to cut back-and-forth. Fill in a URL per venue and
+# the form surfaces a "what we provide" link for the selected venue; leave blank and
+# nothing shows. Brian to supply the actual links/PDFs.
+TECH_PACKS = {
+    "Fountain Square": "",
+    "Washington Park": "",
+    "Elm Street Plaza": "",
+    "Court Street Plaza": "",
+    "Zeigler Park": "",
+    "Imagination Alley": "",
+}
+
+
+def tech_packs():
+    """Only the venues that actually have a link configured."""
+    return {v: u for v, u in TECH_PACKS.items() if u}
+
 # Show series -> overrides. `blocks` toggles optional sections; `intro` overrides
 # the header subtitle; `label` is the human name. Extend freely.
 SERIES = {
