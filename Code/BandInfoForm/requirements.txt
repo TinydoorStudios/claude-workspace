@@ -1,0 +1,9 @@
+# App (deployed to /opt/band-advance/venv)
+flask>=3.0
+gunicorn>=21
+psycopg[binary]>=3.1
+# itsdangerous + jinja2 come with Flask
+
+# Offline tools (draft_emails.py, docfill.py)
+python-docx>=1.1
+docxtpl>=0.18

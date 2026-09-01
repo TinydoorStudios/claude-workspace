@@ -1,0 +1,264 @@
+#!/usr/bin/env python3
+"""Shared DB layer for the Band Advance system.
+
+Everything that touches Postgres goes through here: the Flask form (best-effort
+writes on submit), the email-drafting tool, the doc-fill tool, and the search view.
+Uses psycopg 3. Connection string comes from ADVANCE_DB_URL, e.g.
+    postgresql://advance:<pw>@127.0.0.1:5433/advance
+"""
+import os
+import re
+import datetime as dt
+
+import psycopg
+from psycopg.rows import dict_row
+
+DB_URL = os.environ.get(
+    "ADVANCE_DB_URL", "postgresql://advance:advance@127.0.0.1:5433/advance"
+)
+
+# ── helpers ────────────────────────────────────────────────────────────────
+
+def normalize(name: str) -> str:
+    """Same rule as the generated match_key column: lower + collapse whitespace."""
+    return re.sub(r"\s+", " ", (name or "").strip()).lower()
+
+
+def to_bool(v):
+    """Map the form's Yes/No selects to a real boolean; leave anything else None."""
+    if v is None:
+        return None
+    s = str(v).strip().lower()
+    if s in ("yes", "y", "true", "1"):
+        return True
+    if s in ("no", "n", "false", "0"):
+        return False
+    return None
+
+
+def to_int(v):
+    try:
+        return int(str(v).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def to_date(v):
+    if not v:
+        return None
+    try:
+        return dt.date.fromisoformat(str(v).strip()[:10])
+    except ValueError:
+        return None
+
+
+def get_conn():
+    # timestamps stored as TIMESTAMPTZ (UTC); display them in Cincinnati time
+    return psycopg.connect(
+        DB_URL, row_factory=dict_row,
+        options="-c timezone=America/New_York",
+    )
+
+
+# ── upserts ────────────────────────────────────────────────────────────────
+
+def upsert_artist(cur, name, email=None, phone=None):
+    """Insert the band by exact name; on a match_key collision keep the existing
+    display name and only fill in newer contact info. Returns artist id."""
+    cur.execute(
+        """
+        INSERT INTO artists (name, last_email, last_phone)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (match_key) DO UPDATE SET
+            last_email = COALESCE(EXCLUDED.last_email, artists.last_email),
+            last_phone = COALESCE(EXCLUDED.last_phone, artists.last_phone)
+        RETURNING id
+        """,
+        (name, email, phone),
+    )
+    return cur.fetchone()["id"]
+
+
+def upsert_show(cur, artist_id, venue, show_date, series=None, status=None):
+    """One booking per artist/venue/date. Returns show id."""
+    cur.execute(
+        """
+        INSERT INTO shows (artist_id, venue, show_date, show_series, status)
+        VALUES (%s, %s, %s, %s, COALESCE(%s, 'not_advanced'))
+        ON CONFLICT (artist_id, venue, show_date) DO UPDATE SET
+            show_series = COALESCE(EXCLUDED.show_series, shows.show_series),
+            status = COALESCE(%s, shows.status)
+        RETURNING id
+        """,
+        (artist_id, venue, show_date, series, status, status),
+    )
+    return cur.fetchone()["id"]
+
+
+def mark_show_status(cur, show_id, status, email_sent=False):
+    if email_sent:
+        cur.execute(
+            "UPDATE shows SET status=%s, email_sent_at=now() WHERE id=%s",
+            (status, show_id),
+        )
+    else:
+        cur.execute("UPDATE shows SET status=%s WHERE id=%s", (status, show_id))
+
+
+def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
+    """data = the full raw form dict. Promotes the queryable fields into columns
+    and keeps the entire payload in JSONB."""
+    import json
+    cur.execute(
+        """
+        INSERT INTO submissions (
+            artist_id, show_id, contact_name, contact_email, contact_phone,
+            venue, show_date, performers, monitors, own_iems, split_snake,
+            stage_type, own_engineer, merch, band_tent, large_vehicle, data, source
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        RETURNING id
+        """,
+        (
+            artist_id, show_id,
+            data.get("contact_name"), data.get("contact_email"), data.get("contact_phone"),
+            data.get("venue"), to_date(data.get("show_date")),
+            to_int(data.get("performers")), to_int(data.get("monitors")),
+            to_bool(data.get("own_iems")), data.get("split_snake"),
+            data.get("stage_type"), data.get("own_engineer"),
+            to_bool(data.get("merch")), data.get("band_tent"),
+            to_bool(data.get("large_vehicle")),
+            json.dumps(data), source,
+        ),
+    )
+    return cur.fetchone()["id"]
+
+
+def insert_file(cur, submission_id, artist_id, filename, stored_name,
+                kind="stage_plot", mime=None, size=None, nas_path=None):
+    cur.execute(
+        """
+        INSERT INTO files (submission_id, artist_id, kind, filename, stored_name,
+                           mime, size, nas_path)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
+        """,
+        (submission_id, artist_id, kind, filename, stored_name, mime, size, nas_path),
+    )
+    return cur.fetchone()["id"]
+
+
+def record_submission(form: dict, file_info=None, source="form"):
+    """High-level: one transaction that upserts the artist + show, inserts the
+    submission (status -> responded), and links any uploaded file. Returns
+    (artist_id, show_id, submission_id). Raises on failure — caller decides
+    whether that's fatal (the form treats it as non-fatal)."""
+    name = form.get("band_name") or "(unknown)"
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            artist_id = upsert_artist(
+                cur, name, email=form.get("contact_email"),
+                phone=form.get("contact_phone"),
+            )
+            show_id = upsert_show(
+                cur, artist_id, form.get("venue"), to_date(form.get("show_date")),
+                series=form.get("show_series"), status="responded",
+            )
+            sub_id = insert_submission(cur, artist_id, show_id, form, source=source)
+            if file_info:
+                insert_file(
+                    cur, sub_id, artist_id,
+                    filename=file_info.get("filename"),
+                    stored_name=file_info.get("stored_name"),
+                    mime=file_info.get("mime"), size=file_info.get("size"),
+                )
+        conn.commit()
+    return artist_id, show_id, sub_id
+
+
+# ── queries: prefill, returning-artist logic, search ────────────────────────
+
+def find_artist_by_name(cur, name):
+    cur.execute("SELECT * FROM artists WHERE match_key = %s", (normalize(name),))
+    return cur.fetchone()
+
+
+def get_artist(cur, artist_id):
+    cur.execute("SELECT * FROM artists WHERE id = %s", (artist_id,))
+    return cur.fetchone()
+
+
+def newest_submission(cur, artist_id):
+    cur.execute(
+        "SELECT * FROM submissions WHERE artist_id=%s ORDER BY submitted_at DESC LIMIT 1",
+        (artist_id,),
+    )
+    return cur.fetchone()
+
+
+def played_within(cur, artist_id, ref_date, months=6):
+    """Returns the newest prior submission if this band has a submission whose
+    show_date is within `months` before ref_date, else None. This is the
+    returning-artist test — deliberately cross-venue."""
+    sub = newest_submission(cur, artist_id)
+    if not sub:
+        return None
+    last = sub.get("show_date") or (sub.get("submitted_at").date()
+                                    if sub.get("submitted_at") else None)
+    if not last:
+        return None
+    if isinstance(ref_date, str):
+        ref_date = to_date(ref_date)
+    if not ref_date:
+        ref_date = dt.date.today()
+    delta_days = (ref_date - last).days
+    if 0 <= delta_days <= months * 31:
+        return sub
+    # also treat a very recent past submission (any venue) as returning
+    if -31 <= delta_days < 0:
+        return sub
+    return None
+
+
+def search_artists(cur, q):
+    cur.execute(
+        """
+        SELECT a.id, a.name, a.last_email, a.last_phone,
+               COUNT(DISTINCT s.id)  AS show_count,
+               COUNT(DISTINCT sub.id) AS submission_count,
+               MAX(sub.submitted_at) AS last_submission
+        FROM artists a
+        LEFT JOIN shows s ON s.artist_id = a.id
+        LEFT JOIN submissions sub ON sub.artist_id = a.id
+        WHERE a.match_key LIKE %s
+        GROUP BY a.id
+        ORDER BY a.name
+        LIMIT 100
+        """,
+        (f"%{normalize(q)}%",),
+    )
+    return cur.fetchall()
+
+
+def artist_shows(cur, artist_id):
+    cur.execute(
+        "SELECT * FROM shows WHERE artist_id=%s ORDER BY show_date DESC NULLS LAST",
+        (artist_id,),
+    )
+    return cur.fetchall()
+
+
+def artist_submissions(cur, artist_id):
+    cur.execute(
+        "SELECT * FROM submissions WHERE artist_id=%s ORDER BY submitted_at DESC",
+        (artist_id,),
+    )
+    return cur.fetchall()
+
+
+def submission_files(cur, submission_id):
+    cur.execute("SELECT * FROM files WHERE submission_id=%s", (submission_id,))
+    return cur.fetchall()
+
+
+def get_submission(cur, submission_id):
+    cur.execute("SELECT * FROM submissions WHERE id=%s", (submission_id,))
+    return cur.fetchone()

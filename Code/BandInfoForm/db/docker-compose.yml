@@ -1,0 +1,26 @@
+# Dedicated Postgres for the Band Advance system.
+# Deliberately SEPARATE from n8n's Postgres (n8n-postgres-1) so this never touches
+# the n8n stack. Reuses the postgres:16-alpine image already present on the VM
+# (no registry pull needed). Published to loopback only — reachable by the Flask
+# app on the host at 127.0.0.1:5433, never exposed to the network.
+services:
+  advance-db:
+    image: postgres:16-alpine
+    container_name: advance-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: advance
+      POSTGRES_USER: advance
+      POSTGRES_PASSWORD: ${ADVANCE_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - advance_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U advance -d advance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  advance_pgdata:

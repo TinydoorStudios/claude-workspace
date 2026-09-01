@@ -1,0 +1,17 @@
+# secrets — never commit
+**/.env
+app/advance.env
+db/.env
+
+# runtime data / generated artifacts
+app/data/
+tools/drafts/
+tools/filled/
+tools/doc_templates/*.docx
+deploy_log.txt
+
+# python
+__pycache__/
+*.pyc
+venv/
+.venv/

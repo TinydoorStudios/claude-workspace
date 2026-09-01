@@ -1,0 +1,19 @@
+Subject: Advancing your next 3CDC show — {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}
+
+Hi{% if name %} {{ name }}{% endif %},
+
+Good to have you back. We have you booked at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}, and since you've played with us recently, we don't need you to start from scratch.
+
+Here's what we have on file from last time:
+
+{% for k, val in last %}  - {{ k }}: {{ val }}
+{% endfor %}
+
+If nothing has changed, you can confirm in a minute. If something's different — lineup, gear, monitors, stage plot — update it here:
+
+{{ form_link }}
+
+That link opens your last submission pre-filled. Just adjust what changed, set the new show date and venue, re-check the acknowledgments at the bottom, and submit.
+
+Thanks,
+3CDC Events / Production

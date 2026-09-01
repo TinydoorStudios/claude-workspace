@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advance — Sign in</title>
+<style>
+  body{margin:0;background:#eef1f5;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    display:flex;min-height:100vh;align-items:center;justify-content:center;}
+  .card{background:#fff;border:1px solid #d9dee5;border-radius:12px;padding:28px 26px;width:320px;
+    box-shadow:0 1px 3px rgba(16,24,40,.08);}
+  h1{font-size:17px;margin:0 0 4px;color:#1A3A5C;}
+  p{font-size:13px;color:#6b7280;margin:0 0 18px;}
+  input{width:100%;padding:10px 12px;border:1px solid #d9dee5;border-radius:8px;font:inherit;box-sizing:border-box;}
+  button{width:100%;margin-top:14px;background:#1A3A5C;color:#fff;border:0;border-radius:8px;padding:11px;font-weight:600;cursor:pointer;}
+  .err{color:#b02a37;font-size:13px;margin-top:10px;}
+</style>
+</head>
+<body>
+<form class="card" method="post">
+  <h1>Advance — Staff Access</h1>
+  <p>Enter the passcode to search advance submissions.</p>
+  <input type="password" name="passcode" placeholder="Passcode" autofocus>
+  <button type="submit">Sign in</button>
+  {% if error %}<div class="err">{{ error }}</div>{% endif %}
+</form>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ artist.name }} — Advance</title>
+<style>
+  body{margin:0;background:#eef1f5;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;}
+  header{background:#1A3A5C;color:#fff;padding:20px 0;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px 60px;}
+  header .wrap{padding-bottom:0;}
+  header h1{margin:0;font-size:20px;}
+  header p{margin:6px 0 0;font-size:13px;color:#c7d6e6;}
+  a.back{color:#c7d6e6;font-size:13px;text-decoration:none;}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#1A3A5C;margin:28px 0 10px;border-bottom:2px solid #1A3A5C;padding-bottom:6px;}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #d9dee5;border-radius:10px;overflow:hidden;}
+  th,td{text-align:left;padding:10px 13px;border-bottom:1px solid #eef1f5;font-size:14px;vertical-align:top;}
+  th{background:#f3f6fa;color:#1A3A5C;font-size:12px;text-transform:uppercase;letter-spacing:.05em;}
+  tr:last-child td{border-bottom:0;}
+  .card{background:#fff;border:1px solid #d9dee5;border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+  .card h3{margin:0 0 10px;font-size:15px;color:#1A3A5C;}
+  .kv{display:grid;grid-template-columns:180px 1fr;gap:4px 14px;font-size:14px;}
+  .kv .k{color:#6b7280;}
+  .badge{display:inline-block;background:#eaf3ea;border:1px solid #bcd8bc;color:#2f5133;border-radius:999px;padding:1px 9px;font-size:12px;}
+  a{color:#2E6DA4;}
+  .muted{color:#6b7280;}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="back" href="{{ url_for('search') }}">← Search</a>
+  <h1>{{ artist.name }}</h1>
+  <p>{{ artist.last_email or 'no email on file' }} · {{ artist.last_phone or 'no phone on file' }}</p>
+</div></header>
+
+<div class="wrap">
+  <h2>Bookings</h2>
+  {% if shows %}
+  <table>
+    <tr><th>Date</th><th>Venue</th><th>Series</th><th>Status</th></tr>
+    {% for s in shows %}
+    <tr>
+      <td>{{ s.show_date.strftime('%Y-%m-%d') if s.show_date else '—' }}</td>
+      <td>{{ s.venue or '—' }}</td>
+      <td class="muted">{{ s.show_series or '—' }}</td>
+      <td><span class="badge">{{ s.status }}</span></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">No bookings recorded.</p>{% endif %}
+
+  <h2>Submissions</h2>
+  {% if subs %}
+    {% for sub in subs %}
+    <div class="card">
+      <h3>{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }} · {{ sub.venue or '—' }}{% if sub.show_date %} · show {{ sub.show_date }}{% endif %}</h3>
+      <div class="kv">
+        <div class="k">Contact phone</div><div>{{ sub.contact_phone or '—' }}</div>
+        <div class="k">Performers + crew</div><div>{{ sub.performers if sub.performers is not none else '—' }}</div>
+        <div class="k">Monitors</div><div>{{ sub.monitors if sub.monitors is not none else '—' }}</div>
+        <div class="k">Own IEMs</div><div>{{ 'Yes' if sub.own_iems else ('No' if sub.own_iems is false else '—') }}{% if sub.split_snake %} · split: {{ sub.split_snake }}{% endif %}</div>
+        <div class="k">Stage</div><div>{{ sub.stage_type or '—' }}</div>
+        <div class="k">Own engineer</div><div>{{ sub.own_engineer or '—' }}</div>
+        <div class="k">Merch</div><div>{{ 'Yes' if sub.merch else ('No' if sub.merch is false else '—') }}</div>
+        <div class="k">Band tent</div><div>{{ sub.band_tent or '—' }}</div>
+        <div class="k">Large vehicle</div><div>{{ 'Yes' if sub.large_vehicle else ('No' if sub.large_vehicle is false else '—') }}</div>
+        {% if sub.data.get('backline') %}<div class="k">Backline</div><div>{{ sub.data.get('backline') }}</div>{% endif %}
+        {% if sub.data.get('stage_plot_desc') %}<div class="k">Stage plot notes</div><div>{{ sub.data.get('stage_plot_desc') }}</div>{% endif %}
+        {% if sub.data.get('lighting') %}<div class="k">Lighting</div><div>{{ sub.data.get('lighting') }}</div>{% endif %}
+        {% if sub.data.get('scenic') %}<div class="k">Scenic</div><div>{{ sub.data.get('scenic') }}</div>{% endif %}
+        {% if sub.data.get('additional') %}<div class="k">Additional</div><div>{{ sub.data.get('additional') }}</div>{% endif %}
+        {% set fs = files_by_sub.get(sub.id) %}
+        {% if fs %}<div class="k">Files</div><div>{% for f in fs %}<a href="{{ url_for('download_file', file_id=f.id) }}">{{ f.filename or f.stored_name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}<p class="muted">No submissions yet.</p>{% endif %}
+</div>
+</body>
+</html>
