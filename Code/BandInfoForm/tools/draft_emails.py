@@ -150,18 +150,14 @@ def main():
             ctx = dict(name=name, venue=venue, email=email,
                        show_date=show_date.isoformat() if show_date else "",
                        public_url=PUBLIC_URL)
+            # every band gets a pre-addressed link seeded from the sheet row
+            token = _token(artist_id, venue, show_date, series)
+            ctx["form_link"] = f"{PUBLIC_URL}/f/{token}"
             if prior:
                 kind = "RETURNING"
-                # token carries artist id + this booking context
-                token = _token(artist_id, venue, show_date)
-                ctx["form_link"] = f"{PUBLIC_URL}/f/{token}"
                 ctx["last"] = summarize_submission(prior)
                 body = ret_t.render(**ctx)
             else:
-                base = f"{PUBLIC_URL}/?venue={_q(venue)}"
-                if series:
-                    base += f"&series={_q(series)}"
-                ctx["form_link"] = base
                 body = new_t.render(**ctx)
 
             fname = f"{slug(name)}__{show_date.isoformat() if show_date else 'nodate'}__{kind.lower()}.md"
@@ -185,13 +181,14 @@ def main():
     print("Nothing was sent. Review the drafts, then send from Gmail once approved.")
 
 
-def _token(artist_id, venue, show_date):
+def _token(artist_id, venue, show_date, series=None):
     from itsdangerous import URLSafeSerializer
     secret = os.environ.get("ADVANCE_SECRET", "dev-insecure-secret-change-me")
     signer = URLSafeSerializer(secret, salt="advance-prefill")
     return signer.dumps({"a": artist_id,
                          "s": {"venue": venue,
-                               "date": show_date.isoformat() if show_date else None}})
+                               "date": show_date.isoformat() if show_date else None,
+                               "series": series or None}})
 
 
 def _q(s):

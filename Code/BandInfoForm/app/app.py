@@ -95,26 +95,36 @@ def form():
 
 @app.get("/f/<token>")
 def prefilled_form(token):
-    """Returning-artist link: prefill the form from the band's newest submission."""
-    payload = read_prefill_token(token)
-    cfg = forms_config.get_config(series_key=request.args.get("series"),
-                                  venue=request.args.get("venue"))
+    """Pre-addressed link from the advance list. The token seeds band name + venue
+    + date + series from the sheet row (so a first-time band opens the form already
+    addressed); a returning band also gets their prior answers pre-filled."""
+    payload = read_prefill_token(token) or {}
+    seed = payload.get("s") or {}
+    series = seed.get("series") or request.args.get("series")
+    cfg = forms_config.get_config(
+        series_key=series, venue=seed.get("venue") or request.args.get("venue"))
     prefill, returning, artist_name = {}, False, None
-    if payload and DB_OK:
+    if payload.get("a") and DB_OK:
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
-                artist = advance_db.get_artist(cur, payload.get("a"))
-                sub = advance_db.newest_submission(cur, payload.get("a")) if artist else None
+                artist = advance_db.get_artist(cur, payload["a"])
+                sub = advance_db.newest_submission(cur, payload["a"]) if artist else None
             if artist:
                 artist_name = artist["name"]
+                base = {}
                 if sub:
-                    prefill = dict(sub.get("data") or {})
-                    # band name is locked to the exact stored name; date is fresh
-                    prefill["band_name"] = artist["name"]
-                    prefill.pop("show_date", None)
+                    base = dict(sub.get("data") or {})  # prior answers
+                    base.pop("show_date", None)
                     returning = True
-                    if not cfg.get("venue_preselect"):
-                        cfg["venue_preselect"] = prefill.get("venue")
+                # identity from the sheet row wins over any prior submission
+                seed_fields = {"band_name": artist["name"]}
+                if seed.get("venue"):
+                    seed_fields["venue"] = seed["venue"]
+                if seed.get("date"):
+                    seed_fields["show_date"] = seed["date"]
+                prefill = {**base, **seed_fields}
+                if not cfg.get("venue_preselect"):
+                    cfg["venue_preselect"] = prefill.get("venue")
         except Exception as e:
             _log_db_error("prefill", e)
     return render_template(
