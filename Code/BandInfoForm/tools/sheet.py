@@ -35,13 +35,21 @@ def read_advance_sheet(path):
     from openpyxl import load_workbook
     wb = load_workbook(Path(path), data_only=True)
     ws = wb["Advance List"] if "Advance List" in wb.sheetnames else wb.active
-    header = {}
-    for i, cell in enumerate(ws[1], start=1):
-        key = FIELDS.get(str(cell.value or "").strip().lower())
-        if key:
-            header[i] = key
+    # Find the header row wherever it is (a group-label row may sit above it) and
+    # map columns by LABEL, not position — so columns can be reordered or removed.
+    header, header_row, best = {}, 1, 0
+    for ridx in range(1, 8):
+        m = {}
+        for cell in ws[ridx]:
+            key = FIELDS.get(str(cell.value or "").strip().lower())
+            if key:
+                m[cell.column] = key
+        if len(m) > best:
+            best, header_row, header = len(m), ridx, m
+    if not header:
+        return []
     rows = []
-    for row in ws.iter_rows(min_row=2):
+    for row in ws.iter_rows(min_row=header_row + 1):
         rec = {}
         for cell in row:
             key = header.get(cell.column)
