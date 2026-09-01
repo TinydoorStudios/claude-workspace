@@ -16,3 +16,6 @@ __pycache__/
 *.pyc
 venv/
 .venv/
+
+# generated deliverables (day-sheets + drafts; may hold real contacts)
+output/
