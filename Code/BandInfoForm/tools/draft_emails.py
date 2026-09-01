@@ -75,6 +75,11 @@ def load_batch(path):
                 "venue": r.get("venue") or "",
                 "series": r.get("series") or "",
                 "email": r.get("contact_email") or "",
+                "set_time": r.get("set_time") or "",
+                "slot": r.get("slot") or "",
+                "event_name": r.get("event_name") or "",
+                "lead_name": r.get("lead_name") or "",
+                "lead_phone": r.get("lead_phone") or "",
             })
         return out
     if p.suffix.lower() == ".json":
@@ -129,6 +134,18 @@ def main():
     new_t = env.get_template("new.md.j2")
     ret_t = env.get_template("returning.md.j2")
 
+    # the bill for each event (rows sharing event name + date + venue), in slot order
+    SLOT_ORD = {"opener": 1, "direct_support": 2, "headliner": 3}
+    bills = {}
+    for r in rows:
+        key = (r.get("event_name") or "", r.get("show_date") or "", r.get("venue") or "")
+        bills.setdefault(key, []).append({
+            "slot": r.get("slot") or "", "name": r.get("name") or "",
+            "set_time": r.get("set_time") or "",
+        })
+    for acts in bills.values():
+        acts.sort(key=lambda a: SLOT_ORD.get(a["slot"], 99))
+
     summary = []
     with db.get_conn() as conn:
         for r in rows:
@@ -137,6 +154,12 @@ def main():
             show_date = parse_date(r.get("show_date"))
             series = r.get("series") or None
             email = r.get("email") or None
+            bill = bills.get((r.get("event_name") or "",
+                              r.get("show_date") or "", r.get("venue") or ""), [])
+            deadline = ""
+            if show_date:
+                d = show_date - dt.timedelta(days=10)
+                deadline = d.isoformat() if d >= dt.date.today() else ""
 
             with conn.cursor() as cur:
                 artist_id = db.upsert_artist(cur, name, email=email)
@@ -147,9 +170,37 @@ def main():
 
             token = None
             kind = "NEW"
+            # build the detail + bill blocks as plain text (avoids Jinja whitespace pain)
+            slot = (r.get("slot") or "").replace("_", " ")
+            details = []
+            if r.get("set_time"):
+                details.append(f"  Your set: {r['set_time']}" + (f" ({slot})" if slot else ""))
+            details.append(f"  Venue: {venue}")
+            if show_date:
+                details.append(f"  Date: {show_date.isoformat()}")
+            if r.get("lead_name"):
+                lead = f"  Onsite lead: {r['lead_name']}"
+                if r.get("lead_phone"):
+                    lead += f" — {r['lead_phone']}"
+                details.append(lead)
+            details_block = "\n".join(details)
+
+            bill_block = ""
+            if len(bill) > 1:
+                lines = ["The bill:"]
+                for a in bill:
+                    s = a["slot"].replace("_", " ")
+                    line = f"  - {s}: {a['name']}"
+                    if a.get("set_time"):
+                        line += f" — {a['set_time']}"
+                    lines.append(line)
+                bill_block = "\n".join(lines)
+
             ctx = dict(name=name, venue=venue, email=email,
                        show_date=show_date.isoformat() if show_date else "",
-                       public_url=PUBLIC_URL)
+                       public_url=PUBLIC_URL, event_name=r.get("event_name") or "",
+                       details_block=details_block, bill_block=bill_block,
+                       deadline=deadline)
             # every band gets a pre-addressed link seeded from the sheet row
             token = _token(artist_id, venue, show_date, series)
             ctx["form_link"] = f"{PUBLIC_URL}/f/{token}"

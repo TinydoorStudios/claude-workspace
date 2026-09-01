@@ -1,16 +1,18 @@
-Subject: Advancing your 3CDC show — {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}
+Subject: Advancing your 3CDC show — {% if event_name %}{{ event_name }} · {% endif %}{{ venue }}{% if show_date %} · {{ show_date }}{% endif %}
 
 Hi{% if name %} {{ name }}{% endif %},
 
-We're getting ready for your show at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}, and we need a few details from you to run it well — stage plot, input list, monitor needs, hospitality, and a couple of site logistics.
+You're booked{% if event_name %} on {{ event_name }}{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Here's what we have for you:
 
-Please fill out our advance form here:
+{{ details_block }}
+
+{% if bill_block %}{{ bill_block }}
+
+{% endif %}We provide FOH and monitor engineers, the PA, and a house lighting designer. What we need from you is your show details — stage plot / input list, monitor needs, hospitality, and a couple of site logistics. We've pre-filled your show info on the form, so it's quick:
 
 {{ form_link }}
 
-It takes about five minutes. A current stage plot / input list is the most important part, so have that handy if you can.
-
-If anything about the show changes before then, just resubmit the form and we'll use the latest.
+{% if deadline %}Please complete it by {{ deadline }}.{% else %}Please complete it as soon as you can.{% endif %} If anything changes before the show, just resubmit and we'll use the latest.
 
 Thanks,
 3CDC Events / Production
