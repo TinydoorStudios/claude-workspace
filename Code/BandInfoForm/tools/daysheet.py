@@ -136,13 +136,15 @@ def act_cells(f):
     if f.get("backline"):
         out["backline"] = f["backline"]
 
-    contact = " ".join(x for x in (f.get("contact_name"), f.get("contact_phone")) if x).strip()
+    contact = " ".join(str(x) for x in (f.get("contact_name"), f.get("contact_phone"))
+                       if x not in (None, "")).strip()
     if contact:
         out["contact"] = contact
     return out
 
 
 def set_cell(cell, text):
+    text = "" if text is None else str(text)
     p = cell.paragraphs[0]
     for extra in cell.paragraphs[1:]:
         extra._element.getparent().remove(extra._element)

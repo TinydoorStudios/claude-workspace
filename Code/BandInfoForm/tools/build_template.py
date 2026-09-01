@@ -63,29 +63,12 @@ ws.row_dimensions[1].height = 20
 ws.row_dimensions[2].height = 30
 ws.freeze_panes = "A3"
 
-# example rows (a 2-act event) — gray italic, overwrite/delete
-ex = {
-    "event_name": "513 Airwaves w/ Inhailer", "event_date": "2026-09-20",
-    "venue": "Fountain Square", "event_type": "Internal", "paying_band": "Yes",
-    "mc": "Inhailer Radio", "dj": "n/a", "lead_name": "Lily", "lead_phone": "513-555-0000",
-}
-examples = [
-    {**ex, "slot": "headliner", "set_time": "9:00p-10:00p",
-     "artist_name": "Buffalo Wabs and the Price Hill Hustle",
-     "contact_email": "booking@example.com"},
-    {**ex, "slot": "opener", "set_time": "7:00p-7:45p",
-     "artist_name": "The Cincy Suns", "contact_email": "manager@example.com"},
-]
-for r, row in enumerate(examples, start=3):
-    for i, (lbl, key, ch) in enumerate(cols, start=1):
-        c = ws.cell(row=r, column=i, value=row.get(key, ""))
-        c.font = Font(italic=True, color=GRAY, size=10)
-        c.border = border
-    ws.cell(row=r, column=len(cols)).value = None  # (no Notes column now)
+# NOTE: no example DATA rows on this tab — anything typed here is treated as real.
+# The How-to tab carries a worked example instead.
 
 # blank rows + validations
 LAST = 200
-for r in range(5, 60):
+for r in range(3, 60):
     if r % 2 == 0:
         for i in range(1, len(cols) + 1):
             ws.cell(row=r, column=i).fill = PatternFill("solid", fgColor=LIGHT)
@@ -126,7 +109,12 @@ lines = [
     ("Artist Name is used verbatim on every email and document, and matched case-insensitively", False),
     ("to spot returning artists (their last submission pre-fills the form).", False),
     ("", False),
-    ("Delete the gray example rows before using it for real.", False),
+    ("Worked example — a 2-act bill (two rows, same Event Name + Date + Venue):", True),
+    ("  Row 1: 513 Airwaves w/ Inhailer | 2026-09-20 | Fountain Square | headliner | 9:00p-10:00p | Buffalo Wabs...", False),
+    ("  Row 2: 513 Airwaves w/ Inhailer | 2026-09-20 | Fountain Square | opener    | 7:00p-7:45p  | The Cincy Suns", False),
+    ("(Fill the EVENT columns on both rows, or just one — the importer inherits them across the group.)", False),
+    ("", False),
+    ("You can reorder or delete columns freely — the importer reads by column label, not position.", False),
 ]
 for r, (text, bold) in enumerate(lines, start=1):
     c = ws2.cell(row=r, column=1, value=text)

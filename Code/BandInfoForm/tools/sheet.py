@@ -57,7 +57,7 @@ def read_advance_sheet(path):
                 rec[key] = cell.value
         artist = (str(rec.get("artist_name") or "")).strip()
         notes = (str(rec.get("notes") or "")).strip().upper()
-        if not artist or "EXAMPLE ROW" in notes:
+        if not artist or "EXAMPLE ROW" in notes or artist.upper().startswith("EXAMPLE"):
             continue
         rec = {k: (str(v).strip() if isinstance(v, str) else v) for k, v in rec.items()}
         rec["artist_name"] = artist
