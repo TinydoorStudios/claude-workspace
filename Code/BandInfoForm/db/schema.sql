@@ -123,6 +123,43 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_event_acts_slot ON event_acts (event_id, sl
 ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS set_time TEXT;
 ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS sheet_fields JSONB NOT NULL DEFAULT '{}'::jsonb;
 
+-- advance lifecycle timestamps (email_sent_at already exists above)
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS responded_at   TIMESTAMPTZ;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS followup_sent_at TIMESTAMPTZ;
+
+-- One row per advance (band + show) with its computed state, for n8n's daily
+-- checks and the status report. Follow-up window is 10 days (Brian, 2026-09-01).
+CREATE OR REPLACE VIEW advance_status AS
+SELECT
+    s.id            AS show_id,
+    a.id            AS artist_id,
+    a.name          AS band,
+    s.venue,
+    s.show_series,
+    s.show_date,
+    s.email_sent_at,
+    s.responded_at,
+    s.followup_sent_at,
+    (SELECT max(sub.submitted_at) FROM submissions sub WHERE sub.show_id = s.id)
+                    AS last_submission,
+    CASE
+        WHEN s.responded_at IS NOT NULL
+             OR EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+            THEN 'responded'
+        WHEN s.followup_sent_at IS NOT NULL          THEN 'followup_sent'
+        WHEN s.email_sent_at IS NOT NULL
+             AND s.email_sent_at < now() - interval '10 days'
+            THEN 'followup_due'
+        WHEN s.email_sent_at IS NOT NULL             THEN 'awaiting'
+        ELSE 'queued'
+    END             AS state,
+    CASE WHEN s.email_sent_at IS NOT NULL
+         THEN EXTRACT(day FROM now() - s.email_sent_at)::int END
+                    AS days_since_email,
+    a.last_email    AS contact_email
+FROM shows s
+JOIN artists a ON a.id = s.artist_id;
+
 -- keep updated_at honest
 CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END;

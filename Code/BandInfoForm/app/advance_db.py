@@ -163,6 +163,11 @@ def record_submission(form: dict, file_info=None, source="form"):
                 series=form.get("show_series"), status="responded",
             )
             sub_id = insert_submission(cur, artist_id, show_id, form, source=source)
+            # advance finished — stamp responded_at (first response wins)
+            cur.execute(
+                "UPDATE shows SET responded_at = COALESCE(responded_at, now()) WHERE id = %s",
+                (show_id,),
+            )
             if file_info:
                 insert_file(
                     cur, sub_id, artist_id,
