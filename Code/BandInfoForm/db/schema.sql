@@ -160,6 +160,19 @@ SELECT
 FROM shows s
 JOIN artists a ON a.id = s.artist_id;
 
+-- follow-up drafts queued by the n8n daily check; Brian reviews + sends, then
+-- marks sent_at. UNIQUE(show_id) makes the daily run idempotent (no re-queue).
+CREATE TABLE IF NOT EXISTS followup_queue (
+    id            SERIAL PRIMARY KEY,
+    show_id       INTEGER UNIQUE REFERENCES shows(id) ON DELETE CASCADE,
+    band          TEXT,
+    contact_email TEXT,
+    subject       TEXT,
+    body          TEXT,
+    queued_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    sent_at       TIMESTAMPTZ
+);
+
 -- keep updated_at honest
 CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END;

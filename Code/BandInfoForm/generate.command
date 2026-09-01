@@ -28,11 +28,15 @@ ssh -J tds -i "$KEY" "$VM" '
     ../venv/bin/python daysheet.py --event "$id" >/dev/null && echo "  day-sheet: event $id"
   done
   ../venv/bin/python draft_emails.py lists/_current.xlsx | tail -n +1
+  rm -f followups/*.md 2>/dev/null
+  ../venv/bin/python dump_followups.py >/dev/null 2>&1
 '
 
 echo "--- pulling results into output/ ---"
-scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/filled/*.docx" "$OUT/day-sheets/" 2>/dev/null || echo "  (no day-sheets)"
-scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/drafts/*.md"   "$OUT/emails/"     2>/dev/null || echo "  (no drafts)"
+mkdir -p "$OUT/emails/followups"
+scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/filled/*.docx"     "$OUT/day-sheets/"       2>/dev/null || echo "  (no day-sheets)"
+scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/drafts/*.md"       "$OUT/emails/"           2>/dev/null || echo "  (no drafts)"
+scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/followups/*.md"    "$OUT/emails/followups/" 2>/dev/null || true
 echo
 echo "Done. Results in:"
 echo "  $OUT/day-sheets/"

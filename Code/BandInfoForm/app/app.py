@@ -16,6 +16,7 @@ from flask import (
     Flask, render_template, request, abort, session,
     redirect, url_for, send_from_directory,
 )
+from urllib.parse import quote
 from werkzeug.utils import secure_filename
 from itsdangerous import URLSafeSerializer, BadData
 
@@ -31,6 +32,8 @@ UPLOADS.mkdir(exist_ok=True)
 import os
 SECRET = os.environ.get("ADVANCE_SECRET", "dev-insecure-secret-change-me")
 GATE_PASS = os.environ.get("ADVANCE_GATE_PASS", "lockdown")
+INTERNAL_TOKEN = os.environ.get("ADVANCE_INTERNAL_TOKEN", "")
+PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
 
 app = Flask(__name__)
 app.secret_key = SECRET
@@ -241,6 +244,52 @@ def download_file(file_id):
         abort(404)
     return send_from_directory(UPLOADS, row["stored_name"], as_attachment=True,
                                download_name=row.get("filename") or row["stored_name"])
+
+
+@app.post("/internal/run-followups")
+def run_followups():
+    """Called by the n8n daily check. Finds advances that are follow-up due
+    (emailed, no response, past the window) and queues a reminder draft for each.
+    Idempotent — a band already queued is skipped. Token-protected; nothing sends."""
+    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
+        abort(403)
+    if not DB_OK:
+        return {"error": "db-unavailable"}, 503
+    queued = []
+    try:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """SELECT show_id, band, venue, show_date, show_series, contact_email
+                   FROM advance_status WHERE state = 'followup_due'"""
+            )
+            for r in cur.fetchall():
+                link = f"{PUBLIC_URL}/?venue={quote(r['venue'] or '')}"
+                if r.get("show_series"):
+                    link += f"&series={quote(r['show_series'])}"
+                when = f" on {r['show_date']}" if r.get("show_date") else ""
+                subject = f"Reminder — advance details for your 3CDC show ({r['venue']}{when})"
+                body = (
+                    f"Hi {r['band']},\n\n"
+                    f"Circling back on the advance for your show at {r['venue']}{when}. "
+                    "We still need your show details to run it well — stage plot, monitors, "
+                    "hospitality, and a couple of site logistics. It takes about five minutes:\n\n"
+                    f"{link}\n\n"
+                    "If you've already sent this over, disregard. Thanks,\n"
+                    "3CDC Events / Production"
+                )
+                cur.execute(
+                    """INSERT INTO followup_queue (show_id, band, contact_email, subject, body)
+                       VALUES (%s,%s,%s,%s,%s)
+                       ON CONFLICT (show_id) DO NOTHING RETURNING id""",
+                    (r["show_id"], r["band"], r["contact_email"], subject, body),
+                )
+                if cur.fetchone():
+                    queued.append(r["band"])
+            conn.commit()
+    except Exception as e:
+        _log_db_error("run_followups", e)
+        return {"error": e.__class__.__name__}, 500
+    return {"queued": len(queued), "bands": queued}
 
 
 @app.get("/healthz")
