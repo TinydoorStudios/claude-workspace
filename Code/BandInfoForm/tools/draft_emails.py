@@ -64,6 +64,19 @@ def slug(s):
 
 def load_batch(path):
     p = Path(path)
+    if p.suffix.lower() == ".xlsx":
+        # the canonical Advance List spreadsheet
+        from sheet import read_advance_sheet
+        out = []
+        for r in read_advance_sheet(p):
+            out.append({
+                "name": r.get("artist_name", ""),
+                "show_date": r.get("event_date") or "",
+                "venue": r.get("venue") or "",
+                "series": r.get("series") or "",
+                "email": r.get("contact_email") or "",
+            })
+        return out
     if p.suffix.lower() == ".json":
         rows = json.loads(p.read_text())
     else:

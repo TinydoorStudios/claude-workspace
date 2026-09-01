@@ -278,18 +278,21 @@ def create_event(cur, name, venue, event_date, series=None, notes=None):
     return cur.fetchone()["id"]
 
 
-def add_act(cur, event_id, slot, artist_id, submission_id=None, slot_order=None):
+def add_act(cur, event_id, slot, artist_id, submission_id=None, slot_order=None,
+            set_time=None):
     if slot_order is None:
         slot_order = SLOT_ORDER.get(slot, 99)
     cur.execute(
-        """INSERT INTO event_acts (event_id, slot, slot_order, artist_id, submission_id)
-           VALUES (%s,%s,%s,%s,%s)
+        """INSERT INTO event_acts (event_id, slot, slot_order, artist_id,
+                                   submission_id, set_time)
+           VALUES (%s,%s,%s,%s,%s,%s)
            ON CONFLICT (event_id, slot) DO UPDATE SET
              artist_id=EXCLUDED.artist_id,
              submission_id=EXCLUDED.submission_id,
-             slot_order=EXCLUDED.slot_order
+             slot_order=EXCLUDED.slot_order,
+             set_time=COALESCE(EXCLUDED.set_time, event_acts.set_time)
            RETURNING id""",
-        (event_id, slot, slot_order, artist_id, submission_id),
+        (event_id, slot, slot_order, artist_id, submission_id, set_time),
     )
     return cur.fetchone()["id"]
 

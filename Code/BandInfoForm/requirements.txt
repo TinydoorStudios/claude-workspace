@@ -4,6 +4,7 @@ gunicorn>=21
 psycopg[binary]>=3.1
 # itsdangerous + jinja2 come with Flask
 
-# Offline tools (draft_emails.py, docfill.py)
+# Offline tools (draft_emails.py, docfill.py, daysheet.py, import_sheet.py)
 python-docx>=1.1
 docxtpl>=0.18
+openpyxl>=3.1

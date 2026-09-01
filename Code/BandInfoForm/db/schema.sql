@@ -109,9 +109,12 @@ CREATE TABLE IF NOT EXISTS event_acts (
     artist_id     INTEGER REFERENCES artists(id) ON DELETE SET NULL,
     -- specific submission to fill from; NULL = use the artist's newest
     submission_id INTEGER REFERENCES submissions(id) ON DELETE SET NULL,
+    set_time      TEXT,                            -- e.g. "9:00p-10:00p" (from the advance sheet)
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uq_event_acts_slot ON event_acts (event_id, slot);
+-- for DBs created before set_time existed:
+ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS set_time TEXT;
 
 -- keep updated_at honest
 CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $$

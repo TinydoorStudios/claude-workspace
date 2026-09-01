@@ -80,10 +80,15 @@ def act_cells(sub):
     if parts:
         out["monitors/ iem"] = " · ".join(parts)
 
-    # Scenic (drum riser)
+    # Scenic: drum riser + any other scenic elements (banner, backdrop, LED wall...)
     st = g("stage_type")
+    riser = ""
     if st:
-        out["scenic"] = "Drum riser - YES" if "riser" in str(st).lower() else "Drum riser - no"
+        riser = "Drum riser - YES" if "riser" in str(st).lower() else "Drum riser - no"
+    scenic_note = d.get("scenic", "")
+    scenic = "; ".join(x for x in (riser, scenic_note) if x)
+    if scenic:
+        out["scenic"] = scenic
 
     # Merch
     if sub.get("merch") is not None:
