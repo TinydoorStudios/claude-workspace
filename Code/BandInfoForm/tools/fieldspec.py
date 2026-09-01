@@ -29,9 +29,26 @@ EVENT_FIELDS = [
     ("Paying Band?",  "paying_band", ["Yes", "No"]),
     ("MC",            "mc",          None),
     ("DJ",            "dj",          None),
-    ("Lead Name",     "lead_name",   None),
+    ("Lead Name",     "lead_name",   None),   # day-of / onsite contact
     ("Lead Phone",    "lead_phone",  None),
+    ("Load-In",       "load_in",     None),   # day schedule (blank -> FSQ standard)
+    ("Sound Check",   "soundcheck",  None),
+    ("Start",         "event_start", None),
+    ("End",           "event_end",   None),
+    ("Curfew",        "curfew",      None),
 ]
+
+# Fixed reference used in the advance email.
+ADVANCING_CONTACT = "Brian Lloyd (315-404-5648)"
+VENUE_LOCATION = {
+    "Fountain Square": "Fountain Square – Mainstage; 520 Vine St. Cincinnati, OH 45202",
+    # add the other venues' location lines as they're confirmed
+}
+# fallback day schedule when the sheet leaves a field blank (FSQ standard)
+SCHEDULE_DEFAULTS = {
+    "load_in": "6:00p", "soundcheck": "6:30p", "event_start": "7:00p",
+    "event_end": "10:00p", "curfew": "11:00p",
+}
 
 ACT_FIELDS = [
     ("Slot",          "slot",         SLOTS),
@@ -71,7 +88,8 @@ ALL_COLUMNS = (
 )
 LABEL_TO_KEY = {lbl: key for (lbl, key, _ch) in ALL_COLUMNS}
 BAND_KEYS = [key for (_l, key, _c, _r) in BAND_FIELDS]
-EVENT_DETAIL_KEYS = ["event_type", "paying_band", "mc", "dj", "lead_name", "lead_phone"]
+EVENT_DETAIL_KEYS = ["event_type", "paying_band", "mc", "dj", "lead_name", "lead_phone",
+                     "load_in", "soundcheck", "event_start", "event_end", "curfew"]
 
 GROUPS = [
     ("EVENT — fill once per event", len(EVENT_FIELDS)),

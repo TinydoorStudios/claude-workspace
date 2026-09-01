@@ -34,6 +34,8 @@ for _cand in (HERE.parent, HERE.parent / "app"):  # deployed flat, or repo layou
         sys.path.insert(0, str(_cand))
         break
 import advance_db as db
+sys.path.insert(0, str(HERE))
+import fieldspec as fs
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -80,6 +82,11 @@ def load_batch(path):
                 "event_name": r.get("event_name") or "",
                 "lead_name": r.get("lead_name") or "",
                 "lead_phone": r.get("lead_phone") or "",
+                "load_in": r.get("load_in") or "",
+                "soundcheck": r.get("soundcheck") or "",
+                "event_start": r.get("event_start") or "",
+                "event_end": r.get("event_end") or "",
+                "curfew": r.get("curfew") or "",
             })
         return out
     if p.suffix.lower() == ".json":
@@ -131,8 +138,7 @@ def main():
         print("No rows found in batch.", file=sys.stderr)
         sys.exit(1)
 
-    new_t = env.get_template("new.md.j2")
-    ret_t = env.get_template("returning.md.j2")
+    advance_t = env.get_template("advance.md.j2")
 
     # the bill for each event (rows sharing event name + date + venue), in slot order
     SLOT_ORD = {"opener": 1, "direct_support": 2, "headliner": 3}
@@ -168,22 +174,25 @@ def main():
                 prior = db.played_within(cur, artist_id, show_date, months=args.months)
             conn.commit()
 
-            token = None
-            kind = "NEW"
-            # build the detail + bill blocks as plain text (avoids Jinja whitespace pain)
             slot = (r.get("slot") or "").replace("_", " ")
-            details = []
-            if r.get("set_time"):
-                details.append(f"  Your set: {r['set_time']}" + (f" ({slot})" if slot else ""))
-            details.append(f"  Venue: {venue}")
-            if show_date:
-                details.append(f"  Date: {show_date.isoformat()}")
+            venue_location = fs.VENUE_LOCATION.get(venue, venue or "")
+            day_of_contact = ""
             if r.get("lead_name"):
-                lead = f"  Onsite lead: {r['lead_name']}"
-                if r.get("lead_phone"):
-                    lead += f" — {r['lead_phone']}"
-                details.append(lead)
-            details_block = "\n".join(details)
+                day_of_contact = r["lead_name"] + (
+                    f" ({r['lead_phone']})" if r.get("lead_phone") else "")
+            set_line = ""
+            if r.get("set_time"):
+                set_line = f"Your set: {r['set_time']}" + (f" ({slot})" if slot else "")
+
+            def sched(k):
+                return r.get(k) or fs.SCHEDULE_DEFAULTS.get(k, "")
+            schedule_block = "\n".join([
+                f"  {sched('load_in')}    Load-In",
+                f"  {sched('soundcheck')}    Sound Check",
+                f"  {sched('event_start')}    Start of Event",
+                f"  {sched('event_end')}   End of Event",
+                f"  {sched('curfew')}   Curfew",
+            ])
 
             bill_block = ""
             if len(bill) > 1:
@@ -196,20 +205,19 @@ def main():
                     lines.append(line)
                 bill_block = "\n".join(lines)
 
-            ctx = dict(name=name, venue=venue, email=email,
-                       show_date=show_date.isoformat() if show_date else "",
-                       public_url=PUBLIC_URL, event_name=r.get("event_name") or "",
-                       details_block=details_block, bill_block=bill_block,
-                       deadline=deadline)
-            # every band gets a pre-addressed link seeded from the sheet row
             token = _token(artist_id, venue, show_date, series)
-            ctx["form_link"] = f"{PUBLIC_URL}/f/{token}"
-            if prior:
-                kind = "RETURNING"
-                ctx["last"] = summarize_submission(prior)
-                body = ret_t.render(**ctx)
-            else:
-                body = new_t.render(**ctx)
+            returning = bool(prior)
+            kind = "RETURNING" if returning else "NEW"
+            ctx = dict(
+                name=name, venue=venue, venue_location=venue_location,
+                event_name=r.get("event_name") or "",
+                show_date=show_date.isoformat() if show_date else "",
+                advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
+                set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
+                form_link=f"{PUBLIC_URL}/f/{token}", deadline=deadline,
+                returning=returning, last=summarize_submission(prior) if returning else [],
+            )
+            body = advance_t.render(**ctx)
 
             fname = f"{slug(name)}__{show_date.isoformat() if show_date else 'nodate'}__{kind.lower()}.md"
             (DRAFTS / fname).write_text(body)
