@@ -100,7 +100,7 @@ lines = [
     ("", False),
     ("The three column groups:", True),
     ("  EVENT — event name, date, venue, series, type, paying?, MC/DJ, site lead. You fill these.", False),
-    ("  ACT — slot, set time, the exact artist name, and the email the advance goes to.", False),
+    ("  ACT — slot, set length, the exact artist name, and the email the advance goes to.", False),
     ("  BAND DETAILS — stage plot, monitors, scenic, merch, parking, contact, etc. Normally the", False),
     ("     band fills these via the form; type a value here only to override what the band submits.", False),
     ("", False),

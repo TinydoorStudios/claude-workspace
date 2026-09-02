@@ -52,7 +52,7 @@ SCHEDULE_DEFAULTS = {
 
 ACT_FIELDS = [
     ("Slot",          "slot",         SLOTS),
-    ("Set Time",      "set_time",     None),
+    ("Set Length",    "set_time",     None),   # duration of the act's set (key kept as set_time)
     ("Artist Name",   "artist_name",  None),
     ("Contact Email", "contact_email", None),
 ]

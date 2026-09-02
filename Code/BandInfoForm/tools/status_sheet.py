@@ -66,7 +66,7 @@ COLS = [
     ("Venue", 16, lambda st, sub, a: st["venue"]),
     ("Date", 12, lambda st, sub, a: d(st["show_date"]) if st["show_date"] else ""),
     ("Slot", 14, lambda st, sub, a: (a or {}).get("slot", "")),
-    ("Set Time", 13, lambda st, sub, a: (a or {}).get("set_time", "")),
+    ("Set Length", 13, lambda st, sub, a: (a or {}).get("set_time", "")),
     ("Status", 14, lambda st, sub, a: st["state"]),
     ("Email Sent", 12, lambda st, sub, a: d(st["email_sent_at"])),
     ("Follow-up Due", 13, lambda st, sub, a: followup_due(st)),

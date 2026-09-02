@@ -187,9 +187,12 @@ def main():
             if r.get("lead_name"):
                 day_of_contact = r["lead_name"] + (
                     f" ({r['lead_phone']})" if r.get("lead_phone") else "")
+            def _setlen(v):
+                v = str(v).strip()
+                return f"{v} min" if v.isdigit() else v
             set_line = ""
             if r.get("set_time"):
-                set_line = f"Your set: {r['set_time']}" + (f" ({slot})" if slot else "")
+                set_line = f"Set length: {_setlen(r['set_time'])}" + (f" ({slot})" if slot else "")
 
             def sched(k):
                 return r.get(k) or fs.SCHEDULE_DEFAULTS.get(k, "")
@@ -208,7 +211,7 @@ def main():
                     s = a["slot"].replace("_", " ")
                     line = f"  - {s}: {a['name']}"
                     if a.get("set_time"):
-                        line += f" — {a['set_time']}"
+                        line += f" — {_setlen(a['set_time'])}"
                     lines.append(line)
                 bill_block = "\n".join(lines)
 
