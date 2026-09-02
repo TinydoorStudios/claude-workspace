@@ -212,3 +212,13 @@ CREATE TABLE IF NOT EXISTS bookings (
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     seeded_at     TIMESTAMPTZ
 );
+
+-- short redirect for the /f/<signed-token> prefill link — the signed token is
+-- long (venue name + date + series + HMAC signature); emails carry /s/<code>
+-- instead, which 302s to the real /f/<token> link. Deterministic per token
+-- (hash of the token itself) so re-drafting the same show reuses the same code.
+CREATE TABLE IF NOT EXISTS short_links (
+    code       TEXT PRIMARY KEY,
+    token      TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

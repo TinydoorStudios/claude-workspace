@@ -396,3 +396,24 @@ def mark_bookings_seeded(cur, ids):
         return
     cur.execute("UPDATE bookings SET seeded_at = now() WHERE id = ANY(%s)",
                 (list(ids),))
+
+
+def get_or_create_short_link(cur, token):
+    """Deterministic short code for a signed /f/<token> prefill link (same token
+    -> same code, so re-drafting a show doesn't pile up rows). /s/<code> 302s to
+    the real link — see app.py."""
+    import base64
+    import hashlib
+    digest = hashlib.sha256(token.encode()).digest()
+    code = base64.urlsafe_b64encode(digest)[:8].decode()
+    cur.execute(
+        "INSERT INTO short_links (code, token) VALUES (%s, %s) "
+        "ON CONFLICT (code) DO NOTHING", (code, token),
+    )
+    return code
+
+
+def resolve_short_link(cur, code):
+    cur.execute("SELECT token FROM short_links WHERE code = %s", (code,))
+    row = cur.fetchone()
+    return row["token"] if row else None

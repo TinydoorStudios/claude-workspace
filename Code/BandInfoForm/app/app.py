@@ -95,6 +95,19 @@ def form():
     )
 
 
+@app.get("/s/<code>")
+def short_link(code):
+    """Short redirect for an emailed /f/<token> link — the signed token is long
+    (venue + date + series + signature); emails carry this instead."""
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        token = advance_db.resolve_short_link(cur, code)
+    if not token:
+        abort(404)
+    return redirect(url_for("prefilled_form", token=token))
+
+
 @app.get("/f/<token>")
 def prefilled_form(token):
     """Pre-addressed link from the advance list. The token seeds band name + venue

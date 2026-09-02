@@ -227,6 +227,9 @@ def main():
                 bill_block = "\n".join(lines)
 
             token = _token(artist_id, venue, show_date, series)
+            with conn.cursor() as cur:
+                short_code = db.get_or_create_short_link(cur, token)
+            conn.commit()
             returning = bool(prior)
             kind = "RETURNING" if returning else "NEW"
             ctx = dict(
@@ -237,7 +240,7 @@ def main():
                 show_date=us_date(show_date),
                 advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
                 set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
-                form_link=f"{PUBLIC_URL}/f/{token}", deadline=deadline,
+                form_link=f"{PUBLIC_URL}/s/{short_code}", deadline=deadline,
                 returning=returning, last=summarize_submission(prior) if returning else [],
             )
             body = advance_t.render(**ctx)
