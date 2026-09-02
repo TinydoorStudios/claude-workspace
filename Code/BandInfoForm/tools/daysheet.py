@@ -245,18 +245,16 @@ def fill_audio_times(grid, acts, event):
                 label = SLOT_AUDIO_LABEL.get(slot, slot.upper())
                 a = acts_by_slot.get(slot)
                 who = a["artist"]["name"] if a and a.get("artist") else None
-                if who and window:
-                    text = f"{label} — {who}: {window}"
-                elif who:
-                    text = f"{label} — {who}"
+                if who:
+                    lines = [label, who, window] if window else [label, who]
                 elif a:
                     # act exists on this slot but no artist attached yet
-                    text = f"{label}: {window}" if window else label
+                    lines = [label, window] if window else [label]
                 else:
-                    text = ""   # no act booked for this slot — don't show stale placeholder times
+                    lines = []   # no act booked for this slot — don't show stale placeholder times
                 for ci in (col, col + 1):
                     if ci < len(r.cells):
-                        set_cell(r.cells[ci], text)
+                        set_multiline(r.cells[ci], lines)
             return
 
 
