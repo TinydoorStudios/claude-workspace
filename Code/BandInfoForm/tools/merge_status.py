@@ -23,6 +23,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fieldspec as fs
@@ -169,10 +170,14 @@ def main():
         rec = index.get((norm(band), norm(venue), date)) or {}
         bf = rec.get("band_fields", {})
 
+        plot_rel = rec.get("stageplot_rel")
         for k, c in fill_cols:
             cell = ws.cell(r, c)
             addr = f"r{r}c{c}"
-            B = _s(bf.get(k, ""))
+            # Stage Plot: when a file was filed, the cell becomes a clickable link
+            # to it (relative to the workbook) instead of the typed description.
+            link = plot_rel if k == "stage_plot_desc" and plot_rel else None
+            B = link.rsplit("/", 1)[-1] if link else _s(bf.get(k, ""))
             prev = meta_prev.get(addr)
             managed = prev is not None
             owned = managed and _s(cell.value) == _s(prev)
@@ -180,13 +185,18 @@ def main():
                 if _s(cell.value) == "" or owned:
                     cell.value = B
                     cell.fill = PatternFill("solid", fgColor=BAND_TINT)
+                    if link:
+                        cell.hyperlink = quote(link, safe="/")
+                        cell.font = Font(color="0563C1", underline="single")
                     meta_new[addr] = B
                 elif managed:                 # he typed over it — it's his now
                     cell.fill = banding(r)
+                    cell.hyperlink = None
             else:
                 if owned:
                     cell.value = None
                     cell.fill = banding(r)
+                    cell.hyperlink = None
                 elif managed:
                     cell.fill = banding(r)
 

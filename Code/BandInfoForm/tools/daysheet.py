@@ -30,6 +30,10 @@ sys.path.insert(0, str(HERE))
 import advance_db as db
 
 from docx import Document
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
+from urllib.parse import quote
 
 TEMPLATES = HERE / "doc_templates"
 FILLED = HERE / "filled"
@@ -158,6 +162,28 @@ def set_cell(cell, text):
     (p.runs[0] if p.runs else p.add_run("")).text = text
 
 
+def set_cell_link(cell, text, target):
+    """Replace a cell's content with a single clickable hyperlink (blue, underlined).
+    `target` is a relative path — the stage plot sits in the same folder as the doc,
+    so Word resolves it wherever the folder lives."""
+    p = cell.paragraphs[0]
+    for extra in cell.paragraphs[1:]:
+        extra._element.getparent().remove(extra._element)
+    for r in list(p.runs):
+        r._element.getparent().remove(r._element)
+    r_id = cell.part.relate_to(target, RT.HYPERLINK, is_external=True)
+    link = OxmlElement("w:hyperlink")
+    link.set(qn("r:id"), r_id)
+    run = OxmlElement("w:r")
+    rPr = OxmlElement("w:rPr")
+    color = OxmlElement("w:color"); color.set(qn("w:val"), "0563C1"); rPr.append(color)
+    u = OxmlElement("w:u"); u.set(qn("w:val"), "single"); rPr.append(u)
+    run.append(rPr)
+    t = OxmlElement("w:t"); t.text = text; run.append(t)
+    link.append(run)
+    p._p.append(link)
+
+
 def set_multiline(cell, lines):
     """Set a cell to N lines, reusing existing paragraphs where possible."""
     paras = cell.paragraphs
@@ -261,8 +287,9 @@ def fill(event_id, template, out_path=None, stageplot_names=None):
             continue
         mf = merged_fields(a)
         who = a["artist"]["name"] if a.get("artist") else None
-        if who and stageplot_names.get(who):
-            mf["_stageplot_saved"] = stageplot_names[who]
+        saved_plot = stageplot_names.get(who) if who else None
+        if saved_plot:
+            mf["_stageplot_saved"] = saved_plot
         cells = act_cells(mf)
         if cells:
             filled_acts += 1
@@ -270,8 +297,13 @@ def fill(event_id, template, out_path=None, stageplot_names=None):
             row = rows_by_label.get(label)
             if not row:
                 continue
-            for ci in (col, col + 1):
-                if ci < len(row.cells):
+            for n, ci in enumerate((col, col + 1)):
+                if ci >= len(row.cells):
+                    continue
+                # the Stage Plot cell links to the filed file (same folder as the doc)
+                if label == "stage plot" and saved_plot and n == 0:
+                    set_cell_link(row.cells[ci], value, quote(saved_plot))
+                else:
                     set_cell(row.cells[ci], value)
 
     if out_path is None:

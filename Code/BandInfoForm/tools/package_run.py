@@ -19,6 +19,7 @@ send step moves to Outlook, so generate no longer stamps email_sent_at.
   python3 package_run.py lists/_current.xlsx --out _package
 """
 import argparse
+import json
 import re
 import shutil
 import subprocess
@@ -105,6 +106,7 @@ def main():
 
     # 3. file each event into the venue tree
     n_events = n_emails = n_followups = n_plots = 0
+    plot_rels = {}   # (band, venue, date) -> relative path to the filed stage plot
     with db.get_conn() as conn, conn.cursor() as cur:
         for e in db.list_events(cur):
             eid = e["id"]
@@ -135,6 +137,11 @@ def main():
                 fname = f"{plot_stem} - {safe(band)}{ext}" if multi else f"{plot_stem}{ext}"
                 shutil.copy(src, folder / fname)
                 stageplot_names[band] = fname
+                rel = (folder / fname).relative_to(out).as_posix()
+                key = (band.strip().lower(),
+                       (ev.get("venue") or "").strip().lower(),
+                       d.isoformat() if d else "")
+                plot_rels[key] = rel
                 n_plots += 1
 
             daysheet.fill(eid, daysheet.DEFAULT_TEMPLATE, out_path=folder / f"{stem}.docx",
@@ -157,6 +164,18 @@ def main():
                     drafts_dir.mkdir(exist_ok=True)
                     shutil.copy(fu, drafts_dir / f"{stem} followup - {safe(name)}.md")
                     n_followups += 1
+
+    # 4. tell the status merge where each filed stage plot landed (for the sheet link)
+    status_path = out / "status.json"
+    if plot_rels and status_path.exists():
+        recs = json.loads(status_path.read_text())
+        for r in recs:
+            key = ((r.get("band") or "").strip().lower(),
+                   (r.get("venue") or "").strip().lower(),
+                   (r.get("date") or "")[:10])
+            if key in plot_rels:
+                r["stageplot_rel"] = plot_rels[key]
+        status_path.write_text(json.dumps(recs, indent=2, default=str))
 
     print(f"\nPackage built at {out}")
     print(f"  {n_events} event(s) filed · {n_emails} email(s) · "
