@@ -201,18 +201,24 @@ def fill_header(grid, event, acts):
             return
 
 
-def fill_audio_times(grid, acts):
+def fill_audio_times(grid, acts, event):
+    """AUDIO row = the show's clock window (Start–End from the event schedule),
+    NOT the set length. Per-act windows would need per-act clock fields."""
+    det = event.get("details") or {}
+    start, end = det.get("event_start"), det.get("event_end")
+    window = f"{start}-{end}" if start and end else (start or end or "")
+    if not window:
+        return
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "audio":
             for a in acts:
                 col = SLOT_COL.get(a["slot"])
-                t = a.get("set_time")
-                if col is None or not t:
+                if col is None:
                     continue
                 label = SLOT_AUDIO_LABEL.get(a["slot"], a["slot"].upper())
                 for ci in (col, col + 1):
                     if ci < len(r.cells):
-                        set_cell(r.cells[ci], f"{label}: {t}")
+                        set_cell(r.cells[ci], f"{label}: {window}")
             return
 
 
@@ -237,7 +243,7 @@ def fill(event_id, template, out_path=None):
             rows_by_label.setdefault(norm(r.cells[0].text), r)
 
     fill_header(grid, event, acts)
-    fill_audio_times(grid, acts)
+    fill_audio_times(grid, acts, event)
 
     filled_acts = 0
     for a in acts:
