@@ -5,7 +5,8 @@ Hi{% if name %} {{ name }}{% endif %},
 {% if returning %}Good to have you back{% if event_name %} for {{ event_name }}{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your advance at the link — we've pre-filled your last submission, so just confirm or update anything that's changed.{% else %}Welcome to {% if event_name %}{{ event_name }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your show advance at the link. It replaces the questions we used to ask in this email — contact info, stage plot, monitors, merch, headcount, and the acknowledgments — and takes about five minutes. Your show info is already filled in.{% endif %}
 
 
-Completing the form confirms you've received this, reviewed the policies, and answered everything we need:
+
+{{ personal_note }}Completing the form confirms you've received this, reviewed the policies, and answered everything we need:
 
 {{ form_link }}
 
@@ -13,7 +14,7 @@ Completing the form confirms you've received this, reviewed the policies, and an
 
 ────────────────────────────────
 
-Venue / Location: {{ venue_location }}
+Venue / Location: {% if blocks.location %}{{ blocks.location }}{% else %}{{ venue }}{% endif %}
 Advancing Contact: {{ advancing_contact }}
 {% if day_of_contact %}Day-of Contact: {{ day_of_contact }}
 {% endif %}{% if set_line %}{{ set_line }}
@@ -24,28 +25,15 @@ Advancing Contact: {{ advancing_contact }}
 {{ schedule_block }}
   *Please take set breaks as needed. Do not arrive before your load-in time without advance coordination.
 
-Load-In & Parking:
-The load-in process at Fountain Square has changed — please review the attached document and acknowledge understanding on the form. Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
-Attached are QR codes that serve as your Fountain Square Garage validations (5 included). Each vehicle needs its own QR code before arriving; scan at the kiosk on entry or exit (please don't pay). Garage clearance is 6'8". Need more validations or large-vehicle parking? Note it on the form.
+{{ blocks.load_in }}
 
-Technical:
-- Backline / instrumentation: artists provide all instruments, including amps and 1/4" cables.
-- Audio: we provide an engineer who mixes FOH and monitors from FOH. Coordinate in advance if you're bringing your own. All engineers mix within the 95 dB ordinance; the FSQ engineer may baffle amps to reduce stage volume if needed.
-- Lighting: we provide a house LD.
-- Stage plot / input list, flat vs. drum riser, monitor count, and any scenic elements — all on the form.
+{{ blocks.technical }}
 
-Hospitality & Site:
-- Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
-- Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
-- Hospitality: drink tickets and water are provided for all performers and crew.
+{{ blocks.hospitality }}
 
 Performance Requirements (failure to comply may result in a warning or termination of the show, with payment canceled or delayed):
-- Content: family-friendly only — no foul language or gestures, including prerecorded tracks, live vocals, and sound check.
-- Sound limit: strict 95 dB at the FOH position, for all engineers (house or talent).
-- Performer safety: stay on the stage. No crowd surfing, climbing, jumping off stage, or stepping on sound equipment.
-- Audience safety: do not throw or shoot anything into the crowd (confetti, t-shirts, bottles, merch/CDs, etc.).
-- Weather: rain or shine. Booking evaluates weather about 3 hours before start; if you don't hear otherwise, assume the show goes on.
-- Payment: all groups are paid after the performance, not before.
+{% if blocks.requirements %}{{ blocks.requirements }}
+{% endif %}{{ common_requirements }}
 
 {% if returning %}Here's what we have on file from your last show:
 

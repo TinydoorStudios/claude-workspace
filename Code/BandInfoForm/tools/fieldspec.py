@@ -92,6 +92,7 @@ ACT_FIELDS = [
     ("Set Length",    "set_time",     None),   # duration of the act's set (key kept as set_time)
     ("Artist Name",   "artist_name",  None),
     ("Contact Email", "contact_email", None),
+    ("Email Note",    "email_note",   None),   # a personal line woven into THIS band's advance email
 ]
 
 # Band detail — normally from the form; fill in the sheet to override.

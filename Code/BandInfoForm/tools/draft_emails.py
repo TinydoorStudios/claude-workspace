@@ -36,6 +36,7 @@ for _cand in (HERE.parent, HERE.parent / "app"):  # deployed flat, or repo layou
 import advance_db as db
 sys.path.insert(0, str(HERE))
 import fieldspec as fs
+import venue_email as ve
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -80,6 +81,7 @@ def load_batch(path):
                 "set_time": r.get("set_time") or "",
                 "slot": r.get("slot") or "",
                 "event_name": r.get("event_name") or "",
+                "email_note": r.get("email_note") or "",
                 "lead_name": r.get("lead_name") or "",
                 "lead_phone": r.get("lead_phone") or "",
                 "load_in": r.get("load_in") or "",
@@ -182,7 +184,6 @@ def main():
                 conn.commit()
 
             slot = (r.get("slot") or "").replace("_", " ")
-            venue_location = fs.VENUE_LOCATION.get(venue, venue or "")
             day_of_contact = ""
             if r.get("lead_name"):
                 day_of_contact = r["lead_name"] + (
@@ -219,7 +220,9 @@ def main():
             returning = bool(prior)
             kind = "RETURNING" if returning else "NEW"
             ctx = dict(
-                name=name, venue=venue, venue_location=venue_location,
+                name=name, venue=venue,
+                blocks=ve.blocks_for(venue), common_requirements=ve.COMMON_REQUIREMENTS,
+                personal_note=(lambda n: f"{n}\n\n" if n else "")((r.get("email_note") or "").strip()),
                 event_name=r.get("event_name") or "",
                 show_date=show_date.isoformat() if show_date else "",
                 advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
