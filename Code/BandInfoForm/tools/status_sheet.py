@@ -5,6 +5,7 @@ One row per band/show: your sheet input + what the band submitted on the form +
 the advance state (emailed / responded / follow-up due). This is the read-back you
 watch; your input spreadsheet stays yours to edit. Refreshed by generate.command.
 """
+import datetime as dt
 import sys
 from pathlib import Path
 
@@ -44,6 +45,20 @@ def d(ts):
     return ts.strftime("%Y-%m-%d") if ts else ""
 
 
+FOLLOWUP_DAYS = 10  # matches the advance_status view + n8n check
+
+
+def followup_due(st):
+    """Date a follow-up is due — only while the advance isn't completed."""
+    if st["state"] == "responded":          # completed box is checked
+        return ""
+    if st.get("followup_sent_at"):
+        return "sent " + d(st["followup_sent_at"])
+    if st.get("email_sent_at"):
+        return (st["email_sent_at"] + dt.timedelta(days=FOLLOWUP_DAYS)).strftime("%Y-%m-%d")
+    return ""
+
+
 # (header, width, extractor(st, sub, act))
 COLS = [
     ("Band", 30, lambda st, sub, a: st["band"]),
@@ -53,7 +68,9 @@ COLS = [
     ("Slot", 14, lambda st, sub, a: (a or {}).get("slot", "")),
     ("Set Time", 13, lambda st, sub, a: (a or {}).get("set_time", "")),
     ("Status", 14, lambda st, sub, a: st["state"]),
-    ("Emailed", 12, lambda st, sub, a: d(st["email_sent_at"])),
+    ("Email Sent", 12, lambda st, sub, a: d(st["email_sent_at"])),
+    ("Follow-up Due", 13, lambda st, sub, a: followup_due(st)),
+    ("Completed", 11, lambda st, sub, a: "Yes" if st["state"] == "responded" else ""),
     ("Responded", 12, lambda st, sub, a: d(st["responded_at"])),
     ("Contact Name", 18, lambda st, sub, a: g(sub, "contact_name")),
     ("Contact Email", 22, lambda st, sub, a: g(sub, "contact_email") or (st.get("contact_email") or "")),

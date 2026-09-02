@@ -131,6 +131,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("batch", help="CSV or JSON list of shows to advance")
     ap.add_argument("--months", type=int, default=6, help="returning-artist lookback")
+    ap.add_argument("--mark-sent", action="store_true",
+                    help="stamp email_sent_at (generate.command uses this — sending = the send step)")
     args = ap.parse_args()
 
     rows = load_batch(args.batch)
@@ -173,6 +175,11 @@ def main():
                                          series=series, status="not_advanced")
                 prior = db.played_within(cur, artist_id, show_date, months=args.months)
             conn.commit()
+
+            if args.mark_sent:
+                with conn.cursor() as cur:
+                    db.stamp_email_sent(cur, show_id)
+                conn.commit()
 
             slot = (r.get("slot") or "").replace("_", " ")
             venue_location = fs.VENUE_LOCATION.get(venue, venue or "")

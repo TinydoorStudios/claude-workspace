@@ -27,7 +27,7 @@ ssh -J tds -i "$KEY" "$VM" '
   for id in $(sudo docker exec advance-db psql -U advance -d advance -tAc "SELECT id FROM events ORDER BY id"); do
     ../venv/bin/python daysheet.py --event "$id" >/dev/null && echo "  day-sheet: event $id"
   done
-  ../venv/bin/python draft_emails.py lists/_current.xlsx | tail -n +1
+  ../venv/bin/python draft_emails.py lists/_current.xlsx --mark-sent | tail -n +1
   rm -f followups/*.md 2>/dev/null
   ../venv/bin/python dump_followups.py >/dev/null 2>&1
   ../venv/bin/python status_sheet.py >/dev/null 2>&1

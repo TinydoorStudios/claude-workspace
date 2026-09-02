@@ -95,6 +95,16 @@ def upsert_show(cur, artist_id, venue, show_date, series=None, status=None):
     return cur.fetchone()["id"]
 
 
+def stamp_email_sent(cur, show_id):
+    """Mark the advance email as sent (first send wins)."""
+    cur.execute(
+        "UPDATE shows SET email_sent_at = COALESCE(email_sent_at, now()), "
+        "status = CASE WHEN status = 'not_advanced' THEN 'email_sent' ELSE status END "
+        "WHERE id = %s",
+        (show_id,),
+    )
+
+
 def mark_show_status(cur, show_id, status, email_sent=False):
     if email_sent:
         cur.execute(
