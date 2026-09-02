@@ -34,6 +34,8 @@ ssh -J tds -i "$KEY" "$VM" '
 
 echo "--- pulling results into output/ ---"
 mkdir -p "$OUT/emails/followups"
+# clear last run's files so output/ mirrors the current sheet
+rm -f "$OUT/day-sheets/"*.docx "$OUT/emails/"*.md "$OUT/emails/followups/"*.md 2>/dev/null
 scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/filled/*.docx"     "$OUT/day-sheets/"       2>/dev/null || echo "  (no day-sheets)"
 scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/drafts/*.md"       "$OUT/emails/"           2>/dev/null || echo "  (no drafts)"
 scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/followups/*.md"    "$OUT/emails/followups/" 2>/dev/null || true
