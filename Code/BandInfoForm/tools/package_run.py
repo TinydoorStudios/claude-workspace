@@ -87,7 +87,7 @@ def main():
                     f.unlink()
     run("draft_emails.py", args.sheet, "--mark-sent")
     run("dump_followups.py")
-    run("status_sheet.py", str(out / "advance-status.xlsx"))
+    run("status_sheet.py", "--json", str(out / "status.json"))
 
     # 3. compose the per-event tree
     n_events = n_daysheets = n_emails = n_followups = 0

@@ -39,20 +39,21 @@ rsync -az --delete -e "ssh -J tds -i $KEY" \
   "$VM:/opt/band-advance/tools/_package/Events/" "$HERE/Events/" \
   || { echo "rsync of Events/ failed"; exit 1; }
 
-# fold the status read-back into advance-list.xlsx as its "Status" tab
-# (input tab untouched — only the Status tab is rewritten, locally)
-TMP="$HERE/.advance-status.tmp.xlsx"
-if scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/_package/advance-status.xlsx" \
+# fold status + the band's form answers into advance-list.xlsx (one tab):
+# blanks get filled (tinted) and a color-coded STATUS block is appended. Your
+# own typed cells are never overwritten.
+TMP="$HERE/.status.tmp.json"
+if scp -J tds -i "$KEY" "$VM:/opt/band-advance/tools/_package/status.json" \
      "$TMP" 2>/dev/null; then
   python3 "$HERE/../Code/BandInfoForm/tools/merge_status.py" \
-    --list "$SHEET" --status "$TMP" && rm -f "$TMP"
+    --list "$SHEET" --data "$TMP" && rm -f "$TMP"
 else
-  echo "  (no status sheet built)"
+  echo "  (no status data built)"
 fi
 
 echo
 echo "Done."
-echo "  advance-list.xlsx  — your input tab + a refreshed 'Status' tab"
+echo "  advance-list.xlsx  — your rows, with band answers filled in (tinted) + a STATUS block"
 echo "  Events/            — a folder per bill: Day Sheet + advance emails"
 echo
 ls -1 "$HERE/Events/" 2>/dev/null | sed 's/^/  • /'

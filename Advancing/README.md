@@ -5,9 +5,10 @@ one folder that fills itself.
 
 ```
 Advancing/
-  advance-list.xlsx     ← the ONE spreadsheet. Two tabs that matter:
-       • Advance List   — you edit this. Every bill goes here.
-       • Status         — auto-refreshed read-back: emailed / responded / follow-up due
+  advance-list.xlsx     ← the ONE sheet. One tab does everything:
+       • you fill the left columns (event / act / band details)
+       • the band's form answers fill your blanks, tinted blue
+       • a color-coded STATUS block is appended on the right
   generate.command      ← double-click after editing. Builds everything.
   Events/               ← auto-built, one folder per bill:
       2026-09-11 — 513 Airwaves w Inhailer Radio (Fountain Square)/
@@ -17,16 +18,26 @@ Advancing/
   _template/            ← pristine copies — reset from here if the sheet gets messy
 ```
 
+### Reading the sheet after a run
+
+- **Plain cells you typed = yours.** They always win.
+- **Blue-tinted cells = the band's form answer**, dropped into a blank you left. They
+  mirror the form and refresh every run — so don't edit a tinted cell. To override a
+  field the band answered, just type your value in; it turns plain and wins from then on.
+- **STATUS block** (green group header, right side): Status is color-coded by state
+  (green = responded, amber = follow-up due, grey = queued…), plus Email Sent,
+  Follow-up Due, Completed, Responded, What Changed, Additional. Auto — don't edit it.
+
 Close the workbook in Excel before running generate.command — the run rewrites the
-Status tab in place (it never touches your Advance List tab).
+tinted cells + STATUS block in place. Your typed cells are never touched.
 
 ## The loop
 
 1. Open **advance-list.xlsx** → the **Advance List** tab. Add a row per act (opener /
    support / headliner). Event name + date + venue group a bill together. Fill what you
    know; the band's form fills the rest. Dropdowns + a How-to tab are built in.
-2. Close the file, then double-click **generate.command**. The **Status** tab in the
-   same workbook refreshes with who's emailed / responded / follow-up due.
+2. Close the file, then double-click **generate.command**. Your blanks fill in with the
+   band's answers (tinted) and the STATUS block on the right refreshes.
 3. Open the new folder under **Events/**. Send each `Advance Email` from your mail
    (drafts-you-approve — the system never sends). Finish the internal cells on the
    `Day Sheet.docx` (PA, consoles, lead, buyout) in Word, then export to PDF.

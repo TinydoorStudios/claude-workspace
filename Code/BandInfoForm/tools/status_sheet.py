@@ -6,6 +6,7 @@ the advance state (emailed / responded / follow-up due). This is the read-back y
 watch; your input spreadsheet stays yours to edit. Refreshed by generate.command.
 """
 import datetime as dt
+import json
 import sys
 from pathlib import Path
 
@@ -14,13 +15,17 @@ for _cand in (HERE.parent, HERE.parent / "app"):
     if (_cand / "advance_db.py").exists():
         sys.path.insert(0, str(_cand))
         break
+sys.path.insert(0, str(HERE))
 import advance_db as db
+import fieldspec as fs
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else (HERE / "advance_status.xlsx")
+_JSON = "--json" in sys.argv[1:]
+_args = [a for a in sys.argv[1:] if not a.startswith("--")]
+OUT = Path(_args[0]) if _args else (HERE / "advance_status.xlsx")
 NAVY = "1A3A5C"
 STATE_FILL = {
     "queued": "E5E7EB", "awaiting": "FEF3C7", "followup_due": "FFE4B5",
@@ -107,6 +112,64 @@ def act_for(cur, st):
     return cur.fetchone() or {}
 
 
+# internal-key -> how to pull that band's FORM answer for the fill-the-blanks merge
+def _band_fields(sub):
+    if not sub:
+        return {}
+    out = {
+        "contact_email": g(sub, "contact_email"),
+        "contact_name": g(sub, "contact_name"),
+        "contact_phone": g(sub, "contact_phone"),
+        "stage_type": g(sub, "stage_type"),
+        "monitors": g(sub, "monitors"),
+        "own_iems": yn(sub.get("own_iems")),
+        "split_snake": g(sub, "split_snake"),
+        "stage_plot_desc": g(sub, "stage_plot_desc"),
+        "input_notes": g(sub, "input_notes"),
+        "backline": g(sub, "backline"),
+        "own_engineer": g(sub, "own_engineer"),
+        "scenic": g(sub, "scenic"),
+        "lighting": g(sub, "lighting"),
+        "merch": yn(sub.get("merch")),
+        "band_tent": g(sub, "band_tent"),
+        "performers": g(sub, "performers"),
+        "large_vehicle": yn(sub.get("large_vehicle")),
+    }
+    return {k: ("" if v is None else str(v)) for k, v in out.items() if v not in (None, "")}
+
+
+def records():
+    """Structured per-advance data for the Mac-side merge into advance-list.xlsx."""
+    out = []
+    with db.get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT * FROM advance_status ORDER BY show_date NULLS LAST, band")
+        for st in cur.fetchall():
+            sub = db.newest_submission(cur, st["artist_id"])
+            act = act_for(cur, st)
+            out.append({
+                "band": st["band"],
+                "venue": st["venue"] or "",
+                "date": st["show_date"].isoformat() if st["show_date"] else "",
+                "slot": (act or {}).get("slot", ""),
+                "state": st["state"],
+                "email_sent": d(st["email_sent_at"]),
+                "followup_due": followup_due(st),
+                "completed": "Yes" if st["state"] == "responded" else "",
+                "responded": d(st["responded_at"]),
+                "changed_notes": g(sub, "changed_notes"),
+                "additional": g(sub, "additional"),
+                "band_fields": _band_fields(sub),
+            })
+    return out
+
+
+def emit_json(path):
+    path = Path(path)
+    recs = records()
+    path.write_text(json.dumps(recs, indent=2, default=str))
+    print(f"Wrote {path} — {len(recs)} advance(s)")
+
+
 def main():
     wb = Workbook()
     ws = wb.active
@@ -147,4 +210,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if _JSON:
+        emit_json(OUT)
+    else:
+        main()
