@@ -167,3 +167,31 @@ set -a; . /opt/band-advance/advance.env; set +a
 5. Cloudflare: `advance.tinydoorstudios.com` CNAME + tunnel ingress → `localhost:8097`
 
 Redeploy code after edits: `./deploy_app.command` from the Mac.
+
+## TODO — Artist Directory wiki (2026-09-02, not started)
+
+Brian wants a **second, dedicated Wiki.js instance on the n8n VM** — separate from the
+Live Sound KB (`kb.tinydoorstudios.com`, which is engineering/venue/EQ reference) — as a
+searchable **Artist Directory**: one page per artist with their performance history
+(every show, any venue, from `shows`), stage plots and other files (from `files`), and
+engineer's notes. Data source of truth stays `advance-db` Postgres either way; the wiki
+is a browsable view.
+
+Feasibility: straightforward — same pattern as the existing KB (docker Wiki.js container,
+git-backed content repo, Cloudflare tunnel subdomain), plenty of headroom on the VM
+(28GB+ free as of 2026-09-02). Not started; open questions to resolve before building:
+
+- **Sync direction** — auto-regenerate each artist's wiki page from Postgres whenever a
+  show completes (same pattern as `show-wiki-push`; wiki page is a rendered mirror, never
+  hand-edited, so there's one source of truth) vs. letting Brian edit pages directly in
+  the wiki (then Postgres and the wiki diverge over time — probably wrong, but ask).
+- **Subdomain** — e.g. `artists.tinydoorstudios.com` or `bands.tinydoorstudios.com`.
+- **Access** — this holds contact info + engineer's notes, not public reference material;
+  probably gated (same `lockdown` passcode as `/search`, or its own).
+- **Stage plots / files** — copy the actual files into the wiki (like `show-wiki-push`
+  ships show assets) or just deep-link back to `advance-db`'s `/file/<id>` endpoint.
+- **Cheaper alternative worth naming when this gets scoped**: instead of a whole second
+  Wiki.js instance (new container + DB + tunnel entry + git repo), auto-generated
+  per-artist pages could live as a separate top-level section in the *existing* KB
+  instead. Brian asked for a second, separate wiki — noting the cheaper option here in
+  case the tradeoff (isolation vs. one less system to run) is worth revisiting later.
