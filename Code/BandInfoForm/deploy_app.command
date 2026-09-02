@@ -16,7 +16,7 @@ KEY="$HOME/.ssh/proxmox_tds"
 
   echo "--- stage payloads ---"
   tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   app.py advance_db.py forms_config.py templates || exit 1
-  tar -C "$HERE/tools" -czf /tmp/adv_tools.tgz draft_emails.py docfill.py backfill.py event.py daysheet.py sheet.py import_sheet.py fieldspec.py build_template.py dump_followups.py status_sheet.py email_templates lists doc_templates || exit 1
+  tar -C "$HERE/tools" -czf /tmp/adv_tools.tgz draft_emails.py docfill.py backfill.py event.py daysheet.py sheet.py import_sheet.py fieldspec.py build_template.py dump_followups.py status_sheet.py package_run.py email_templates lists doc_templates || exit 1
 
   echo "--- copy to VM ---"
   scp -J tds -i "$KEY" /tmp/adv_app.tgz   "$VM:/tmp/adv_app.tgz"   || { echo "SCP app FAILED"; exit 1; }

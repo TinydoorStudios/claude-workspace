@@ -20,6 +20,11 @@ Code/spotify-downloader/
 # transient deploy logs
 Code/tempest-dashboard/deploy.out
 
+# band advance — live booking data + generated deliverables hold real contacts (local only)
+Advancing/advance-list.xlsx
+Advancing/.advance-status.tmp.xlsx
+Advancing/Events/
+
 # bulk static reference media — not workable content
 Kims Stuff/
 audio/SOP Stuff/

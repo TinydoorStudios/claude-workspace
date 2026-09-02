@@ -4,6 +4,17 @@ The advance pipeline: collect show details from artists, store them in one query
 database, detect returning artists, draft their advance emails, and auto-fill the
 standard show document. Built on the existing self-hosted Flask form.
 
+## The front door: `Advancing/`
+
+Day-to-day, Brian never opens this code tree. The production cockpit is the top-level
+**`Advancing/`** folder in the workspace: he edits `advance-list.xlsx`, double-clicks
+`generate.command`, and finished day-sheets + advance-email drafts appear under
+`Advancing/Events/<date — event (venue)>/`, with `advance-status.xlsx` as the read-back.
+`generate.command` uploads the sheet, runs **`tools/package_run.py`** on the VM (which
+rebuilds events, fills each day-sheet, drafts each email, refreshes the status sheet,
+and assembles the exact folder tree under `_package/`), then rsyncs that tree back down.
+The VM builds the tree; the Mac mirrors it. See `Advancing/README.md`.
+
 ## The shape
 
 A **front half Nyquist drives** (batch intake → draft emails → you send) and a
@@ -38,6 +49,7 @@ The database is the spine both halves touch.
 | Events | `tools/event.py` + `events`/`event_acts` tables | group up to 3 band submissions into opener/support/headliner slots |
 | Day-sheet fill | `tools/daysheet.py` | event → filled 513 Airwaves day-sheet `.docx` (writes band cells per act column) |
 | Doc fill (generic) | `tools/docfill.py` | single submission → filled `.docx` (docxtpl) — stand-in template |
+| Packager | `tools/package_run.py` | the VM entrypoint — sheet → full `Advancing/` tree (events, day-sheets, emails, status) under `_package/` |
 | Backfill | `tools/backfill.py` | replay disk JSON into the DB (safety net) |
 
 ## Database schema
