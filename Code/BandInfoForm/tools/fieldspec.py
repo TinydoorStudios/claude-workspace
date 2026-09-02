@@ -19,6 +19,35 @@ VENUES = [
 ]
 SLOTS = ["opener", "direct_support", "headliner"]
 
+# ── Dropbox filing framework ──────────────────────────────────────────────────
+# The finished advance doc files into <VenueAbbr>/<Year>/<MM Month>/, named
+# "<MMDDYY> <Event Name> advance.docx". Email drafts go in an "Email Drafts"
+# subfolder of the same month. Change these three lines to retune the whole scheme.
+VENUE_ABBR = {
+    "Fountain Square": "FSQ", "Washington Park": "WP", "Elm Street Plaza": "ESP",
+    "Court Street Plaza": "Court", "Imagination Alley": "IA",
+    "Zeigler Park": "ZP", "Memorial Hall": "Memo",
+}
+MONTHS = [None, "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"]
+EMAIL_DRAFTS_DIR = "Email Drafts"
+
+
+def venue_abbr(v):
+    return VENUE_ABBR.get((v or "").strip(), (v or "Venue TBD").strip())
+
+
+def month_folder(d):
+    return f"{d.month:02d} {MONTHS[d.month]}"
+
+
+def advance_stem(event_name, d):
+    """Filename stem (no extension): '090626 513 Airwaves w Inhailer Radio advance'."""
+    import re
+    name = re.sub(r"[/\\:*?\"<>|]+", " ", str(event_name or "Untitled")).strip()
+    name = re.sub(r"\s+", " ", name)
+    return f"{d.strftime('%m%d%y')} {name} advance"
+
 # (column label, internal key, choices|None)
 EVENT_FIELDS = [
     ("Event Name",    "event_name",  None),

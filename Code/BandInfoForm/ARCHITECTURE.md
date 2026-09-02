@@ -7,13 +7,16 @@ standard show document. Built on the existing self-hosted Flask form.
 ## The front door: `Advancing/`
 
 Day-to-day, Brian never opens this code tree. The production cockpit is the top-level
-**`Advancing/`** folder in the workspace: he edits `advance-list.xlsx`, double-clicks
-`generate.command`, and finished day-sheets + advance-email drafts appear under
-`Advancing/Events/<date — event (venue)>/`, with `advance-status.xlsx` as the read-back.
-`generate.command` uploads the sheet, runs **`tools/package_run.py`** on the VM (which
-rebuilds events, fills each day-sheet, drafts each email, refreshes the status sheet,
-and assembles the exact folder tree under `_package/`), then rsyncs that tree back down.
-The VM builds the tree; the Mac mirrors it. See `Advancing/README.md`.
+**`Advancing/`** folder (destined for a shared Dropbox — set `ADVANCE_ROOT` to point
+there): he edits `advance-list.xlsx`, double-clicks `generate.command`, and each show
+files into a venue archive at **`<VenueAbbr>/<Year>/<MM Month>/<MMDDYY> <Event> advance.docx`**
+with email drafts in an `Email Drafts/` subfolder. Status folds back into the sheet as a
+color-coded block (see below). `generate.command` uploads the sheet, runs
+**`tools/package_run.py`** on the VM (rebuild events → fill each advance doc → draft each
+email → emit `status.json` → assemble the venue tree under `_package/`), then rsyncs it
+back **as an overlay (no --delete)** so the archive accumulates. Filing scheme (venue
+abbreviations, month-folder format, filename) lives in `tools/fieldspec.py`. Generation
+never marks anything sent — that moves to Outlook. See `Advancing/README.md`.
 
 ## The shape
 

@@ -20,10 +20,12 @@ Code/spotify-downloader/
 # transient deploy logs
 Code/tempest-dashboard/deploy.out
 
-# band advance — live booking data + generated deliverables hold real contacts (local only)
-Advancing/advance-list.xlsx
-Advancing/.status.tmp.json
-Advancing/Events/
+# band advance — the Advancing/ folder holds live booking data + the filed venue
+# tree (real contacts). Track only the scaffold; ignore everything generated/local.
+Advancing/*
+!Advancing/generate.command
+!Advancing/README.md
+!Advancing/_template/
 
 # bulk static reference media — not workable content
 Kims Stuff/

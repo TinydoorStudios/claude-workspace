@@ -1,7 +1,7 @@
 # Advancing
 
-Everything for advancing a show lives here. Two files you touch, one you read,
-one folder that fills itself.
+Everything for advancing a show lives here: one sheet you edit, one command you
+run, and a venue-filed archive that builds itself.
 
 ```
 Advancing/
@@ -9,14 +9,19 @@ Advancing/
        • you fill the left columns (event / act / band details)
        • the band's form answers fill your blanks, tinted blue
        • a color-coded STATUS block is appended on the right
-  generate.command      ← double-click after editing. Builds everything.
-  Events/               ← auto-built, one folder per bill:
-      2026-09-11 — 513 Airwaves w Inhailer Radio (Fountain Square)/
-          Day Sheet.docx                  ← filled from sheet + the band's form
-          Advance Email — <Band>.md       ← draft per band (NOTHING is sent)
-          Followups/<Band>.md             ← only if a reminder is due
+  generate.command      ← double-click after editing. Builds + files everything.
   _template/            ← pristine copies — reset from here if the sheet gets messy
+
+  FSQ/ 2026/ 09 September/                         ← the filed archive (accumulates)
+       091126 513 Airwaves w Inhailer Radio advance.docx
+       Email Drafts/
+           091126 513 Airwaves w Inhailer Radio advance email - <Band>.md
+  WP/  Memo/  ESP/  Court/  IA/  ZP/ …
 ```
+
+Each show files into **`<Venue>/<Year>/<MM Month>/`** as
+`MMDDYY <Event Name> advance.docx`. Venue abbreviations: FSQ, WP, ESP, Court, IA,
+ZP (Zeigler), Memo. Email drafts land in an `Email Drafts/` subfolder of the month.
 
 ### Reading the sheet after a run
 
@@ -36,27 +41,30 @@ tinted cells + STATUS block in place. Your typed cells are never touched.
 1. Open **advance-list.xlsx** → the **Advance List** tab. Add a row per act (opener /
    support / headliner). Event name + date + venue group a bill together. Fill what you
    know; the band's form fills the rest. Dropdowns + a How-to tab are built in.
-2. Close the file, then double-click **generate.command**. Your blanks fill in with the
-   band's answers (tinted) and the STATUS block on the right refreshes.
-3. Open the new folder under **Events/**. Send each `Advance Email` from your mail
+2. Close the file, then double-click **generate.command**. Each show files into its
+   venue/year/month folder, your blanks fill with the band's answers (tinted), and the
+   STATUS block refreshes.
+3. Open the show's month folder. Send each **Email Drafts** file from your mail
    (drafts-you-approve — the system never sends). Finish the internal cells on the
-   `Day Sheet.docx` (PA, consoles, lead, buyout) in Word, then export to PDF.
+   advance `.docx` (PA, consoles, lead, buyout) in Word, then export to PDF.
 4. Bands fill the form at **advance.tinydoorstudios.com** (their email carries a
-   pre-addressed link). Re-run generate.command any time to pull their answers into
-   the day-sheet and status sheet.
+   pre-addressed link). Re-run generate.command any time to pull their answers in.
 
 ## Rules that matter
 
 - **Sheet value wins, the form fills gaps.** The spreadsheet is the source of truth.
-- **Nothing auto-sends** — initial emails or follow-ups. You review and send.
-- **Follow-up:** 10 days after the email, one reminder, drafted not sent. It stops
-  the moment the band submits the form (that = completed).
-- **Re-running is safe.** It rebuilds `Events/` from the current sheet and refreshes
-  status. Your form submissions are never touched.
+- **It files, it doesn't mirror.** Re-running a show updates its files in place; other
+  shows and past months are never touched — the tree is your archive.
+- **Nothing auto-sends.** Generating does NOT mark anything sent — real sending moves to
+  Outlook (next step), which is what will start the follow-up clock.
+- **Coordinators edit, everyone else reads.** 1–2 people run generate; the rest open the
+  filed docs. When this moves to a shared Dropbox folder, set `ADVANCE_ROOT` to that path
+  (one line in generate.command) and the tree + sheet live there.
 
 ## Under the hood
 
 The engine runs on the advance server (n8n VM, `/opt/band-advance/`). `generate.command`
-uploads the sheet, runs `tools/package_run.py`, and mirrors the built tree back here.
+uploads the sheet, runs `tools/package_run.py` (which files the venue tree), rsyncs it
+back as an overlay, and folds status into the sheet with `tools/merge_status.py`.
 App/code + database docs: `../Code/BandInfoForm/ARCHITECTURE.md`. Deploy code changes
 with `../Code/BandInfoForm/deploy_app.command`.

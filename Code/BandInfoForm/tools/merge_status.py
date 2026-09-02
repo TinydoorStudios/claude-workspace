@@ -130,14 +130,17 @@ def main():
 
     hrow = find_header_row(ws)
     data_start = hrow + 1
-    n_input = len(fs.ALL_COLUMNS)        # his columns occupy 1..n_input
 
-    # label -> column (his input block only)
+    # label -> column, from the actual header row (so columns can be reordered or
+    # removed). The STATUS block is anchored past the last real input column, not
+    # a hardcoded count.
+    spec_labels = {lbl for (lbl, _k, _c) in fs.ALL_COLUMNS}
     col_of = {}
-    for c in range(1, n_input + 1):
+    for c in range(1, ws.max_column + 1):
         lbl = _s(ws.cell(hrow, c).value)
-        if lbl:
+        if lbl in spec_labels:
             col_of[lbl] = c
+    n_input = max(col_of.values()) if col_of else 0
     key_col = {fs.LABEL_TO_KEY[lbl]: c for lbl, c in col_of.items()
                if lbl in fs.LABEL_TO_KEY}
     fill_cols = [(k, key_col[k]) for k in FILL_KEYS if k in key_col]

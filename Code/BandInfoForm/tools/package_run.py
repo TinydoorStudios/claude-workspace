@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
-"""Build the whole Advancing/ output tree from the advance list spreadsheet.
+"""Build the advance filing tree from the advance list spreadsheet.
 
 The single entrypoint generate.command runs on the VM. It rebuilds events+acts
-from the sheet (form submissions are never touched), then lays out, under --out:
+from the sheet (form submissions are never touched), then files each event into
+the venue tree under --out:
 
-    advance-status.xlsx
-    Events/
-        <date> — <event> (<venue>)/
-            Day Sheet.docx
-            Advance Email — <Band>.md          (one per act)
-            Followups/<Band>.md                (only if one is queued)
+    <VenueAbbr>/<Year>/<MM Month>/
+        <MMDDYY> <Event Name> advance.docx
+        Email Drafts/
+            <MMDDYY> <Event Name> email - <Band>.md      (one per act)
+            <MMDDYY> <Event Name> followup - <Band>.md    (only if queued)
+    status.json                                            (for the sheet's Status)
 
-The Mac's generate.command mirrors that tree straight into the Advancing/ folder,
-so what the VM builds is exactly what Brian sees. Nothing is ever sent.
+The Mac's generate.command OVERLAYS this into the Advancing/ folder (never
+deletes) so the tree accumulates as a real archive. Nothing is ever sent — the
+send step moves to Outlook, so generate no longer stamps email_sent_at.
 
   python3 package_run.py lists/_current.xlsx --out _package
 """
@@ -31,6 +33,7 @@ for _cand in (HERE.parent, HERE.parent / "app"):
 sys.path.insert(0, str(HERE))
 import advance_db as db
 import daysheet
+import fieldspec as fs
 from draft_emails import slug  # same slug the drafts are named with
 
 PY = sys.executable
@@ -48,12 +51,22 @@ def safe(s):
     return re.sub(r"\s+", " ", s)
 
 
-def event_folder_name(ev, acts):
-    date = ev.get("event_date").isoformat() if ev.get("event_date") else "no-date"
+def event_dir(out, ev, acts):
+    """<out>/<VenueAbbr>/<Year>/<MM Month>/ for this event."""
+    venue = fs.venue_abbr(ev.get("venue"))
+    d = ev.get("event_date")
+    if d:
+        return out / safe(venue) / str(d.year) / fs.month_folder(d)
+    return out / safe(venue) / "No Date"
+
+
+def event_stem(ev, acts):
+    d = ev.get("event_date")
     name = ev.get("name") or ", ".join(
         a["artist"]["name"] for a in acts if a.get("artist")) or "Untitled"
-    venue = ev.get("venue") or "venue TBD"
-    return safe(f"{date} — {name} ({venue})")
+    if d:
+        return fs.advance_stem(name, d)
+    return f"{safe(name)} advance"
 
 
 def find_one(folder, pattern):
@@ -70,8 +83,7 @@ def main():
     out = (HERE / args.out).resolve()
     if out.exists():
         shutil.rmtree(out)
-    events_dir = out / "Events"
-    events_dir.mkdir(parents=True)
+    out.mkdir(parents=True)
 
     # 1. rebuild the event/act model from the sheet (submissions untouched)
     with db.get_conn() as conn, conn.cursor() as cur:
@@ -80,50 +92,50 @@ def main():
     run("import_sheet.py", args.sheet)
 
     # 2. regenerate the flat draft/day-sheet artifacts into their working dirs
+    #    (no --mark-sent: sending is the Outlook step, not generation)
     for d in (DRAFTS, FOLLOWUPS, daysheet.FILLED):
         if d.exists():
             for f in d.glob("*"):
                 if f.is_file():
                     f.unlink()
-    run("draft_emails.py", args.sheet, "--mark-sent")
+    run("draft_emails.py", args.sheet)
     run("dump_followups.py")
     run("status_sheet.py", "--json", str(out / "status.json"))
 
-    # 3. compose the per-event tree
-    n_events = n_daysheets = n_emails = n_followups = 0
+    # 3. file each event into the venue tree
+    n_events = n_emails = n_followups = 0
     with db.get_conn() as conn, conn.cursor() as cur:
-        events = db.list_events(cur)
-        for e in events:
+        for e in db.list_events(cur):
             eid = e["id"]
             ev = db.get_event(cur, eid)
             acts = db.event_acts(cur, eid)
-            folder = events_dir / event_folder_name(ev, acts)
+            folder = event_dir(out, ev, acts)
             folder.mkdir(parents=True, exist_ok=True)
+            stem = event_stem(ev, acts)
             n_events += 1
 
-            daysheet.fill(eid, daysheet.DEFAULT_TEMPLATE, out_path=folder / "Day Sheet.docx")
-            n_daysheets += 1
+            daysheet.fill(eid, daysheet.DEFAULT_TEMPLATE, out_path=folder / f"{stem}.docx")
 
             date = ev.get("event_date").isoformat() if ev.get("event_date") else None
+            drafts_dir = folder / fs.EMAIL_DRAFTS_DIR
             for a in acts:
                 if not a.get("artist"):
                     continue
                 name = a["artist"]["name"]
                 sg = slug(name)
-                pat = f"{sg}__{date}__*.md" if date else f"{sg}__*.md"
-                draft = find_one(DRAFTS, pat)
+                draft = find_one(DRAFTS, f"{sg}__{date}__*.md" if date else f"{sg}__*.md")
                 if draft:
-                    shutil.copy(draft, folder / f"Advance Email — {safe(name)}.md")
+                    drafts_dir.mkdir(exist_ok=True)
+                    shutil.copy(draft, drafts_dir / f"{stem} email - {safe(name)}.md")
                     n_emails += 1
                 fu = find_one(FOLLOWUPS, f"{sg}__followup.md")
                 if fu:
-                    (folder / "Followups").mkdir(exist_ok=True)
-                    shutil.copy(fu, folder / "Followups" / f"{safe(name)}.md")
+                    drafts_dir.mkdir(exist_ok=True)
+                    shutil.copy(fu, drafts_dir / f"{stem} followup - {safe(name)}.md")
                     n_followups += 1
 
     print(f"\nPackage built at {out}")
-    print(f"  {n_events} event folder(s) · {n_daysheets} day-sheet(s) · "
-          f"{n_emails} email(s) · {n_followups} follow-up(s)")
+    print(f"  {n_events} event(s) filed · {n_emails} email(s) · {n_followups} follow-up(s)")
 
 
 if __name__ == "__main__":
