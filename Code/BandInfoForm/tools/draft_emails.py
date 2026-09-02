@@ -51,6 +51,16 @@ env = Environment(
 )
 
 
+def us_date(d):
+    """M/D/Y for anything shown IN a drafted email — Brian's US convention.
+    Filenames and the console summary table stay ISO (sorts correctly)."""
+    if not d:
+        return ""
+    if isinstance(d, str):
+        d = parse_date(d)
+    return d.strftime("%m/%d/%Y") if d else ""
+
+
 def parse_date(s):
     s = (s or "").strip()
     for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y", "%B %d, %Y", "%b %d, %Y"):
@@ -113,7 +123,7 @@ def summarize_submission(sub):
     def yn(v): return "Yes" if v else ("No" if v is False else "—")
     lines = [
         ("Last show", f"{sub.get('venue') or '—'}"
-                      f"{(' on ' + sub['show_date'].isoformat()) if sub.get('show_date') else ''}"),
+                      f"{(' on ' + us_date(sub['show_date'])) if sub.get('show_date') else ''}"),
         ("Performers + crew", sub.get("performers")),
         ("Monitors", sub.get("monitors")),
         ("Own IEMs", yn(sub.get("own_iems")) + (f" (split: {sub['split_snake']})"
@@ -169,7 +179,7 @@ def main():
             deadline = ""
             if show_date:
                 d = show_date - dt.timedelta(days=10)
-                deadline = d.isoformat() if d >= dt.date.today() else ""
+                deadline = us_date(d) if d >= dt.date.today() else ""
 
             with conn.cursor() as cur:
                 artist_id = db.upsert_artist(cur, name, email=email)
@@ -224,7 +234,7 @@ def main():
                 blocks=ve.blocks_for(venue), common_requirements=ve.COMMON_REQUIREMENTS,
                 personal_note=(lambda n: f"{n}\n\n" if n else "")((r.get("email_note") or "").strip()),
                 event_name=r.get("event_name") or "",
-                show_date=show_date.isoformat() if show_date else "",
+                show_date=us_date(show_date),
                 advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
                 set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
                 form_link=f"{PUBLIC_URL}/f/{token}", deadline=deadline,
