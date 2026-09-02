@@ -195,7 +195,7 @@ def _notify_submission(rec):
 
 # ── gated views (passcode) ──────────────────────────────────────────────────
 
-GATED_PREFIXES = ("/search", "/artist", "/file", "/submission")
+GATED_PREFIXES = ("/search", "/artist", "/file", "/submission", "/booking")
 
 
 @app.before_request
@@ -213,6 +213,40 @@ def gate():
             return redirect(request.args.get("next") or url_for("search"))
         return render_template("gate.html", error="Incorrect passcode."), 403
     return render_template("gate.html", error=None)
+
+
+BOOKING_SLOTS = ["headliner", "direct_support", "opener"]
+
+
+@app.route("/booking", methods=["GET", "POST"])
+def booking():
+    """Short staff intake form for a new artist booking. Writes to the bookings
+    table; the next generate seeds it into the master spreadsheet."""
+    if request.method == "POST":
+        f = request.form
+        if not f.get("artist_name") or not f.get("event_name"):
+            return render_template("booking.html", venues=forms_config.VENUES,
+                                   slots=BOOKING_SLOTS, error="Event name and artist name are required.",
+                                   form=f), 400
+        data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
+        saved = False
+        if DB_OK:
+            try:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    advance_db.insert_booking(cur, data)
+                    conn.commit()
+                saved = True
+            except Exception as e:
+                _log_db_error("insert_booking", e)
+        if not saved:
+            return render_template("booking.html", venues=forms_config.VENUES,
+                                   slots=BOOKING_SLOTS,
+                                   error="Couldn't save — the database is unreachable. Try again shortly.",
+                                   form=f), 503
+        return render_template("booking.html", venues=forms_config.VENUES,
+                               slots=BOOKING_SLOTS, saved=data)
+    return render_template("booking.html", venues=forms_config.VENUES,
+                           slots=BOOKING_SLOTS, form={})
 
 
 @app.get("/search")

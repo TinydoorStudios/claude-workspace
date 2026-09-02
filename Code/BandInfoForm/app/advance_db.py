@@ -359,3 +359,40 @@ def event_acts(cur, event_id):
         else:
             a["submission"] = None
     return acts
+
+
+# ── staff booking intake ─────────────────────────────────────────────────────
+BOOKING_FIELDS = [
+    "event_name", "event_date", "venue", "series", "event_type", "paying_band",
+    "lead_name", "lead_phone", "load_in", "soundcheck", "event_start",
+    "event_end", "curfew", "slot", "set_time", "artist_name", "contact_email",
+    "email_note", "entered_by",
+]
+
+
+def insert_booking(cur, data: dict):
+    """Insert one staff-entered booking. Blank strings stored as NULL."""
+    vals = {k: (data.get(k) or None) for k in BOOKING_FIELDS}
+    ed = vals.get("event_date")
+    if isinstance(ed, str) and ed.strip():
+        try:
+            vals["event_date"] = dt.date.fromisoformat(ed.strip()[:10])
+        except ValueError:
+            vals["event_date"] = None
+    cols = ", ".join(BOOKING_FIELDS)
+    ph = ", ".join(f"%({k})s" for k in BOOKING_FIELDS)
+    cur.execute(f"INSERT INTO bookings ({cols}) VALUES ({ph}) RETURNING id", vals)
+    return cur.fetchone()["id"]
+
+
+def unseeded_bookings(cur):
+    """Bookings not yet appended to the sheet, oldest first."""
+    cur.execute("SELECT * FROM bookings WHERE seeded_at IS NULL ORDER BY id")
+    return cur.fetchall()
+
+
+def mark_bookings_seeded(cur, ids):
+    if not ids:
+        return
+    cur.execute("UPDATE bookings SET seeded_at = now() WHERE id = ANY(%s)",
+                (list(ids),))

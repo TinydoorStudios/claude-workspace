@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New Booking</title>
+<style>
+  body{margin:0;background:#eef1f5;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;}
+  header{background:#1A3A5C;color:#fff;padding:18px 0;}
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px;}
+  header h1{margin:0;font-size:18px;}
+  header p{margin:4px 0 0;font-size:13px;color:#c7d2e5;}
+  .card{background:#fff;border:1px solid #d9dee5;border-radius:12px;padding:22px;margin:22px 0;}
+  form{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+  .full{grid-column:1 / -1;}
+  label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#4b5563;margin-bottom:5px;}
+  .req label:after{content:" *";color:#b91c1c;}
+  input,select,textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d9dee5;border-radius:8px;font:inherit;background:#fff;}
+  textarea{min-height:64px;resize:vertical;}
+  details{grid-column:1 / -1;border-top:1px solid #eef1f5;padding-top:14px;margin-top:2px;}
+  summary{cursor:pointer;font-weight:600;color:#2E6DA4;font-size:14px;margin-bottom:12px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+  button{grid-column:1 / -1;background:#1A3A5C;color:#fff;border:0;border-radius:9px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;}
+  .banner{border-radius:9px;padding:13px 16px;margin:22px 0;font-size:14px;}
+  .ok{background:#dcfce7;border:1px solid #86efac;color:#14532d;}
+  .err{background:#fee2e2;border:1px solid #fca5a5;color:#7f1d1d;}
+  .hint{grid-column:1 / -1;color:#6b7280;font-size:13px;margin:-4px 0 4px;}
+  a.btn{display:inline-block;margin-top:10px;color:#2E6DA4;font-weight:600;text-decoration:none;}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>New Artist Booking</h1><p>3CDC Events — log a booking; the band fills the rest on their advance form.</p></div></header>
+<div class="wrap">
+
+{% if saved %}
+  <div class="banner ok">
+    Booking logged: <strong>{{ saved.artist_name }}</strong>{% if saved.event_name %} — {{ saved.event_name }}{% endif %}{% if saved.venue %} @ {{ saved.venue }}{% endif %}{% if saved.event_date %} ({{ saved.event_date }}){% endif %}.
+    It'll appear in the advance sheet on the next run.
+  </div>
+  <a class="btn" href="{{ url_for('booking') }}">+ Log another booking</a>
+{% else %}
+  {% if error %}<div class="banner err">{{ error }}</div>{% endif %}
+  <div class="card">
+  <form method="post" action="{{ url_for('booking') }}">
+    <div class="full req"><label>Event Name</label><input name="event_name" value="{{ form.event_name or '' }}" placeholder="e.g. 513 Airwaves w/ Inhailer Radio" required></div>
+    <div class="req"><label>Event Date</label><input type="date" name="event_date" value="{{ form.event_date or '' }}" required></div>
+    <div class="req"><label>Venue</label>
+      <select name="venue" required>
+        <option value="">Select…</option>
+        {% for v in venues %}<option value="{{ v }}" {% if form.venue==v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="req"><label>Artist / Band</label><input name="artist_name" value="{{ form.artist_name or '' }}" placeholder="Band name (exactly)" required></div>
+    <div class="req"><label>Contact Email</label><input type="email" name="contact_email" value="{{ form.contact_email or '' }}" placeholder="booking contact"></div>
+    <div><label>Slot</label>
+      <select name="slot">
+        {% for s in slots %}<option value="{{ s }}" {% if form.slot==s %}selected{% endif %}>{{ s.replace('_',' ') }}</option>{% endfor %}
+      </select>
+    </div>
+    <div><label>Set Length</label><input name="set_time" value="{{ form.set_time or '' }}" placeholder="e.g. 60 min"></div>
+    <div class="full"><label>Series</label><input name="series" value="{{ form.series or '' }}" placeholder="optional — series / presenter"></div>
+    <p class="hint">Multiple bands on one bill? Log each band separately with the same event name, date, and venue.</p>
+
+    <details {% if form.lead_name or form.load_in or form.email_note %}open{% endif %}>
+      <summary>More detail (optional — schedule, contacts, note)</summary>
+      <div class="grid2">
+        <div><label>Event Type</label>
+          <select name="event_type">
+            <option value="" {% if not form.event_type %}selected{% endif %}>—</option>
+            <option {% if form.event_type=='Internal' %}selected{% endif %}>Internal</option>
+            <option {% if form.event_type=='Third Party' %}selected{% endif %}>Third Party</option>
+          </select>
+        </div>
+        <div><label>Paying Band?</label>
+          <select name="paying_band">
+            <option value="" {% if not form.paying_band %}selected{% endif %}>—</option>
+            <option {% if form.paying_band=='Yes' %}selected{% endif %}>Yes</option>
+            <option {% if form.paying_band=='No' %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div><label>Day-of Lead</label><input name="lead_name" value="{{ form.lead_name or '' }}"></div>
+        <div><label>Lead Phone</label><input name="lead_phone" value="{{ form.lead_phone or '' }}"></div>
+        <div><label>Load-In</label><input name="load_in" value="{{ form.load_in or '' }}" placeholder="e.g. 4:30p"></div>
+        <div><label>Sound Check</label><input name="soundcheck" value="{{ form.soundcheck or '' }}" placeholder="e.g. 5:00p"></div>
+        <div><label>Start</label><input name="event_start" value="{{ form.event_start or '' }}" placeholder="e.g. 7:00p"></div>
+        <div><label>End</label><input name="event_end" value="{{ form.event_end or '' }}" placeholder="e.g. 10:00p"></div>
+        <div><label>Curfew</label><input name="curfew" value="{{ form.curfew or '' }}" placeholder="e.g. 11:00p"></div>
+        <div><label>Entered By</label><input name="entered_by" value="{{ form.entered_by or '' }}" placeholder="your name"></div>
+      </div>
+      <div style="margin-top:14px"><label>Email Note (personal line for this band's advance email)</label>
+        <textarea name="email_note" placeholder="e.g. Great to have you back — same backline as last time?">{{ form.email_note or '' }}</textarea>
+      </div>
+    </details>
+
+    <button type="submit">Log booking</button>
+  </form>
+  </div>
+{% endif %}
+</div>
+</body>
+</html>

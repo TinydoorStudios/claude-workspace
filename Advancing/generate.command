@@ -27,6 +27,17 @@ SHEET="$ROOT/advance-list.xlsx"
 
 [ -f "$SHEET" ] || { echo "Missing $SHEET"; exit 1; }
 
+echo "Pulling any new staff bookings into the sheet ..."
+BK="$ROOT/.bookings.tmp.json"
+if "${SSH[@]}" "$VM" 'set -a; . /opt/band-advance/advance.env; set +a; cd /opt/band-advance/tools; ../venv/bin/python seed_bookings.py --json' > "$BK" 2>/dev/null; then
+  IDS=$(python3 "$TOOLS/append_bookings.py" --list "$SHEET" --data "$BK" 2>/dev/null)
+  if [ -n "$IDS" ]; then
+    "${SSH[@]}" "$VM" "set -a; . /opt/band-advance/advance.env; set +a; cd /opt/band-advance/tools; ../venv/bin/python seed_bookings.py --seed '$IDS'" 2>/dev/null
+    echo "  seeded $(echo "$IDS" | tr ',' '\n' | grep -c .) booking(s) from the intake form"
+  fi
+fi
+rm -f "$BK"
+
 echo "Uploading advance-list.xlsx ..."
 scp -J tds -i "$KEY" "$SHEET" "$VM:/opt/band-advance/tools/lists/_current.xlsx" \
   || { echo "upload failed — is the VM reachable?"; exit 1; }

@@ -184,3 +184,31 @@ CREATE TRIGGER trg_artists_touch BEFORE UPDATE ON artists
 DROP TRIGGER IF EXISTS trg_shows_touch ON shows;
 CREATE TRIGGER trg_shows_touch BEFORE UPDATE ON shows
   FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
+
+-- staff booking intake (short gated form). Seeds the master spreadsheet on the
+-- next generate: unseeded rows are appended as sheet rows, then stamped seeded.
+-- Mirrors the sheet's EVENT + ACT columns; band-detail fields stay the band's job.
+CREATE TABLE IF NOT EXISTS bookings (
+    id            SERIAL PRIMARY KEY,
+    event_name    TEXT,
+    event_date    DATE,
+    venue         TEXT,
+    series        TEXT,
+    event_type    TEXT,
+    paying_band   TEXT,
+    lead_name     TEXT,
+    lead_phone    TEXT,
+    load_in       TEXT,
+    soundcheck    TEXT,
+    event_start   TEXT,
+    event_end     TEXT,
+    curfew        TEXT,
+    slot          TEXT,
+    set_time      TEXT,
+    artist_name   TEXT,
+    contact_email TEXT,
+    email_note    TEXT,
+    entered_by    TEXT,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    seeded_at     TIMESTAMPTZ
+);
