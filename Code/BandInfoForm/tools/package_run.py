@@ -39,6 +39,7 @@ from draft_emails import slug  # same slug the drafts are named with
 PY = sys.executable
 DRAFTS = HERE / "drafts"
 FOLLOWUPS = HERE / "followups"
+UPLOADS = HERE.parent / "data" / "uploads"      # where the form stores stage plots
 
 
 def run(*args):
@@ -103,7 +104,7 @@ def main():
     run("status_sheet.py", "--json", str(out / "status.json"))
 
     # 3. file each event into the venue tree
-    n_events = n_emails = n_followups = 0
+    n_events = n_emails = n_followups = n_plots = 0
     with db.get_conn() as conn, conn.cursor() as cur:
         for e in db.list_events(cur):
             eid = e["id"]
@@ -114,7 +115,30 @@ def main():
             stem = event_stem(ev, acts)
             n_events += 1
 
-            daysheet.fill(eid, daysheet.DEFAULT_TEMPLATE, out_path=folder / f"{stem}.docx")
+            # download + file each band's stage plot next to the advance doc,
+            # renamed to the show; the day-sheet cell then points at the file.
+            d = ev.get("event_date")
+            plot_stem = (fs.stageplot_stem(ev.get("name") or "Untitled", d)
+                         if d else f"{safe(ev.get('name') or 'Untitled')} stageplot")
+            plots = [(a, ((a.get("submission") or {}).get("data") or {}).get("stage_plot_file"))
+                     for a in acts]
+            plots = [(a, s) for (a, s) in plots if s]
+            multi = len(plots) > 1
+            stageplot_names = {}
+            for a, stored in plots:
+                src = UPLOADS / stored
+                if not src.exists():
+                    print(f"  ! stage plot file missing on server: {stored}")
+                    continue
+                band = a["artist"]["name"] if a.get("artist") else "band"
+                ext = Path(stored).suffix
+                fname = f"{plot_stem} - {safe(band)}{ext}" if multi else f"{plot_stem}{ext}"
+                shutil.copy(src, folder / fname)
+                stageplot_names[band] = fname
+                n_plots += 1
+
+            daysheet.fill(eid, daysheet.DEFAULT_TEMPLATE, out_path=folder / f"{stem}.docx",
+                          stageplot_names=stageplot_names)
 
             date = ev.get("event_date").isoformat() if ev.get("event_date") else None
             drafts_dir = folder / fs.EMAIL_DRAFTS_DIR
@@ -135,7 +159,8 @@ def main():
                     n_followups += 1
 
     print(f"\nPackage built at {out}")
-    print(f"  {n_events} event(s) filed · {n_emails} email(s) · {n_followups} follow-up(s)")
+    print(f"  {n_events} event(s) filed · {n_emails} email(s) · "
+          f"{n_followups} follow-up(s) · {n_plots} stage plot(s)")
 
 
 if __name__ == "__main__":

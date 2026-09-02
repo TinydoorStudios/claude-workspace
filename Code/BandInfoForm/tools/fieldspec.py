@@ -41,12 +41,20 @@ def month_folder(d):
     return f"{d.month:02d} {MONTHS[d.month]}"
 
 
+def _clean(name):
+    import re
+    name = re.sub(r"[/\\:*?\"<>|]+", " ", str(name or "Untitled")).strip()
+    return re.sub(r"\s+", " ", name)
+
+
 def advance_stem(event_name, d):
     """Filename stem (no extension): '090626 513 Airwaves w Inhailer Radio advance'."""
-    import re
-    name = re.sub(r"[/\\:*?\"<>|]+", " ", str(event_name or "Untitled")).strip()
-    name = re.sub(r"\s+", " ", name)
-    return f"{d.strftime('%m%d%y')} {name} advance"
+    return f"{d.strftime('%m%d%y')} {_clean(event_name)} advance"
+
+
+def stageplot_stem(event_name, d):
+    """Filename stem for a filed stage plot: '090626 513 Airwaves... stageplot'."""
+    return f"{d.strftime('%m%d%y')} {_clean(event_name)} stageplot"
 
 # (column label, internal key, choices|None)
 EVENT_FIELDS = [

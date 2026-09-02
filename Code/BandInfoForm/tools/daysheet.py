@@ -93,11 +93,16 @@ def act_cells(f):
     if not f:
         return out
 
-    sp = f.get("stage_plot_desc", "")
-    if f.get("stage_plot_file"):
-        sp = (sp + " (file on record)").strip()
-    if sp:
-        out["stage plot"] = sp
+    saved = f.get("_stageplot_saved")
+    if saved:
+        # the plot was downloaded + filed next to this doc — point there, not inline
+        out["stage plot"] = f"See DB — {saved}"
+    else:
+        sp = f.get("stage_plot_desc", "")
+        if f.get("stage_plot_file"):
+            sp = (sp + " (file on record)").strip()
+        if sp:
+            out["stage plot"] = sp
 
     oe = f.get("own_engineer")
     if oe:
@@ -222,7 +227,11 @@ def fill_audio_times(grid, acts, event):
             return
 
 
-def fill(event_id, template, out_path=None):
+def fill(event_id, template, out_path=None, stageplot_names=None):
+    """stageplot_names: {artist name -> filed stage-plot filename}. When an act's
+    plot was downloaded and filed next to this doc, its Stage Plot cell reads
+    'See DB — <filename>' instead of the inline description."""
+    stageplot_names = stageplot_names or {}
     if not template.exists():
         print(f"Template not found: {template}", file=sys.stderr)
         sys.exit(1)
@@ -250,7 +259,11 @@ def fill(event_id, template, out_path=None):
         col = SLOT_COL.get(a["slot"])
         if col is None:
             continue
-        cells = act_cells(merged_fields(a))
+        mf = merged_fields(a)
+        who = a["artist"]["name"] if a.get("artist") else None
+        if who and stageplot_names.get(who):
+            mf["_stageplot_saved"] = stageplot_names[who]
+        cells = act_cells(mf)
         if cells:
             filled_acts += 1
         for label, value in cells.items():
