@@ -4,6 +4,28 @@ The advance pipeline: collect show details from artists, store them in one query
 database, detect returning artists, draft their advance emails, and auto-fill the
 standard show document. Built on the existing self-hosted Flask form.
 
+## VM-native Dropbox sync (2026-09-02)
+
+The n8n VM (192.168.200.84) runs its own headless Dropbox client (`~/.dropbox-dist/dropboxd`
++ `~/dropbox.py`, linked to Brian's account, **selective sync restricted to `Nyquist/`
+only** — every other top-level item is excluded so the VM never holds Brian's other
+Dropbox content locally). `~/Dropbox/Nyquist/` on the VM is the same live folder as
+`~/Dropbox/Nyquist/` on the Mac; Dropbox propagates either side's writes to the other
+in a few seconds. **Caveat:** the exclude list is a snapshot of what existed at setup
+time (188 items) — a brand-new top-level item in Brian's Dropbox won't be auto-excluded.
+Brian chose to accept that for now rather than set up a dedicated Dropbox account
+scoped to only the Nyquist folder (the structurally bulletproof version); revisit if
+he asks. **Rule: nothing outside `Nyquist/` is ever written or deleted from this side.**
+
+This lets `tools/run_now.py` do the whole generate pipeline locally on the VM — seed
+pending staff bookings into `advance-list.xlsx`, run `package_run.py`, overlay the
+built tree into the live folder, fold status back into the sheet — with no SSH/scp/
+rsync hop back to the Mac. `/booking/run` (gated) wraps it; the `/booking` thank-you
+page has a **"Run advance now"** button that calls it and shows a result summary.
+The Mac's `generate.command` still works (it uses its own separate upload path to
+`lists/_current.xlsx`, not the Dropbox-synced copy) but is now largely redundant for
+day-to-day use — the button/VM path is the live one.
+
 ## The front door: `Advancing/`
 
 Day-to-day, Brian never opens this code tree. The production cockpit is the top-level
