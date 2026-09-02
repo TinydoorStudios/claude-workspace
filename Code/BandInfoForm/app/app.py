@@ -8,6 +8,8 @@ backfill tool can replay anything the DB missed.
 """
 import json
 import re
+import subprocess
+import sys
 import datetime as dt
 import mimetypes
 from pathlib import Path
@@ -247,6 +249,30 @@ def booking():
                                slots=BOOKING_SLOTS, saved=data)
     return render_template("booking.html", venues=forms_config.VENUES,
                            slots=BOOKING_SLOTS, form={})
+
+
+@app.post("/booking/run")
+def booking_run():
+    """Thank-you-page button: seed the sheet, build the package, file the venue
+    tree, fold status back in — all local now that the sheet lives on this box
+    too (Dropbox-synced). Gated same as /booking. Idempotent (run_now.py locks
+    against overlap); safe to click more than once."""
+    tools = BASE / "tools"
+    try:
+        p = subprocess.run(
+            [sys.executable, "run_now.py"], cwd=tools,
+            capture_output=True, text=True, timeout=240,
+        )
+    except subprocess.TimeoutExpired:
+        return {"error": "timed out after 240s"}, 504
+    line = (p.stdout or "").strip().splitlines()[-1] if p.stdout else ""
+    try:
+        result = json.loads(line)
+    except (ValueError, IndexError):
+        return {"error": "bad output", "stdout": p.stdout[-2000:], "stderr": p.stderr[-2000:]}, 500
+    if "error" in result:
+        return result, 500
+    return result
 
 
 @app.get("/search")

@@ -35,9 +35,38 @@
 {% if saved %}
   <div class="banner ok">
     Booking logged: <strong>{{ saved.artist_name }}</strong>{% if saved.event_name %} — {{ saved.event_name }}{% endif %}{% if saved.venue %} @ {{ saved.venue }}{% endif %}{% if saved.event_date %} ({{ saved.event_date }}){% endif %}.
-    It'll appear in the advance sheet on the next run.
+  </div>
+  <div class="card">
+    <button type="button" id="runBtn" onclick="runNow()">Run advance now</button>
+    <p class="hint" style="margin-top:10px">Seeds this booking into the sheet, builds the advance doc + email draft, and files it into the venue tree. Takes ~30–60s.</p>
+    <div id="runResult"></div>
   </div>
   <a class="btn" href="{{ url_for('booking') }}">+ Log another booking</a>
+  <script>
+  async function runNow() {
+    const btn = document.getElementById('runBtn');
+    const out = document.getElementById('runResult');
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+    out.innerHTML = '';
+    try {
+      const r = await fetch('{{ url_for("booking_run") }}', {method: 'POST'});
+      const data = await r.json();
+      if (!r.ok || data.error) {
+        out.innerHTML = '<div class="banner err">' + (data.error || 'Run failed') + '</div>';
+      } else {
+        out.innerHTML = '<div class="banner ok">Done — ' + data.events + ' event(s) filed, '
+          + data.emails + ' email(s) drafted' + (data.plots ? ', ' + data.plots + ' stage plot(s) filed' : '')
+          + '.</div>';
+      }
+    } catch (e) {
+      out.innerHTML = '<div class="banner err">Request failed: ' + e + '</div>';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Run advance now';
+    }
+  }
+  </script>
 {% else %}
   {% if error %}<div class="banner err">{{ error }}</div>{% endif %}
   <div class="card">

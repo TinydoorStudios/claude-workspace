@@ -30,7 +30,7 @@ def main():
         ids = [int(x) for x in args[i + 1].split(",") if x.strip().isdigit()]
         with db.get_conn() as conn, conn.cursor() as cur:
             db.mark_bookings_seeded(cur, ids)
-        conn.commit()
+            conn.commit()
         print(f"seeded {len(ids)} booking(s)", file=sys.stderr)
     else:
         print("usage: seed_bookings.py --json | --seed <ids>", file=sys.stderr)
