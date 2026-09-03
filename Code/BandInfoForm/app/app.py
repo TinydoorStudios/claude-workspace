@@ -100,6 +100,7 @@ def form():
         "form.html", venues=forms_config.VENUES, cfg=cfg,
         prefill={}, returning=False, artist_name=None,
         tech_packs=forms_config.tech_packs(),
+        locked_band_name=False, locked_venue=False, locked_date=False,
     )
 
 
@@ -127,6 +128,19 @@ def prefilled_form(token):
     cfg = forms_config.get_config(
         series_key=series, venue=seed.get("venue") or request.args.get("venue"))
     prefill, returning, artist_name = {}, False, None
+    # Locked = this specific value came from us (the booking record / matched
+    # artist), not from the band typing it — bands can't edit these three.
+    # A returning band's own PRIOR answers to every other question stay editable.
+    locked_venue = bool(seed.get("venue"))
+    locked_date = bool(seed.get("date"))
+    locked_band_name = False
+    # Seed venue/date into prefill independent of the DB lookup below — these
+    # come straight from the signed token, so a locked field still renders its
+    # real value even if the artist lookup skips or fails (DB down, no match).
+    if locked_venue:
+        prefill["venue"] = seed["venue"]
+    if locked_date:
+        prefill["show_date"] = seed["date"]
     if payload.get("a") and DB_OK:
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -134,6 +148,7 @@ def prefilled_form(token):
                 sub = advance_db.newest_submission(cur, payload["a"]) if artist else None
             if artist:
                 artist_name = artist["name"]
+                locked_band_name = True
                 base = {}
                 if sub:
                     base = dict(sub.get("data") or {})  # prior answers
@@ -154,6 +169,8 @@ def prefilled_form(token):
         "form.html", venues=forms_config.VENUES, cfg=cfg,
         prefill=prefill, returning=returning, artist_name=artist_name,
         tech_packs=forms_config.tech_packs(),
+        locked_band_name=locked_band_name, locked_venue=locked_venue,
+        locked_date=locked_date,
     )
 
 

@@ -51,6 +51,8 @@
   .checkrow input{margin-top:3px;flex:0 0 auto;width:17px;height:17px;}
   .checkrow label{font-size:14px;font-weight:600;}
 
+  .locked{background:#f3f4f6;color:#4b5563;cursor:not-allowed;}
+  .lockhint{font-size:12.5px;color:var(--muted);margin:6px 0 0;}
   .hidden{display:none;}
   .conditional{border-left:3px solid var(--accent);padding-left:14px;margin-left:2px;
     background:#f7fafd;border-radius:0 8px 8px 0;padding-top:14px;padding-bottom:2px;padding-right:12px;}
@@ -74,8 +76,9 @@
 {% if returning %}
 <div class="returning"><div class="box">
   Welcome back{% if artist_name %}, {{ artist_name }}{% endif %}. We've pre-filled your
-  last submission below. Update anything that has changed, confirm the show date and
-  venue, and re-acknowledge the items at the bottom.
+  last submission below — update anything that has changed and re-acknowledge the items
+  at the bottom. Fields marked "locked to your booking" are set from our records; email
+  us if one of those is wrong.
 </div></div>
 {% endif %}
 
@@ -95,21 +98,42 @@
 
   <div class="field">
     <label class="q">Band / Group Name<span class="req">*</span></label>
+    {% if locked_band_name %}
+    <input type="text" class="locked" value="{{ v('band_name') }}" readonly>
+    <input type="hidden" name="band_name" value="{{ v('band_name') }}">
+    <p class="lockhint">🔒 Locked to your booking — email us if this needs to change.</p>
+    {% else %}
     <input type="text" name="band_name" required value="{{ v('band_name') }}">
+    {% endif %}
   </div>
 
   <div class="field">
     <label class="q">Venue<span class="req">*</span></label>
     {% set pv = prefill.get('venue') or cfg.venue_preselect %}
+    {% if locked_venue %}
+    <select id="venue_select" class="locked" disabled>
+      <option value="" disabled {{ 'selected' if not pv else '' }}>Select a venue…</option>
+      {% for vn in venues %}<option {{ 'selected' if pv==vn else '' }}>{{ vn }}</option>{% endfor %}
+    </select>
+    <input type="hidden" name="venue" value="{{ pv }}">
+    <p class="lockhint">🔒 Locked to your booking — email us if this needs to change.</p>
+    {% else %}
     <select name="venue" id="venue_select" required>
       <option value="" disabled {{ 'selected' if not pv else '' }}>Select a venue…</option>
       {% for vn in venues %}<option {{ 'selected' if pv==vn else '' }}>{{ vn }}</option>{% endfor %}
     </select>
+    {% endif %}
   </div>
 
   <div class="field">
     <label class="q">Show Date<span class="req">*</span></label>
+    {% if locked_date %}
+    <input type="date" class="locked" value="{{ v('show_date') }}" readonly>
+    <input type="hidden" name="show_date" value="{{ v('show_date') }}">
+    <p class="lockhint">🔒 Locked to your booking — email us if this needs to change.</p>
+    {% else %}
     <input type="date" name="show_date" required value="{{ v('show_date') }}">
+    {% endif %}
   </div>
 
   <div class="field">
