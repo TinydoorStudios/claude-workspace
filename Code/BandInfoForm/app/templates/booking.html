@@ -87,7 +87,24 @@
       </select>
     </div>
     <div><label>Set Length</label><input name="set_time" value="{{ form.set_time or '' }}" placeholder="e.g. 60 min"></div>
-    <div class="full"><label>Series</label><input name="series" value="{{ form.series or '' }}" placeholder="optional — series / presenter"></div>
+    {% set flat_series = [] %}
+    {% for v, opts in series_by_venue.items() %}{% for s in opts %}{% set _ = flat_series.append(s) %}{% endfor %}{% endfor %}
+    {% set series_is_custom = form.series and form.series not in flat_series %}
+    <div class="full"><label>Series</label>
+      <select id="seriesPick" onchange="onSeriesChange()" {% if not series_is_custom %}name="series"{% endif %}>
+        <option value="">— No series / one-off —</option>
+        {% for v, opts in series_by_venue.items() %}
+        <optgroup label="{{ v }}">
+          {% for s in opts %}<option value="{{ s }}" {% if form.series==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </optgroup>
+        {% endfor %}
+        <option value="__custom__" {% if series_is_custom %}selected{% endif %}>+ Add new series…</option>
+      </select>
+      <input type="text" id="seriesCustom" placeholder="New series name" autocomplete="off"
+             {% if series_is_custom %}name="series"{% endif %}
+             style="margin-top:8px{% if not series_is_custom %};display:none{% endif %}"
+             value="{{ form.series if series_is_custom else '' }}">
+    </div>
     <p class="hint">Multiple bands on one bill? Log each band separately with the same event name, date, and venue.</p>
 
     <details {% if form.lead_name or form.load_in or form.email_note %}open{% endif %}>
@@ -124,6 +141,22 @@
     <button type="submit">Log booking</button>
   </form>
   </div>
+  <script>
+  function onSeriesChange() {
+    var sel = document.getElementById('seriesPick');
+    var custom = document.getElementById('seriesCustom');
+    if (sel.value === '__custom__') {
+      custom.style.display = 'block';
+      sel.removeAttribute('name');
+      custom.setAttribute('name', 'series');
+      custom.focus();
+    } else {
+      custom.style.display = 'none';
+      custom.removeAttribute('name');
+      sel.setAttribute('name', 'series');
+    }
+  }
+  </script>
 {% endif %}
 </div>
 </body>

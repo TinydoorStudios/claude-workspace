@@ -441,6 +441,26 @@ def insert_booking(cur, data: dict):
     return cur.fetchone()["id"]
 
 
+def series_by_venue(cur):
+    """Distinct series names staff have already used, grouped by venue —
+    powers the booking form's series dropdown so new bookings build on
+    existing naming instead of drifting (e.g. "Live on the Levee" vs
+    "live on the levee"). Case-insensitive de-dupe, keeps first spelling seen
+    (alphabetical, since the query is ordered)."""
+    cur.execute(
+        """SELECT DISTINCT venue, series FROM bookings
+           WHERE series IS NOT NULL AND series <> ''
+           ORDER BY venue, series"""
+    )
+    out = {}
+    for row in cur.fetchall():
+        v, s = row["venue"], row["series"]
+        bucket = out.setdefault(v, [])
+        if not any(existing.lower() == s.lower() for existing in bucket):
+            bucket.append(s)
+    return out
+
+
 def unseeded_bookings(cur):
     """Bookings not yet appended to the sheet, oldest first."""
     cur.execute("SELECT * FROM bookings WHERE seeded_at IS NULL ORDER BY id")

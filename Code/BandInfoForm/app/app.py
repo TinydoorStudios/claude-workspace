@@ -280,6 +280,29 @@ def gate():
 BOOKING_SLOTS = ["headliner", "direct_support", "opener"]
 
 
+def _series_by_venue():
+    """Best-effort — an empty dict just means the form falls back to a plain
+    '+ Add new series…' entry, never blocks the booking form from loading.
+    Ordered to match forms_config.VENUES; any venue name in the data that
+    isn't in that list (renamed/retired venue) sorts to the end."""
+    if not DB_OK:
+        return {}
+    try:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            raw = advance_db.series_by_venue(cur)
+    except Exception as e:
+        _log_db_error("series_by_venue", e)
+        return {}
+    ordered = {}
+    for v in forms_config.VENUES:
+        if v in raw:
+            ordered[v] = raw[v]
+    for v, opts in raw.items():
+        if v not in ordered:
+            ordered[v] = opts
+    return ordered
+
+
 @app.route("/booking", methods=["GET", "POST"])
 def booking():
     """Short staff intake form for a new artist booking. Writes to the bookings
@@ -288,7 +311,8 @@ def booking():
         f = request.form
         if not f.get("artist_name") or not f.get("event_name"):
             return render_template("booking.html", venues=forms_config.VENUES,
-                                   slots=BOOKING_SLOTS, error="Event name and artist name are required.",
+                                   slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
+                                   error="Event name and artist name are required.",
                                    form=f), 400
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
         saved = False
@@ -302,14 +326,14 @@ def booking():
                 _log_db_error("insert_booking", e)
         if not saved:
             return render_template("booking.html", venues=forms_config.VENUES,
-                                   slots=BOOKING_SLOTS,
+                                   slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
                                    error="Couldn't save — the database is unreachable. Try again shortly.",
                                    form=f), 503
         _notify_email("booking", data)
         return render_template("booking.html", venues=forms_config.VENUES,
                                slots=BOOKING_SLOTS, saved=data)
     return render_template("booking.html", venues=forms_config.VENUES,
-                           slots=BOOKING_SLOTS, form={})
+                           slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(), form={})
 
 
 @app.post("/booking/run")
