@@ -37,6 +37,7 @@ GATE_PASS = os.environ.get("ADVANCE_GATE_PASS", "lockdown")
 INTERNAL_TOKEN = os.environ.get("ADVANCE_INTERNAL_TOKEN", "")
 PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
 NOTIFY_URL = os.environ.get("ADVANCE_NOTIFY_URL", "")
+TOOLS_DIR = BASE / "tools"
 
 app = Flask(__name__)
 app.secret_key = SECRET
@@ -189,6 +190,11 @@ def submit():
     _notify_submission(rec)
     _notify_email("submission", rec)
 
+    # 4) Run the pipeline in the background — doc/day-sheet/email drafts/venue
+    # tree/sheet status all catch up on this response without anyone clicking
+    # anything. Fire-and-forget: the band's thank-you page never waits on it.
+    _run_pipeline_background()
+
     return render_template("thanks.html", band=f.get("band_name"))
 
 
@@ -226,6 +232,21 @@ def _notify_email(event_type, fields):
         urllib.request.urlopen(req, timeout=6)
     except Exception as e:
         _log_db_error("notify_email", e)
+
+
+def _run_pipeline_background():
+    """Kick off run_now.py in the background — never blocks or risks the request
+    it's called from. Detached (start_new_session) so it outlives this worker.
+    run_now.py's own lock file makes overlapping triggers (this + the booking
+    button) safe."""
+    try:
+        subprocess.Popen(
+            [sys.executable, "run_now.py"], cwd=TOOLS_DIR,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception as e:
+        _log_db_error("run_pipeline_background", e)
 
 
 # ── gated views (passcode) ──────────────────────────────────────────────────
@@ -291,10 +312,9 @@ def booking_run():
     tree, fold status back in — all local now that the sheet lives on this box
     too (Dropbox-synced). Gated same as /booking. Idempotent (run_now.py locks
     against overlap); safe to click more than once."""
-    tools = BASE / "tools"
     try:
         p = subprocess.run(
-            [sys.executable, "run_now.py"], cwd=tools,
+            [sys.executable, "run_now.py"], cwd=TOOLS_DIR,
             capture_output=True, text=True, timeout=240,
         )
     except subprocess.TimeoutExpired:
