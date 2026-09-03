@@ -36,6 +36,7 @@ SECRET = os.environ.get("ADVANCE_SECRET", "dev-insecure-secret-change-me")
 GATE_PASS = os.environ.get("ADVANCE_GATE_PASS", "lockdown")
 INTERNAL_TOKEN = os.environ.get("ADVANCE_INTERNAL_TOKEN", "")
 PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
+NOTIFY_URL = os.environ.get("ADVANCE_NOTIFY_URL", "")
 
 app = Flask(__name__)
 app.secret_key = SECRET
@@ -184,8 +185,9 @@ def submit():
         except Exception as e:
             _log_db_error("record_submission", e)
 
-    # 3) Notify, best-effort (Slack webhook if configured).
+    # 3) Notify, best-effort (Slack webhook if configured; summary email always).
     _notify_submission(rec)
+    _notify_email("submission", rec)
 
     return render_template("thanks.html", band=f.get("band_name"))
 
@@ -206,6 +208,24 @@ def _notify_submission(rec):
         urllib.request.urlopen(req, timeout=6)
     except Exception as e:
         _log_db_error("slack_notify", e)
+
+
+def _notify_email(event_type, fields):
+    """Fire the n8n 'Advance Notify' webhook — a quick-glance summary email for a
+    new booking or a completed advance form. Best-effort: never blocks or breaks
+    the request the event came from."""
+    if not NOTIFY_URL:
+        return
+    try:
+        import urllib.request
+        body = json.dumps({"event_type": event_type, **fields}).encode()
+        req = urllib.request.Request(
+            NOTIFY_URL, data=body,
+            headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN},
+        )
+        urllib.request.urlopen(req, timeout=6)
+    except Exception as e:
+        _log_db_error("notify_email", e)
 
 
 # ── gated views (passcode) ──────────────────────────────────────────────────
@@ -258,6 +278,7 @@ def booking():
                                    slots=BOOKING_SLOTS,
                                    error="Couldn't save — the database is unreachable. Try again shortly.",
                                    form=f), 503
+        _notify_email("booking", data)
         return render_template("booking.html", venues=forms_config.VENUES,
                                slots=BOOKING_SLOTS, saved=data)
     return render_template("booking.html", venues=forms_config.VENUES,

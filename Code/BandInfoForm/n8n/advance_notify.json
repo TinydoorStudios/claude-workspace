@@ -1,0 +1,86 @@
+{
+  "id": "advance-notify",
+  "name": "Advance Notify",
+  "active": true,
+  "settings": {},
+  "nodes": [
+    {
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        400,
+        300
+      ],
+      "webhookId": "advance-notify-webhook",
+      "parameters": {
+        "path": "advance-notify",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-1",
+      "name": "Format Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const EXPECTED_TOKEN = 'REPLACE_WITH_ADVANCE_INTERNAL_TOKEN';\nconst headers = $input.first().json.headers || {};\nconst token = headers['x-advance-token'];\nif (token !== EXPECTED_TOKEN) {\n  return [];\n}\nconst b = $input.first().json.body || {};\nconst esc = (s) => (s === undefined || s === null || s === '') ? '\\u2014' : String(s);\nlet subject, rows;\nif (b.event_type === 'booking') {\n  subject = `New booking: ${esc(b.artist_name)} \\u2014 ${esc(b.event_name)} @ ${esc(b.venue)}`;\n  rows = [\n    ['Event', b.event_name], ['Date', b.event_date], ['Venue', b.venue],\n    ['Artist', b.artist_name], ['Slot', b.slot], ['Set length', b.set_time],\n    ['Contact email', b.contact_email], ['Entered by', b.entered_by],\n  ];\n} else {\n  subject = `Advance form completed: ${esc(b.band_name)} @ ${esc(b.venue)}`;\n  rows = [\n    ['Band', b.band_name], ['Venue', b.venue], ['Show date', b.show_date],\n    ['Contact', [b.contact_name, b.contact_phone].filter(Boolean).join(' \\u2014 ')],\n    ['Performers + crew', b.performers], ['Monitors', b.monitors],\n    ['Own engineer', b.own_engineer], ['Stage plot', b.stage_plot_file ? 'Uploaded' : (b.stage_plot_desc || '\\u2014')],\n  ];\n}\nconst tr = rows.filter(r => r[1] !== undefined && r[1] !== null && r[1] !== '')\n  .map(r => `<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;font:13px -apple-system,sans-serif\">${r[0]}</td><td style=\"padding:4px 0;font:13px -apple-system,sans-serif\"><b>${esc(r[1])}</b></td></tr>`).join('');\nconst html = `<div style=\"font-family:-apple-system,sans-serif\"><table>${tr}</table><p style=\"margin-top:14px\"><a href=\"https://advance.tinydoorstudios.com/search\">Open the advance search \\u2192</a></p></div>`;\nreturn [{ json: { subject, html } }];"
+      }
+    },
+    {
+      "id": "gmail-1",
+      "name": "Gmail Send",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        840,
+        300
+      ],
+      "parameters": {
+        "sendTo": "blloyd@3cdc.org",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "nIrgTZKXgA3bJ9oP",
+          "name": "3CDCProduction@gmail.com"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Email": {
+      "main": [
+        [
+          {
+            "node": "Gmail Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
