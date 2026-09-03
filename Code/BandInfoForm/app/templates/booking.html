@@ -37,8 +37,9 @@
     Booking logged: <strong>{{ saved.artist_name }}</strong>{% if saved.event_name %} — {{ saved.event_name }}{% endif %}{% if saved.venue %} @ {{ saved.venue }}{% endif %}{% if saved.event_date %} ({{ saved.event_date }}){% endif %}.
   </div>
   <div class="card">
-    <button type="button" id="runBtn" onclick="runNow()">Run advance now</button>
-    <p class="hint" style="margin-top:10px">Seeds this booking into the sheet, builds the advance doc + email draft, and files it into the venue tree. Takes ~30–60s.</p>
+    <p class="hint" style="margin-top:0">This is already running in the background — seeding the sheet, building the advance doc, and filing it into the venue tree. The initial advance email drafts itself in Gmail on the next daily check, ready for you to send at the 21-day mark.</p>
+    <button type="button" id="runBtn" onclick="runNow()">Run again</button>
+    <p class="hint" style="margin-top:10px">Only needed if something looks off and you want to force a re-sync. Safe to click more than once.</p>
     <div id="runResult"></div>
   </div>
   <a class="btn" href="{{ url_for('booking') }}">+ Log another booking</a>

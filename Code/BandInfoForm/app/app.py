@@ -323,7 +323,9 @@ def _series_by_venue():
 @app.route("/booking", methods=["GET", "POST"])
 def booking():
     """Short staff intake form for a new artist booking. Writes to the bookings
-    table; the next generate seeds it into the master spreadsheet."""
+    table, then runs the pipeline in the background — seeds the sheet, builds
+    the package, and (via the next Advance Lifecycle Check) gets the initial
+    advance drafted in Gmail without anyone clicking anything."""
     if request.method == "POST":
         f = request.form
         if not f.get("artist_name") or not f.get("event_name"):
@@ -347,6 +349,7 @@ def booking():
                                    error="Couldn't save — the database is unreachable. Try again shortly.",
                                    form=f), 503
         _notify_email("booking", data)
+        _run_pipeline_background()
         return render_template("booking.html", venues=forms_config.VENUES,
                                slots=BOOKING_SLOTS, saved=data)
     return render_template("booking.html", venues=forms_config.VENUES,
@@ -465,27 +468,33 @@ def run_followups():
 
 @app.post("/internal/advance-lifecycle")
 def advance_lifecycle():
-    """Called by n8n's daily 'Advance Lifecycle Check'. Two date-driven guardrails
-    (Brian, 2026-09-03):
-      - INITIAL advance drafts itself 21 days out from the show, for any show
-        that hasn't been drafted yet. Reuses draft_emails.py as-is, so the
-        NEW-vs-RETURNING 6-month cross-venue check applies automatically —
-        nothing new needed there.
+    """Called by n8n's daily 'Advance Lifecycle Check'. Three guardrails
+    (Brian, 2026-09-03; drafting moved earlier 2026-09-03 same day):
+      - INITIAL advance drafts itself as soon as a booking is seeded — no
+        longer waits for the 21-day mark. Reuses draft_emails.py as-is, so
+        the NEW-vs-RETURNING 6-month cross-venue check applies automatically
+        — nothing new needed there.
+      - SEND REMINDER fires once a drafted show crosses into the 21-day-out
+        window — a nudge that the draft already sitting in Gmail is ready to
+        send, not a new draft. Carries no email content of its own.
       - FOLLOW-UP drafts itself if nothing's heard back by 7 days out from the
         show (date-driven, not tied to when the initial went out).
-    Both come back as {to, subject, body} for n8n to create as real Gmail
-    drafts (never sent from here) — Brian reviews and sends. Token-protected,
-    same as /internal/run-followups."""
+    initial/followup come back as {to, subject, body} for n8n to create as
+    real Gmail drafts (never sent from here) — Brian reviews and sends.
+    send_reminders come back as {artist_name, venue, show_date} for n8n to
+    list in the summary email only. Token-protected, same as
+    /internal/run-followups."""
     if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
         abort(403)
     if not DB_OK:
         return {"error": "db-unavailable"}, 503
 
-    initial, followup = [], []
+    initial, followup, send_reminders = [], [], []
     try:
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             due_initial = advance_db.shows_due_for_initial_advance(cur)
             due_followup = advance_db.shows_due_for_followup(cur)
+            due_reminders = advance_db.shows_due_for_send_reminder(cur)
 
         # ── initial advances: reuse draft_emails.py wholesale (NEW/RETURNING,
         # venue blocks, short link, bill grouping — all of it, unchanged) ──
@@ -550,11 +559,23 @@ def advance_lifecycle():
                     followup.append({"to": r["email"], "subject": subject, "body": body})
                     advance_db.mark_followup_drafted(cur, r["show_id"])
                 conn.commit()
+
+        # ── send reminders: draft already exists (made at booking time) —
+        # just tell Brian it's crossed into the 21-day window and is ready.
+        if due_reminders:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                for r in due_reminders:
+                    send_reminders.append({
+                        "artist_name": r["artist_name"], "venue": r["venue"] or "",
+                        "show_date": us_date(r["show_date"]),
+                    })
+                    advance_db.mark_send_reminder_sent(cur, r["show_id"])
+                conn.commit()
     except Exception as e:
         _log_db_error("advance_lifecycle", e)
         return {"error": e.__class__.__name__}, 500
 
-    return {"initial": initial, "followup": followup}
+    return {"initial": initial, "followup": followup, "send_reminders": send_reminders}
 
 
 @app.get("/healthz")

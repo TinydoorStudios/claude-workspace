@@ -120,14 +120,35 @@ def mark_show_status(cur, show_id, status, email_sent=False):
 # itself if nothing's heard back by 7 days out. Both are DRAFTS — a human still
 # sends. See /internal/advance-lifecycle in app.py.
 
-def shows_due_for_initial_advance(cur, days_out=21):
-    """Shows within `days_out` days of their date that haven't been drafted yet
-    (and haven't already passed)."""
+def shows_due_for_initial_advance(cur):
+    """Shows that haven't been drafted yet (and haven't already passed) — no
+    date-out ceiling. Drafted as soon as a booking is seeded, whenever that
+    happens to be; the 21-day mark is now a SEND reminder, not a draft trigger
+    (Brian, 2026-09-03: draft at booking time, hold for his send at T-21 —
+    see shows_due_for_send_reminder)."""
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date
            FROM shows s JOIN artists a ON a.id = s.artist_id
            WHERE s.advance_draft_created_at IS NULL
+             AND s.show_date IS NOT NULL
+             AND s.show_date >= CURRENT_DATE
+           ORDER BY s.show_date"""
+    )
+    return cur.fetchall()
+
+
+def shows_due_for_send_reminder(cur, days_out=21):
+    """Shows already drafted (at booking time) that have now crossed into the
+    21-day-out window and haven't been flagged for a send reminder yet — the
+    nudge that tells Brian a draft sitting in Gmail is ready to send. Fires
+    once per show, whenever the draft happened."""
+    cur.execute(
+        """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date
+           FROM shows s JOIN artists a ON a.id = s.artist_id
+           WHERE s.advance_draft_created_at IS NOT NULL
+             AND s.send_reminder_sent_at IS NULL
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
            ORDER BY s.show_date""",
@@ -167,6 +188,13 @@ def mark_advance_drafted(cur, show_id):
 def mark_followup_drafted(cur, show_id):
     cur.execute(
         "UPDATE shows SET followup_draft_created_at = COALESCE(followup_draft_created_at, now()) "
+        "WHERE id = %s", (show_id,),
+    )
+
+
+def mark_send_reminder_sent(cur, show_id):
+    cur.execute(
+        "UPDATE shows SET send_reminder_sent_at = COALESCE(send_reminder_sent_at, now()) "
         "WHERE id = %s", (show_id,),
     )
 

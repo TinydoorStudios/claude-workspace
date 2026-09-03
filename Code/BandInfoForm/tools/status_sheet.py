@@ -28,8 +28,8 @@ _args = [a for a in sys.argv[1:] if not a.startswith("--")]
 OUT = Path(_args[0]) if _args else (HERE / "advance_status.xlsx")
 NAVY = "1A3A5C"
 STATE_FILL = {
-    "queued": "E5E7EB", "awaiting": "FEF3C7", "followup_due": "FFE4B5",
-    "followup_drafted": "DBEAFE", "responded": "DCFCE7",
+    "queued": "E5E7EB", "awaiting": "FEF3C7", "ready_to_send": "C7D2FE",
+    "followup_due": "FFE4B5", "followup_drafted": "DBEAFE", "responded": "DCFCE7",
 }
 
 

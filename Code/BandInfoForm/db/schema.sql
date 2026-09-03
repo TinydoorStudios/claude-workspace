@@ -136,6 +136,13 @@ ALTER TABLE shows ADD COLUMN IF NOT EXISTS followup_sent_at TIMESTAMPTZ;
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS advance_draft_created_at  TIMESTAMPTZ;
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS followup_draft_created_at TIMESTAMPTZ;
 
+-- Draft-early / hold-for-send (Brian, 2026-09-03): the initial advance now
+-- drafts itself as soon as a booking is seeded (no date ceiling — see
+-- shows_due_for_initial_advance) instead of waiting for the 21-day mark. The
+-- 21-day mark becomes a SEND reminder to Brian that a draft already sitting
+-- in Gmail is ready to go out — still never auto-sent. Fires once per show.
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS send_reminder_sent_at TIMESTAMPTZ;
+
 -- One row per advance (band + show) with its computed state, for n8n's daily
 -- checks and the status report. DROP first — CREATE OR REPLACE can't insert a
 -- column ahead of existing ones, only append at the end.
@@ -153,6 +160,7 @@ SELECT
     s.followup_sent_at,
     s.advance_draft_created_at,
     s.followup_draft_created_at,
+    s.send_reminder_sent_at,
     (SELECT max(sub.submitted_at) FROM submissions sub WHERE sub.show_id = s.id)
                     AS last_submission,
     CASE
@@ -164,6 +172,10 @@ SELECT
              AND s.show_date IS NOT NULL
              AND s.show_date <= CURRENT_DATE + 7
             THEN 'followup_due'
+        WHEN s.advance_draft_created_at IS NOT NULL
+             AND s.show_date IS NOT NULL
+             AND s.show_date <= CURRENT_DATE + 21
+            THEN 'ready_to_send'
         WHEN s.advance_draft_created_at IS NOT NULL  THEN 'awaiting'
         ELSE 'queued'
     END             AS state,

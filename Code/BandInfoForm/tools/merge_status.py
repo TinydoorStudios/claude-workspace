@@ -40,8 +40,8 @@ BAND_TINT = "DDEBF7"          # band-provided answer
 BANDING = "EAF1F8"           # the sheet's even-row banding
 GROUP_FILL = "2E7D5B"        # STATUS group bar (green = auto)
 STATE_FILL = {
-    "queued": "E5E7EB", "awaiting": "FEF3C7", "followup_due": "FFE4B5",
-    "followup_drafted": "DBEAFE", "responded": "C6EFCE",
+    "queued": "E5E7EB", "awaiting": "FEF3C7", "ready_to_send": "C7D2FE",
+    "followup_due": "FFE4B5", "followup_drafted": "DBEAFE", "responded": "C6EFCE",
 }
 
 # appended status columns: (label, json key, width)

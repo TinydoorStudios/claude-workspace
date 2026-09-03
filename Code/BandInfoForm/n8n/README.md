@@ -90,3 +90,53 @@ venue blocks, short link, bill grouping), nothing new needed there.
   (Schedule Trigger nodes can't be fired externally to test; swap in a Webhook
   node with the same downstream wiring, curl it, swap back) — not something to
   repeat casually, but useful if this workflow needs surgery again.
+
+## Draft-early / hold-for-send (2026-09-03, same day)
+
+Brian's follow-up rule: **draft the initial advance the moment staff log the
+booking**, not at the 21-day mark — the 21-day mark becomes a **send reminder**
+instead (still drafts-only; T-21 was never meant to be an auto-send trigger,
+see the "Auto-send scope" decision this session). Staying inside the same
+architecture, not a new workflow:
+
+- `advance_db.shows_due_for_initial_advance` **dropped its 21-day ceiling** —
+  it now drafts any show with no draft yet, whatever the show date is. A
+  `shows` row (and its identity data) already exists as soon as the pipeline
+  first runs for a booking (`draft_emails.py`'s `upsert_artist`/`upsert_show`,
+  called every `run_now.py` run — see `package_run.py`), so the very next
+  daily 9am check after a booking picks it up. `/booking`'s POST handler now
+  also fires `_run_pipeline_background()` itself (mirroring `/submit`), so
+  that first pipeline run — and the `shows` row it creates — happens right
+  away instead of waiting for someone to click "Run advance now."
+- New guardrail: **`advance_db.shows_due_for_send_reminder(days_out=21)`** —
+  shows already drafted whose date has now crossed into the 21-day window,
+  reminder not yet sent. Fires once per show (`mark_send_reminder_sent`),
+  independent of *when* the draft itself was made.
+- `/internal/advance-lifecycle` response gained a third key:
+  `send_reminders: [{artist_name, venue, show_date}]` — no `to`/`subject`/
+  `body`, since nothing new is drafted here; it's a nudge that a draft already
+  sitting in Gmail is ready to send.
+- n8n side — **only two things changed, no rewiring**: `Create Draft` got
+  `alwaysOutputData: true` (so `Build Summary` still runs on a day with zero
+  new initial/follow-up drafts but a non-empty `send_reminders`); `Build
+  Summary`'s code now reads `initial`/`followup`/`send_reminders` straight off
+  `$('Fetch Due')` instead of filtering `Build Items`' output, adds a "ready to
+  send" section, and returns `[]` (silent) when all three are empty. Verified
+  the extracted `jsCode` against five scenarios (all empty, keys missing
+  entirely, initial+followup only, reminders-only, all three at once) in a
+  local Node REPL before touching the live workflow — reminders-only was the
+  case that would've silently gone nowhere without the `alwaysOutputData` fix.
+- Schema: `shows.send_reminder_sent_at` (new column); `advance_status` view
+  gained a `ready_to_send` state (drafted, inside the 21-day window, not yet
+  followup-due) between `awaiting` and `followup_due`. `status_sheet.py` /
+  `merge_status.py`'s `STATE_FILL` maps it to a light indigo (`C7D2FE`).
+- Import: same pattern as above (`docker cp` the updated
+  `advance_lifecycle.json`, `n8n import:workflow`, `n8n publish:workflow
+  --id=advance-lifecycle`, restart n8n so the schedule re-registers) — the
+  workflow's `id`/node names/connections are unchanged, so this is a safe
+  re-import over the existing one, not a new workflow.
+- **Not done here:** true real-time drafting (same-second as the booking
+  form submit) — Brian explicitly chose the next-daily-9am-run latency
+  (worst case ~24hr between booking and the Gmail draft appearing) over
+  building a new webhook path for this. Revisit if that lag ever becomes a
+  problem in practice.
