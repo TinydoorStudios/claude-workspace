@@ -127,9 +127,20 @@ ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS sheet_fields JSONB NOT NULL DEFA
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS responded_at   TIMESTAMPTZ;
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS followup_sent_at TIMESTAMPTZ;
 
+-- Date-driven lifecycle (Brian, 2026-09-03): the initial advance drafts itself
+-- 3 weeks (21 days) out from the show; the follow-up drafts itself if nothing's
+-- heard back by 7 days out from the show. Both are DRAFTS (Gmail), never auto-
+-- sent — email_sent_at/followup_sent_at stay for whenever real send-tracking
+-- (Outlook) gets built; these new columns track the draft step, which is what
+-- actually happens today.
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS advance_draft_created_at  TIMESTAMPTZ;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS followup_draft_created_at TIMESTAMPTZ;
+
 -- One row per advance (band + show) with its computed state, for n8n's daily
--- checks and the status report. Follow-up window is 10 days (Brian, 2026-09-01).
-CREATE OR REPLACE VIEW advance_status AS
+-- checks and the status report. DROP first — CREATE OR REPLACE can't insert a
+-- column ahead of existing ones, only append at the end.
+DROP VIEW IF EXISTS advance_status;
+CREATE VIEW advance_status AS
 SELECT
     s.id            AS show_id,
     a.id            AS artist_id,
@@ -140,22 +151,25 @@ SELECT
     s.email_sent_at,
     s.responded_at,
     s.followup_sent_at,
+    s.advance_draft_created_at,
+    s.followup_draft_created_at,
     (SELECT max(sub.submitted_at) FROM submissions sub WHERE sub.show_id = s.id)
                     AS last_submission,
     CASE
         WHEN s.responded_at IS NOT NULL
              OR EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
             THEN 'responded'
-        WHEN s.followup_sent_at IS NOT NULL          THEN 'followup_sent'
-        WHEN s.email_sent_at IS NOT NULL
-             AND s.email_sent_at < now() - interval '10 days'
+        WHEN s.followup_draft_created_at IS NOT NULL THEN 'followup_drafted'
+        WHEN s.advance_draft_created_at IS NOT NULL
+             AND s.show_date IS NOT NULL
+             AND s.show_date <= CURRENT_DATE + 7
             THEN 'followup_due'
-        WHEN s.email_sent_at IS NOT NULL             THEN 'awaiting'
+        WHEN s.advance_draft_created_at IS NOT NULL  THEN 'awaiting'
         ELSE 'queued'
     END             AS state,
-    CASE WHEN s.email_sent_at IS NOT NULL
-         THEN EXTRACT(day FROM now() - s.email_sent_at)::int END
-                    AS days_since_email,
+    CASE WHEN s.show_date IS NOT NULL
+         THEN (s.show_date - CURRENT_DATE) END
+                    AS days_until_show,
     a.last_email    AS contact_email
 FROM shows s
 JOIN artists a ON a.id = s.artist_id;

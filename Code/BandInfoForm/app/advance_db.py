@@ -115,6 +115,62 @@ def mark_show_status(cur, show_id, status, email_sent=False):
         cur.execute("UPDATE shows SET status=%s WHERE id=%s", (status, show_id))
 
 
+# ── date-driven advance lifecycle (Brian, 2026-09-03) ───────────────────────
+# Initial advance drafts itself 21 days out from the show; the follow-up drafts
+# itself if nothing's heard back by 7 days out. Both are DRAFTS — a human still
+# sends. See /internal/advance-lifecycle in app.py.
+
+def shows_due_for_initial_advance(cur, days_out=21):
+    """Shows within `days_out` days of their date that haven't been drafted yet
+    (and haven't already passed)."""
+    cur.execute(
+        """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date
+           FROM shows s JOIN artists a ON a.id = s.artist_id
+           WHERE s.advance_draft_created_at IS NULL
+             AND s.show_date IS NOT NULL
+             AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
+           ORDER BY s.show_date""",
+        (days_out,),
+    )
+    return cur.fetchall()
+
+
+def shows_due_for_followup(cur, days_out=7):
+    """Shows within `days_out` days of their date with no response and no
+    follow-up drafted yet. Requires the initial advance to have already gone
+    out — a show booked late (already inside both windows on day one) gets its
+    initial advance first and only qualifies for a follow-up on a later run."""
+    cur.execute(
+        """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date
+           FROM shows s JOIN artists a ON a.id = s.artist_id
+           WHERE s.advance_draft_created_at IS NOT NULL
+             AND s.followup_draft_created_at IS NULL
+             AND s.responded_at IS NULL
+             AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+             AND s.show_date IS NOT NULL
+             AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
+           ORDER BY s.show_date""",
+        (days_out,),
+    )
+    return cur.fetchall()
+
+
+def mark_advance_drafted(cur, show_id):
+    cur.execute(
+        "UPDATE shows SET advance_draft_created_at = COALESCE(advance_draft_created_at, now()) "
+        "WHERE id = %s", (show_id,),
+    )
+
+
+def mark_followup_drafted(cur, show_id):
+    cur.execute(
+        "UPDATE shows SET followup_draft_created_at = COALESCE(followup_draft_created_at, now()) "
+        "WHERE id = %s", (show_id,),
+    )
+
+
 def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
     """data = the full raw form dict. Promotes the queryable fields into columns
     and keeps the entire payload in JSONB."""

@@ -64,6 +64,12 @@ def _slug(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", (s or "band").lower()).strip("-")[:40] or "band"
 
 
+def us_date(d):
+    """M/D/Y for anything shown in a drafted email — matches draft_emails.py's
+    own convention."""
+    return d.strftime("%m/%d/%Y") if d else ""
+
+
 def _log_db_error(context, err):
     with LOG.open("a") as fh:
         fh.write(f"{dt.datetime.now().isoformat()}  {context}: {err!r}\n")
@@ -414,6 +420,100 @@ def run_followups():
         _log_db_error("run_followups", e)
         return {"error": e.__class__.__name__}, 500
     return {"queued": len(queued), "bands": queued}
+
+
+@app.post("/internal/advance-lifecycle")
+def advance_lifecycle():
+    """Called by n8n's daily 'Advance Lifecycle Check'. Two date-driven guardrails
+    (Brian, 2026-09-03):
+      - INITIAL advance drafts itself 21 days out from the show, for any show
+        that hasn't been drafted yet. Reuses draft_emails.py as-is, so the
+        NEW-vs-RETURNING 6-month cross-venue check applies automatically —
+        nothing new needed there.
+      - FOLLOW-UP drafts itself if nothing's heard back by 7 days out from the
+        show (date-driven, not tied to when the initial went out).
+    Both come back as {to, subject, body} for n8n to create as real Gmail
+    drafts (never sent from here) — Brian reviews and sends. Token-protected,
+    same as /internal/run-followups."""
+    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
+        abort(403)
+    if not DB_OK:
+        return {"error": "db-unavailable"}, 503
+
+    initial, followup = [], []
+    try:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            due_initial = advance_db.shows_due_for_initial_advance(cur)
+            due_followup = advance_db.shows_due_for_followup(cur)
+
+        # ── initial advances: reuse draft_emails.py wholesale (NEW/RETURNING,
+        # venue blocks, short link, bill grouping — all of it, unchanged) ──
+        if due_initial:
+            batch = [{
+                "name": r["artist_name"], "show_date": r["show_date"].isoformat(),
+                "venue": r["venue"] or "", "series": r["series"] or "",
+                "email": r["email"] or "",
+            } for r in due_initial]
+            batch_file = TOOLS_DIR / ".lifecycle_initial_batch.json"
+            batch_file.write_text(json.dumps(batch))
+            try:
+                subprocess.run([sys.executable, "draft_emails.py", str(batch_file)],
+                               cwd=TOOLS_DIR, capture_output=True, text=True,
+                               timeout=120, check=True)
+            finally:
+                batch_file.unlink(missing_ok=True)
+
+            sys.path.insert(0, str(TOOLS_DIR))
+            from draft_emails import slug as _dslug
+            drafts_dir = TOOLS_DIR / "drafts"
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                for r in due_initial:
+                    sg = _dslug(r["artist_name"])
+                    hits = sorted(drafts_dir.glob(f"{sg}__{r['show_date'].isoformat()}__*.md"))
+                    if not hits:
+                        continue
+                    text = hits[0].read_text()
+                    subj_line, _, body = text.partition("\n")
+                    subject = subj_line.removeprefix("Subject:").strip()
+                    if not r["email"]:
+                        continue
+                    initial.append({"to": r["email"], "subject": subject,
+                                    "body": body.lstrip("\n")})
+                    advance_db.mark_advance_drafted(cur, r["show_id"])
+                conn.commit()
+
+        # ── follow-ups: date-driven, short-link, "performance detail" wording ──
+        if due_followup:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                for r in due_followup:
+                    if not r["email"]:
+                        continue
+                    token = _signer.dumps({"a": r["artist_id"],
+                                           "s": {"venue": r["venue"],
+                                                 "date": r["show_date"].isoformat(),
+                                                 "series": r["series"] or None}})
+                    code = advance_db.get_or_create_short_link(cur, token)
+                    link = f"{PUBLIC_URL}/s/{code}"
+                    when = f" on {us_date(r['show_date'])}" if r["show_date"] else ""
+                    subject = f"Reminder — performance details for your 3CDC show ({r['venue']}{when})"
+                    body = (
+                        f"Hi {r['artist_name']},\n\n"
+                        f"Circling back on the performance details for your show at "
+                        f"{r['venue']}{when} — we still need them to run it well: stage "
+                        "plot, monitors, hospitality, and a couple of site logistics. "
+                        "It takes about five minutes:\n\n"
+                        f"{link}\n\n"
+                        "If you've already sent this over, disregard. Thanks,\n"
+                        "3CDC Events / Production"
+                    )
+                    followup.append({"to": r["email"], "subject": subject, "body": body})
+                    advance_db.mark_followup_drafted(cur, r["show_id"])
+                conn.commit()
+    except Exception as e:
+        _log_db_error("advance_lifecycle", e)
+        return {"error": e.__class__.__name__}, 500
+
+    return {"initial": initial, "followup": followup}
 
 
 @app.get("/healthz")

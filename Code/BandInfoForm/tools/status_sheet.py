@@ -29,7 +29,7 @@ OUT = Path(_args[0]) if _args else (HERE / "advance_status.xlsx")
 NAVY = "1A3A5C"
 STATE_FILL = {
     "queued": "E5E7EB", "awaiting": "FEF3C7", "followup_due": "FFE4B5",
-    "followup_sent": "DBEAFE", "responded": "DCFCE7",
+    "followup_drafted": "DBEAFE", "responded": "DCFCE7",
 }
 
 
@@ -50,17 +50,18 @@ def d(ts):
     return ts.strftime("%Y-%m-%d") if ts else ""
 
 
-FOLLOWUP_DAYS = 10  # matches the advance_status view + n8n check
+FOLLOWUP_DAYS_BEFORE_SHOW = 7  # matches the advance_status view + n8n check (2026-09-03)
 
 
 def followup_due(st):
-    """Date a follow-up is due — only while the advance isn't completed."""
+    """Date a follow-up is/was due — only while the advance isn't completed.
+    Date-driven off the show date now, not days-since-email (Brian, 2026-09-03)."""
     if st["state"] == "responded":          # completed box is checked
         return ""
-    if st.get("followup_sent_at"):
-        return "sent " + d(st["followup_sent_at"])
-    if st.get("email_sent_at"):
-        return (st["email_sent_at"] + dt.timedelta(days=FOLLOWUP_DAYS)).strftime("%Y-%m-%d")
+    if st.get("followup_draft_created_at"):
+        return "drafted " + d(st["followup_draft_created_at"])
+    if st.get("show_date"):
+        return (st["show_date"] - dt.timedelta(days=FOLLOWUP_DAYS_BEFORE_SHOW)).strftime("%Y-%m-%d")
     return ""
 
 
@@ -73,7 +74,7 @@ COLS = [
     ("Slot", 14, lambda st, sub, a: (a or {}).get("slot", "")),
     ("Set Length", 13, lambda st, sub, a: (a or {}).get("set_time", "")),
     ("Status", 14, lambda st, sub, a: st["state"]),
-    ("Email Sent", 12, lambda st, sub, a: d(st["email_sent_at"])),
+    ("Advance Drafted", 14, lambda st, sub, a: d(st["advance_draft_created_at"])),
     ("Follow-up Due", 13, lambda st, sub, a: followup_due(st)),
     ("Completed", 11, lambda st, sub, a: "Yes" if st["state"] == "responded" else ""),
     ("Responded", 12, lambda st, sub, a: d(st["responded_at"])),
@@ -152,7 +153,7 @@ def records():
                 "date": st["show_date"].isoformat() if st["show_date"] else "",
                 "slot": (act or {}).get("slot", ""),
                 "state": st["state"],
-                "email_sent": d(st["email_sent_at"]),
+                "advance_drafted": d(st["advance_draft_created_at"]),
                 "followup_due": followup_due(st),
                 "completed": "Yes" if st["state"] == "responded" else "",
                 "responded": d(st["responded_at"]),

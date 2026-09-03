@@ -7,8 +7,8 @@ Runs on the Mac (openpyxl only, no database). The server hands over status.json
   • FILL THE BLANKS — wherever Brian left a band-detail cell empty, the band's form
     answer drops in, tinted blue so its source is obvious. His own typed cells are
     never overwritten (the spreadsheet wins; the form fills gaps).
-  • STATUS BLOCK — appended to the right: Status (tinted by state), Email Sent,
-    Follow-up Due, Completed, Responded, What Changed, Additional.
+  • STATUS BLOCK — appended to the right: Status (tinted by state), Advance
+    Drafted, Follow-up Due, Completed, Responded, What Changed, Additional.
 
 A hidden `_advance_meta` sheet records which cells the band filled, so a re-run
 refreshes them to the current form answer, and a cell Brian later types over is
@@ -41,12 +41,12 @@ BANDING = "EAF1F8"           # the sheet's even-row banding
 GROUP_FILL = "2E7D5B"        # STATUS group bar (green = auto)
 STATE_FILL = {
     "queued": "E5E7EB", "awaiting": "FEF3C7", "followup_due": "FFE4B5",
-    "followup_sent": "DBEAFE", "responded": "C6EFCE",
+    "followup_drafted": "DBEAFE", "responded": "C6EFCE",
 }
 
 # appended status columns: (label, json key, width)
 STATUS_COLS = [
-    ("Status", "state", 15), ("Email Sent", "email_sent", 12),
+    ("Status", "state", 15), ("Advance Drafted", "advance_drafted", 14),
     ("Follow-up Due", "followup_due", 14), ("Completed", "completed", 11),
     ("Responded", "responded", 12), ("What Changed", "changed_notes", 26),
     ("Additional", "additional", 26),

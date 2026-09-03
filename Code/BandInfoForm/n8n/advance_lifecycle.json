@@ -1,0 +1,186 @@
+{
+  "id": "advance-lifecycle",
+  "name": "Advance Lifecycle Check",
+  "active": true,
+  "settings": {},
+  "nodes": [
+    {
+      "id": "sched-1",
+      "name": "Daily 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24,
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "http-1",
+      "name": "Fetch Due",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "url": "http://192.168.200.84:8097/internal/advance-lifecycle",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Advance-Token",
+              "value": "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-1",
+      "name": "Build Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $input.first().json;\nconst initial = (body.initial || []).map(x => ({...x, kind: 'initial'}));\nconst followup = (body.followup || []).map(x => ({...x, kind: 'followup'}));\nconst all = [...initial, ...followup];\nreturn all.map(x => ({ json: x }));"
+      }
+    },
+    {
+      "id": "gmail-draft-1",
+      "name": "Create Draft",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "resource": "draft",
+        "operation": "create",
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {}
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "nIrgTZKXgA3bJ9oP",
+          "name": "3CDCProduction@gmail.com"
+        }
+      }
+    },
+    {
+      "id": "code-2",
+      "name": "Build Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $('Build Items').all().map(i => i.json);\nconst initial = items.filter(x => x.kind === 'initial');\nconst followup = items.filter(x => x.kind === 'followup');\nconst line = (x) => `<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;font:13px -apple-system,sans-serif\">${x.to}</td><td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">${x.subject}</td></tr>`;\nlet html = '<div style=\"font-family:-apple-system,sans-serif\">';\nif (initial.length) {\n  html += `<p><b>${initial.length} initial advance${initial.length===1?'':'s'} drafted (21 days out)</b></p><table>${initial.map(line).join('')}</table>`;\n}\nif (followup.length) {\n  html += `<p style=\"margin-top:14px\"><b>${followup.length} follow-up${followup.length===1?'':'s'} drafted (7 days out, no response)</b></p><table>${followup.map(line).join('')}</table>`;\n}\nhtml += '<p style=\"margin-top:14px\">Drafts are in Gmail, unsent \\u2014 review and send.</p></div>';\nconst subject = `Advance drafts ready to send \\u2014 ${initial.length} initial, ${followup.length} follow-up`;\nreturn [{ json: { subject, html } }];"
+      }
+    },
+    {
+      "id": "gmail-send-1",
+      "name": "Send Summary",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1300,
+        300
+      ],
+      "parameters": {
+        "sendTo": "blloyd@3cdc.org",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "nIrgTZKXgA3bJ9oP",
+          "name": "3CDCProduction@gmail.com"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 9am": {
+      "main": [
+        [
+          {
+            "node": "Fetch Due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Due": {
+      "main": [
+        [
+          {
+            "node": "Build Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Items": {
+      "main": [
+        [
+          {
+            "node": "Create Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Draft": {
+      "main": [
+        [
+          {
+            "node": "Build Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
