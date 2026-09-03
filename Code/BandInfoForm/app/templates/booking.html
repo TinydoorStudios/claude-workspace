@@ -37,7 +37,11 @@
     Booking logged: <strong>{{ saved.artist_name }}</strong>{% if saved.event_name %} — {{ saved.event_name }}{% endif %}{% if saved.venue %} @ {{ saved.venue }}{% endif %}{% if saved.event_date %} ({{ saved.event_date }}){% endif %}.
   </div>
   <div class="card">
+    {% if urgent %}
+    <p class="hint" style="margin-top:0">This show is inside the 21-day window already — running right now, not waiting for the next daily check. Seeding the sheet, building the advance doc, filing it into the venue tree, and drafting the advance email in Gmail. You'll get a notification the moment the draft's ready to send — usually a couple minutes.</p>
+    {% else %}
     <p class="hint" style="margin-top:0">This is already running in the background — seeding the sheet, building the advance doc, and filing it into the venue tree. The initial advance email drafts itself in Gmail on the next daily check, ready for you to send at the 21-day mark.</p>
+    {% endif %}
     <button type="button" id="runBtn" onclick="runNow()">Run again</button>
     <p class="hint" style="margin-top:10px">Only needed if something looks off and you want to force a re-sync. Safe to click more than once.</p>
     <div id="runResult"></div>

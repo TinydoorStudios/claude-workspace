@@ -135,8 +135,62 @@ architecture, not a new workflow:
   --id=advance-lifecycle`, restart n8n so the schedule re-registers) — the
   workflow's `id`/node names/connections are unchanged, so this is a safe
   re-import over the existing one, not a new workflow.
-- **Not done here:** true real-time drafting (same-second as the booking
-  form submit) — Brian explicitly chose the next-daily-9am-run latency
-  (worst case ~24hr between booking and the Gmail draft appearing) over
-  building a new webhook path for this. Revisit if that lag ever becomes a
-  problem in practice.
+- **Not done here (at the time):** true real-time drafting for a normal
+  booking — Brian chose the next-daily-9am-run latency (worst case ~24hr)
+  over a webhook path for the general case. Superseded a few hours later,
+  scoped to late bookings only — see below.
+
+## Late-booking on-demand trigger (2026-09-03, later same day)
+
+The next-daily-9am latency is fine for a normal-lead-time booking — it isn't
+for one entered inside the 21-day window already, where every day of delay
+actually matters. Brian's rule: **a booking submitted inside the 21-day
+window drafts and notifies immediately**, not on the next scheduled check.
+
+- `/booking`'s POST handler now computes days-until-show from the submitted
+  `event_date` right at submission time. Outside the window: unchanged,
+  `_run_pipeline_background()` fires and the show waits for the next daily
+  check like before. Inside the window (`0 <= days_out <= 21`): a background
+  thread runs `run_now.py` **synchronously** (so the show is actually seeded
+  in Postgres before anything downstream looks for it — a fire-and-forget
+  `Popen` would race an on-demand check that runs before seeding finishes),
+  then calls `_trigger_immediate_advance()`. The thread means `/booking`'s
+  response is never held up by either step.
+- New workflow trigger: **`On-Demand Trigger`**, a Webhook node (path
+  `advance-lifecycle-now`, `responseMode: onReceived`) added to the *same*
+  `advance_lifecycle.json` — not a separate workflow, so there's exactly one
+  copy of the drafting/reminder logic regardless of what fired it. A new
+  **`Check Token`** code node between the webhook and `Fetch Due` validates
+  `X-Advance-Token` and silently returns `[]` on a mismatch — the same idiom
+  `advance_notify.json`'s `Format Email` node already uses, not a new IF
+  node. `Check Token` → `Fetch Due` is the only new edge; `Daily 9am` →
+  `Fetch Due` is untouched, so the schedule keeps working exactly as before
+  and both triggers now share one downstream chain.
+- `/internal/advance-lifecycle` gained one more piece of logic, live for
+  *both* triggers, not just the on-demand one: any show in `due_initial`
+  that's **already** inside the 21-day window the moment it's drafted (a
+  late booking, or the daily job catching up on a backlog) gets
+  `mark_send_reminder_sent` called in the same pass and carries
+  `"ready_now": true` in its item. Without this, a late-booked show would
+  get drafted today and only get told "ready to send" on a *separate* run
+  tomorrow — technically correct, a full day later than it should be.
+  `ready_now` shows are excluded from `shows_due_for_send_reminder` on every
+  later run (the flag's already set), so there's no duplicate notification.
+- `Build Summary` splits `initial` into `ready_now` and not — the former
+  renders under its own "drafted — ready to send now" heading (and counts
+  toward the subject line as "N ready now") instead of blending into the
+  generic "N initial advance(s) drafted" section, which still means
+  something different for a normal booking that's genuinely weeks away.
+  Verified against six scenarios in a local Node REPL, including the
+  ready_now-only case and a mixed run with one of each kind.
+- New env var: `ADVANCE_LIFECYCLE_NOW_URL=http://localhost:5678/webhook/advance-lifecycle-now`
+  in `/opt/band-advance/advance.env` — same `localhost:5678` pattern as
+  `ADVANCE_NOTIFY_URL`, for the same reason (Cloudflare's bot protection
+  blocks the public tunnel for server-to-server calls). Best-effort, same
+  as `_notify_email` — empty/unset just means this specific fast path is
+  skipped and the show falls back to the normal daily-check cadence.
+- Import: same pattern, `advance_lifecycle.json`'s `id` is unchanged so this
+  is a re-import over the existing workflow. Two placeholder tokens need the
+  real `ADVANCE_INTERNAL_TOKEN` substituted before import now — `Fetch Due`'s
+  header (as before) and `Check Token`'s `jsCode` (new) — never commit the
+  real value to this repo.

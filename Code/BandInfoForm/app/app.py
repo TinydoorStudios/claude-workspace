@@ -10,6 +10,7 @@ import json
 import re
 import subprocess
 import sys
+import threading
 import datetime as dt
 import mimetypes
 from pathlib import Path
@@ -37,6 +38,7 @@ GATE_PASS = os.environ.get("ADVANCE_GATE_PASS", "lockdown")
 INTERNAL_TOKEN = os.environ.get("ADVANCE_INTERNAL_TOKEN", "")
 PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
 NOTIFY_URL = os.environ.get("ADVANCE_NOTIFY_URL", "")
+LIFECYCLE_NOW_URL = os.environ.get("ADVANCE_LIFECYCLE_NOW_URL", "")
 TOOLS_DIR = BASE / "tools"
 
 app = Flask(__name__)
@@ -272,6 +274,39 @@ def _run_pipeline_background():
         _log_db_error("run_pipeline_background", e)
 
 
+def _trigger_immediate_advance():
+    """Fire n8n's on-demand Advance Lifecycle webhook — same drafting/reminder
+    logic as the daily 9am check, run right now instead of waiting for it.
+    Best-effort, same pattern as _notify_email."""
+    if not LIFECYCLE_NOW_URL:
+        return
+    try:
+        import urllib.request
+        req = urllib.request.Request(
+            LIFECYCLE_NOW_URL, data=b"{}",
+            headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN},
+        )
+        urllib.request.urlopen(req, timeout=6)
+    except Exception as e:
+        _log_db_error("trigger_immediate_advance", e)
+
+
+def _run_pipeline_then_trigger_now():
+    """Late-booking path: a show inside the 21-day window at the moment it's
+    booked can't wait for the next daily check the way a normal-lead-time
+    booking can (Brian, 2026-09-03). Runs the pipeline SYNCHRONOUSLY so the
+    show is actually seeded in the database before triggering the immediate
+    draft + notify — then fires it. Runs in a background thread (not the
+    request thread) so /booking's response is never held up by it."""
+    try:
+        subprocess.run([sys.executable, "run_now.py"], cwd=TOOLS_DIR,
+                        capture_output=True, text=True, timeout=240)
+    except Exception as e:
+        _log_db_error("late_booking_pipeline", e)
+        return
+    _trigger_immediate_advance()
+
+
 # ── gated views (passcode) ──────────────────────────────────────────────────
 
 GATED_PREFIXES = ("/search", "/artist", "/file", "/submission", "/booking")
@@ -323,9 +358,12 @@ def _series_by_venue():
 @app.route("/booking", methods=["GET", "POST"])
 def booking():
     """Short staff intake form for a new artist booking. Writes to the bookings
-    table, then runs the pipeline in the background — seeds the sheet, builds
-    the package, and (via the next Advance Lifecycle Check) gets the initial
-    advance drafted in Gmail without anyone clicking anything."""
+    table, then runs the pipeline — seeds the sheet, builds the package, and
+    gets the initial advance drafted in Gmail without anyone clicking anything.
+    A show already inside the 21-day window at booking time can't wait for the
+    next daily check: that case runs the pipeline synchronously (background
+    thread, response isn't held up) and triggers the draft + notify right
+    away. Everything else runs on the normal next-daily-check cadence."""
     if request.method == "POST":
         f = request.form
         if not f.get("artist_name") or not f.get("event_name"):
@@ -349,9 +387,17 @@ def booking():
                                    error="Couldn't save — the database is unreachable. Try again shortly.",
                                    form=f), 503
         _notify_email("booking", data)
-        _run_pipeline_background()
+        show_date = advance_db.to_date(data.get("event_date"))
+        days_out = (show_date - dt.date.today()).days if show_date else None
+        urgent = days_out is not None and 0 <= days_out <= 21
+        if urgent:
+            # inside the 21-day window at booking time — can't wait for the
+            # next daily check like a normal-lead-time booking can.
+            threading.Thread(target=_run_pipeline_then_trigger_now, daemon=True).start()
+        else:
+            _run_pipeline_background()
         return render_template("booking.html", venues=forms_config.VENUES,
-                               slots=BOOKING_SLOTS, saved=data)
+                               slots=BOOKING_SLOTS, saved=data, urgent=urgent)
     return render_template("booking.html", venues=forms_config.VENUES,
                            slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(), form={})
 
@@ -468,21 +514,28 @@ def run_followups():
 
 @app.post("/internal/advance-lifecycle")
 def advance_lifecycle():
-    """Called by n8n's daily 'Advance Lifecycle Check'. Three guardrails
-    (Brian, 2026-09-03; drafting moved earlier 2026-09-03 same day):
+    """Called by n8n's daily 'Advance Lifecycle Check', and on-demand for a
+    late booking (see _trigger_immediate_advance). Three guardrails (Brian,
+    2026-09-03; drafting moved earlier same day; late-booking on-demand
+    trigger added same day):
       - INITIAL advance drafts itself as soon as a booking is seeded — no
         longer waits for the 21-day mark. Reuses draft_emails.py as-is, so
         the NEW-vs-RETURNING 6-month cross-venue check applies automatically
-        — nothing new needed there.
-      - SEND REMINDER fires once a drafted show crosses into the 21-day-out
-        window — a nudge that the draft already sitting in Gmail is ready to
-        send, not a new draft. Carries no email content of its own.
+        — nothing new needed there. A show already inside the 21-day window
+        the moment it's drafted (late booking, or catching up a backlog)
+        carries ready_now: true and gets its send-reminder flag set in the
+        same pass — it doesn't wait a separate day to be told what's already
+        true.
+      - SEND REMINDER fires once a previously-drafted show crosses into the
+        21-day-out window — a nudge that the draft already sitting in Gmail
+        is ready to send, not a new draft. Carries no email content of its
+        own.
       - FOLLOW-UP drafts itself if nothing's heard back by 7 days out from the
         show (date-driven, not tied to when the initial went out).
-    initial/followup come back as {to, subject, body} for n8n to create as
-    real Gmail drafts (never sent from here) — Brian reviews and sends.
-    send_reminders come back as {artist_name, venue, show_date} for n8n to
-    list in the summary email only. Token-protected, same as
+    initial/followup come back as {to, subject, body, ready_now} for n8n to
+    create as real Gmail drafts (never sent from here) — Brian reviews and
+    sends. send_reminders come back as {artist_name, venue, show_date} for
+    n8n to list in the summary email only. Token-protected, same as
     /internal/run-followups."""
     if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
         abort(403)
@@ -527,9 +580,18 @@ def advance_lifecycle():
                     subject = subj_line.removeprefix("Subject:").strip()
                     if not r["email"]:
                         continue
+                    # a show already inside the 21-day window the moment it's
+                    # drafted (a late booking, or this run just caught up on
+                    # a backlog) doesn't need a SEPARATE reminder tomorrow —
+                    # flag it ready now instead of making it wait a full
+                    # extra day to be told what's already true.
+                    ready_now = bool(r["show_date"]
+                                      and r["show_date"] <= dt.date.today() + dt.timedelta(days=21))
                     initial.append({"to": r["email"], "subject": subject,
-                                    "body": body.lstrip("\n")})
+                                    "body": body.lstrip("\n"), "ready_now": ready_now})
                     advance_db.mark_advance_drafted(cur, r["show_id"])
+                    if ready_now:
+                        advance_db.mark_send_reminder_sent(cur, r["show_id"])
                 conn.commit()
 
         # ── follow-ups: date-driven, short-link, "performance detail" wording ──

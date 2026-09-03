@@ -99,7 +99,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const body = $('Fetch Due').first().json;\nconst initial = body.initial || [];\nconst followup = body.followup || [];\nconst reminders = body.send_reminders || [];\nconst total = initial.length + followup.length + reminders.length;\nif (!total) return [];\nconst line = (x) => `<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;font:13px -apple-system,sans-serif\">${x.to}</td><td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">${x.subject}</td></tr>`;\nconst reminderLine = (x) => `<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;font:13px -apple-system,sans-serif\">${x.artist_name}</td><td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">${x.venue}${x.show_date ? ' \u2014 ' + x.show_date : ''}</td></tr>`;\nlet html = '<div style=\"font-family:-apple-system,sans-serif\">';\nif (initial.length) {\n  html += `<p><b>${initial.length} initial advance${initial.length===1?'':'s'} drafted</b></p><table>${initial.map(line).join('')}</table>`;\n}\nif (reminders.length) {\n  html += `<p style=\"margin-top:14px\"><b>${reminders.length} ready to send \u2014 21 days out, draft already in Gmail</b></p><table>${reminders.map(reminderLine).join('')}</table>`;\n}\nif (followup.length) {\n  html += `<p style=\"margin-top:14px\"><b>${followup.length} follow-up${followup.length===1?'':'s'} drafted (7 days out, no response)</b></p><table>${followup.map(line).join('')}</table>`;\n}\nhtml += '<p style=\"margin-top:14px\">Drafts are in Gmail, unsent \\u2014 review and send.</p></div>';\nconst parts = [];\nif (initial.length) parts.push(`${initial.length} initial`);\nif (reminders.length) parts.push(`${reminders.length} ready to send`);\nif (followup.length) parts.push(`${followup.length} follow-up`);\nconst subject = `Advance update \u2014 ${parts.join(', ')}`;\nreturn [{ json: { subject, html } }];"
+        "jsCode": "const body = $('Fetch Due').first().json;\nconst allInitial = body.initial || [];\nconst followup = body.followup || [];\nconst reminders = body.send_reminders || [];\nconst initialNow = allInitial.filter(x => x.ready_now);\nconst initialLater = allInitial.filter(x => !x.ready_now);\nconst total = allInitial.length + followup.length + reminders.length;\nif (!total) return [];\nconst line = (x) => `<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;font:13px -apple-system,sans-serif\">${x.to}</td><td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">${x.subject}</td></tr>`;\nconst reminderLine = (x) => `<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;font:13px -apple-system,sans-serif\">${x.artist_name}</td><td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">${x.venue}${x.show_date ? ' \u2014 ' + x.show_date : ''}</td></tr>`;\nlet html = '<div style=\"font-family:-apple-system,sans-serif\">';\nif (initialNow.length) {\n  html += `<p><b>${initialNow.length} drafted \u2014 ready to send now</b> (booked inside the 21-day window)</p><table>${initialNow.map(line).join('')}</table>`;\n}\nif (initialLater.length) {\n  html += `<p style=\"margin-top:14px\"><b>${initialLater.length} initial advance${initialLater.length===1?'':'s'} drafted</b></p><table>${initialLater.map(line).join('')}</table>`;\n}\nif (reminders.length) {\n  html += `<p style=\"margin-top:14px\"><b>${reminders.length} ready to send \u2014 21 days out, draft already in Gmail</b></p><table>${reminders.map(reminderLine).join('')}</table>`;\n}\nif (followup.length) {\n  html += `<p style=\"margin-top:14px\"><b>${followup.length} follow-up${followup.length===1?'':'s'} drafted (7 days out, no response)</b></p><table>${followup.map(line).join('')}</table>`;\n}\nhtml += '<p style=\"margin-top:14px\">Drafts are in Gmail, unsent \u2014 review and send.</p></div>';\nconst parts = [];\nif (initialNow.length) parts.push(`${initialNow.length} ready now`);\nif (initialLater.length) parts.push(`${initialLater.length} initial`);\nif (reminders.length) parts.push(`${reminders.length} ready to send`);\nif (followup.length) parts.push(`${followup.length} follow-up`);\nconst subject = `Advance update \u2014 ${parts.join(', ')}`;\nreturn [{ json: { subject, html } }];"
       }
     },
     {
@@ -124,6 +124,37 @@
           "id": "nIrgTZKXgA3bJ9oP",
           "name": "3CDCProduction@gmail.com"
         }
+      }
+    },
+    {
+      "id": "webhook-1",
+      "name": "On-Demand Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        480
+      ],
+      "webhookId": "advance-lifecycle-now",
+      "parameters": {
+        "path": "advance-lifecycle-now",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-3",
+      "name": "Check Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        480
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const EXPECTED_TOKEN = 'REPLACE_WITH_ADVANCE_INTERNAL_TOKEN';\nconst headers = $input.first().json.headers || {};\nconst token = headers['x-advance-token'];\nif (token !== EXPECTED_TOKEN) {\n  return [];\n}\nreturn [{ json: {} }];"
       }
     }
   ],
@@ -177,6 +208,28 @@
         [
           {
             "node": "Send Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On-Demand Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Token": {
+      "main": [
+        [
+          {
+            "node": "Fetch Due",
             "type": "main",
             "index": 0
           }
