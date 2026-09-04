@@ -10,34 +10,44 @@
   header{background:#1A3A5C;color:#fff;padding:20px 0;}
   .wrap{max-width:900px;margin:0 auto;padding:0 16px;}
   header h1{margin:0;font-size:18px;}
+  a.back{color:#c7d6e6;font-size:13px;text-decoration:none;}
   .searchbar{margin:22px auto;display:flex;gap:8px;max-width:900px;padding:0 16px;}
   .searchbar input{flex:1;padding:11px 13px;border:1px solid #2a323d;border-radius:8px;font:inherit;color:#e6edf3;background:#1c232d;}
   .searchbar button{background:#1A3A5C;color:#fff;border:0;border-radius:8px;padding:0 20px;font-weight:600;cursor:pointer;}
   .searchbar button:hover{background:#234b70;}
+  .crumbs{margin:0 0 14px;font-size:13px;color:#8b97a6;}
+  .crumbs a{color:#4da3ff;text-decoration:none;}
+  .crumbs a:hover{text-decoration:underline;}
   table{width:100%;border-collapse:collapse;background:#161b22;border:1px solid #2a323d;border-radius:10px;overflow:hidden;}
   th,td{text-align:left;padding:11px 14px;border-bottom:1px solid #2a323d;font-size:14px;}
   th{background:#1c232d;color:#4da3ff;font-size:12px;text-transform:uppercase;letter-spacing:.05em;}
   tr:last-child td{border-bottom:0;}
+  tr.row a.rowlink{display:block;margin:-11px -14px;padding:11px 14px;color:inherit;text-decoration:none;}
+  tr.row:hover{background:#1c232d;}
   a{color:#4da3ff;text-decoration:none;font-weight:600;}
-  .muted{color:#8b97a6;}
+  .muted{color:#8b97a6;font-weight:400;}
+  .count{color:#8b97a6;font-weight:400;font-size:13px;}
   .empty{background:#161b22;border:1px solid #2a323d;border-radius:10px;padding:22px;color:#8b97a6;text-align:center;}
   .warn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#fbbf24;border-radius:8px;padding:10px 14px;margin:0 16px 16px;font-size:13px;}
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>Band Advance — Search</h1></div></header>
-{% if not db_ok %}<div class="wrap"><div class="warn">Database unreachable — search is unavailable, but form submissions are still being saved to disk.</div></div>{% endif %}
+<header><div class="wrap">
+  <a class="back" href="{{ url_for('staff') }}">← Staff</a>
+  <h1>Band Advance — Search</h1>
+</div></header>
+{% if not db_ok %}<div class="wrap"><div class="warn">Database unreachable — search and browse are unavailable, but form submissions are still being saved to disk.</div></div>{% endif %}
 <form class="searchbar" method="get" action="{{ url_for('search') }}">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search by band name…" autofocus>
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by band name…" {% if not q %}autofocus{% endif %}>
   <button type="submit">Search</button>
 </form>
 <div class="wrap">
-{% if q and results %}
+{% if q %}
+  {% if results %}
   <table>
     <tr><th>Band</th><th>Email</th><th>Phone</th><th>Shows</th><th>Submissions</th><th>Last submission</th></tr>
     {% for r in results %}
-    <tr>
-      <td><a href="{{ url_for('artist_detail', artist_id=r.id) }}">{{ r.name }}</a></td>
+    <tr class="row"><td><a class="rowlink" href="{{ url_for('artist_detail', artist_id=r.id) }}">{{ r.name }}</a></td>
       <td class="muted">{{ r.last_email or '—' }}</td>
       <td class="muted">{{ r.last_phone or '—' }}</td>
       <td>{{ r.show_count }}</td>
@@ -46,10 +56,64 @@
     </tr>
     {% endfor %}
   </table>
-{% elif q %}
-  <div class="empty">No bands match “{{ q }}”.</div>
+  {% else %}
+  <div class="empty">No bands match "{{ q }}".</div>
+  {% endif %}
+
 {% else %}
-  <div class="empty">Type a band name to search the advance database.</div>
+  {# ── browse: venue -> series -> band ── #}
+  <div class="crumbs">
+    <a href="{{ url_for('search') }}">All venues</a>
+    {% if venue %} / <a href="{{ url_for('search', venue=venue) }}">{{ venue }}</a>{% endif %}
+    {% if venue and series is not none %} / {{ 'No series / one-off' if series == '__none__' else series }}{% endif %}
+  </div>
+
+  {% if venue and series is not none %}
+    {% if bands %}
+    <table>
+      <tr><th>Band</th><th>Email</th><th>Shows here</th><th>Last show</th></tr>
+      {% for b in bands %}
+      <tr class="row"><td><a class="rowlink" href="{{ url_for('artist_detail', artist_id=b.id) }}">{{ b.name }}</a></td>
+        <td class="muted">{{ b.last_email or '—' }}</td>
+        <td>{{ b.show_count }}</td>
+        <td class="muted">{{ b.last_show_date.strftime('%Y-%m-%d') if b.last_show_date else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty">No bands on record for this series yet.</div>
+    {% endif %}
+
+  {% elif venue %}
+    {% if series_list %}
+    <table>
+      <tr><th>Series</th><th>Bands</th><th>Shows</th></tr>
+      {% for s in series_list %}
+      <tr class="row"><td><a class="rowlink" href="{{ url_for('search', venue=venue, series=(s.series if s.series else '__none__')) }}">{{ s.series or 'No series / one-off' }}</a></td>
+        <td>{{ s.band_count }}</td>
+        <td>{{ s.show_count }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty">No shows on record for this venue yet.</div>
+    {% endif %}
+
+  {% else %}
+    {% if venues %}
+    <table>
+      <tr><th>Venue</th><th>Bands</th><th>Shows</th></tr>
+      {% for v in venues %}
+      <tr class="row"><td><a class="rowlink" href="{{ url_for('search', venue=v.venue) }}">{{ v.venue }}</a></td>
+        <td>{{ v.band_count }}</td>
+        <td>{{ v.show_count }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty">Nothing advanced yet — search by name above, or check back once shows are on record.</div>
+    {% endif %}
+  {% endif %}
 {% endif %}
 </div>
 </body>

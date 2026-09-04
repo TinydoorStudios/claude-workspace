@@ -309,7 +309,7 @@ def _run_pipeline_then_trigger_now():
 
 # ── gated views (passcode) ──────────────────────────────────────────────────
 
-GATED_PREFIXES = ("/search", "/artist", "/file", "/submission", "/booking")
+GATED_PREFIXES = ("/staff", "/search", "/artist", "/file", "/submission", "/booking")
 
 
 @app.before_request
@@ -324,9 +324,17 @@ def gate():
     if request.method == "POST":
         if request.form.get("passcode") == GATE_PASS:
             session["auth"] = True
-            return redirect(request.args.get("next") or url_for("search"))
+            return redirect(request.args.get("next") or url_for("staff"))
         return render_template("gate.html", error="Incorrect passcode."), 403
     return render_template("gate.html", error=None)
+
+
+@app.get("/staff")
+def staff():
+    """Staff landing page — the one door into everything past the gate: log a
+    new booking, or browse bands already advanced. Linked from the dashboard;
+    the gate lands here by default too."""
+    return render_template("staff.html")
 
 
 BOOKING_SLOTS = ["headliner", "direct_support", "opener"]
@@ -427,15 +435,36 @@ def booking_run():
 
 @app.get("/search")
 def search():
+    """Text search by band name, or browse venue -> series -> band when no
+    query is typed. A query always wins over browse position (typing search
+    clears the browse breadcrumb)."""
     q = request.args.get("q", "").strip()
-    results = []
+    venue = request.args.get("venue", "").strip()
+    series_param = request.args.get("series")  # unset=not chosen, "__none__"=no-series bucket
+    results, venues, series_list, bands = [], [], [], []
     if q and DB_OK:
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
                 results = advance_db.search_artists(cur, q)
         except Exception as e:
             _log_db_error("search", e)
-    return render_template("search.html", q=q, results=results, db_ok=DB_OK)
+    elif not q and DB_OK:
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                if venue and series_param is not None:
+                    series = None if series_param == "__none__" else series_param
+                    bands = advance_db.browse_bands(cur, venue, series)
+                elif venue:
+                    series_list = advance_db.browse_series(cur, venue)
+                else:
+                    venues = advance_db.browse_venues(cur)
+        except Exception as e:
+            _log_db_error("browse", e)
+    return render_template(
+        "search.html", q=q, results=results, db_ok=DB_OK,
+        venue=venue, series=series_param,
+        venues=venues, series_list=series_list, bands=bands,
+    )
 
 
 @app.get("/artist/<int:artist_id>")

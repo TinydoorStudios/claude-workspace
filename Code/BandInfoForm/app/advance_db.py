@@ -489,6 +489,65 @@ def series_by_venue(cur):
     return out
 
 
+def browse_venues(cur):
+    """Venues with at least one advanced show on record, band + show counts —
+    level 1 of the staff browse tree (venue -> series -> band)."""
+    cur.execute(
+        """
+        SELECT venue,
+               COUNT(DISTINCT artist_id) AS band_count,
+               COUNT(*)                  AS show_count
+        FROM shows
+        WHERE venue IS NOT NULL AND venue <> ''
+        GROUP BY venue
+        ORDER BY venue
+        """
+    )
+    return cur.fetchall()
+
+
+def browse_series(cur, venue):
+    """Series for one venue (blank/NULL series collapse into one 'no series /
+    one-off' row, series=None) — level 2 of the browse tree."""
+    cur.execute(
+        """
+        SELECT NULLIF(btrim(show_series), '') AS series,
+               COUNT(DISTINCT artist_id)       AS band_count,
+               COUNT(*)                        AS show_count
+        FROM shows
+        WHERE venue = %s
+        GROUP BY 1
+        ORDER BY series NULLS LAST
+        """,
+        (venue,),
+    )
+    return cur.fetchall()
+
+
+def browse_bands(cur, venue, series):
+    """Bands advanced at one venue + series (series=None = the no-series
+    bucket) — level 3 of the browse tree; each row feeds a link to
+    /artist/<id>."""
+    if series is None:
+        clause, params = "(s.show_series IS NULL OR btrim(s.show_series) = '')", (venue,)
+    else:
+        clause, params = "s.show_series = %s", (venue, series)
+    cur.execute(
+        f"""
+        SELECT a.id, a.name, a.last_email, a.last_phone,
+               COUNT(*)             AS show_count,
+               MAX(s.show_date)     AS last_show_date
+        FROM shows s
+        JOIN artists a ON a.id = s.artist_id
+        WHERE s.venue = %s AND {clause}
+        GROUP BY a.id
+        ORDER BY a.name
+        """,
+        params,
+    )
+    return cur.fetchall()
+
+
 def unseeded_bookings(cur):
     """Bookings not yet appended to the sheet, oldest first."""
     cur.execute("SELECT * FROM bookings WHERE seeded_at IS NULL ORDER BY id")
