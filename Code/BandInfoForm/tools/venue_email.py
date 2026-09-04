@@ -2,7 +2,7 @@
 """Per-venue advance-email content blocks.
 
 The advance email's body is venue-specific — Fountain Square's garage QR codes and
-95 dB ordinance have no business in a Washington Park or Memorial Hall email. This
+95 dBA-Slow ordinance have no business in a Washington Park or Memorial Hall email. This
 keeps one email skeleton (greeting, form link, schedule, common rules) and swaps the
 venue-specific blocks: location, load-in/parking, technical, hospitality, and any
 venue-only performance rules.
@@ -48,7 +48,7 @@ Attached are QR codes that serve as your Fountain Square Garage validations (5 i
         "technical": """\
 Technical:
 - Backline / instrumentation: artists provide all instruments, including amps and 1/4" cables.
-- Audio: we provide an engineer who mixes FOH and monitors from FOH. Coordinate in advance if you're bringing your own. All engineers mix within the 95 dB ordinance; the FSQ engineer may baffle amps to reduce stage volume if needed.
+- Audio: we provide an engineer who mixes FOH and monitors from FOH. Coordinate in advance if you're bringing your own. All engineers mix within the 95 dBA-Slow ordinance; the FSQ engineer may baffle amps to reduce stage volume if needed.
 - Lighting: we provide a house LD.
 - Stage plot / input list, flat vs. drum riser, monitor count, and any scenic elements — all on the form.""",
         "hospitality": """\
@@ -56,7 +56,7 @@ Hospitality & Site:
 - Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
 - Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
 - Hospitality: drink tickets and water are provided for all performers and crew.""",
-        "requirements": "- Sound limit: strict 95 dB at the FOH position, for all engineers (house or talent).",
+        "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
     # Add Washington Park / Memorial Hall / etc. here as Brian supplies the content.
 }
