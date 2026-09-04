@@ -1,18 +1,36 @@
 #!/usr/bin/env python3
-"""Fill the 513 Airwaves production day-sheet from an event.
+"""Fill an FSQ advance day-sheet — single-band, 2-band, or 3-band — from an
+event. These are the only day-sheets in use (2026-09-03) — the old 513
+Airwaves-specific template is retired; nothing here references it.
+
+Template is picked automatically by how many acts the event has:
+  1 act  -> doc_templates/FSQ Single Band Advance.docx
+  2 acts -> doc_templates/FSQ 2 Band Advance.docx
+  3 acts -> doc_templates/FSQ 3 Band Advance.docx
+Acts map to columns left-to-right in event_acts' own slot_order (opener,
+direct_support, headliner) — whichever slots the event actually has, in that
+order, so a 2-band show booked as opener+headliner or as
+direct_support+headliner both land correctly without a slot-name lookup.
 
 Source of truth is the advance SPREADSHEET (event + any band overrides); the
-advance FORM fills whatever the sheet left blank. This merges the two per act —
-the spreadsheet value wins, the form fills the gaps — and writes:
+advance FORM fills whatever the sheet left blank — the spreadsheet value
+wins, same merge policy as the email drafts. Writes:
+  - EVENT INFORMATION: Date / Event always; Band (single-band only — a
+    multi-band show's names go on the act-header row instead); TONIGHT —
+    MC/DJ (multi-band only)
+  - Event Type / Paying?, Lead name + cell
+  - per-act: Set Length, act name (multi-band header row), Stage Plot,
+    Monitors, IEMs, Input Notes (also carries any lighting request / split
+    snake text — there's no dedicated cell for those), Stage Type, Scenic
+    Notes, Merch, Parking, Drink Tix, Dressing Room Tent, Backline, Band
+    Contact — Name / Cell
 
-  - header Date / Event / Band names        (from the event record)
-  - AUDIO row set times per act             (from the sheet)
-  - each act's band cells in its column      (opener 1-2 / support 3-4 / headliner 5-6)
-
-The schedule detail rows and the internal cells (PA, consoles, subs, video,
-buyout) are left as the template has them. Event Type / Paying? / MC / DJ / Lead
-are stored on the event but not yet written into the doc (delicate checkbox
-cells — next pass).
+Left BLANK, always — no data source, or a same-day production call Brian
+makes by hand (2026-09-03: "the granular items we will add by hand"):
+  - the whole SCHEDULE table (Crew Call through Load Out/Curfew — the
+    minute-by-minute choreography is a day-of call, not form data)
+  - Engineer (FOH/Mon names), Consoles, PA, Subs, LIGHTING (Pre-Scheduled/
+    Live), VIDEO, Buyout
 
   python3 daysheet.py --event 1
 """
@@ -38,11 +56,12 @@ from urllib.parse import quote
 TEMPLATES = HERE / "doc_templates"
 FILLED = HERE / "filled"
 FILLED.mkdir(exist_ok=True)
-DEFAULT_TEMPLATE = TEMPLATES / "513_airwaves_daysheet.docx"
-
-SLOT_COL = {"opener": 1, "direct_support": 3, "headliner": 5}
-SLOT_AUDIO_LABEL = {"opener": "OPENER", "direct_support": "DIR SUPPORT",
-                    "headliner": "HEADLINER"}
+TEMPLATE_BY_ACTS = {
+    1: TEMPLATES / "FSQ Single Band Advance.docx",
+    2: TEMPLATES / "FSQ 2 Band Advance.docx",
+    3: TEMPLATES / "FSQ 3 Band Advance.docx",
+}
+DEFAULT_TEMPLATE = TEMPLATE_BY_ACTS[1]  # kept for callers that don't pass one
 
 
 def norm(s):
@@ -91,15 +110,16 @@ def merged_fields(act):
     return f
 
 
-def act_cells(f):
-    """Merged fields -> {normalized day-sheet row label: cell text}."""
+def act_row_values(f):
+    """Merged fields -> {normalized day-sheet row label: cell text}, matching
+    the current templates' row set (Monitors/IEMs and Stage Type/Scenic
+    Notes are separate rows now, not blended)."""
     out = {}
     if not f:
         return out
 
     saved = f.get("_stageplot_saved")
     if saved:
-        # the plot was downloaded + filed next to this doc — point there, not inline
         out["stage plot"] = f"See DB — {saved}"
     else:
         sp = f.get("stage_plot_desc", "")
@@ -108,32 +128,27 @@ def act_cells(f):
         if sp:
             out["stage plot"] = sp
 
-    oe = f.get("own_engineer")
-    if oe:
-        out["engineer"] = "House" if str(oe).lower().startswith("no") else "Own (coordinating)"
-
-    parts = []
     if f.get("monitors") not in (None, ""):
-        parts.append(f"{f['monitors']} wedges")
-    if str(f.get("own_iems", "")).lower() == "yes":
-        ie = "own IEMs"
-        if f.get("split_snake"):
-            ie += f" (split: {f['split_snake']})"
-        parts.append(ie)
-    if parts:
-        out["monitors/ iem"] = " · ".join(parts)
+        out["monitors"] = f"{f['monitors']} wedges"
+    if f.get("own_iems"):
+        out["iems"] = checkbox_pair("Yes", "No", f["own_iems"])
 
+    notes = []
     if f.get("input_notes"):
-        out["input notes"] = f["input_notes"]
-
-    st = f.get("stage_type")
-    riser = ("Drum riser - YES" if "riser" in str(st).lower() else "Drum riser - no") if st else ""
-    scenic = "; ".join(x for x in (riser, f.get("scenic", "")) if x)
-    if scenic:
-        out["scenic"] = scenic
-
+        notes.append(f["input_notes"])
+    if str(f.get("own_iems", "")).lower() == "yes" and f.get("split_snake"):
+        notes.append(f"Split snake: {f['split_snake']}")
     if f.get("lighting"):
-        out["lighting"] = f["lighting"]
+        notes.append(f"Lighting request: {f['lighting']}")
+    if notes:
+        out["input notes"] = " · ".join(notes)
+
+    if f.get("stage_type"):
+        out["stage type"] = checkbox_pair(
+            "Flat", "Riser", "Riser" if "riser" in str(f["stage_type"]).lower() else "Flat")
+    if f.get("scenic"):
+        out["scenic notes"] = f["scenic"]
+
     if f.get("merch"):
         out["merch"] = f["merch"]
     if f.get("large_vehicle"):
@@ -144,12 +159,18 @@ def act_cells(f):
         out["dressing room tent"] = "Yes" if str(f["band_tent"]).lower().startswith("yes") else "No"
     if f.get("backline"):
         out["backline"] = f["backline"]
-
-    contact = " ".join(str(x) for x in (f.get("contact_name"), f.get("contact_phone"))
-                       if x not in (None, "")).strip()
-    if contact:
-        out["contact"] = contact
+    if f.get("contact_name"):
+        out["band contact — name"] = f["contact_name"]
+    if f.get("contact_phone"):
+        out["band contact — cell"] = f["contact_phone"]
     return out
+
+
+def checkbox_pair(label_a, label_b, chosen):
+    """'☐ A     ☐ B' with whichever of A/B was chosen swapped to ☒."""
+    a = "☒" if norm(chosen) == norm(label_a) else "☐"
+    b = "☒" if norm(chosen) == norm(label_b) else "☐"
+    return f"{a} {label_a}     {b} {label_b}"
 
 
 def set_cell(cell, text):
@@ -184,21 +205,21 @@ def set_cell_link(cell, text, target):
     p._p.append(link)
 
 
-def set_multiline(cell, lines):
-    """Set a cell to N lines, reusing existing paragraphs where possible."""
-    paras = cell.paragraphs
-    for i, line in enumerate(lines):
-        if i < len(paras):
-            p = paras[i]
-            for r in list(p.runs):
-                r.text = ""
-            (p.runs[0] if p.runs else p.add_run("")).text = line
-        else:
-            cell.add_paragraph(line)
-    # blank any leftover paragraphs
-    for j in range(len(lines), len(paras)):
-        for r in list(paras[j].runs):
-            r.text = ""
+def set_para_text(paragraph, text):
+    for extra in list(paragraph.runs[1:]):
+        extra._element.getparent().remove(extra._element)
+    (paragraph.runs[0] if paragraph.runs else paragraph.add_run("")).text = text
+
+
+def append_to_run(paragraph, prefix, value):
+    """Find the run starting with `prefix` and set it to prefix+value — used
+    for label+blank lines like 'TONIGHT — MC: ' that have no separate blank
+    run of their own to target."""
+    for r in paragraph.runs:
+        if r.text.strip().startswith(prefix.strip()):
+            r.text = f"{prefix}{value}"
+            return True
+    return False
 
 
 def all_tables(doc):
@@ -214,109 +235,170 @@ def all_tables(doc):
 
 
 def find_grid(doc):
+    """The one big EVENT INFORMATION -> MISC table (right-hand side)."""
     for t in all_tables(doc):
         for r in t.rows:
-            if r.cells and norm(r.cells[0].text) == "stage plot":
+            if r.cells and norm(r.cells[0].text) == "event information":
                 return t
     return None
 
 
-def fill_header(grid, event, acts):
-    """Row 0 value cell: Date / Event name / Band names (aligned to the labels)."""
+def find_lead_table(doc):
+    """The small Lead/Cell table (left-hand side)."""
+    for t in all_tables(doc):
+        if len(t.rows) == 2 and norm(t.rows[0].cells[0].text) == "lead":
+            return t
+    return None
+
+
+def fill_header(grid, event, acts, single):
+    """EVENT INFORMATION value cell: Date / Event / Band (single-band only) /
+    TONIGHT — MC/DJ (multi-band only) — each its own paragraph."""
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "event information":
-            value_cell = r.cells[2]  # merged across cols 2-5
-            bands = ", ".join(a["artist"]["name"] for a in acts if a.get("artist"))
+            value_cell = r.cells[1]
             date = event.get("event_date").isoformat() if event.get("event_date") else ""
-            set_multiline(value_cell, [date, event.get("name") or "", bands])
+            for p in value_cell.paragraphs:
+                t = p.text.strip()
+                if t.startswith("Date:"):
+                    set_para_text(p, f"Date: {date}" if date else "Date:")
+                elif t.startswith("Event:"):
+                    set_para_text(p, f"Event: {event.get('name') or ''}")
+                elif t.startswith("Band:") and single:
+                    bands = ", ".join(a["artist"]["name"] for a in acts if a.get("artist"))
+                    set_para_text(p, f"Band: {bands}" if bands else "Band:")
+                elif t.startswith("TONIGHT"):
+                    det = event.get("details") or {}
+                    if det.get("mc"):
+                        append_to_run(p, "TONIGHT — MC: ", det["mc"])
+                    if det.get("dj"):
+                        append_to_run(p, "     DJ: ", det["dj"])
             return
 
 
-def fill_audio_times(grid, acts, event):
-    """AUDIO row = the show's clock window (Start–End from the event schedule),
-    NOT the set length. Per-act windows would need per-act clock fields."""
+def fill_event_type(grid, event):
     det = event.get("details") or {}
-    start, end = det.get("event_start"), det.get("event_end")
-    window = f"{start}-{end}" if start and end else (start or end or "")
-    acts_by_slot = {a["slot"]: a for a in acts if a.get("slot") in SLOT_COL}
     for r in grid.rows:
-        if r.cells and norm(r.cells[0].text) == "audio":
-            for slot, col in SLOT_COL.items():
-                label = SLOT_AUDIO_LABEL.get(slot, slot.upper())
-                a = acts_by_slot.get(slot)
-                who = a["artist"]["name"] if a and a.get("artist") else None
-                if who:
-                    lines = [label, who, window] if window else [label, who]
-                elif a:
-                    # act exists on this slot but no artist attached yet
-                    lines = [label, window] if window else [label]
-                else:
-                    lines = []   # no act booked for this slot — don't show stale placeholder times
-                for ci in (col, col + 1):
-                    if ci < len(r.cells):
-                        set_multiline(r.cells[ci], lines)
+        if r.cells and norm(r.cells[0].text) == "event type":
+            value_cell = r.cells[1]
+            paras = value_cell.paragraphs
+            if len(paras) >= 1 and det.get("event_type"):
+                set_para_text(paras[0], checkbox_pair(
+                    "Internal Event:", "Third Party Event:",
+                    "Internal Event:" if norm(det["event_type"]) == "internal" else "Third Party Event:",
+                ))
+            if len(paras) >= 2 and det.get("paying_band"):
+                yn = "Yes" if norm(det["paying_band"]) == "yes" else "No"
+                set_para_text(paras[1], f"Are we paying the band?   {checkbox_pair('Yes', 'No', yn)}")
             return
 
 
-def fill(event_id, template, out_path=None, stageplot_names=None):
+def fill_lead(doc, event):
+    det = event.get("details") or {}
+    t = find_lead_table(doc)
+    if not t:
+        return
+    if det.get("lead_name"):
+        set_cell(t.rows[0].cells[1], det["lead_name"])
+    if det.get("lead_phone"):
+        set_cell(t.rows[1].cells[1], det["lead_phone"])
+
+
+def act_columns(grid, n_acts):
+    """Row -> its N value cells, keyed by normalized label. Cells inside a
+    colSpan report once per spanned grid column in python-docx, so a
+    single-value row (Event Type, MISC header, …) still resolves fine —
+    callers that expect N distinct act cells use cells[1:1+n_acts]."""
+    rows = {}
+    for r in grid.rows:
+        label = norm(r.cells[0].text)
+        if label:
+            rows.setdefault(label, r)
+    return rows
+
+
+def fill(event_id, template=None, out_path=None, stageplot_names=None):
     """stageplot_names: {artist name -> filed stage-plot filename}. When an act's
     plot was downloaded and filed next to this doc, its Stage Plot cell reads
     'See DB — <filename>' instead of the inline description."""
     stageplot_names = stageplot_names or {}
-    if not template.exists():
-        print(f"Template not found: {template}", file=sys.stderr)
-        sys.exit(1)
     with db.get_conn() as conn, conn.cursor() as cur:
         event = db.get_event(cur, event_id)
         if not event:
             print(f"No event {event_id}", file=sys.stderr); sys.exit(1)
         acts = db.event_acts(cur, event_id)
 
+    n = len(acts)
+    if template is None:
+        template = TEMPLATE_BY_ACTS.get(n)
+        if template is None:
+            print(f"Event {event_id} has {n} act(s) — no FSQ template for that "
+                  f"count (1/2/3 only).", file=sys.stderr)
+            sys.exit(1)
+    if not template.exists():
+        print(f"Template not found: {template}", file=sys.stderr)
+        sys.exit(1)
+
     doc = Document(str(template))
     grid = find_grid(doc)
     if grid is None:
-        print("Couldn't find the EVENT INFORMATION grid.", file=sys.stderr); sys.exit(1)
+        print("Couldn't find the EVENT INFORMATION table.", file=sys.stderr); sys.exit(1)
 
-    rows_by_label = {}
-    for r in grid.rows:
-        if r.cells:
-            rows_by_label.setdefault(norm(r.cells[0].text), r)
+    single = n == 1
+    fill_header(grid, event, acts, single)
+    fill_event_type(grid, event)
+    fill_lead(doc, event)
 
-    fill_header(grid, event, acts)
-    fill_audio_times(grid, acts, event)
+    # multi-band act-name header row: bold slot label already printed by the
+    # template, second paragraph is the blank line for the actual band name
+    if not single:
+        for r in grid.rows:
+            if r.cells and r.cells[0].text.strip() == "" and any(
+                    c.paragraphs and c.paragraphs[0].runs and c.paragraphs[0].runs[0].bold
+                    for c in r.cells[1:1 + n]):
+                for i, a in enumerate(acts):
+                    if not a.get("artist"):
+                        continue
+                    ci = 1 + i
+                    if ci < len(r.cells) and len(r.cells[ci].paragraphs) >= 2:
+                        set_para_text(r.cells[ci].paragraphs[1], a["artist"]["name"])
+                break
 
+    rows_by_label = act_columns(grid, n)
     filled_acts = 0
-    for a in acts:
-        col = SLOT_COL.get(a["slot"])
-        if col is None:
-            continue
+    for i, a in enumerate(acts):
         mf = merged_fields(a)
+        if a.get("set_time"):
+            mf_set_length = a["set_time"]
+        else:
+            mf_set_length = None
         who = a["artist"]["name"] if a.get("artist") else None
         saved_plot = stageplot_names.get(who) if who else None
         if saved_plot:
             mf["_stageplot_saved"] = saved_plot
-        cells = act_cells(mf)
-        if cells:
+        values = act_row_values(mf)
+        if mf_set_length:
+            values["set length"] = mf_set_length
+        if values:
             filled_acts += 1
-        for label, value in cells.items():
+        for label, text in values.items():
             row = rows_by_label.get(label)
             if not row:
                 continue
-            for n, ci in enumerate((col, col + 1)):
-                if ci >= len(row.cells):
-                    continue
-                # the Stage Plot cell links to the filed file (same folder as the doc)
-                if label == "stage plot" and saved_plot and n == 0:
-                    set_cell_link(row.cells[ci], value, quote(saved_plot))
-                else:
-                    set_cell(row.cells[ci], value)
+            ci = 1 + i
+            if ci >= len(row.cells):
+                continue
+            if label == "stage plot" and saved_plot:
+                set_cell_link(row.cells[ci], text, quote(saved_plot))
+            else:
+                set_cell(row.cells[ci], text)
 
     if out_path is None:
         tag = re.sub(r"[^A-Za-z0-9]+", "_", event.get("name") or f"event{event_id}").strip("_")
         date = event.get("event_date")
         out_path = FILLED / f"{tag}__{date or 'nodate'}__daysheet.docx"
     doc.save(out_path)
-    print(f"Filled day-sheet: {out_path}")
+    print(f"Filled day-sheet ({n}-band template): {out_path}")
     print(f"  {event.get('name')} @ {event.get('venue')} {event.get('event_date')} "
           f"— {filled_acts}/{len(acts)} act(s) filled")
     for a in acts:
@@ -334,7 +416,8 @@ def fill(event_id, template, out_path=None, stageplot_names=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--event", type=int, required=True)
-    ap.add_argument("--template", type=Path, default=DEFAULT_TEMPLATE)
+    ap.add_argument("--template", type=Path, default=None,
+                     help="override the auto-picked (by act count) template")
     ap.add_argument("--out", type=Path, default=None)
     args = ap.parse_args()
     fill(args.event, args.template, args.out)

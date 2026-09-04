@@ -144,7 +144,7 @@ def main():
                 plot_rels[key] = rel
                 n_plots += 1
 
-            daysheet.fill(eid, daysheet.DEFAULT_TEMPLATE, out_path=folder / f"{stem}.docx",
+            daysheet.fill(eid, out_path=folder / f"{stem}.docx",
                           stageplot_names=stageplot_names)
 
             date = ev.get("event_date").isoformat() if ev.get("event_date") else None
