@@ -1,4 +1,4 @@
-Subject: Welcome to {% if event_name %}{{ event_name }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} — {{ show_date }}{% endif %}
+Subject: Welcome to {% if event_name %}{{ event_name }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} — {{ show_date }}{% endif +%}
 
 Hi{% if name %} {{ name }}{% endif %},
 
@@ -14,7 +14,7 @@ Hi{% if name %} {{ name }}{% endif %},
 
 ────────────────────────────────
 
-Venue / Location: {% if blocks.location %}{{ blocks.location }}{% else %}{{ venue }}{% endif %}
+Venue / Location: {% if blocks.location %}{{ blocks.location }}{% else %}{{ venue }}{% endif +%}
 Advancing Contact: {{ advancing_contact }}
 {% if day_of_contact %}Day-of Contact: {{ day_of_contact }}
 {% endif %}{% if set_line %}{{ set_line }}

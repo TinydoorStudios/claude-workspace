@@ -36,10 +36,16 @@ def tech_packs():
 # doesn't apply there. Main Stage behaves like every other venue (lighting on,
 # generous monitor count) — it's listed mainly so the location itself can be
 # selected and printed on the day-sheet.
+# stage_size (added 2026-09-07, Brian): footprint quoted to bands in the advance
+# email (tools/venue_email.py). Porch + Main Stage are Brian-confirmed; Bandstand
+# has no published dimensions anywhere online — TBD until he measures/confirms it.
 WP_LOCATIONS = {
-    "Main Stage": {"monitor_cap": 6, "lighting": True},
-    "Porch":      {"monitor_cap": 2, "lighting": False},
-    "Bandstand":  {"monitor_cap": 4, "lighting": False},
+    "Main Stage": {"monitor_cap": 6, "lighting": True,
+                   "stage_size": "20' wide x 20' deep"},
+    "Porch":      {"monitor_cap": 2, "lighting": False,
+                   "stage_size": "20' wide x 12' deep"},
+    "Bandstand":  {"monitor_cap": 4, "lighting": False,
+                   "stage_size": "TBD — confirm with your day-of contact"},
 }
 
 # Show series -> overrides. `blocks` toggles optional sections; `intro` overrides

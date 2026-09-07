@@ -10,6 +10,12 @@ venue-only performance rules.
 To add a venue: copy the FSQ dict, replace the prose. Anything you leave out falls
 back to DEFAULT (a generic, non-FSQ-specific block that is safe to send as-is).
 COMMON_REQUIREMENTS is the 3CDC-wide policy and appends to every venue.
+
+A block's prose can reference `{some_key}` placeholders — draft_emails.py fills
+them per show via blocks_for's **dynamic kwargs (e.g. WP's {location}/{stage_size},
+sourced from the booking's Location field and forms_config.WP_LOCATIONS). Only
+blocks containing the referenced placeholder are touched; everything else is a
+plain string, unaffected by the substitution pass.
 """
 
 # 3CDC-wide, appended under Performance Requirements for every venue.
@@ -58,12 +64,41 @@ Hospitality & Site:
 - Hospitality: drink tickets and water are provided for all performers and crew.""",
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
-    # Add Washington Park / Memorial Hall / etc. here as Brian supplies the content.
+    # One generic block for all three WP locations (Brian, 2026-09-07) — {location}
+    # and {stage_size} are filled per show by draft_emails.py; monitor count isn't
+    # quoted here since it varies 6/2/4 by location and is already a hard cap on
+    # the band form itself.
+    "Washington Park": {
+        "location": "Washington Park – {location}; 1230 Elm St, Cincinnati, OH 45202",
+        "load_in": """\
+Load-In & Parking:
+Unload on Elm St., across from Memorial Hall, next to the park. This is 15-minute unloading only — the vehicle must be moved before going into sound check. Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
+Parking: we can validate parking if all band members are traveling in personal vehicles — larger vehicles are more difficult. Note your vehicle count and any large-vehicle needs on the form.""",
+        "technical": """\
+Technical:
+- Stage: your footprint is {stage_size}.
+- Backline / instrumentation: artists provide all instruments, including amps.
+- Audio: we provide access to power, mics, monitor wedges, stands, cables, and a sound system, plus a house engineer who mixes FOH and monitors. Coordinate in advance if you're bringing your own.
+- Stage plot / input list and monitor count — all on the form.""",
+        "hospitality": """\
+Hospitality & Site:
+- Merch: if you're selling, you provide the seller, point of sale, and bank.
+- Hospitality: drink tickets and water are provided for all performers — confirm your total headcount on the form.""",
+        "requirements": "",
+    },
+    # Add Memorial Hall / etc. here as Brian supplies the content.
 }
 
 
-def blocks_for(venue):
+def blocks_for(venue, **dynamic):
     v = VENUE_EMAIL.get((venue or "").strip(), {})
     out = dict(DEFAULT)
     out.update({k: val for k, val in v.items() if val is not None})
+    if dynamic:
+        for k, text in out.items():
+            if isinstance(text, str) and "{" in text:
+                try:
+                    out[k] = text.format(**dynamic)
+                except (KeyError, IndexError):
+                    pass  # a referenced placeholder wasn't supplied — leave as-is
     return out

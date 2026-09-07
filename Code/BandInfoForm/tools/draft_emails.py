@@ -34,8 +34,10 @@ for _cand in (HERE.parent, HERE.parent / "app"):  # deployed flat, or repo layou
         sys.path.insert(0, str(_cand))
         break
 import advance_db as db
+import forms_config
 sys.path.insert(0, str(HERE))
 import fieldspec as fs
+import staffing
 import venue_email as ve
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -92,6 +94,7 @@ def load_batch(path):
                 "slot": r.get("slot") or "",
                 "event_name": r.get("event_name") or "",
                 "email_note": r.get("email_note") or "",
+                "location": r.get("location") or "",
                 "lead_name": r.get("lead_name") or "",
                 "lead_phone": r.get("lead_phone") or "",
                 "load_in": r.get("load_in") or "",
@@ -195,9 +198,20 @@ def main():
 
             slot = (r.get("slot") or "").replace("_", " ")
             day_of_contact = ""
-            if r.get("lead_name"):
+            wp_engineer = staffing.engineer_for(venue, show_date) if venue == "Washington Park" else None
+            if wp_engineer:
+                day_of_contact = wp_engineer  # WP: staffing sheet wins over manual entry
+            elif r.get("lead_name"):
                 day_of_contact = r["lead_name"] + (
                     f" ({r['lead_phone']})" if r.get("lead_phone") else "")
+
+            email_extra = {}
+            if venue == "Washington Park":
+                loc_name = r.get("location") or ""
+                loc_cfg = forms_config.WP_LOCATIONS.get(loc_name)
+                email_extra["location"] = loc_name or "confirm with your day-of contact"
+                email_extra["stage_size"] = (loc_cfg["stage_size"] if loc_cfg
+                                              else "confirm with your day-of contact")
             def _setlen(v):
                 v = str(v).strip()
                 return f"{v} min" if v.isdigit() else v
@@ -234,7 +248,7 @@ def main():
             kind = "RETURNING" if returning else "NEW"
             ctx = dict(
                 name=name, venue=venue,
-                blocks=ve.blocks_for(venue), common_requirements=ve.COMMON_REQUIREMENTS,
+                blocks=ve.blocks_for(venue, **email_extra), common_requirements=ve.COMMON_REQUIREMENTS,
                 personal_note=(lambda n: f"{n}\n\n" if n else "")((r.get("email_note") or "").strip()),
                 event_name=r.get("event_name") or "",
                 show_date=us_date(show_date),
