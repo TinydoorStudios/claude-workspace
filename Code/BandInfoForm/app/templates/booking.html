@@ -95,6 +95,7 @@
     </div>
     <div class="req"><label>Artist / Band</label><input name="artist_name" value="{{ form.artist_name or '' }}" placeholder="Band name (exactly)" required></div>
     <div class="req"><label>Contact Email</label><input type="email" name="contact_email" value="{{ form.contact_email or '' }}" placeholder="booking contact"></div>
+    <div class="full req"><label>Entered By</label><input name="entered_by" value="{{ form.entered_by or '' }}" placeholder="your name" required></div>
     <div><label>Slot</label>
       <select name="slot">
         {% for s in slots %}<option value="{{ s }}" {% if form.slot==s %}selected{% endif %}>{{ s.replace('_',' ') }}</option>{% endfor %}
@@ -145,7 +146,6 @@
         <div><label>Start</label><input name="event_start" value="{{ form.event_start or '' }}" placeholder="e.g. 7:00p"></div>
         <div><label>End</label><input name="event_end" value="{{ form.event_end or '' }}" placeholder="e.g. 10:00p"></div>
         <div><label>Curfew</label><input name="curfew" value="{{ form.curfew or '' }}" placeholder="e.g. 11:00p"></div>
-        <div><label>Entered By</label><input name="entered_by" value="{{ form.entered_by or '' }}" placeholder="your name"></div>
       </div>
       <div style="margin-top:14px"><label>Email Note (personal line for this band's advance email)</label>
         <textarea name="email_note" placeholder="e.g. Great to have you back — same backline as last time?">{{ form.email_note or '' }}</textarea>
