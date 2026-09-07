@@ -61,6 +61,10 @@ EVENT_FIELDS = [
     ("Event Name",    "event_name",  None),
     ("Event Date",    "event_date",  None),
     ("Venue",         "venue",       VENUES),
+    # WP-only sub-venue (Brian, 2026-09-06): Main Stage / Porch / Bandstand —
+    # each has its own monitor cap and Porch/Bandstand have no lighting.
+    # Blank for every other venue. See forms_config.WP_LOCATIONS (app side).
+    ("Location",      "location",    ["Main Stage", "Porch", "Bandstand"]),
     ("Series",        "series",      None),
     ("Event Type",    "event_type",  ["Internal", "Third Party"]),
     ("Paying Band?",  "paying_band", ["Yes", "No"]),
@@ -126,7 +130,7 @@ ALL_COLUMNS = (
 )
 LABEL_TO_KEY = {lbl: key for (lbl, key, _ch) in ALL_COLUMNS}
 BAND_KEYS = [key for (_l, key, _c, _r) in BAND_FIELDS]
-EVENT_DETAIL_KEYS = ["event_type", "paying_band", "mc", "dj", "lead_name", "lead_phone",
+EVENT_DETAIL_KEYS = ["location", "event_type", "paying_band", "mc", "dj", "lead_name", "lead_phone",
                      "load_in", "soundcheck", "event_start", "event_end", "curfew"]
 
 GROUPS = [

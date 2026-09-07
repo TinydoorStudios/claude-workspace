@@ -21,6 +21,8 @@ wins, same merge policy as the email drafts. Writes:
   - EVENT INFORMATION: Date / Event always; Band (single-band only — a
     multi-band show's names go on the act-header row instead); TONIGHT —
     MC/DJ (multi-band only)
+  - Location (Washington Park only — Main Stage/Porch/Bandstand, from the
+    sheet's Location column, seeded from bookings.location at booking time)
   - Event Type / Paying?, Lead name + cell
   - per-act: Set Length, act name (multi-band header row), Stage Plot,
     Monitors, IEMs, Input Notes (also carries any lighting request / split
@@ -34,8 +36,6 @@ makes by hand (2026-09-03: "the granular items we will add by hand"):
     minute-by-minute choreography is a day-of call, not form data)
   - Engineer (FOH/Mon names), Consoles, PA, Subs, LIGHTING (Pre-Scheduled/
     Live), VIDEO, Buyout
-  - Location (Washington Park only — Main Stage/Porch/Bandstand; same bucket
-    as the rest of this list, a staff call at booking time, not form data)
 
   python3 daysheet.py --event 1
 """
@@ -186,6 +186,14 @@ def checkbox_pair(label_a, label_b, chosen):
     return f"{a} {label_a}     {b} {label_b}"
 
 
+def checkbox_choice(labels, chosen):
+    """Same idea as checkbox_pair but for any number of options — '☐ A     ☒ B
+    ☐ C'. `chosen` not matching any label leaves everything unchecked (never
+    guesses)."""
+    marks = ["☒" if norm(chosen) == norm(lbl) else "☐" for lbl in labels]
+    return "     ".join(f"{m} {lbl}" for m, lbl in zip(marks, labels))
+
+
 def set_cell(cell, text):
     text = "" if text is None else str(text)
     p = cell.paragraphs[0]
@@ -306,6 +314,24 @@ def fill_event_type(grid, event):
             return
 
 
+WP_LOCATIONS = ["Main Stage", "Porch", "Bandstand"]
+
+
+def fill_location(grid, event):
+    """WP-only Location row (☐ Main Stage ☐ Porch ☐ Bandstand) — checked from
+    the booking (events.details.location, seeded via the sheet's Location
+    column). No-op if the template has no Location row (FSQ) or the event has
+    no location on file yet."""
+    det = event.get("details") or {}
+    loc = det.get("location")
+    if not loc:
+        return
+    for r in grid.rows:
+        if r.cells and norm(r.cells[0].text) == "location":
+            set_para_text(r.cells[1].paragraphs[0], checkbox_choice(WP_LOCATIONS, loc))
+            return
+
+
 def fill_lead(doc, event):
     det = event.get("details") or {}
     t = find_lead_table(doc)
@@ -363,6 +389,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
 
     single = n == 1
     fill_header(grid, event, acts, single)
+    fill_location(grid, event)
     fill_event_type(grid, event)
     fill_lead(doc, event)
 
