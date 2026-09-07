@@ -219,6 +219,9 @@ CREATE TABLE IF NOT EXISTS bookings (
     event_name    TEXT,
     event_date    DATE,
     venue         TEXT,
+    -- WP-only sub-venue (Main Stage | Porch | Bandstand) — see forms_config.WP_LOCATIONS.
+    -- Blank for every other venue.
+    location      TEXT,
     series        TEXT,
     event_type    TEXT,
     paying_band   TEXT,
@@ -238,6 +241,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     seeded_at     TIMESTAMPTZ
 );
+-- for DBs created before this column existed:
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS location TEXT;
 
 -- short redirect for the /f/<signed-token> prefill link — the signed token is
 -- long (venue name + date + series + HMAC signature); emails carry /s/<code>

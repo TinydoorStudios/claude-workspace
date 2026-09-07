@@ -81,9 +81,16 @@
     <div class="full req"><label>Event Name</label><input name="event_name" value="{{ form.event_name or '' }}" placeholder="e.g. 513 Airwaves w/ Inhailer Radio" required></div>
     <div class="req"><label>Event Date</label><input type="date" name="event_date" value="{{ form.event_date or '' }}" required></div>
     <div class="req"><label>Venue</label>
-      <select name="venue" required>
+      <select name="venue" id="venue_select" onchange="onVenueChange()" required>
         <option value="">Select…</option>
         {% for v in venues %}<option value="{{ v }}" {% if form.venue==v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="req" id="wp_location_field" style="display:none">
+      <label>Location (WP only)</label>
+      <select name="location" id="location_select">
+        <option value="">Select…</option>
+        {% for loc in wp_locations %}<option {% if form.location==loc %}selected{% endif %}>{{ loc }}</option>{% endfor %}
       </select>
     </div>
     <div class="req"><label>Artist / Band</label><input name="artist_name" value="{{ form.artist_name or '' }}" placeholder="Band name (exactly)" required></div>
@@ -163,6 +170,16 @@
       sel.setAttribute('name', 'series');
     }
   }
+  function onVenueChange() {
+    var venue = document.getElementById('venue_select');
+    var field = document.getElementById('wp_location_field');
+    var loc = document.getElementById('location_select');
+    var show = venue.value === 'Washington Park';
+    field.style.display = show ? 'block' : 'none';
+    loc.required = show;
+    if (!show) { loc.value = ''; }
+  }
+  onVenueChange();
   </script>
 {% endif %}
 </div>

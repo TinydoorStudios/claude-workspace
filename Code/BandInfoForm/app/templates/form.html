@@ -86,6 +86,7 @@
 <div class="wrap">
 <form class="card" action="{{ url_for('submit') }}" method="post" enctype="multipart/form-data">
   <input type="hidden" name="show_series" value="{{ cfg.series_key }}">
+  {% if cfg.location %}<input type="hidden" name="location" value="{{ cfg.location }}">{% endif %}
 
   {% if returning %}
   <div class="field conditional">
@@ -180,7 +181,11 @@
 
   <div class="field">
     <label class="q">How many monitors do you need?<span class="req">*</span></label>
-    <input type="number" name="monitors" min="0" step="1" required value="{{ v('monitors') }}">
+    <input type="number" name="monitors" min="0" step="1" required value="{{ v('monitors') }}"
+           {% if cfg.monitor_cap %}max="{{ cfg.monitor_cap }}"{% endif %}>
+    {% if cfg.monitor_cap %}
+    <p class="help">This location ({{ cfg.location }}) is limited to {{ cfg.monitor_cap }} monitor{{ 's' if cfg.monitor_cap != 1 }}.</p>
+    {% endif %}
   </div>
 
   <div class="field">

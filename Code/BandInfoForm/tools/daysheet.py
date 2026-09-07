@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Fill an FSQ advance day-sheet — single-band, 2-band, or 3-band — from an
-event. These are the only day-sheets in use (2026-09-03) — the old 513
-Airwaves-specific template is retired; nothing here references it.
+"""Fill an advance day-sheet — single-band, 2-band, or 3-band — from an
+event. The old 513 Airwaves-specific template is retired; nothing here
+references it.
 
-Template is picked automatically by how many acts the event has:
-  1 act  -> doc_templates/FSQ Single Band Advance.docx
-  2 acts -> doc_templates/FSQ 2 Band Advance.docx
-  3 acts -> doc_templates/FSQ 3 Band Advance.docx
+Template is picked automatically by VENUE + how many acts the event has:
+  Fountain Square, 1 act  -> doc_templates/FSQ Single Band Advance.docx
+  Fountain Square, 2 acts -> doc_templates/FSQ 2 Band Advance.docx
+  Fountain Square, 3 acts -> doc_templates/FSQ 3 Band Advance.docx
+  Washington Park, 1 act  -> doc_templates/WP Single Band Advance.docx
+  (Washington Park has no 2/3-band template yet — those events error out
+  with a clear message instead of silently reusing the wrong template.)
 Acts map to columns left-to-right in event_acts' own slot_order (opener,
 direct_support, headliner) — whichever slots the event actually has, in that
 order, so a 2-band show booked as opener+headliner or as
@@ -31,6 +34,8 @@ makes by hand (2026-09-03: "the granular items we will add by hand"):
     minute-by-minute choreography is a day-of call, not form data)
   - Engineer (FOH/Mon names), Consoles, PA, Subs, LIGHTING (Pre-Scheduled/
     Live), VIDEO, Buyout
+  - Location (Washington Park only — Main Stage/Porch/Bandstand; same bucket
+    as the rest of this list, a staff call at booking time, not form data)
 
   python3 daysheet.py --event 1
 """
@@ -56,12 +61,20 @@ from urllib.parse import quote
 TEMPLATES = HERE / "doc_templates"
 FILLED = HERE / "filled"
 FILLED.mkdir(exist_ok=True)
-TEMPLATE_BY_ACTS = {
-    1: TEMPLATES / "FSQ Single Band Advance.docx",
-    2: TEMPLATES / "FSQ 2 Band Advance.docx",
-    3: TEMPLATES / "FSQ 3 Band Advance.docx",
+TEMPLATES_BY_VENUE = {
+    "Fountain Square": {
+        1: TEMPLATES / "FSQ Single Band Advance.docx",
+        2: TEMPLATES / "FSQ 2 Band Advance.docx",
+        3: TEMPLATES / "FSQ 3 Band Advance.docx",
+    },
+    "Washington Park": {
+        1: TEMPLATES / "WP Single Band Advance.docx",
+        # no 2/3-band WP template yet
+    },
 }
-DEFAULT_TEMPLATE = TEMPLATE_BY_ACTS[1]  # kept for callers that don't pass one
+# kept for callers that don't pass one / don't know the venue yet
+TEMPLATE_BY_ACTS = TEMPLATES_BY_VENUE["Fountain Square"]
+DEFAULT_TEMPLATE = TEMPLATE_BY_ACTS[1]
 
 
 def norm(s):
@@ -330,10 +343,14 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
 
     n = len(acts)
     if template is None:
-        template = TEMPLATE_BY_ACTS.get(n)
+        venue = event.get("venue") or "Fountain Square"
+        by_venue = TEMPLATES_BY_VENUE.get(venue, {})
+        template = by_venue.get(n)
         if template is None:
-            print(f"Event {event_id} has {n} act(s) — no FSQ template for that "
-                  f"count (1/2/3 only).", file=sys.stderr)
+            available = sorted(by_venue) or "none"
+            print(f"Event {event_id} @ {venue} has {n} act(s) — no template for "
+                  f"that venue/count combo (have templates for {available} act(s) "
+                  f"at {venue}).", file=sys.stderr)
             sys.exit(1)
     if not template.exists():
         print(f"Template not found: {template}", file=sys.stderr)

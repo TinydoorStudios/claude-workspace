@@ -97,6 +97,7 @@ def form():
     cfg = forms_config.get_config(
         series_key=request.args.get("series"),
         venue=request.args.get("venue"),
+        location=request.args.get("location"),
     )
     return render_template(
         "form.html", venues=forms_config.VENUES, cfg=cfg,
@@ -128,7 +129,8 @@ def prefilled_form(token):
     seed = payload.get("s") or {}
     series = seed.get("series") or request.args.get("series")
     cfg = forms_config.get_config(
-        series_key=series, venue=seed.get("venue") or request.args.get("venue"))
+        series_key=series, venue=seed.get("venue") or request.args.get("venue"),
+        location=seed.get("location") or request.args.get("location"))
     prefill, returning, artist_name = {}, False, None
     # Locked = this specific value came from us (the booking record / matched
     # artist), not from the band typing it — bands can't edit these three.
@@ -181,6 +183,17 @@ def submit():
     f = request.form
     if not f.get("band_name"):
         abort(400, "Band name is required.")
+
+    # WP location monitor cap — hard limit (Brian, 2026-09-06): Porch/Bandstand/
+    # Main Stage each have a physical wedge count that can't be exceeded.
+    if f.get("venue") == "Washington Park" and f.get("location") in forms_config.WP_LOCATIONS:
+        cap = forms_config.WP_LOCATIONS[f["location"]]["monitor_cap"]
+        try:
+            requested = int(f.get("monitors") or 0)
+        except ValueError:
+            requested = 0
+        if requested > cap:
+            abort(400, f"{f['location']} is limited to {cap} monitors — please enter {cap} or fewer.")
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     slug = _slug(f.get("band_name"))
@@ -376,6 +389,7 @@ def booking():
         f = request.form
         if not f.get("artist_name") or not f.get("event_name"):
             return render_template("booking.html", venues=forms_config.VENUES,
+                                   wp_locations=list(forms_config.WP_LOCATIONS),
                                    slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
                                    error="Event name and artist name are required.",
                                    form=f), 400
@@ -391,6 +405,7 @@ def booking():
                 _log_db_error("insert_booking", e)
         if not saved:
             return render_template("booking.html", venues=forms_config.VENUES,
+                                   wp_locations=list(forms_config.WP_LOCATIONS),
                                    slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
                                    error="Couldn't save — the database is unreachable. Try again shortly.",
                                    form=f), 503
@@ -407,6 +422,7 @@ def booking():
         return render_template("booking.html", venues=forms_config.VENUES,
                                slots=BOOKING_SLOTS, saved=data, urgent=urgent)
     return render_template("booking.html", venues=forms_config.VENUES,
+                           wp_locations=list(forms_config.WP_LOCATIONS),
                            slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(), form={})
 
 
@@ -584,7 +600,7 @@ def advance_lifecycle():
             batch = [{
                 "name": r["artist_name"], "show_date": r["show_date"].isoformat(),
                 "venue": r["venue"] or "", "series": r["series"] or "",
-                "email": r["email"] or "",
+                "email": r["email"] or "", "location": r["location"] or "",
             } for r in due_initial]
             batch_file = TOOLS_DIR / ".lifecycle_initial_batch.json"
             batch_file.write_text(json.dumps(batch))
@@ -632,7 +648,8 @@ def advance_lifecycle():
                     token = _signer.dumps({"a": r["artist_id"],
                                            "s": {"venue": r["venue"],
                                                  "date": r["show_date"].isoformat(),
-                                                 "series": r["series"] or None}})
+                                                 "series": r["series"] or None,
+                                                 "location": r["location"] or None}})
                     code = advance_db.get_or_create_short_link(cur, token)
                     link = f"{PUBLIC_URL}/s/{code}"
                     when = f" on {us_date(r['show_date'])}" if r["show_date"] else ""

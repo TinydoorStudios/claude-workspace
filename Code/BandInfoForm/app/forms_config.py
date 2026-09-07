@@ -31,6 +31,17 @@ def tech_packs():
     """Only the venues that actually have a link configured."""
     return {v: u for v, u in TECH_PACKS.items() if u}
 
+# WP-only sub-venues (Brian, 2026-09-06). Each has its own monitor cap; Porch
+# and Bandstand have no lighting rig at all, so the lighting-request question
+# doesn't apply there. Main Stage behaves like every other venue (lighting on,
+# generous monitor count) — it's listed mainly so the location itself can be
+# selected and printed on the day-sheet.
+WP_LOCATIONS = {
+    "Main Stage": {"monitor_cap": 6, "lighting": True},
+    "Porch":      {"monitor_cap": 2, "lighting": False},
+    "Bandstand":  {"monitor_cap": 4, "lighting": False},
+}
+
 # Show series -> overrides. `blocks` toggles optional sections; `intro` overrides
 # the header subtitle; `label` is the human name. Extend freely.
 SERIES = {
@@ -55,7 +66,7 @@ SERIES = {
 }
 
 
-def get_config(series_key=None, venue=None):
+def get_config(series_key=None, venue=None, location=None):
     base = dict(SERIES["default"])
     cfg = dict(base)
     if series_key and series_key in SERIES:
@@ -67,4 +78,15 @@ def get_config(series_key=None, venue=None):
         cfg["blocks"] = merged
     cfg["venue_preselect"] = venue if venue in VENUES else None
     cfg["series_key"] = series_key or "default"
+
+    # WP sub-venue: monitor cap + (Porch/Bandstand) no lighting question
+    cfg["location"] = None
+    cfg["monitor_cap"] = None
+    if venue == "Washington Park" and location in WP_LOCATIONS:
+        loc = WP_LOCATIONS[location]
+        cfg["location"] = location
+        cfg["monitor_cap"] = loc["monitor_cap"]
+        cfg["blocks"] = dict(cfg["blocks"])
+        cfg["blocks"]["lighting"] = loc["lighting"]
+
     return cfg

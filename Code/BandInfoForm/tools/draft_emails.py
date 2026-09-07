@@ -226,7 +226,7 @@ def main():
                     lines.append(line)
                 bill_block = "\n".join(lines)
 
-            token = _token(artist_id, venue, show_date, series)
+            token = _token(artist_id, venue, show_date, series, r.get("location"))
             with conn.cursor() as cur:
                 short_code = db.get_or_create_short_link(cur, token)
             conn.commit()
@@ -266,14 +266,15 @@ def main():
     print("Nothing was sent. Review the drafts, then send from Gmail once approved.")
 
 
-def _token(artist_id, venue, show_date, series=None):
+def _token(artist_id, venue, show_date, series=None, location=None):
     from itsdangerous import URLSafeSerializer
     secret = os.environ.get("ADVANCE_SECRET", "dev-insecure-secret-change-me")
     signer = URLSafeSerializer(secret, salt="advance-prefill")
     return signer.dumps({"a": artist_id,
                          "s": {"venue": venue,
                                "date": show_date.isoformat() if show_date else None,
-                               "series": series or None}})
+                               "series": series or None,
+                               "location": location or None}})
 
 
 def _q(s):

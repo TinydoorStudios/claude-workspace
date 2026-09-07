@@ -128,8 +128,11 @@ def shows_due_for_initial_advance(cur):
     see shows_due_for_send_reminder)."""
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
-                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date
+                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
+                  b.location AS location
            FROM shows s JOIN artists a ON a.id = s.artist_id
+           LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
+                  AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
            WHERE s.advance_draft_created_at IS NULL
              AND s.show_date IS NOT NULL
              AND s.show_date >= CURRENT_DATE
@@ -164,8 +167,11 @@ def shows_due_for_followup(cur, days_out=7):
     initial advance first and only qualifies for a follow-up on a later run."""
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
-                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date
+                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
+                  b.location AS location
            FROM shows s JOIN artists a ON a.id = s.artist_id
+           LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
+                  AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
            WHERE s.advance_draft_created_at IS NOT NULL
              AND s.followup_draft_created_at IS NULL
              AND s.responded_at IS NULL
@@ -447,7 +453,7 @@ def event_acts(cur, event_id):
 
 # ── staff booking intake ─────────────────────────────────────────────────────
 BOOKING_FIELDS = [
-    "event_name", "event_date", "venue", "series", "event_type", "paying_band",
+    "event_name", "event_date", "venue", "location", "series", "event_type", "paying_band",
     "lead_name", "lead_phone", "load_in", "soundcheck", "event_start",
     "event_end", "curfew", "slot", "set_time", "artist_name", "contact_email",
     "email_note", "entered_by",
