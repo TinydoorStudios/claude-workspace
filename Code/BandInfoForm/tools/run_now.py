@@ -95,6 +95,14 @@ def main():
         if status_path.exists():
             run("merge_status.py", "--list", sheet, "--data", status_path)
 
+        # 5. regenerate the Show Status Log (best-effort — a bug here should
+        #    never block the day-sheet/email pipeline above)
+        try:
+            run("status_log.py")
+        except subprocess.CalledProcessError as e:
+            print(f"  ! status_log.py failed (non-fatal): {(e.stderr or '')[-500:]}",
+                  file=sys.stderr)
+
         print(json.dumps(summary))
     except subprocess.CalledProcessError as e:
         print(json.dumps({"error": e.__class__.__name__,
