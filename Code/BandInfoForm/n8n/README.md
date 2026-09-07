@@ -194,3 +194,46 @@ window drafts and notifies immediately**, not on the next scheduled check.
   real `ADVANCE_INTERNAL_TOKEN` substituted before import now — `Fetch Due`'s
   header (as before) and `Check Token`'s `jsCode` (new) — never commit the
   real value to this repo.
+
+# n8n — Advance Recap Extraction (2026-09-07)
+
+3 days after a show, its filed advance `.docx` has had time to be corrected. This
+workflow converts it to PDF + MD (saved next to the `.docx`, same venue/month
+folder in the Dropbox tree) and stores the parsed recap in a new `advance_recaps`
+DB table — so a returning artist's 6-month "what's changed" email can pull real
+show info back out without re-parsing a Word document at draft time, and without
+depending on `events`/`event_acts` (which `package_run.py` truncates + rebuilds
+from the live sheet on every run — a working model, not a history).
+
+- Workflow: `advance_recap_extraction.json` (id `advance-recap-extraction`, token
+  placeholdered). Daily **2am** → `POST /internal/run-recap-extraction`
+  (token-protected, same pattern as the others) → the app runs
+  `tools/extract_advance_recap.py`: finds shows whose date is ≥3 days past and
+  have no `advance_recaps` row yet, locates the artist's column on their filed
+  advance via `daysheet.read_filed_advance` (matches by name in the document
+  text, not a DB lookup — works even though `events`/`event_acts` may already
+  be gone), writes `<stem>.md` + `<stem>.pdf` beside the source `.docx`, and
+  upserts `advance_recaps` (`UNIQUE(show_id)`, idempotent). Returns
+  `{extracted, skipped, pdf_failed}`; **one summary email to Brian**, sent only
+  when something happened (extractions or PDF failures) — silent on a quiet
+  night.
+- **PDF conversion needs LibreOffice (`soffice --headless`) on the VM** —
+  not installed by `deploy_app.command` (that ships code only). Deploy with
+  **`deploy_recap_extraction.command`** instead, which redeploys code, applies
+  the `advance_recaps` schema addition, checks/installs `libreoffice-writer`
+  if `soffice` is missing, imports + activates this workflow (pulling the real
+  token from the VM's `advance.env` itself — never typed in by hand), and
+  smoke-tests the new endpoint. Safe to re-run.
+- Row-filtering gotcha already handled in `daysheet.read_filed_advance`: a
+  freshly-filled advance still carries the BLANK TEMPLATE's own boilerplate
+  ("N/A", "No scenic elements", empty Engineer/Consoles lines) in every row
+  `daysheet.fill()` didn't actually write to. Diffing against a pristine copy
+  of the same template variant (`_template_defaults`) drops those rows instead
+  of echoing placeholder text back to a band as if it were real on-file data;
+  `RECAP_EXCLUDE_ROWS` separately drops staff-only rows (Engineer, Consoles,
+  PA, Subs, Lighting, Video, Buyout) outright, filled in or not — never
+  band-submitted, never something to send externally.
+- `draft_emails.py`'s returning-artist branch checks `advance_recaps` (via
+  `advance_db.get_advance_recap_by_show`) FIRST; only live-parses the filed
+  `.docx` on the spot (`daysheet.read_filed_advance`, no DB write) as a
+  fallback for a show too recent for the nightly job to have caught yet.

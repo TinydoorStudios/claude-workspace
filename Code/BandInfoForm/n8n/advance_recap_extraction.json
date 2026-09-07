@@ -1,0 +1,126 @@
+{
+  "id": "advance-recap-extraction",
+  "name": "Advance Recap Extraction",
+  "active": true,
+  "settings": {},
+  "nodes": [
+    {
+      "id": "sched-1",
+      "name": "Daily 2am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24,
+              "triggerAtHour": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "http-1",
+      "name": "Run Extraction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "url": "http://192.168.200.84:8097/internal/run-recap-extraction",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Advance-Token",
+              "value": "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-1",
+      "name": "Build Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $input.first().json;\nconst extracted = body.extracted || 0;\nconst skipped = body.skipped || 0;\nconst pdfFailed = body.pdf_failed || 0;\n// only worth an email when something happened or needs Brian's attention\nif (!extracted && !pdfFailed) return [];\nlet html = `<div style=\"font-family:-apple-system,sans-serif\"><p><b>${extracted} advance recap${extracted===1?'':'s'} extracted</b> (PDF + MD filed next to the source .docx, recap stored in the DB).</p>`;\nif (pdfFailed) html += `<p style=\"margin-top:10px;color:#b91c1c\"><b>${pdfFailed} PDF conversion failure${pdfFailed===1?'':'s'}</b> — MD + DB recap still saved, but no PDF was filed. Check the VM has LibreOffice (soffice) working.</p>`;\nif (skipped) html += `<p style=\"margin-top:10px;color:#6b7280\">${skipped} show${skipped===1?'':'s'} still waiting on a filed advance — will retry.</p>`;\nhtml += '</div>';\nconst subject = `Advance recap extraction — ${extracted} extracted${pdfFailed ? ', ' + pdfFailed + ' PDF failure' + (pdfFailed===1?'':'s') : ''}`;\nreturn [{ json: { subject, html } }];"
+      }
+    },
+    {
+      "id": "gmail-send-1",
+      "name": "Send Summary",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "sendTo": "blloyd@3cdc.org",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "nIrgTZKXgA3bJ9oP",
+          "name": "3CDCProduction@gmail.com"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 2am": {
+      "main": [
+        [
+          {
+            "node": "Run Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Extraction": {
+      "main": [
+        [
+          {
+            "node": "Build Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

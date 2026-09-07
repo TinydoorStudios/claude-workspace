@@ -686,6 +686,29 @@ def advance_lifecycle():
     return {"initial": initial, "followup": followup, "send_reminders": send_reminders}
 
 
+@app.post("/internal/run-recap-extraction")
+def run_recap_extraction():
+    """Called by n8n's daily 2am 'Advance Recap Extraction' check. For every
+    show that finished at least 3 days ago and doesn't have one yet, converts
+    its filed advance .docx to PDF + MD (next to the .docx in the Dropbox
+    venue tree) and stores the parsed recap — see tools/extract_advance_recap.py
+    for why this can't just live in events/event_acts. Token-protected, same
+    as /internal/run-followups. Never touches anything band-facing directly;
+    the stored recap is read later by draft_emails.py for a returning artist."""
+    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
+        abort(403)
+    if not DB_OK:
+        return {"error": "db-unavailable"}, 503
+    sys.path.insert(0, str(TOOLS_DIR))
+    from extract_advance_recap import run as _run_extraction
+    try:
+        result = _run_extraction()
+    except Exception as e:
+        _log_db_error("run_recap_extraction", e)
+        return {"error": e.__class__.__name__}, 500
+    return result
+
+
 @app.get("/healthz")
 def healthz():
     status = {"form": "ok", "db": "unknown"}

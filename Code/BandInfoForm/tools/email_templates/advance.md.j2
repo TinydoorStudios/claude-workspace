@@ -39,6 +39,11 @@ Performance Requirements (failure to comply may result in a warning or terminati
 
 {% for k, val in last %}  - {{ k }}: {{ val }}
 {% endfor %}
+{% endif %}{% if advance_recap %}
+For reference, here's what was on your advance from {{ advance_recap.venue }} on {{ advance_recap.show_date }}:
+
+{% for k, val in advance_recap.rows %}  - {{ k }}: {{ val }}
+{% endfor %}
 {% endif %}You acknowledge all of the above by completing the form. Let me know if you have any questions or concerns.
 
 Thanks,

@@ -205,6 +205,50 @@ def mark_send_reminder_sent(cur, show_id):
     )
 
 
+def due_for_recap_extraction(cur, grace_days=3, lookback_days=30):
+    """Shows that finished at least `grace_days` ago (their advance doc has had
+    time to be corrected/finalized) and haven't had their recap extracted yet.
+    `lookback_days` bounds the catch-up window so a show whose advance was
+    never filed (or filed somewhere the extractor can't find) doesn't get
+    retried forever — see tools/extract_advance_recap.py."""
+    cur.execute(
+        """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+                  s.venue, s.show_date
+           FROM shows s JOIN artists a ON a.id = s.artist_id
+           WHERE s.show_date IS NOT NULL
+             AND s.show_date <= CURRENT_DATE - %s
+             AND s.show_date >= CURRENT_DATE - %s
+             AND NOT EXISTS (SELECT 1 FROM advance_recaps ar WHERE ar.show_id = s.id)
+           ORDER BY s.show_date""",
+        (grace_days, grace_days + lookback_days),
+    )
+    return cur.fetchall()
+
+
+def record_advance_recap(cur, show_id, artist_id, venue, show_date, source_docx,
+                          md_path, pdf_path, recap):
+    """Upsert — ON CONFLICT so a re-run (or a later run correcting a failed PDF
+    conversion) overwrites cleanly instead of erroring on the UNIQUE(show_id)."""
+    import json
+    cur.execute(
+        """INSERT INTO advance_recaps
+               (show_id, artist_id, venue, show_date, source_docx, md_path, pdf_path, recap)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+           ON CONFLICT (show_id) DO UPDATE SET
+               artist_id=EXCLUDED.artist_id, venue=EXCLUDED.venue,
+               show_date=EXCLUDED.show_date, source_docx=EXCLUDED.source_docx,
+               md_path=EXCLUDED.md_path, pdf_path=EXCLUDED.pdf_path,
+               recap=EXCLUDED.recap, extracted_at=now()""",
+        (show_id, artist_id, venue, show_date, source_docx, md_path, pdf_path,
+         json.dumps(recap)),
+    )
+
+
+def get_advance_recap_by_show(cur, show_id):
+    cur.execute("SELECT * FROM advance_recaps WHERE show_id=%s", (show_id,))
+    return cur.fetchone()
+
+
 def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
     """data = the full raw form dict. Promotes the queryable fields into columns
     and keeps the entire payload in JSONB."""

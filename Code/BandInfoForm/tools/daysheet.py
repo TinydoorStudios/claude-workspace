@@ -51,6 +51,7 @@ for _cand in (HERE.parent, HERE.parent / "app"):
         break
 sys.path.insert(0, str(HERE))
 import advance_db as db
+import fieldspec as fs
 
 from docx import Document
 from docx.oxml import OxmlElement
@@ -455,6 +456,132 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
         tag = ("+".join(src)) if src else "no data"
         print(f"    {a['slot']:16} {who}  [{tag}]  {a.get('set_time') or ''}")
     return out_path
+
+
+# ── reading a PAST advance back out (for the returning-artist recap email) ──
+#
+# events/event_acts get TRUNCATEd and rebuilt from the live sheet on every
+# package_run.py pass (see its own docstring) — they're a working model, not a
+# history. The filed .docx in the venue tree is the only thing that durably
+# remembers what was actually on a past show's advance, staff overrides
+# included, so this reads the real file back rather than reconstructing from
+# the DB. Brian's explicit call (2026-09-07) over the DB-reconstruction option.
+
+NYQUIST_DEFAULT = Path.home() / "Dropbox" / "Nyquist"  # same default run_now.py uses
+
+# event-level rows (not band-specific) plus the staff-only production rows
+# daysheet.py's own module docstring lists as "left BLANK, always — ... a
+# same-day production call Brian makes by hand": never band-submitted, so a
+# filled-in one is Brian's internal note, not something to echo back to the
+# band, and a blank one is just template boilerplate ("No scenic elements",
+# "N/A") rather than real on-file data either way.
+RECAP_EXCLUDE_ROWS = {
+    "event information", "event type", "location", "set length",
+    "engineer", "consoles", "pa", "subs", "lighting", "video", "buyout",
+}
+
+
+def _candidate_docs(venue, event_date, root=None):
+    """Filed advance(s) for this venue+date, per package_run.py's own filing
+    scheme (<VenueAbbr>/<Year>/<MM Month>/<MMDDYY> <Event Name> advance.docx) —
+    globbed by date stamp since a past event's real name isn't reliably in the
+    DB any more (events/event_acts is a working model, not an archive)."""
+    root = Path(root) if root else NYQUIST_DEFAULT
+    folder = root / fs.venue_abbr(venue) / str(event_date.year) / fs.month_folder(event_date)
+    if not folder.exists():
+        return []
+    stamp = event_date.strftime("%m%d%y")
+    return sorted(folder.glob(f"{stamp} * advance.docx"))
+
+
+def _act_count_and_column(grid, target_norm, require_name_match):
+    """(n_acts, ci) — n_acts is how many act columns this document actually
+    has (so a blank pristine copy of the SAME template variant can be diffed
+    against it), ci is target_norm's column (1-based, matching act_columns'
+    cells[ci]), or None if it can't be resolved. Single-band templates put the
+    name on one "Band:" line inside EVENT INFORMATION — no ambiguity once
+    there's only one candidate file, so require_name_match lets a confirmed
+    single-band file resolve even when the Band: line is blank/stale, but
+    forces a real name match when there's more than one candidate for the
+    same venue+date. Multi-band templates put each act's name in its header
+    row, one name per column (mirrors fill()'s own header-row detection)."""
+    for r in grid.rows:
+        if r.cells and norm(r.cells[0].text) == "event information":
+            band_lines = [p.text.strip() for p in r.cells[1].paragraphs
+                          if p.text.strip().lower().startswith("band:")]
+            if band_lines:
+                confirmed = any(target_norm and target_norm in norm(t) for t in band_lines)
+                return 1, (1 if (confirmed or not require_name_match) else None)
+            break
+    for r in grid.rows:
+        if r.cells and r.cells[0].text.strip() == "" and any(
+                c.paragraphs and c.paragraphs[0].runs and c.paragraphs[0].runs[0].bold
+                for c in r.cells[1:]):
+            n_acts = len(r.cells) - 1
+            for i, c in enumerate(r.cells[1:], start=1):
+                if len(c.paragraphs) >= 2 and norm(c.paragraphs[1].text) == target_norm:
+                    return n_acts, i  # confirmed
+            return n_acts, None
+    return 1, None
+
+
+def _template_defaults(venue, n_acts, ci):
+    """label(norm) -> the PRISTINE template's own default text in that act
+    column. A filled doc's row that still matches this is unfilled boilerplate
+    ("N/A", "No scenic elements", a blank "FOH – \\nMon –") rather than real
+    on-file data, regardless of which specific placeholder text the template
+    happens to use for that row — cheaper and more general than hardcoding
+    every known placeholder string."""
+    template = TEMPLATES_BY_VENUE.get(venue, {}).get(n_acts)
+    if not template or not template.exists():
+        return {}
+    try:
+        doc = Document(str(template))
+    except Exception:
+        return {}
+    grid = find_grid(doc)
+    if grid is None:
+        return {}
+    return {norm(r.cells[0].text): r.cells[ci].text.strip()
+            for r in grid.rows if r.cells and ci < len(r.cells)}
+
+
+def read_filed_advance(venue, event_date, artist_name, root=None):
+    """(path, [(row label, cell text), ...]) for `artist_name`'s column on their
+    most recently filed advance at venue/event_date — or None if no filed doc
+    can be found or matched. Row labels keep the document's own text (title
+    case, "Band Contact — Name", etc.) rather than the internal norm() form.
+    Drops rows still matching the blank template's own default text — a row
+    daysheet.fill() never wrote to reads back as boilerplate, not real data."""
+    candidates = _candidate_docs(venue, event_date, root)
+    if not candidates:
+        return None
+    target = norm(artist_name)
+    ambiguous = len(candidates) > 1
+    for path in candidates:
+        try:
+            doc = Document(str(path))
+        except Exception:
+            continue
+        grid = find_grid(doc)
+        if grid is None:
+            continue
+        n_acts, ci = _act_count_and_column(grid, target, require_name_match=ambiguous)
+        if ci is None:
+            continue
+        defaults = _template_defaults(venue, n_acts, ci)
+        rows = []
+        for r in grid.rows:
+            label_norm = norm(r.cells[0].text)
+            if not label_norm or label_norm in RECAP_EXCLUDE_ROWS or ci >= len(r.cells):
+                continue
+            text = r.cells[ci].text.strip()
+            if not text or text == defaults.get(label_norm, "").strip():
+                continue
+            rows.append((r.cells[0].text.strip().rstrip(":").strip(), text))
+        if rows:
+            return path, rows
+    return None
 
 
 def main():

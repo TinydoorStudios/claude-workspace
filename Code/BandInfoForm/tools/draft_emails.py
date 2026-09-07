@@ -4,7 +4,8 @@
 Give it a batch list (CSV or JSON) of shows to advance. For each artist it:
   - upserts the artist + the show into the database (status: not_advanced),
   - decides NEW vs RETURNING using the cross-venue 6-month lookback,
-  - renders a draft email (returning drafts summarize what we have on file and
+  - renders a draft email (returning drafts summarize what we have on file,
+    recap the band's last filed advance document if one can be found, and
     carry a prefilled form link),
   - writes the draft to tools/drafts/ and prints a summary table.
 
@@ -36,6 +37,7 @@ for _cand in (HERE.parent, HERE.parent / "app"):  # deployed flat, or repo layou
 import advance_db as db
 import forms_config
 sys.path.insert(0, str(HERE))
+import daysheet
 import fieldspec as fs
 import staffing
 import venue_email as ve
@@ -246,6 +248,33 @@ def main():
             conn.commit()
             returning = bool(prior)
             kind = "RETURNING" if returning else "NEW"
+
+            advance_recap = None
+            if returning and prior.get("venue") and prior.get("show_date"):
+                # DB first — the nightly extraction (tools/extract_advance_recap.py,
+                # 3 days after the show) stores this durably, independent of
+                # events/event_acts (which package_run.py truncates + rebuilds
+                # every run) and of the filed .docx still being where it was
+                # filed. Live-parse the file only as a fallback for a show too
+                # recent for the nightly job to have caught yet.
+                stored = None
+                if prior.get("show_id"):
+                    with conn.cursor() as cur:
+                        stored = db.get_advance_recap_by_show(cur, prior["show_id"])
+                if stored:
+                    advance_recap = {"venue": stored["venue"],
+                                      "show_date": us_date(stored["show_date"]),
+                                      "rows": [tuple(pair) for pair in stored["recap"]]}
+                    print(f"  (recap: db, {stored['source_docx']})")
+                else:
+                    found = daysheet.read_filed_advance(prior["venue"], prior["show_date"], name)
+                    if found:
+                        recap_path, recap_rows = found
+                        advance_recap = {"venue": prior["venue"],
+                                          "show_date": us_date(prior["show_date"]),
+                                          "rows": recap_rows}
+                        print(f"  (recap: live file, {recap_path.name})")
+
             ctx = dict(
                 name=name, venue=venue,
                 blocks=ve.blocks_for(venue, **email_extra), common_requirements=ve.COMMON_REQUIREMENTS,
@@ -256,6 +285,7 @@ def main():
                 set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
                 form_link=f"{PUBLIC_URL}/s/{short_code}", deadline=deadline,
                 returning=returning, last=summarize_submission(prior) if returning else [],
+                advance_recap=advance_recap,
             )
             body = advance_t.render(**ctx)
 

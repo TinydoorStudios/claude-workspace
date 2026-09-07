@@ -244,6 +244,28 @@ CREATE TABLE IF NOT EXISTS bookings (
 -- for DBs created before this column existed:
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS location TEXT;
 
+-- Advance recap extraction (Brian, 2026-09-07): 3 days after a show, an n8n
+-- job (2am daily) converts the filed advance .docx to PDF + MD (saved next to
+-- the .docx in the Dropbox venue tree) and stores the parsed recap here, so
+-- the 6-month returning-artist email can pull final show info without
+-- re-parsing a Word document at draft time — and without depending on
+-- events/event_acts, which package_run.py truncates + rebuilds from the live
+-- sheet on every run (a working model, not a history; this table IS the
+-- durable one). UNIQUE(show_id) makes the nightly sweep idempotent.
+CREATE TABLE IF NOT EXISTS advance_recaps (
+    id           SERIAL PRIMARY KEY,
+    show_id      INTEGER UNIQUE REFERENCES shows(id) ON DELETE CASCADE,
+    artist_id    INTEGER REFERENCES artists(id) ON DELETE CASCADE,
+    venue        TEXT,
+    show_date    DATE,
+    source_docx  TEXT,                        -- filename of the advance this was extracted from
+    md_path      TEXT,                        -- relative to the Dropbox Nyquist/ root
+    pdf_path     TEXT,                        -- relative to the Dropbox Nyquist/ root; NULL if conversion failed
+    recap        JSONB NOT NULL DEFAULT '[]'::jsonb,  -- [[label, value], ...] — same shape daysheet.read_filed_advance returns
+    extracted_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_advance_recaps_artist ON advance_recaps (artist_id);
+
 -- short redirect for the /f/<signed-token> prefill link — the signed token is
 -- long (venue name + date + series + HMAC signature); emails carry /s/<code>
 -- instead, which 302s to the real /f/<token> link. Deterministic per token
