@@ -119,13 +119,15 @@ def main():
 
             # download + file each band's stage plot next to the advance doc,
             # renamed to the show; the day-sheet cell then points at the file.
+            # Named after the BAND, not the event (Brian, 2026-09-08) — a
+            # stage plot is always one band's own document, even on a shared
+            # multi-band bill, so "090926 Sylmar stage plot.pdf" beats
+            # "090926 513 Airwaves w Inhaler Radio stage plot.pdf" regardless
+            # of how many acts are on the night.
             d = ev.get("event_date")
-            plot_stem = (fs.stageplot_stem(ev.get("name") or "Untitled", d)
-                         if d else f"{safe(ev.get('name') or 'Untitled')} stageplot")
             plots = [(a, ((a.get("submission") or {}).get("data") or {}).get("stage_plot_file"))
                      for a in acts]
             plots = [(a, s) for (a, s) in plots if s]
-            multi = len(plots) > 1
             stageplot_names = {}
             for a, stored in plots:
                 src = UPLOADS / stored
@@ -134,7 +136,9 @@ def main():
                     continue
                 band = a["artist"]["name"] if a.get("artist") else "band"
                 ext = Path(stored).suffix
-                fname = f"{plot_stem} - {safe(band)}{ext}" if multi else f"{plot_stem}{ext}"
+                plot_stem = (fs.stageplot_stem(band, d) if d
+                             else f"{safe(band)} stageplot")
+                fname = f"{plot_stem}{ext}"
                 shutil.copy(src, folder / fname)
                 stageplot_names[band] = fname
                 rel = (folder / fname).relative_to(out).as_posix()

@@ -152,20 +152,20 @@
   <div class="field">
     <label class="q">Primary Contact — best day-of cell phone<span class="req">*</span></label>
     <input type="tel" name="contact_phone" required value="{{ v('contact_phone') }}">
-    <p class="help">Best point of contact from the group on show day. Please text or call this person when you are about 5 minutes out, and introduce yourself onsite as soon as you arrive.</p>
+    <p class="help">Best point of contact from the group on show day — our on-site techs use this number to reach you if you're running late or need to be located.</p>
   </div>
 
   <div class="section"><h2>Stage &amp; Technical</h2></div>
 
   <div class="field">
-    <label class="q">Stage Plot / Input List — upload</label>
-    <input type="file" name="stage_plot_file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx">
+    <label class="q">Stage Plot / Input List — upload<span class="req">*</span></label>
+    <input type="file" name="stage_plot_file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx" {% if not (returning and prefill.get('stage_plot_file')) %}required{% endif %}>
     <p class="help">Please provide a current stage plot / input list.{% if returning and prefill.get('stage_plot_file') %} We have one on file from last time — only upload if it has changed.{% endif %}</p>
   </div>
 
   <div class="field">
-    <label class="q">Stage Plot / Input List — description or link</label>
-    <textarea name="stage_plot_desc">{{ v('stage_plot_desc') }}</textarea>
+    <label class="q">Stage Plot / Input List — description or link<span class="req">*</span></label>
+    <textarea name="stage_plot_desc" required>{{ v('stage_plot_desc') }}</textarea>
     <p class="help">Describe your input list / stage layout, or paste a link.</p>
   </div>
 
@@ -210,8 +210,8 @@
   </div>
 
   <div class="field">
-    <label class="q">Backline / Instrumentation — are you sharing with another artist on the event?</label>
-    <textarea name="backline">{{ v('backline') }}</textarea>
+    <label class="q">Backline / Instrumentation — are you sharing with another artist on the event?<span class="req">*</span></label>
+    <textarea name="backline" required>{{ v('backline') }}</textarea>
     <p class="help">Artists provide all instruments, including amps and 1/4-inch cables. If you've coordinated to share backline with another artist on the event, note it here.</p>
   </div>
 
@@ -228,15 +228,15 @@
 
   {% if cfg.blocks.scenic %}
   <div class="field">
-    <label class="q">Do you have a backdrop or any scenic elements we should be aware of?</label>
-    <textarea name="scenic">{{ v('scenic') }}</textarea>
+    <label class="q">Do you have a backdrop or any scenic elements we should be aware of?<span class="req">*</span></label>
+    <textarea name="scenic" required>{{ v('scenic') }}</textarea>
   </div>
   {% endif %}
 
   {% if cfg.blocks.lighting %}
   <div class="field">
-    <label class="q">Lighting requests</label>
-    <textarea name="lighting">{{ v('lighting') }}</textarea>
+    <label class="q">Lighting requests<span class="req">*</span></label>
+    <textarea name="lighting" required>{{ v('lighting') }}</textarea>
     <p class="help">We provide a house LD. Let us know any specific requests and we'll do our best to accommodate.</p>
   </div>
   {% endif %}
@@ -329,8 +329,8 @@
   </div>
 
   <div class="field">
-    <label class="q">Additional questions or concerns?</label>
-    <textarea name="additional">{{ v('additional') }}</textarea>
+    <label class="q">Additional questions or concerns?<span class="req">*</span></label>
+    <textarea name="additional" required>{{ v('additional') }}</textarea>
   </div>
 
   <button type="submit">Submit show details</button>

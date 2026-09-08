@@ -402,6 +402,20 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
     fill_event_type(grid, event)
     fill_lead(doc, event)
 
+    # Column for one act: a 3-band bill has an unambiguous 1:1 slot->column
+    # mapping (opener=1/direct support=2/headliner=3, per SLOT_ORDER), so use
+    # the act's own slot_order directly — critical once a bill can be entered
+    # one act at a time (the band_count override above): a lone direct_support
+    # act has no opener/headliner rows yet, and a plain enumerate() position
+    # would put it in column 1 regardless (real bug, caught on Sylmar's actual
+    # direct-support booking landing under Opener on the filled sheet). A
+    # 2-band bill is deliberately more flexible — it's ANY 2 of the 3 slots
+    # (opener+headliner or direct_support+headliner both valid), so there's no
+    # fixed slot->column table for it; keep the original relative-rank-among-
+    # the-acts-present behavior there (and trivially for a single-band bill).
+    def _col(a, i):
+        return a["slot_order"] if n >= 3 else 1 + i
+
     # multi-band act-name header row: bold slot label already printed by the
     # template, second paragraph is the blank line for the actual band name
     if not single:
@@ -412,7 +426,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
                 for i, a in enumerate(acts):
                     if not a.get("artist"):
                         continue
-                    ci = 1 + i
+                    ci = _col(a, i)
                     if ci < len(r.cells) and len(r.cells[ci].paragraphs) >= 2:
                         set_para_text(r.cells[ci].paragraphs[1], a["artist"]["name"])
                 break
@@ -438,7 +452,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
             row = rows_by_label.get(label)
             if not row:
                 continue
-            ci = 1 + i
+            ci = _col(a, i)
             if ci >= len(row.cells):
                 continue
             if label == "stage plot" and saved_plot:
