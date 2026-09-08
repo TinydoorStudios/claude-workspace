@@ -184,6 +184,28 @@ def submit():
     if not f.get("band_name"):
         abort(400, "Band name is required.")
 
+    # Stage plot: upload OR description is required, not both (Brian,
+    # 2026-09-08) — exempt only if this band already has one on file (same
+    # "only upload if it has changed" rule the form itself follows). Real
+    # server-side check, not just the form's client-side one.
+    upload = request.files.get("stage_plot_file")
+    has_upload = bool(upload and upload.filename)
+    has_desc = bool((f.get("stage_plot_desc") or "").strip())
+    if not has_upload and not has_desc:
+        has_existing = False
+        if DB_OK:
+            try:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    artist = advance_db.find_artist_by_name(cur, f.get("band_name"))
+                    if artist:
+                        sub = advance_db.newest_submission(cur, artist["id"])
+                        if sub and (sub.get("data") or {}).get("stage_plot_file"):
+                            has_existing = True
+            except Exception as e:
+                _log_db_error("stage_plot_check", e)
+        if not has_existing:
+            abort(400, "Please provide a stage plot upload or a description — at least one is required.")
+
     # WP location monitor cap — hard limit (Brian, 2026-09-06): Porch/Bandstand/
     # Main Stage each have a physical wedge count that can't be exceeded.
     if f.get("venue") == "Washington Park" and f.get("location") in forms_config.WP_LOCATIONS:
