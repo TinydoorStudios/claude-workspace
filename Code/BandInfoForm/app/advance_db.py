@@ -250,6 +250,22 @@ def get_advance_recap_by_show(cur, show_id):
     return cur.fetchone()
 
 
+def recaps_for_docx(cur, source_docx, venue):
+    """Every act already recorded against this exact filed .docx (a multi-band
+    bill shares one file across several shows/artists) — used to rebuild the
+    ONE shared recap MD from scratch each time, so it always reflects every
+    act recorded so far regardless of which act's extraction run wrote it
+    last. `[{'artist_name', 'recap'}, ...]`, in the order acts were recorded."""
+    cur.execute(
+        """SELECT a.name AS artist_name, ar.recap
+           FROM advance_recaps ar JOIN artists a ON a.id = ar.artist_id
+           WHERE ar.source_docx = %s AND ar.venue = %s
+           ORDER BY ar.id""",
+        (source_docx, venue),
+    )
+    return cur.fetchall()
+
+
 def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
     """data = the full raw form dict. Promotes the queryable fields into columns
     and keeps the entire payload in JSONB."""

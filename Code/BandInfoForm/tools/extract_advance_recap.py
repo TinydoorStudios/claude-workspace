@@ -57,16 +57,29 @@ def docx_to_pdf(docx_path, out_dir, timeout=120):
     return pdf_path
 
 
-def rows_to_md(artist_name, venue, show_date, rows, source_docx):
+def combined_md(venue, show_date, source_docx, acts):
+    """ONE md per filed .docx, one section per act — Brian's rule: exactly one
+    file per artifact type per bill, same as the one shared PDF, never one MD
+    per artist. Rebuilt from scratch from every act `advance_recaps` has on
+    record for this exact doc (acts arg, from recaps_for_docx) each time any
+    one of them is (re-)extracted, so it's always complete and correct
+    regardless of which act's run wrote it, or in what order."""
+    import re
+    title = re.sub(r"^\d{6} ", "", source_docx.stem)   # drop the MMDDYY prefix
+    title = re.sub(r" advance$", "", title, flags=re.I)  # drop the trailing "advance"
     lines = [
-        f"# {artist_name} — {venue} ({show_date.strftime('%m/%d/%Y')})",
+        f"# {title} — {venue} ({show_date.strftime('%m/%d/%Y')})",
         "",
-        f"_Extracted from `{source_docx.name}` {GRACE_DAYS} days after the show._",
+        f"_Extracted from `{source_docx.name}`._",
         "",
     ]
-    for label, text in rows:
-        lines.append(f"- **{label}:** {text}")
-    return "\n".join(lines) + "\n"
+    for artist_name, rows in acts:
+        lines.append(f"## {artist_name}")
+        lines.append("")
+        for label, text in rows:
+            lines.append(f"- **{label}:** {text}")
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def relative_to_root(path):
@@ -74,11 +87,6 @@ def relative_to_root(path):
         return str(path.relative_to(ds.NYQUIST_DEFAULT))
     except ValueError:
         return str(path)  # root override in use (e.g. tests) — store the absolute path
-
-
-def _safe(s):
-    import re
-    return re.sub(r"[^A-Za-z0-9]+", " ", str(s or "")).strip()
 
 
 def run():
@@ -95,14 +103,6 @@ def run():
 
             docx_path, rows = found
             folder = docx_path.parent
-            # per-artist MD, always — a multi-band bill shares one .docx across
-            # several shows, and md_path.stem alone would let the second act's
-            # write clobber the first's (caught testing a real 2-band bill).
-            # The PDF is the whole document either way, so it stays shared —
-            # skip re-converting once one act on this bill has already made it.
-            md_path = folder / f"{docx_path.stem} - {_safe(show['artist_name'])}.md"
-            md_path.write_text(rows_to_md(show["artist_name"], show["venue"],
-                                           show["show_date"], rows, docx_path))
 
             pdf_path = folder / f"{docx_path.stem}.pdf"
             if pdf_path.exists():
@@ -115,6 +115,7 @@ def run():
                     pdf_failed += 1
                     pdf_path = None
 
+            md_path = folder / f"{docx_path.stem}.md"
             db.record_advance_recap(
                 cur, show["show_id"], show["artist_id"], show["venue"], show["show_date"],
                 source_docx=docx_path.name,
@@ -122,6 +123,11 @@ def run():
                 pdf_path=relative_to_root(pdf_path) if pdf_path else None,
                 recap=rows,
             )
+            # rebuild the ONE shared md from every act recorded for this doc
+            # so far (this one included) — never a per-artist file.
+            acts = [(r["artist_name"], r["recap"]) for r in
+                    db.recaps_for_docx(cur, docx_path.name, show["venue"])]
+            md_path.write_text(combined_md(show["venue"], show["show_date"], docx_path, acts))
             conn.commit()
             extracted += 1
             print(f"  extracted: {show['artist_name']} @ {show['venue']} {show['show_date']} "
