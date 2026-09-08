@@ -610,6 +610,7 @@ def advance_lifecycle():
                 "event_end": r["event_end"] or "", "curfew": r["curfew"] or "",
                 "slot": r["slot"] or "", "set_time": r["set_time"] or "",
                 "email_note": r["email_note"] or "",
+                "band_count": str(r["band_count"]) if r["band_count"] else "",
             } for r in due_initial]
             batch_file = TOOLS_DIR / ".lifecycle_initial_batch.json"
             batch_file.write_text(json.dumps(batch))

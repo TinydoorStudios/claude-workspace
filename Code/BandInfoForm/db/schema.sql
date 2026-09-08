@@ -244,6 +244,15 @@ CREATE TABLE IF NOT EXISTS bookings (
 -- for DBs created before this column existed:
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS location TEXT;
 
+-- Bands on the bill (Brian, 2026-09-08): declared explicitly per booking so a
+-- multi-band bill entered one act at a time (band 1 today, band 2 next week)
+-- still knows it's multi-band on day one, instead of inferring from however
+-- many booking rows happen to exist yet. Drives (1) dropping "please take set
+-- breaks as needed" from the email for anything >1, (2) the day-sheet
+-- template's act-count. NULL = not specified, falls back to the old inferred
+-- behavior (see draft_emails.py / daysheet.py).
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS band_count INTEGER;
+
 -- Advance recap extraction (Brian, 2026-09-07): 3 days after a show, an n8n
 -- job (2am daily) converts the filed advance .docx to PDF + MD (saved next to
 -- the .docx in the Dropbox venue tree) and stores the parsed recap here, so

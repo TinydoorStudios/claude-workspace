@@ -65,6 +65,14 @@ EVENT_FIELDS = [
     # each has its own monitor cap and Porch/Bandstand have no lighting.
     # Blank for every other venue. See forms_config.WP_LOCATIONS (app side).
     ("Location",      "location",    ["Main Stage", "Porch", "Bandstand"]),
+    # Brian, 2026-09-08: declared per booking so a multi-band bill entered one
+    # act at a time still knows it's multi-band on day one — see
+    # draft_emails.py (drops "take set breaks as needed" when >1) and
+    # daysheet.py (picks the N-band template even before every act has a row
+    # yet). Physically appended as its OWN column at the end of the live
+    # sheet, not inserted mid-layout — see the 2026-09-08 session notes on why
+    # (merge-range + _advance_meta address safety).
+    ("Band Count",    "band_count",  ["1", "2", "3"]),
     ("Series",        "series",      None),
     ("Event Type",    "event_type",  ["Internal", "Third Party"]),
     ("Paying Band?",  "paying_band", ["Yes", "No"]),
@@ -131,7 +139,7 @@ ALL_COLUMNS = (
 LABEL_TO_KEY = {lbl: key for (lbl, key, _ch) in ALL_COLUMNS}
 BAND_KEYS = [key for (_l, key, _c, _r) in BAND_FIELDS]
 EVENT_DETAIL_KEYS = ["location", "event_type", "paying_band", "mc", "dj", "lead_name", "lead_phone",
-                     "load_in", "soundcheck", "event_start", "event_end", "curfew"]
+                     "load_in", "soundcheck", "event_start", "event_end", "curfew", "band_count"]
 
 GROUPS = [
     ("EVENT — fill once per event", len(EVENT_FIELDS)),

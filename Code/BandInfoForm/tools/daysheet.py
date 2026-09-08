@@ -367,8 +367,16 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
         if not event:
             print(f"No event {event_id}", file=sys.stderr); sys.exit(1)
         acts = db.event_acts(cur, event_id)
+        declared_n = db.band_count_for_event(cur, event.get("venue"), event.get("event_date"))
 
-    n = len(acts)
+    # a declared "bands on the bill" (Brian, 2026-09-08 — set per booking, so
+    # it's known even before every act has its own event_acts row yet) wins
+    # over the real act count for TEMPLATE SHAPE, so a bill entered one band
+    # at a time still gets the right N-band document from the first band on —
+    # acts not yet booked just render blank in their column, filled in as
+    # each band's booking arrives. Falls back to the real count when nobody
+    # declared one.
+    n = max(len(acts), declared_n) if declared_n else len(acts)
     if template is None:
         venue = event.get("venue") or "Fountain Square"
         by_venue = TEMPLATES_BY_VENUE.get(venue, {})

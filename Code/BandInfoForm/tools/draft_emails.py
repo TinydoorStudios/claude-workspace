@@ -104,6 +104,7 @@ def load_batch(path):
                 "event_start": r.get("event_start") or "",
                 "event_end": r.get("event_end") or "",
                 "curfew": r.get("curfew") or "",
+                "band_count": r.get("band_count") or "",
             })
         return out
     if p.suffix.lower() == ".json":
@@ -242,6 +243,14 @@ def main():
                     lines.append(line)
                 bill_block = "\n".join(lines)
 
+            # Brian, 2026-09-08: an explicit "bands on the bill" answer (per
+            # booking, so band 1 knows it's multi-band on day one even if
+            # bands 2/3 aren't entered yet) wins over inferring from bill_block
+            # (which only reflects however many rows exist in THIS batch —
+            # wrong for a bill entered one act at a time).
+            band_count = (r.get("band_count") or "").strip()
+            multiband = int(band_count) >= 2 if band_count.isdigit() else bool(bill_block)
+
             token = _token(artist_id, venue, show_date, series, r.get("location"))
             with conn.cursor() as cur:
                 short_code = db.get_or_create_short_link(cur, token)
@@ -283,6 +292,7 @@ def main():
                 show_date=us_date(show_date),
                 advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
                 set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
+                multiband=multiband,
                 form_link=f"{PUBLIC_URL}/s/{short_code}", deadline=deadline,
                 returning=returning, last=summarize_submission(prior) if returning else [],
                 advance_recap=advance_recap,

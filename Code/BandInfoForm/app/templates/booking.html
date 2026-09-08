@@ -102,6 +102,13 @@
       </select>
     </div>
     <div><label>Set Length</label><input name="set_time" value="{{ form.set_time or '' }}" placeholder="e.g. 60 min"></div>
+    <div><label>Bands on the Bill</label>
+      <select name="band_count">
+        <option value="1" {% if (form.band_count or '1')=='1' %}selected{% endif %}>1 (single band)</option>
+        <option value="2" {% if form.band_count=='2' %}selected{% endif %}>2</option>
+        <option value="3" {% if form.band_count=='3' %}selected{% endif %}>3</option>
+      </select>
+    </div>
     {% set flat_series = [] %}
     {% for v, opts in series_by_venue.items() %}{% for s in opts %}{% set _ = flat_series.append(s) %}{% endfor %}{% endfor %}
     {% set series_is_custom = form.series and form.series not in flat_series %}

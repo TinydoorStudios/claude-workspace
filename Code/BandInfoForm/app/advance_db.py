@@ -143,7 +143,7 @@ def shows_due_for_initial_advance(cur):
                   b.load_in AS load_in, b.soundcheck AS soundcheck,
                   b.event_start AS event_start, b.event_end AS event_end,
                   b.curfew AS curfew, b.slot AS slot, b.set_time AS set_time,
-                  b.email_note AS email_note
+                  b.email_note AS email_note, b.band_count AS band_count
            FROM shows s JOIN artists a ON a.id = s.artist_id
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                   AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
@@ -257,6 +257,20 @@ def record_advance_recap(cur, show_id, artist_id, venue, show_date, source_docx,
         (show_id, artist_id, venue, show_date, source_docx, md_path, pdf_path,
          json.dumps(recap)),
     )
+
+
+def band_count_for_event(cur, venue, event_date):
+    """The declared band count (max across acts, in case of disagreement) for
+    any booking at this venue+date — lets daysheet.fill() pick the right N-band
+    template even when only some of the bill's acts have real event_acts rows
+    yet (bands entered one at a time). None if nobody declared one."""
+    cur.execute(
+        "SELECT max(band_count) AS n FROM bookings WHERE venue=%s AND event_date=%s "
+        "AND band_count IS NOT NULL",
+        (venue, event_date),
+    )
+    row = cur.fetchone()
+    return row["n"] if row else None
 
 
 def get_advance_recap_by_show(cur, show_id):
@@ -531,7 +545,7 @@ BOOKING_FIELDS = [
     "event_name", "event_date", "venue", "location", "series", "event_type", "paying_band",
     "lead_name", "lead_phone", "load_in", "soundcheck", "event_start",
     "event_end", "curfew", "slot", "set_time", "artist_name", "contact_email",
-    "email_note", "entered_by",
+    "email_note", "entered_by", "band_count",
 ]
 
 
