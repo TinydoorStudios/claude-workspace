@@ -120,7 +120,7 @@ template. The schedule and internal cells (PA, consoles, lead, "are we paying th
 are left exactly as the template has them — those aren't band data, and you finish them.
 
 ```
-python3 event.py create --name "513 Airwaves w/ Inhailer" --venue "Fountain Square" --date 2026-09-20
+python3 event.py create --name "513 Airwaves w/ Inhaler" --venue "Fountain Square" --date 2026-09-20
 python3 event.py add-act --event 1 --slot headliner --artist "Buffalo Wabs and the Price Hill Hustle"
 python3 event.py add-act --event 1 --slot opener    --artist "The Cincy Suns"
 python3 daysheet.py --event 1        # -> tools/filled/<event>__daysheet.docx

@@ -78,7 +78,7 @@
   {% if error %}<div class="banner err">{{ error }}</div>{% endif %}
   <div class="card">
   <form method="post" action="{{ url_for('booking') }}">
-    <div class="full req"><label>Event Name</label><input name="event_name" value="{{ form.event_name or '' }}" placeholder="e.g. 513 Airwaves w/ Inhailer Radio" required></div>
+    <div class="full req"><label>Event Name</label><input name="event_name" value="{{ form.event_name or '' }}" placeholder="e.g. 513 Airwaves w/ Inhaler Radio" required></div>
     <div class="req"><label>Event Date</label><input type="date" name="event_date" value="{{ form.event_date or '' }}" required></div>
     <div class="req"><label>Venue</label>
       <select name="venue" id="venue_select" onchange="onVenueChange()" required>

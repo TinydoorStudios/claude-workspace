@@ -5,7 +5,7 @@ The advance form is per-band; the day-sheet DOC is per-event with up to three
 act slots. This assigns bands to slots. Most events are 1–2 acts — only fill the
 slots you need.
 
-  python3 event.py create --name "513 Airwaves w/ Inhailer" --venue "Fountain Square" --date 2026-09-20
+  python3 event.py create --name "513 Airwaves w/ Inhaler" --venue "Fountain Square" --date 2026-09-20
   python3 event.py add-act --event 1 --slot headliner --artist "Buffalo Wabs and the Price Hill Hustle"
   python3 event.py add-act --event 1 --slot opener   --artist "The Cincy Suns"
   python3 event.py list

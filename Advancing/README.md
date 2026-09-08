@@ -13,9 +13,9 @@ Advancing/
   _template/            ← pristine copies — reset from here if the sheet gets messy
 
   FSQ/ 2026/ 09 September/                         ← the filed archive (accumulates)
-       091126 513 Airwaves w Inhailer Radio advance.docx
+       091126 513 Airwaves w Inhaler Radio advance.docx
        Email Drafts/
-           091126 513 Airwaves w Inhailer Radio advance email - <Band>.md
+           091126 513 Airwaves w Inhaler Radio advance email - <Band>.md
   WP/  Memo/  ESP/  Court/  IA/  ZP/ …
 ```
 

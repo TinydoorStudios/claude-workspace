@@ -91,7 +91,7 @@ CREATE INDEX IF NOT EXISTS idx_files_artist     ON files (artist_id);
 -- band submissions to act slots so doc-fill can populate the three columns.
 CREATE TABLE IF NOT EXISTS events (
     id          SERIAL PRIMARY KEY,
-    name        TEXT,                              -- e.g. "513 Airwaves w/ Inhailer Radio"
+    name        TEXT,                              -- e.g. "513 Airwaves w/ Inhaler Radio"
     venue       TEXT,
     event_date  DATE,
     series      TEXT,

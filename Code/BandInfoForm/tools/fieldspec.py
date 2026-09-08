@@ -48,7 +48,7 @@ def _clean(name):
 
 
 def advance_stem(event_name, d):
-    """Filename stem (no extension): '090626 513 Airwaves w Inhailer Radio advance'."""
+    """Filename stem (no extension): '090626 513 Airwaves w Inhaler Radio advance'."""
     return f"{d.strftime('%m%d%y')} {_clean(event_name)} advance"
 
 
