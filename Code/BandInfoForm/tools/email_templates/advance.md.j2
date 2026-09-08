@@ -23,7 +23,9 @@ Advancing Contact: {{ advancing_contact }}
 
 {% endif %}Day Schedule:
 {{ schedule_block }}
-  *Please take set breaks as needed. Do not arrive before your load-in time without advance coordination.
+{% if not bill_block %}  *Please take set breaks as needed. Do not arrive before your load-in time without advance coordination.
+{% else %}  *Do not arrive before your load-in time without advance coordination.
+{% endif %}
 
 {{ blocks.load_in }}
 
