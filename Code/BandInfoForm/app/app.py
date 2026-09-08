@@ -597,10 +597,19 @@ def advance_lifecycle():
         # ── initial advances: reuse draft_emails.py wholesale (NEW/RETURNING,
         # venue blocks, short link, bill grouping — all of it, unchanged) ──
         if due_initial:
+            # every field draft_emails.py's batch format understands, not just
+            # the bare minimum — see shows_due_for_initial_advance's 2026-09-08
+            # fix note for why this list matters.
             batch = [{
                 "name": r["artist_name"], "show_date": r["show_date"].isoformat(),
                 "venue": r["venue"] or "", "series": r["series"] or "",
                 "email": r["email"] or "", "location": r["location"] or "",
+                "event_name": r["event_name"] or "", "lead_name": r["lead_name"] or "",
+                "lead_phone": r["lead_phone"] or "", "load_in": r["load_in"] or "",
+                "soundcheck": r["soundcheck"] or "", "event_start": r["event_start"] or "",
+                "event_end": r["event_end"] or "", "curfew": r["curfew"] or "",
+                "slot": r["slot"] or "", "set_time": r["set_time"] or "",
+                "email_note": r["email_note"] or "",
             } for r in due_initial]
             batch_file = TOOLS_DIR / ".lifecycle_initial_batch.json"
             batch_file.write_text(json.dumps(batch))

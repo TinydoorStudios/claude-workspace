@@ -125,11 +125,25 @@ def shows_due_for_initial_advance(cur):
     date-out ceiling. Drafted as soon as a booking is seeded, whenever that
     happens to be; the 21-day mark is now a SEND reminder, not a draft trigger
     (Brian, 2026-09-03: draft at booking time, hold for his send at T-21 —
-    see shows_due_for_send_reminder)."""
+    see shows_due_for_send_reminder).
+
+    Bug fixed 2026-09-08: this only ever selected `b.location` from the
+    bookings LEFT JOIN, so event_name/schedule/lead/slot/set_time/email_note
+    — everything a staffer actually types into /booking beyond the bare
+    minimum — silently never reached the drafted email on this path (the
+    CSV/xlsx batch path draft_emails.py also supports has always carried all
+    of it; this immediate/lifecycle path just never pulled it). Caught on
+    Brian's first real live booking: the draft came back with a generic day
+    schedule and no event name despite real values being on file."""
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
-                  b.location AS location
+                  b.location AS location, b.event_name AS event_name,
+                  b.lead_name AS lead_name, b.lead_phone AS lead_phone,
+                  b.load_in AS load_in, b.soundcheck AS soundcheck,
+                  b.event_start AS event_start, b.event_end AS event_end,
+                  b.curfew AS curfew, b.slot AS slot, b.set_time AS set_time,
+                  b.email_note AS email_note
            FROM shows s JOIN artists a ON a.id = s.artist_id
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                   AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
