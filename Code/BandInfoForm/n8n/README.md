@@ -197,7 +197,10 @@ window drafts and notifies immediately**, not on the next scheduled check.
 
 # n8n — Advance Recap Extraction (2026-09-07)
 
-3 days after a show, its filed advance `.docx` has had time to be corrected. This
+**Currently next-day (`GRACE_DAYS=1`), temporary per Brian 2026-09-07** while
+there's only a handful of real runs to watch — the original design (and the
+default to return to once it's proven out) is 3 days, giving the filed
+`.docx` time to be corrected before it's captured. This
 workflow converts it to PDF + MD (saved next to the `.docx`, same venue/month
 folder in the Dropbox tree) and stores the parsed recap in a new `advance_recaps`
 DB table — so a returning artist's 6-month "what's changed" email can pull real
@@ -208,7 +211,7 @@ from the live sheet on every run — a working model, not a history).
 - Workflow: `advance_recap_extraction.json` (id `advance-recap-extraction`, token
   placeholdered). Daily **2am** → `POST /internal/run-recap-extraction`
   (token-protected, same pattern as the others) → the app runs
-  `tools/extract_advance_recap.py`: finds shows whose date is ≥3 days past and
+  `tools/extract_advance_recap.py`: finds shows whose date is ≥GRACE_DAYS past and
   have no `advance_recaps` row yet, locates the artist's column on their filed
   advance via `daysheet.read_filed_advance` (matches by name in the document
   text, not a DB lookup — works even though `events`/`event_acts` may already

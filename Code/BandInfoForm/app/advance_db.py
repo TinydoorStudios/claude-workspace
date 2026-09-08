@@ -205,12 +205,13 @@ def mark_send_reminder_sent(cur, show_id):
     )
 
 
-def due_for_recap_extraction(cur, grace_days=3, lookback_days=30):
+def due_for_recap_extraction(cur, grace_days=1, lookback_days=30):
     """Shows that finished at least `grace_days` ago (their advance doc has had
     time to be corrected/finalized) and haven't had their recap extracted yet.
-    `lookback_days` bounds the catch-up window so a show whose advance was
-    never filed (or filed somewhere the extractor can't find) doesn't get
-    retried forever — see tools/extract_advance_recap.py."""
+    Default matches extract_advance_recap.py's GRACE_DAYS (1, temporary per
+    Brian 2026-09-07 — was 3). `lookback_days` bounds the catch-up window so a
+    show whose advance was never filed (or filed somewhere the extractor can't
+    find) doesn't get retried forever — see tools/extract_advance_recap.py."""
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   s.venue, s.show_date
