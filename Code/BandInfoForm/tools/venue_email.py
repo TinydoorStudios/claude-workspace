@@ -125,20 +125,6 @@ _BLOCK_HEADER_ALIASES = {
     "crew schedule": "crew_schedule",
 }
 
-# A "## Crew Schedule" section's lines are "Label: value" (unlike every
-# other section, which is free text) — it fills the day-sheet DOCX's own
-# small crew-schedule table (Crew Call / Load In-Sound Check / Performance /
-# Load-out / Curfew, top-left of the advance), separate from the email's
-# free-text "## Schedule" block. Only include the lines a series actually
-# wants filled; leave one out (or the whole section) and daysheet.py leaves
-# that row for a same-day hand call, same as always.
-CREW_SCHEDULE_LABEL_ALIASES = {
-    "crew call": "crew_call",
-    "load in sound check": "load_in_soundcheck",
-    "performance": "performance",
-    "load out": "load_out",
-    "curfew": "curfew",
-}
 
 # A "## Schedule" section is free text, same as every other section — it
 # becomes the email's whole "Day Schedule:" block verbatim, not just a fill
@@ -237,48 +223,36 @@ def schedule_block_for(venue, series, root=None):
 
 
 def crew_schedule_for(venue, series, root=None):
-    """{crew_call, load_in_soundcheck, performance, load_out, curfew} (any
-    subset) for this venue + series — fills the day-sheet DOCX's own small
-    crew-schedule table (top-left of the advance) straight from a series'
-    locked times, instead of leaving it blank for a same-day hand call
-    (Brian, 2026-09-09: 'those never change' — same reasoning as the
-    email's Schedule lock, applied to the document itself). {} if the
+    """[(label, time), ...] in file order for this venue + series' locked
+    crew schedule — the day-sheet DOCX's own small crew table (top-left of
+    the advance, normally Crew Call / Load In-Sound Check / Performance /
+    Load-out / Curfew) gets its rows REPLACED wholesale with exactly this
+    list when present, one row per entry, instead of trying to cram a
+    multi-set series into the template's default 5 rows (Brian, 2026-09-09:
+    'each time change should have its own cell in the table' — a prior cut
+    that crammed Salsa On The Square's 3 sets + 2 breaks into one
+    Performance cell as multiple lines wasn't readable enough). [] if the
     series file has no Crew Schedule section.
 
-    A value can be one line ('Load In/Sound Check: 6:00 PM - 7:00 PM') or,
-    for a row that's really several sub-events (Performance covering
-    several sets with breaks between them — Brian, 2026-09-09), several:
-    put nothing after the label's colon and list the sub-lines below it,
-    up to the next recognized label. daysheet.set_cell_lines() renders each
-    line as its own paragraph in that cell."""
+    Each non-blank line is 'Label: time' — the label becomes that row's
+    right-hand cell, the time (which may be blank, e.g. 'Crew Call:' with
+    nothing after it — the row still appears, just unfilled, same as any
+    other show) becomes the left-hand cell. Labels are whatever the file
+    says, not constrained to the template's original 5 names — write
+    'Set #1', 'Dance Instruction #1', etc. and daysheet.py builds exactly
+    that many rows."""
     blocks = _load_series_block(venue, series, root)
     raw = blocks.get("crew_schedule")
     if not raw:
-        return {}
-    out, current_key, buf = {}, None, []
-
-    def commit():
-        if not current_key:
-            return
-        lines = list(buf)
-        while lines and not lines[0].strip():
-            lines.pop(0)
-        while lines and not lines[-1].strip():
-            lines.pop()
-        if lines:
-            out[current_key] = "\n".join(lines)
-
+        return []
+    out = []
     for line in raw.splitlines():
-        label, sep, value = line.partition(":")
-        key = CREW_SCHEDULE_LABEL_ALIASES.get(norm_header(label)) if sep else None
-        if key:
-            commit()
-            current_key = key
-            value = value.strip()
-            buf = [value] if value else []
-        elif current_key:
-            buf.append(line)
-    commit()
+        if ":" not in line:
+            continue
+        label, _, value = line.partition(":")
+        label = label.strip()
+        if label:
+            out.append((label, value.strip()))
     return out
 
 

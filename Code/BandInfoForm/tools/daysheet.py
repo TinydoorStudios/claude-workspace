@@ -369,28 +369,6 @@ def set_cell(cell, text):
     (p.runs[0] if p.runs else p.add_run("")).text = text
 
 
-def set_cell_lines(cell, text):
-    """Like set_cell, but a value with embedded '\\n's becomes one real
-    paragraph per line instead of a single run with literal newline
-    characters in it (which Word wouldn't break visually) — for a crew-
-    schedule row that's really several sub-events, e.g. Performance
-    covering multiple sets with breaks between them (Brian, 2026-09-09).
-    Extra paragraphs are cloned from the cell's own first paragraph so they
-    inherit its formatting; a single-line value behaves exactly like
-    set_cell."""
-    lines = ("" if text is None else str(text)).split("\n") or [""]
-    paras = cell.paragraphs
-    while len(paras) < len(lines):
-        new_p = copy.deepcopy(paras[-1]._p)
-        paras[-1]._p.addnext(new_p)
-        paras = cell.paragraphs
-    for extra in paras[len(lines):]:
-        extra._element.getparent().remove(extra._element)
-    paras = cell.paragraphs
-    for p, line in zip(paras, lines):
-        set_para_text(p, line)
-
-
 def set_cell_link(cell, text, target):
     """Replace a cell's content with a single clickable hyperlink (blue, underlined).
     `target` is a relative path — the stage plot sits in the same folder as the doc,
@@ -573,30 +551,37 @@ def fill_engineer(grid, event, n):
 
 
 def fill_crew_schedule(doc, event):
-    """The day-of crew table (Crew Call / Load In-Sound Check / Performance
-    / Load-out / Curfew) — left blank, always, EXCEPT for a series with a
-    locked '## Crew Schedule' section (Brian, 2026-09-09: Salsa On The
-    Square's times never change, so there's no reason to leave this for a
-    same-day hand call the way every other show's crew schedule needs).
-    No-op if the event has no venue/series, the series has no Crew Schedule
-    section, or the template has no crew table at all."""
+    """The day-of crew table (top-left, normally Crew Call / Load In-Sound
+    Check / Performance / Load-out / Curfew, all blank for a same-day hand
+    call) — for a series with a locked '## Crew Schedule' section, its rows
+    are REPLACED wholesale with the series' own list, one real table row
+    per time change (Brian, 2026-09-09: a multi-set series like Salsa On
+    The Square needs its own row per set/break, not several sub-events
+    crammed into one cell — hard to read). No-op if the event has no
+    venue/series, the series has no Crew Schedule section, or the template
+    has no crew table at all."""
     venue = event.get("venue")
     series = event.get("series")
     if not venue or not series:
         return
-    times = ve.crew_schedule_for(venue, series)
-    if not times:
+    rows = ve.crew_schedule_for(venue, series)
+    if not rows:
         return
     table = find_schedule_table(doc)
     if not table:
         return
-    for r in table.rows:
-        # ve.norm_header folds "/"/"-" to spaces (daysheet's own norm()
-        # doesn't) — needed here since the template's real row labels are
-        # "Load In/Sound Check" and "Load-out", not space-separated.
-        key = ve.CREW_SCHEDULE_LABEL_ALIASES.get(ve.norm_header(r.cells[-1].text))
-        if key and times.get(key):
-            set_cell_lines(r.cells[0], times[key])
+    # Clone the template's own first row for every replacement row, so each
+    # keeps its exact cell formatting/borders/shading — then drop every
+    # original row and build the new set fresh in order.
+    template_tr = copy.deepcopy(table.rows[0]._tr)
+    tbl_el = table._tbl
+    for r in list(table.rows):
+        tbl_el.remove(r._tr)
+    for label, time_value in rows:
+        tbl_el.append(copy.deepcopy(template_tr))
+        new_row = table.rows[-1]
+        set_cell(new_row.cells[0], time_value)
+        set_cell(new_row.cells[-1], label)
 
 
 def fill_lead(doc, event):
