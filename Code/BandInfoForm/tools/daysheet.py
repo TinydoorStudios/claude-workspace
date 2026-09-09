@@ -29,13 +29,17 @@ wins, same merge policy as the email drafts. Writes:
     snake text — there's no dedicated cell for those), Stage Type, Scenic
     Notes, Merch, Parking, Drink Tix, Dressing Room Tent, Backline, Band
     Contact — Name / Cell
+  - Engineer (FOH – / Mon –), same value repeated into every act column —
+    pulled from the public 3CDC staffing sheet via staffing.engineers_for()
+    (Brian, 2026-09-08); a line left as its unfilled placeholder ('FOH – ')
+    means the sheet didn't resolve a clean name for that show, not that the
+    row was skipped
 
 Left BLANK, always — no data source, or a same-day production call Brian
 makes by hand (2026-09-03: "the granular items we will add by hand"):
   - the whole SCHEDULE table (Crew Call through Load Out/Curfew — the
     minute-by-minute choreography is a day-of call, not form data)
-  - Engineer (FOH/Mon names), Consoles, PA, Subs, LIGHTING (Pre-Scheduled/
-    Live), VIDEO, Buyout
+  - Consoles, PA, Subs, LIGHTING (Pre-Scheduled/Live), VIDEO, Buyout
 
   python3 daysheet.py --event 1
 """
@@ -52,6 +56,7 @@ for _cand in (HERE.parent, HERE.parent / "app"):
 sys.path.insert(0, str(HERE))
 import advance_db as db
 import fieldspec as fs
+import staffing
 
 from docx import Document
 from docx.oxml import OxmlElement
@@ -341,6 +346,39 @@ def fill_location(grid, event):
             return
 
 
+def fill_engineer(grid, event, n):
+    """Engineer row (FOH – / Mon –), same value repeated into every act
+    column — it's one FOH engineer and one Mon engineer for the whole SHOW,
+    not per band, same as how the Consoles row already repeats its (static)
+    value across columns. Pulled from the public 3CDC staffing sheet
+    (Brian, 2026-09-08: cross-reference the Mix column's initials against the
+    staffing sheet's codes tab; one set of initials is FOH only, two is
+    FOH then Mon). Leaves a line as-is ('FOH – ' / 'Mon – ', blank) whenever
+    the sheet doesn't cleanly resolve a name, so a same-day production call
+    by hand is exactly as easy as it always was."""
+    venue = event.get("venue")
+    date = event.get("event_date")
+    if not venue or not date:
+        return
+    try:
+        names = staffing.engineers_for(venue, date.isoformat())
+    except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the fill
+        print(f"[daysheet] engineer lookup failed: {e!r}", file=sys.stderr)
+        return
+    if not names.get("foh") and not names.get("mon"):
+        return
+    for r in grid.rows:
+        if r.cells and norm(r.cells[0].text) == "engineer":
+            for cell in r.cells[1:1 + n]:
+                for p in cell.paragraphs:
+                    t = p.text.strip()
+                    if t.startswith("FOH") and names.get("foh"):
+                        set_para_text(p, f"FOH – {names['foh']}")
+                    elif t.startswith("Mon") and names.get("mon"):
+                        set_para_text(p, f"Mon – {names['mon']}")
+            return
+
+
 def fill_lead(doc, event):
     det = event.get("details") or {}
     t = find_lead_table(doc)
@@ -408,6 +446,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
     fill_header(grid, event, acts, single)
     fill_location(grid, event)
     fill_event_type(grid, event)
+    fill_engineer(grid, event, n)
     fill_lead(doc, event)
 
     # Column for one act: a 3-band bill has an unambiguous 1:1 slot->column
