@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
-"""Who's engineering a given show — read from Brian's public 3CDC staffing sheet.
+"""Who's staffing a given show — read from Brian's public 3CDC staffing sheet.
 
 Same two "publish to web" CSV tabs SPL-Monitor's showinfo.py already reads for
 the FSQ show/engineer banner (docs.google.com export, no auth):
   - schedule sheet: one shared spreadsheet, a day-by-venue grid — each venue gets
-    its own Date/DOTW/Event/Mix block of columns side by side.
+    its own Date/DOTW/Event/Mix/Tech/Stagehand/Stage Support/Other block of
+    columns side by side (5 venue blocks total — see SCHEDULE_COLUMNS).
   - codes sheet: mix-code -> First/Last/Cell lookup (second tab, same spreadsheet).
+
+engineer_for()/engineers_for() (Mix only — FOH/Mon) are the original,
+long-verified functions everything else in this pipeline (the day-sheet's
+Engineer row, the WP email's day-of-contact line) actually depends on -
+untouched. staff_for() (2026-09-09) is additive: every OTHER role
+(Tech/Stagehand/Stage Support/Other) at any of the 5 venues, read-only, no
+shared code path with Mix.
 
 Only wired for venues in SCHEDULE_COLUMNS below. Never raises — an unreachable
 sheet, an unstaffed date, or an unresolved code all just return None/blank, and
@@ -34,12 +42,41 @@ SCHEDULE_GID = "1413426845"
 CODES_GID = "809527620"
 
 # venue -> 0-based column indices within the schedule sheet's day-by-venue grid.
-# FSQ's matches SPL-Monitor's config.json scheduleColumns; WP confirmed 2026-09-07
-# (same sheet, its own block starts a few columns over).
+# FSQ's matches SPL-Monitor's config.json scheduleColumns; WP confirmed
+# 2026-09-07 (same sheet, its own block starts a few columns over). Full
+# column set (Date/DOTW/Event/Mix/Tech/Stagehand/Stage Support/Other) learned
+# 2026-09-09 by reading the sheet's own row-0/row-1 headers directly rather
+# than guessing — row 1 literally names each block's venue. Two things worth
+# knowing about the shape: Memorial Hall has its own block here (not wired
+# anywhere else in this pipeline yet — that's fine, staffing.py just reflects
+# what the sheet has); and Zeigler Park / Court Street Plaza / Imagination
+# Alley share ONE combined block (same columns for all three) where
+# Stagehand and Stage Support are also merged into a single column — the
+# source data genuinely doesn't distinguish them there, so this module
+# doesn't invent a split. Elm Street Plaza also merges Stagehand/Stage
+# Support into one column, but has its own separate block otherwise.
 SCHEDULE_COLUMNS = {
-    "Fountain Square": {"date": 6, "event": 8, "mix": 9},
-    "Washington Park": {"date": 15, "event": 17, "mix": 18},
+    "Fountain Square": {"date": 6, "event": 8, "mix": 9, "tech": 10,
+                         "stagehand": 11, "stage_support": 12, "other": 14},
+    "Washington Park": {"date": 15, "event": 17, "mix": 18, "tech": 19,
+                         "stagehand": 20, "stage_support": 21, "other": 22},
+    "Memorial Hall": {"date": 23, "event": 25, "mix": 26, "tech": 27,
+                       "stagehand": 28, "stage_support": 29, "other": 30},
+    "Zeigler Park": {"date": 31, "event": 33, "mix": 34, "tech": 35,
+                      "stagehand_support": 36, "other": 37},
+    "Court Street Plaza": {"date": 31, "event": 33, "mix": 34, "tech": 35,
+                            "stagehand_support": 36, "other": 37},
+    "Imagination Alley": {"date": 31, "event": 33, "mix": 34, "tech": 35,
+                           "stagehand_support": 36, "other": 37},
+    "Elm Street Plaza": {"date": 38, "event": 40, "mix": 41, "tech": 42,
+                          "stagehand_support": 43, "other": 44},
 }
+
+# Every non-mix role, keyed the same way SCHEDULE_COLUMNS spells it per venue
+# (some venues have separate stagehand/stage_support columns, some have them
+# merged into one stagehand_support column — staff_for() reports back under
+# whichever key(s) that venue's block actually has).
+_OTHER_ROLE_KEYS = ("tech", "stagehand", "stage_support", "stagehand_support", "other")
 
 
 def _export_url(gid):
@@ -188,3 +225,103 @@ def engineers_for(venue, show_date):
     foh = _format_row(_resolve_row(tokens[0], codes_rows))
     mon = _format_row(_resolve_row(tokens[1], codes_rows)) if len(tokens) == 2 else None
     return {"foh": foh, "mon": mon}
+
+
+# ── every other role: Tech / Stagehand / Stage Support / Other ─────────────
+# Mix keeps engineer_for()/engineers_for() exactly as they are above (real
+# code, real doc, don't touch) — the roles below are additive, read-only,
+# and don't share a code path with them, so there's no regression risk to
+# the already-verified Mix behavior.
+
+def _row_for(venue, show_date):
+    """(row, cols, codes_rows) for the schedule-sheet row matching
+    venue/show_date — or None if the venue isn't wired, the sheet is
+    unreachable, or no row for that date has ANY real content. Unlike the
+    Mix-only _mix_tokens(), a row counts as 'the real one' if ANY column in
+    that venue's block is filled in (event name, Mix, or any other role) —
+    a blank filler row for an unstaffed day is skipped the same way, but a
+    row where only e.g. Stagehand got filled in (Mix still blank) is still
+    found. When more than one row for the date has real content (two
+    events same day), still just takes the first — same already-flagged,
+    deliberately-deferred gap as Mix has."""
+    cols = SCHEDULE_COLUMNS.get(venue)
+    if not cols or not show_date:
+        return None
+    if isinstance(show_date, str):
+        try:
+            show_date = dt.date.fromisoformat(show_date)
+        except ValueError:
+            return None
+    try:
+        schedule_rows = _fetch_csv(SCHEDULE_GID)
+        codes_rows = _fetch_csv(CODES_GID)
+    except Exception as e:  # noqa: BLE001 — sheet down/unreachable isn't fatal
+        print(f"[staffing] fetch failed: {e!r}", flush=True)
+        return None
+
+    need = max(cols.values())
+    for row in schedule_rows:
+        if len(row) <= need:
+            continue
+        if _parse_date(row[cols["date"]]) != show_date:
+            continue
+        has_content = any((row[c] or "").strip() for k, c in cols.items() if k != "date")
+        if has_content:
+            return row, cols, codes_rows
+    return None
+
+
+def _resolve_names(tokens, codes_rows):
+    """Every token that resolves to a real person, in order. Unlike Mix,
+    a non-mix role has no positional meaning (no FOH-vs-Mon to preserve),
+    so there's no 'exactly 1 or 2' gate — resolve whatever cleanly matches
+    a code, silently skip whatever doesn't (a stray '+1', a typo, a
+    genuinely unresolvable name). Zero names back is a normal, common
+    answer — most roles are blank most days."""
+    out = []
+    for t in tokens:
+        name = _format_row(_resolve_row(t, codes_rows))
+        if name:
+            out.append(name)
+    return out
+
+
+def staff_for(venue, show_date):
+    """Every staffing role assigned for the show at venue/show_date, straight
+    from the sheet's own Mix/Tech/Stagehand/Stage Support/Other columns
+    (Brian, 2026-09-09: 'teach yourself the other positions'). Returns
+    {'mix': {'foh':.., 'mon':..}, 'tech': [...], 'stagehand': [...],
+    'stage_support': [...], 'other': [...]} — mix keeps its FOH/Mon split
+    (see engineers_for()); every other role is just a list of whoever's
+    real name resolves, in the order the cell lists them. A venue whose
+    sheet block merges Stagehand and Stage Support into one column
+    (Zeigler Park / Court Street Plaza / Imagination Alley / Elm Street
+    Plaza) reports that same list under BOTH 'stagehand' and
+    'stage_support' — the source data doesn't distinguish them there, so
+    this doesn't invent a split. Never raises."""
+    empty = {"mix": {"foh": None, "mon": None}, "tech": [], "stagehand": [],
+             "stage_support": [], "other": []}
+    found = _row_for(venue, show_date)
+    if not found:
+        return empty
+    row, cols, codes_rows = found
+
+    out = dict(empty)
+    mix_tokens = _split_mix_cell((row[cols["mix"]] or "").strip()) if cols.get("mix") is not None else []
+    if len(mix_tokens) in (1, 2):
+        out["mix"] = {
+            "foh": _format_row(_resolve_row(mix_tokens[0], codes_rows)),
+            "mon": _format_row(_resolve_row(mix_tokens[1], codes_rows)) if len(mix_tokens) == 2 else None,
+        }
+
+    for key in _OTHER_ROLE_KEYS:
+        col = cols.get(key)
+        if col is None:
+            continue
+        names = _resolve_names(_split_mix_cell((row[col] or "").strip()), codes_rows)
+        if key == "stagehand_support":
+            out["stagehand"] = names
+            out["stage_support"] = names
+        else:
+            out[key] = names
+    return out
