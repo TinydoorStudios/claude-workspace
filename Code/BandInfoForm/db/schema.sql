@@ -30,8 +30,10 @@ CREATE TABLE IF NOT EXISTS shows (
     venue         TEXT,
     show_series   TEXT,
     show_date     DATE,
-    -- pipeline state: not_advanced -> email_sent -> responded -> built -> complete
-    status        TEXT NOT NULL DEFAULT 'not_advanced',
+    -- pipeline state lives in the advance_status view (below), computed live
+    -- from these timestamps + whether a submission exists — removed 2026-09-09,
+    -- was a static column nothing kept in sync (stuck at its insert-time
+    -- default forever; the real state was never actually read from here)
     email_sent_at TIMESTAMPTZ,
     doc_path      TEXT,                            -- filled DOC generated for this show
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -142,6 +144,13 @@ ALTER TABLE shows ADD COLUMN IF NOT EXISTS followup_draft_created_at TIMESTAMPTZ
 -- 21-day mark becomes a SEND reminder to Brian that a draft already sitting
 -- in Gmail is ready to go out — still never auto-sent. Fires once per show.
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS send_reminder_sent_at TIMESTAMPTZ;
+
+-- Dead column removed (Brian, 2026-09-09): nothing kept it in sync with
+-- reality (stamp_email_sent/mark_show_status, the only writers, were either
+-- unused or gated behind a --mark-sent flag nothing passes anymore), and
+-- nothing downstream ever read it back — the advance_status view below
+-- computes the real live state from timestamps + submissions instead.
+ALTER TABLE shows DROP COLUMN IF EXISTS status;
 
 -- One row per advance (band + show) with its computed state, for n8n's daily
 -- checks and the status report. DROP first — CREATE OR REPLACE can't insert a

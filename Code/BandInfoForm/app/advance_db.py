@@ -79,18 +79,17 @@ def upsert_artist(cur, name, email=None, phone=None):
     return cur.fetchone()["id"]
 
 
-def upsert_show(cur, artist_id, venue, show_date, series=None, status=None):
+def upsert_show(cur, artist_id, venue, show_date, series=None):
     """One booking per artist/venue/date. Returns show id."""
     cur.execute(
         """
-        INSERT INTO shows (artist_id, venue, show_date, show_series, status)
-        VALUES (%s, %s, %s, %s, COALESCE(%s, 'not_advanced'))
+        INSERT INTO shows (artist_id, venue, show_date, show_series)
+        VALUES (%s, %s, %s, %s)
         ON CONFLICT (artist_id, venue, show_date) DO UPDATE SET
-            show_series = COALESCE(EXCLUDED.show_series, shows.show_series),
-            status = COALESCE(%s, shows.status)
+            show_series = COALESCE(EXCLUDED.show_series, shows.show_series)
         RETURNING id
         """,
-        (artist_id, venue, show_date, series, status, status),
+        (artist_id, venue, show_date, series),
     )
     return cur.fetchone()["id"]
 
@@ -98,21 +97,9 @@ def upsert_show(cur, artist_id, venue, show_date, series=None, status=None):
 def stamp_email_sent(cur, show_id):
     """Mark the advance email as sent (first send wins)."""
     cur.execute(
-        "UPDATE shows SET email_sent_at = COALESCE(email_sent_at, now()), "
-        "status = CASE WHEN status = 'not_advanced' THEN 'email_sent' ELSE status END "
-        "WHERE id = %s",
+        "UPDATE shows SET email_sent_at = COALESCE(email_sent_at, now()) WHERE id = %s",
         (show_id,),
     )
-
-
-def mark_show_status(cur, show_id, status, email_sent=False):
-    if email_sent:
-        cur.execute(
-            "UPDATE shows SET status=%s, email_sent_at=now() WHERE id=%s",
-            (status, show_id),
-        )
-    else:
-        cur.execute("UPDATE shows SET status=%s WHERE id=%s", (status, show_id))
 
 
 # ── date-driven advance lifecycle (Brian, 2026-09-03) ───────────────────────
@@ -337,7 +324,7 @@ def insert_file(cur, submission_id, artist_id, filename, stored_name,
 
 def record_submission(form: dict, file_info=None, source="form"):
     """High-level: one transaction that upserts the artist + show, inserts the
-    submission (status -> responded), and links any uploaded file. Returns
+    submission, stamps responded_at, and links any uploaded file. Returns
     (artist_id, show_id, submission_id). Raises on failure — caller decides
     whether that's fatal (the form treats it as non-fatal)."""
     name = form.get("band_name") or "(unknown)"
@@ -349,7 +336,7 @@ def record_submission(form: dict, file_info=None, source="form"):
             )
             show_id = upsert_show(
                 cur, artist_id, form.get("venue"), to_date(form.get("show_date")),
-                series=form.get("show_series"), status="responded",
+                series=form.get("show_series"),
             )
             sub_id = insert_submission(cur, artist_id, show_id, form, source=source)
             # advance finished — stamp responded_at (first response wins)

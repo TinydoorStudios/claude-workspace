@@ -2,7 +2,7 @@
 """Advance email drafting engine.
 
 Give it a batch list (CSV or JSON) of shows to advance. For each artist it:
-  - upserts the artist + the show into the database (status: not_advanced),
+  - upserts the artist + the show into the database,
   - decides NEW vs RETURNING using the cross-venue 6-month lookback,
   - renders a draft email (returning drafts summarize what we have on file,
     recap the band's last filed advance document if one can be found, and
@@ -189,8 +189,7 @@ def main():
 
             with conn.cursor() as cur:
                 artist_id = db.upsert_artist(cur, name, email=email)
-                show_id = db.upsert_show(cur, artist_id, venue, show_date,
-                                         series=series, status="not_advanced")
+                show_id = db.upsert_show(cur, artist_id, venue, show_date, series=series)
                 prior = db.played_within(cur, artist_id, show_date, months=args.months)
             conn.commit()
 
