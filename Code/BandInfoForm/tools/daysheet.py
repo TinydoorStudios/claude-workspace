@@ -44,6 +44,7 @@ makes by hand (2026-09-03: "the granular items we will add by hand"):
   python3 daysheet.py --event 1
 """
 import argparse
+import itertools
 import re
 import sys
 from pathlib import Path
@@ -152,11 +153,11 @@ def act_row_values(f):
         out["monitors"] = f"{f['monitors']} wedges"
     uses_iems = f.get("uses_iems")
     if uses_iems:
-        out["iems"] = checkbox_pair("Yes", "No", uses_iems)
+        out["iems"] = Checkbox(["Yes", "No"], uses_iems)
     elif f.get("own_iems"):
         # older submissions predate the "do you use IEMs" question — fall
         # back to the own-system answer, same as before this field existed
-        out["iems"] = checkbox_pair("Yes", "No", f["own_iems"])
+        out["iems"] = Checkbox(["Yes", "No"], f["own_iems"])
 
     notes = []
     if f.get("input_notes"):
@@ -171,8 +172,8 @@ def act_row_values(f):
         out["input notes"] = " · ".join(notes)
 
     if f.get("stage_type"):
-        out["stage type"] = checkbox_pair(
-            "Flat", "Riser", "Riser" if "riser" in str(f["stage_type"]).lower() else "Flat")
+        out["stage type"] = Checkbox(
+            ["Flat", "Riser"], "Riser" if "riser" in str(f["stage_type"]).lower() else "Flat")
     if f.get("scenic"):
         out["scenic notes"] = f["scenic"]
 
@@ -193,19 +194,103 @@ def act_row_values(f):
     return out
 
 
-def checkbox_pair(label_a, label_b, chosen):
-    """'☐ A     ☐ B' with whichever of A/B was chosen swapped to ☒."""
-    a = "☒" if norm(chosen) == norm(label_a) else "☐"
-    b = "☒" if norm(chosen) == norm(label_b) else "☐"
-    return f"{a} {label_a}     {b} {label_b}"
+class Checkbox:
+    """Sentinel act_row_values() hands back for a checkbox-group field instead
+    of a pre-rendered string — carries the raw (labels, chosen) so fill()
+    can build real Word checkbox controls for it via set_checkbox_paragraph()
+    instead of dropping plain text through set_cell() (Brian, 2026-09-08:
+    the old ☐/☒ characters weren't real checkboxes — couldn't be clicked)."""
+    __slots__ = ("labels", "chosen")
+
+    def __init__(self, labels, chosen):
+        self.labels = labels
+        self.chosen = chosen
 
 
-def checkbox_choice(labels, chosen):
-    """Same idea as checkbox_pair but for any number of options — '☐ A     ☒ B
-    ☐ C'. `chosen` not matching any label leaves everything unchecked (never
-    guesses)."""
-    marks = ["☒" if norm(chosen) == norm(lbl) else "☐" for lbl in labels]
-    return "     ".join(f"{m} {lbl}" for m, lbl in zip(marks, labels))
+CHECKBOX_UNCHECKED = "☐"
+CHECKBOX_CHECKED = "☒"
+_sdt_id_counter = itertools.count(100000000)
+
+
+def _make_checkbox_sdt(checked=False):
+    """One real Word 'Check Box Content Control' (<w:sdt> + <w14:checkbox>)
+    holding a single ☐/☒ run — genuinely clickable in Word, not a plain typed
+    character. The visible glyph lives in an ordinary <w:t> run inside
+    sdtContent, so anything that just reads run text (python-docx's own
+    .text, LibreOffice's PDF converter used for the nightly recap
+    extraction) still sees the right character without understanding sdt
+    semantics at all."""
+    sdt = OxmlElement('w:sdt')
+    sdtPr = OxmlElement('w:sdtPr')
+    id_el = OxmlElement('w:id')
+    id_el.set(qn('w:val'), str(next(_sdt_id_counter)))
+    sdtPr.append(id_el)
+    checkbox = OxmlElement('w14:checkbox')
+    checked_el = OxmlElement('w14:checked')
+    checked_el.set(qn('w14:val'), '1' if checked else '0')
+    checkbox.append(checked_el)
+    checked_state = OxmlElement('w14:checkedState')
+    checked_state.set(qn('w14:val'), '2612')
+    checked_state.set(qn('w14:font'), 'MS Gothic')
+    checkbox.append(checked_state)
+    unchecked_state = OxmlElement('w14:uncheckedState')
+    unchecked_state.set(qn('w14:val'), '2610')
+    unchecked_state.set(qn('w14:font'), 'MS Gothic')
+    checkbox.append(unchecked_state)
+    sdtPr.append(checkbox)
+    sdt.append(sdtPr)
+    sdt.append(OxmlElement('w:sdtEndPr'))
+    sdtContent = OxmlElement('w:sdtContent')
+    r = OxmlElement('w:r')
+    t = OxmlElement('w:t')
+    t.text = CHECKBOX_CHECKED if checked else CHECKBOX_UNCHECKED
+    r.append(t)
+    sdtContent.append(r)
+    sdt.append(sdtContent)
+    return sdt
+
+
+def full_text(paragraph):
+    """A paragraph's visible text, including a run nested inside a checkbox
+    content control (<w:sdt>). python-docx's own Paragraph.text only reads
+    DIRECT <w:r>/<w:hyperlink> children, so it silently drops the checkbox
+    glyph now that real Word checkboxes live in <w:sdt>/<w:sdtContent> —
+    used anywhere this file reads a FILLED cell's content back out (the
+    recap extraction). Label-matching (norm(r.cells[0].text)) doesn't need
+    this — a label cell never contains a checkbox."""
+    return "".join(t.text or "" for t in paragraph._p.iter(qn('w:t')))
+
+
+def full_cell_text(cell):
+    return "\n".join(full_text(p) for p in cell.paragraphs)
+
+
+def _clear_paragraph(paragraph):
+    """Strip every run/control out of a paragraph, leaving its <w:pPr> (if
+    any) intact, ready to rebuild from scratch."""
+    p = paragraph._p
+    for child in list(p):
+        if child.tag != qn('w:pPr'):
+            p.remove(child)
+
+
+def set_checkbox_paragraph(paragraph, labels, chosen, prefix=""):
+    """Rebuild `paragraph` from scratch as prefix + a real, clickable Word
+    checkbox for every label ('☐ Label     ☐ Label ...'), whichever one
+    matches `chosen` (via norm(), same loose match checkbox_pair always
+    used) checked. `chosen` falsy or matching nothing leaves every box
+    unchecked — used both to fill a real answer and to build each
+    template's blank baseline, so a row the pipeline never touches is still
+    a real, hand-checkable group instead of dead text."""
+    _clear_paragraph(paragraph)
+    if prefix:
+        paragraph.add_run(prefix)
+    for i, label in enumerate(labels):
+        checked = bool(chosen) and norm(chosen) == norm(label)
+        paragraph._p.append(_make_checkbox_sdt(checked))
+        sep = "     " if i < len(labels) - 1 else ""
+        paragraph.add_run(f" {label}{sep}")
+    return paragraph
 
 
 def set_cell(cell, text):
@@ -311,20 +396,27 @@ def fill_header(grid, event, acts, single):
             return
 
 
-def fill_event_type(grid, event):
+def fill_event_type(grid, event, n=1):
+    """Event Type / Paying Band — an event-level fact, but the 2/3-band
+    templates repeat this row once per act column (same shape as Engineer/
+    Consoles), so it's written into every column, not just the first
+    (fixed 2026-09-08 — cells 2/3 used to stay pristine-blank forever on a
+    multi-band bill)."""
     det = event.get("details") or {}
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "event type":
-            value_cell = r.cells[1]
-            paras = value_cell.paragraphs
-            if len(paras) >= 1 and det.get("event_type"):
-                set_para_text(paras[0], checkbox_pair(
-                    "Internal Event:", "Third Party Event:",
-                    "Internal Event:" if norm(det["event_type"]) == "internal" else "Third Party Event:",
-                ))
-            if len(paras) >= 2 and det.get("paying_band"):
-                yn = "Yes" if norm(det["paying_band"]) == "yes" else "No"
-                set_para_text(paras[1], f"Are we paying the band?   {checkbox_pair('Yes', 'No', yn)}")
+            for value_cell in r.cells[1:1 + n]:
+                paras = value_cell.paragraphs
+                if len(paras) >= 1 and det.get("event_type"):
+                    set_checkbox_paragraph(
+                        paras[0],
+                        ["Internal Event:", "Third Party Event:"],
+                        "Internal Event:" if norm(det["event_type"]) == "internal" else "Third Party Event:",
+                    )
+                if len(paras) >= 2 and det.get("paying_band"):
+                    yn = "Yes" if norm(det["paying_band"]) == "yes" else "No"
+                    set_checkbox_paragraph(paras[1], ["Yes", "No"], yn,
+                                            prefix="Are we paying the band?   ")
             return
 
 
@@ -342,7 +434,7 @@ def fill_location(grid, event):
         return
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "location":
-            set_para_text(r.cells[1].paragraphs[0], checkbox_choice(WP_LOCATIONS, loc))
+            set_checkbox_paragraph(r.cells[1].paragraphs[0], WP_LOCATIONS, loc)
             return
 
 
@@ -445,7 +537,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
     single = n == 1
     fill_header(grid, event, acts, single)
     fill_location(grid, event)
-    fill_event_type(grid, event)
+    fill_event_type(grid, event, n)
     fill_engineer(grid, event, n)
     fill_lead(doc, event)
 
@@ -504,6 +596,11 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
                 continue
             if label == "stage plot" and saved_plot:
                 set_cell_link(row.cells[ci], text, quote(saved_plot))
+            elif isinstance(text, Checkbox):
+                cell = row.cells[ci]
+                for extra in cell.paragraphs[1:]:
+                    extra._element.getparent().remove(extra._element)
+                set_checkbox_paragraph(cell.paragraphs[0], text.labels, text.chosen)
             else:
                 set_cell(row.cells[ci], text)
 
@@ -611,7 +708,7 @@ def _template_defaults(venue, n_acts, ci):
     grid = find_grid(doc)
     if grid is None:
         return {}
-    return {norm(r.cells[0].text): r.cells[ci].text.strip()
+    return {norm(r.cells[0].text): full_cell_text(r.cells[ci]).strip()
             for r in grid.rows if r.cells and ci < len(r.cells)}
 
 
@@ -644,7 +741,7 @@ def read_filed_advance(venue, event_date, artist_name, root=None):
             label_norm = norm(r.cells[0].text)
             if not label_norm or label_norm in RECAP_EXCLUDE_ROWS or ci >= len(r.cells):
                 continue
-            text = r.cells[ci].text.strip()
+            text = full_cell_text(r.cells[ci]).strip()
             if not text or text == defaults.get(label_norm, "").strip():
                 continue
             rows.append((r.cells[0].text.strip().rstrip(":").strip(), text))
