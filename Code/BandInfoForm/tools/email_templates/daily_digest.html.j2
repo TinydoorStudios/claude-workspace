@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f1f3f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f3f6;padding:24px 0;">
+<tr><td align="center">
+<table role="presentation" width="680" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+
+  <!-- Header -->
+  <tr><td style="background:#1A3A5C;padding:24px 28px;">
+    <div style="color:#ffffff;font-size:20px;font-weight:700;">3CDC Band Advance — Daily Digest</div>
+    <div style="color:#a9c0d8;font-size:13px;margin-top:4px;">{{ today }}</div>
+  </td></tr>
+
+  <!-- Section 1: Today's Shows -->
+  <tr><td style="padding:24px 28px 8px;">
+    <div style="font-size:15px;font-weight:700;color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:6px;">
+      Today's Shows {% if today_shows %}({{ today_shows|length }}){% endif %}
+    </div>
+  </td></tr>
+  <tr><td style="padding:8px 28px 20px;">
+    {% if today_shows %}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      {% for ev in today_shows %}
+      <tr><td style="padding:10px 0;{% if not loop.last %}border-bottom:1px solid #E5E7EB;{% endif %}">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="font-size:14px;font-weight:700;color:#111827;">{{ ev.event_name }}</td>
+            <td align="right" style="font-size:11px;font-weight:700;color:#ffffff;background:#2E6DA4;border-radius:10px;padding:2px 10px;">{{ ev.venue }}{% if ev.location %} · {{ ev.location }}{% endif %}</td>
+          </tr>
+        </table>
+        <div style="font-size:13px;color:#374151;margin-top:4px;">
+          <strong>Band{{ 's' if ev.bands|length != 1 }}:</strong> {{ ev.bands|join(', ') if ev.bands else '—' }}
+        </div>
+        <div style="font-size:13px;color:#374151;margin-top:2px;">
+          <strong>Crew:</strong> {{ ev.crew }}
+          &nbsp;&nbsp;·&nbsp;&nbsp;
+          <strong>Start–End:</strong> {{ ev.start }} – {{ ev.end }}
+        </div>
+      </td></tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <div style="font-size:13px;color:#8b97a6;font-style:italic;">No shows booked today.</div>
+    {% endif %}
+  </td></tr>
+
+  <!-- Section 2: Advancing Activity, Last 24h -->
+  <tr><td style="padding:8px 28px 8px;">
+    <div style="font-size:15px;font-weight:700;color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:6px;">
+      Advancing Activity — Last 24 Hours
+    </div>
+  </td></tr>
+  <tr><td style="padding:8px 28px 20px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr valign="top">
+        <td width="50%" style="padding-right:12px;">
+          <div style="font-size:12px;font-weight:700;color:#0369A1;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">
+            📤 Sent — {{ drafted|length }}
+          </div>
+          {% if drafted %}
+          {% for r in drafted %}
+          <div style="font-size:13px;color:#111827;padding:5px 0;{% if not loop.last %}border-bottom:1px solid #F0F2F5;{% endif %}">
+            <strong>{{ r.band }}</strong><br>
+            <span style="color:#6B7280;font-size:12px;">{{ r.venue }}{% if r.show_date %} · {{ r.show_date.strftime('%m/%d') }}{% endif %}</span>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div style="font-size:12px;color:#9CA3AF;font-style:italic;">None sent in the last 24h.</div>
+          {% endif %}
+        </td>
+        <td width="50%" style="padding-left:12px;border-left:1px solid #E5E7EB;">
+          <div style="font-size:12px;font-weight:700;color:#15803D;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">
+            📥 Responded — {{ responded|length }}
+          </div>
+          {% if responded %}
+          {% for r in responded %}
+          <div style="font-size:13px;color:#111827;padding:5px 0;{% if not loop.last %}border-bottom:1px solid #F0F2F5;{% endif %}">
+            <strong>{{ r.band }}</strong><br>
+            <span style="color:#6B7280;font-size:12px;">{{ r.venue }}{% if r.show_date %} · {{ r.show_date.strftime('%m/%d') }}{% endif %}</span>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div style="font-size:12px;color:#9CA3AF;font-style:italic;">No responses in the last 24h.</div>
+          {% endif %}
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <!-- Section 3: Next 14 Days -->
+  <tr><td style="padding:8px 28px 8px;">
+    <div style="font-size:15px;font-weight:700;color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:6px;">
+      Next 14 Days {% if upcoming %}({{ upcoming|length }}){% endif %}
+    </div>
+  </td></tr>
+  <tr><td style="padding:8px 28px 26px;">
+    {% if upcoming %}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+      <tr>
+        <td style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;padding:0 0 6px;border-bottom:1px solid #E5E7EB;">Show</td>
+        <td style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;padding:0 0 6px;border-bottom:1px solid #E5E7EB;">Venue</td>
+        <td align="center" style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;padding:0 0 6px;border-bottom:1px solid #E5E7EB;">In</td>
+        <td align="right" style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;padding:0 0 6px;border-bottom:1px solid #E5E7EB;">Status</td>
+      </tr>
+      {% for r in upcoming %}
+      <tr>
+        <td style="font-size:13px;color:#111827;padding:7px 8px 7px 0;border-bottom:1px solid #F0F2F5;font-weight:600;">{{ r.band }}</td>
+        <td style="font-size:13px;color:#374151;padding:7px 8px;border-bottom:1px solid #F0F2F5;">{{ r.venue }}{% if r.show_date %}<br><span style="color:#9CA3AF;font-size:11px;">{{ r.show_date.strftime('%a %m/%d') }}</span>{% endif %}</td>
+        <td align="center" style="font-size:13px;color:#374151;padding:7px 8px;border-bottom:1px solid #F0F2F5;">{{ r.days_until_show if r.days_until_show is not none else '—' }}d</td>
+        <td align="right" style="padding:7px 0 7px 8px;border-bottom:1px solid #F0F2F5;">
+          <span style="display:inline-block;font-size:11px;font-weight:700;color:{{ r.style[2] }};background:{{ r.style[1] }};border-radius:10px;padding:3px 10px;white-space:nowrap;">{{ r.style[0] }}</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <div style="font-size:13px;color:#8b97a6;font-style:italic;">Nothing booked in the next 14 days.</div>
+    {% endif %}
+  </td></tr>
+
+  <tr><td style="background:#F9FAFB;padding:14px 28px;border-top:1px solid #E5E7EB;">
+    <div style="font-size:11px;color:#9CA3AF;">Auto-generated from the band advance pipeline. Not Started → Drafted → Ready to Send → Follow-up Due → Follow-up Sent → Completed.</div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

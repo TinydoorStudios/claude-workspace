@@ -206,6 +206,60 @@ def mark_send_reminder_sent(cur, show_id):
     )
 
 
+def bookings_on(cur, event_date):
+    """Every booking (one row per band) for a specific date, ordered venue
+    then event then slot (opener -> direct_support -> headliner) — the raw
+    material for the daily digest's 'shows today' section. Bands sharing a
+    bill share event_name/venue/schedule; the caller groups them."""
+    cur.execute(
+        """SELECT event_name, venue, location, series, artist_name, slot,
+                  load_in, soundcheck, event_start, event_end, curfew
+           FROM bookings
+           WHERE event_date = %s
+           ORDER BY venue, event_name,
+             CASE slot WHEN 'opener' THEN 1 WHEN 'direct_support' THEN 2
+                       WHEN 'headliner' THEN 3 ELSE 4 END""",
+        (event_date,),
+    )
+    return cur.fetchall()
+
+
+def advances_drafted_since(cur, hours=24):
+    """Shows whose initial advance draft was created in the last `hours` —
+    the daily digest's outbound half ('new advances we sent out')."""
+    cur.execute(
+        """SELECT * FROM advance_status
+           WHERE advance_draft_created_at >= now() - (%s || ' hours')::interval
+           ORDER BY advance_draft_created_at DESC""",
+        (hours,),
+    )
+    return cur.fetchall()
+
+
+def advances_responded_since(cur, hours=24):
+    """Shows a band responded to (completed their advance form) in the last
+    `hours` — the daily digest's inbound half ('bands who submitted')."""
+    cur.execute(
+        """SELECT * FROM advance_status
+           WHERE responded_at >= now() - (%s || ' hours')::interval
+           ORDER BY responded_at DESC""",
+        (hours,),
+    )
+    return cur.fetchall()
+
+
+def upcoming_advance_status(cur, days=14):
+    """Every show within `days` of today (0 = today), soonest first — the
+    daily digest's ranked at-a-glance list."""
+    cur.execute(
+        """SELECT * FROM advance_status
+           WHERE days_until_show BETWEEN 0 AND %s
+           ORDER BY days_until_show ASC, band ASC""",
+        (days,),
+    )
+    return cur.fetchall()
+
+
 def due_for_recap_extraction(cur, grace_days=1, lookback_days=30):
     """Shows that finished at least `grace_days` ago (their advance doc has had
     time to be corrected/finalized) and haven't had their recap extracted yet.

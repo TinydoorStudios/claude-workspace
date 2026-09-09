@@ -757,6 +757,29 @@ def run_recap_extraction():
     return result
 
 
+@app.post("/internal/daily-digest")
+def daily_digest():
+    """Called by n8n's daily 'Daily Digest' workflow. Builds the morning
+    ops summary (today's shows + crew, advancing activity in the last 24h,
+    every show within 14 days ranked with its live status — Brian,
+    2026-09-09) and hands back {subject, html, to} for n8n's Gmail node to
+    SEND for real — unlike every band-facing advance email, this is
+    Brian's own internal digest, not something that needs review first.
+    Token-protected, same as /internal/run-followups."""
+    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
+        abort(403)
+    if not DB_OK:
+        return {"error": "db-unavailable"}, 503
+    sys.path.insert(0, str(TOOLS_DIR))
+    from daily_digest import build_digest
+    try:
+        subject, html = build_digest()
+    except Exception as e:
+        _log_db_error("daily_digest", e)
+        return {"error": e.__class__.__name__}, 500
+    return {"subject": subject, "html": html, "to": "blloyd@3cdc.org"}
+
+
 @app.get("/healthz")
 def healthz():
     status = {"form": "ok", "db": "unknown"}
