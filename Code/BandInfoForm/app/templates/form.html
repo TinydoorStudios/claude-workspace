@@ -189,9 +189,19 @@
   </div>
 
   <div class="field">
-    <label class="q">Are you bringing your own in-ears (IEMs)?<span class="req">*</span></label>
+    <label class="q">Do you use in-ear monitors?<span class="req">*</span></label>
+    {% set ui = prefill.get('uses_iems') %}
+    <select name="uses_iems" id="uses_iems" required>
+      <option value="" disabled {{ 'selected' if not ui else '' }}>Select…</option>
+      <option {{ 'selected' if ui=='Yes' else '' }}>Yes</option>
+      <option {{ 'selected' if ui=='No' else '' }}>No</option>
+    </select>
+  </div>
+
+  <div class="field conditional hidden" id="own_iems_field">
+    <label class="q">Are you bringing your own in-ear system?<span class="req">*</span></label>
     {% set ie = prefill.get('own_iems') %}
-    <select name="own_iems" id="own_iems" required>
+    <select name="own_iems" id="own_iems">
       <option value="" disabled {{ 'selected' if not ie else '' }}>Select…</option>
       <option {{ 'selected' if ie=='No' else '' }}>No</option>
       <option {{ 'selected' if ie=='Yes' else '' }}>Yes</option>
@@ -199,14 +209,14 @@
   </div>
 
   <div class="field conditional hidden" id="split_field">
-    <label class="q">Are you providing a split snake?<span class="req">*</span></label>
+    <label class="q">Are you providing a split snake for front of house?<span class="req">*</span></label>
     {% set ss = prefill.get('split_snake') %}
     <select name="split_snake" id="split_snake">
       <option value="" disabled {{ 'selected' if not ss else '' }}>Select…</option>
       <option {{ 'selected' if ss=='Yes' else '' }}>Yes</option>
       <option {{ 'selected' if ss=='No' else '' }}>No</option>
     </select>
-    <p class="help">Since you're bringing your own in-ears, let us know if you're providing the split.</p>
+    <p class="help">Since you're bringing your own in-ear system, let us know if you're providing the split.</p>
   </div>
 
   <div class="field">
@@ -338,6 +348,8 @@
 </div>
 
 <script>
+  var usesIems = document.getElementById('uses_iems');
+  var ownIemsField = document.getElementById('own_iems_field');
   var iem = document.getElementById('own_iems');
   var splitField = document.getElementById('split_field');
   var split = document.getElementById('split_snake');
@@ -347,8 +359,16 @@
     split.required = show;
     if(!show){ split.value = ''; }
   }
+  function syncOwnIems(){
+    var show = usesIems.value === 'Yes';
+    ownIemsField.classList.toggle('hidden', !show);
+    iem.required = show;
+    if(!show){ iem.value = ''; }
+    syncSplit();
+  }
+  usesIems.addEventListener('change', syncOwnIems);
   iem.addEventListener('change', syncSplit);
-  syncSplit();
+  syncOwnIems();
 
   // Stage plot: upload OR description, not both required — at least one
   // (Brian, 2026-09-08). A returning artist with one already on file needs

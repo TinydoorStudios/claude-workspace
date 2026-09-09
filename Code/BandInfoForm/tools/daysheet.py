@@ -97,6 +97,7 @@ def form_fields(sub):
         "stage_type": sub.get("stage_type") or d.get("stage_type"),
         "monitors": (str(sub["monitors"]) if sub.get("monitors") is not None
                      else d.get("monitors")),
+        "uses_iems": d.get("uses_iems"),
         "own_iems": _yn(sub.get("own_iems")) or d.get("own_iems"),
         "split_snake": sub.get("split_snake") or d.get("split_snake"),
         "stage_plot_desc": d.get("stage_plot_desc"),
@@ -144,12 +145,19 @@ def act_row_values(f):
 
     if f.get("monitors") not in (None, ""):
         out["monitors"] = f"{f['monitors']} wedges"
-    if f.get("own_iems"):
+    uses_iems = f.get("uses_iems")
+    if uses_iems:
+        out["iems"] = checkbox_pair("Yes", "No", uses_iems)
+    elif f.get("own_iems"):
+        # older submissions predate the "do you use IEMs" question — fall
+        # back to the own-system answer, same as before this field existed
         out["iems"] = checkbox_pair("Yes", "No", f["own_iems"])
 
     notes = []
     if f.get("input_notes"):
         notes.append(f["input_notes"])
+    if str(uses_iems or "").lower() == "yes" and f.get("own_iems"):
+        notes.append(f"Own IEM system: {f['own_iems']}")
     if str(f.get("own_iems", "")).lower() == "yes" and f.get("split_snake"):
         notes.append(f"Split snake: {f['split_snake']}")
     if f.get("lighting"):
