@@ -11,10 +11,13 @@ To add a venue: copy the FSQ dict, replace the prose. Anything you leave out fal
 back to DEFAULT (a generic, non-FSQ-specific block that is safe to send as-is).
 COMMON_REQUIREMENTS is the 3CDC-wide policy and appends to every venue.
 
-A series can override any of those same blocks on top of its venue's content —
-SERIES_EMAIL (Brian, 2026-09-09: content supplied per series as they're created).
-A series with no entry there, or no series on the booking at all, falls straight
-through to the plain venue email — nothing changes until Brian adds one.
+A series can override any of those same blocks on top of its venue's content.
+That content lives as files in Dropbox, not in this module (Brian, 2026-09-09:
+"one central location" he edits directly, no code deploy needed) —
+~/Dropbox/Nyquist/Series Email Templates/<Venue>/<Series>.md, read live on
+every call. A series with no file there, or no series on the booking at all,
+falls straight through to the plain venue email. See the README in that
+folder for the file format.
 
 A block's prose can reference `{some_key}` placeholders — draft_emails.py fills
 them per show via blocks_for's **dynamic kwargs (e.g. WP's {location}/{stage_size},
@@ -23,6 +26,8 @@ blocks containing the referenced placeholder are touched; everything else is a
 plain string, unaffected by the substitution pass.
 """
 import re
+import sys
+from pathlib import Path
 
 # 3CDC-wide, appended under Performance Requirements for every venue.
 COMMON_REQUIREMENTS = """\
@@ -95,19 +100,26 @@ Hospitality & Site:
     # Add Memorial Hall / etc. here as Brian supplies the content.
 }
 
-# Per-series overrides, layered on top of the venue's own blocks (which are
-# already layered on DEFAULT) — a series can override just one block (say,
-# hospitality for a series with its own hospitality arrangement) and leave
-# everything else as that venue's normal email. Keyed by the series name as
-# typed on the booking; matched case/whitespace-insensitively (series is
-# freeform per-booking text, not a fixed set like VENUE_EMAIL's keys) so
-# "Winter Piano" and "winter piano " both hit the same entry. Empty until
-# Brian supplies content for a given series — until then every series (and
-# a blank series) renders the plain venue email, unchanged.
-SERIES_EMAIL = {
-    # "Winter Piano": {
-    #     "hospitality": "...",
-    # },
+# Where Brian's per-series email content actually lives — see that folder's
+# own README.md for the exact file format (## Location / Load-In / Technical
+# / Hospitality / Requirements sections, only fill in what you want to
+# override). One subfolder per venue, one .md file per series within it.
+SERIES_EMAIL_ROOT = Path.home() / "Dropbox" / "Nyquist" / "Series Email Templates"
+
+# Section-header aliases a series file's "## Heading" can use, matched after
+# lowercasing and folding "&", "/", "-" to spaces — e.g. "Load-In & Parking"
+# and "load in" both normalize to "load in" and hit load_in. Deliberately not
+# exhaustive: an unrecognized header is skipped with a log line rather than
+# guessed at, so a typo never silently drops content into the wrong block.
+_BLOCK_HEADER_ALIASES = {
+    "location": "location",
+    "load in": "load_in",
+    "load in parking": "load_in",
+    "technical": "technical",
+    "hospitality": "hospitality",
+    "hospitality site": "hospitality",
+    "requirements": "requirements",
+    "performance requirements": "requirements",
 }
 
 
@@ -115,16 +127,76 @@ def _norm_series(s):
     return re.sub(r"\s+", " ", (s or "").strip()).lower()
 
 
+def _norm_header(s):
+    s = re.sub(r"[&/\-]+", " ", s.strip().lower())
+    return re.sub(r"\s+", " ", s).strip().rstrip(":")
+
+
+def _parse_series_email_file(text, label=""):
+    """A series .md file's text -> {block_key: content}. See
+    SERIES_EMAIL_ROOT's README for the section-header format."""
+    blocks, current_key, buf = {}, None, []
+
+    def commit():
+        if current_key and buf:
+            joined = "\n".join(buf).strip()
+            if joined:
+                blocks[current_key] = joined
+
+    for line in text.splitlines():
+        m = re.match(r"^#{1,3}\s+(.+?)\s*$", line)
+        if not m:
+            buf.append(line)
+            continue
+        commit()
+        buf = []
+        header = _norm_header(m.group(1))
+        key = _BLOCK_HEADER_ALIASES.get(header)
+        if key is None:
+            for alias, block_key in _BLOCK_HEADER_ALIASES.items():
+                if header.startswith(alias + " "):
+                    key = block_key
+                    break
+        if key is None:
+            print(f"[venue_email] {label}: unrecognized section {m.group(1)!r}, skipped",
+                  file=sys.stderr)
+        current_key = key
+    commit()
+    return blocks
+
+
+def _load_series_block(venue, series, root=None):
+    """{block_key: content} for this exact venue + series, read fresh from
+    <root>/<Venue>/<Series>.md — {} if the venue has no folder, no filename
+    matches (case/whitespace-insensitive, since series is freeform text
+    typed per booking), or the file can't be read. Never raises — a missing
+    or malformed template just means that series renders the plain venue
+    email, same as no series at all."""
+    if not venue or not series:
+        return {}
+    vdir = (Path(root) if root else SERIES_EMAIL_ROOT) / venue.strip()
+    if not vdir.is_dir():
+        return {}
+    target = _norm_series(series)
+    for path in sorted(vdir.glob("*.md")):
+        if _norm_series(path.stem) != target:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception as e:  # noqa: BLE001 — an unreadable template isn't fatal
+            print(f"[venue_email] couldn't read {path}: {e!r}", file=sys.stderr)
+            return {}
+        return _parse_series_email_file(text, label=str(path))
+    return {}
+
+
 def blocks_for(venue, series=None, **dynamic):
     v = VENUE_EMAIL.get((venue or "").strip(), {})
     out = dict(DEFAULT)
     out.update({k: val for k, val in v.items() if val is not None})
     if series:
-        target = _norm_series(series)
-        for key, override in SERIES_EMAIL.items():
-            if _norm_series(key) == target:
-                out.update({k: val for k, val in override.items() if val is not None})
-                break
+        override = _load_series_block(venue, series)
+        out.update({k: val for k, val in override.items() if val is not None})
     if dynamic:
         for k, text in out.items():
             if isinstance(text, str) and "{" in text:
