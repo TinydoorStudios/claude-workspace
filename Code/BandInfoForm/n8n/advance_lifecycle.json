@@ -74,11 +74,11 @@
       ],
       "parameters": {
         "resource": "draft",
-        "operation": "create",
-        "sendTo": "={{ $json.to }}",
         "subject": "={{ $json.subject }}",
         "message": "={{ $json.body }}",
-        "options": {}
+        "options": {
+          "sendTo": "={{ $json.to }}"
+        }
       },
       "credentials": {
         "gmailOAuth2": {
