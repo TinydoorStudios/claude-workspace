@@ -34,11 +34,16 @@ wins, same merge policy as the email drafts. Writes:
     (Brian, 2026-09-08); a line left as its unfilled placeholder ('FOH – ')
     means the sheet didn't resolve a clean name for that show, not that the
     row was skipped
+  - the crew SCHEDULE table (Crew Call / Load In-Sound Check / Performance /
+    Load-out / Curfew) — ONLY for a series with a locked '## Crew Schedule'
+    section (venue_email.crew_schedule_for(); Brian, 2026-09-09: Salsa On
+    The Square's times never change, so there's no reason to leave this for
+    a same-day hand call the way every other show's crew schedule needs)
 
 Left BLANK, always — no data source, or a same-day production call Brian
 makes by hand (2026-09-03: "the granular items we will add by hand"):
-  - the whole SCHEDULE table (Crew Call through Load Out/Curfew — the
-    minute-by-minute choreography is a day-of call, not form data)
+  - the crew SCHEDULE table for every OTHER show (the minute-by-minute
+    choreography is normally a day-of call, not form data)
   - Consoles, PA, Subs, LIGHTING (Pre-Scheduled/Live), VIDEO, Buyout
 
   python3 daysheet.py --event 1
@@ -59,6 +64,7 @@ sys.path.insert(0, str(HERE))
 import advance_db as db
 import fieldspec as fs
 import staffing
+import venue_email as ve
 
 from docx import Document
 from docx.oxml import OxmlElement
@@ -431,6 +437,19 @@ def find_lead_table(doc):
     return None
 
 
+def find_schedule_table(doc):
+    """The small day-of crew table, left-hand side (time blank in cells[0],
+    label in cells[-1]: Crew Call / Load In/Sound Check / Performance /
+    Load-out / Curfew) — the minute-by-minute crew choreography, distinct
+    from the EVENT INFORMATION grid's own header info and from the advance
+    EMAIL's separate free-text 'Day Schedule:' block (venue_email's
+    schedule_block_for)."""
+    for t in all_tables(doc):
+        if t.rows and norm(t.rows[0].cells[-1].text) == "crew call":
+            return t
+    return None
+
+
 def fill_header(grid, event, acts, single):
     """EVENT INFORMATION value cell: Date / Event / Band (single-band only) /
     TONIGHT — MC/DJ (multi-band only) — each its own paragraph."""
@@ -531,6 +550,33 @@ def fill_engineer(grid, event, n):
             return
 
 
+def fill_crew_schedule(doc, event):
+    """The day-of crew table (Crew Call / Load In-Sound Check / Performance
+    / Load-out / Curfew) — left blank, always, EXCEPT for a series with a
+    locked '## Crew Schedule' section (Brian, 2026-09-09: Salsa On The
+    Square's times never change, so there's no reason to leave this for a
+    same-day hand call the way every other show's crew schedule needs).
+    No-op if the event has no venue/series, the series has no Crew Schedule
+    section, or the template has no crew table at all."""
+    venue = event.get("venue")
+    series = event.get("series")
+    if not venue or not series:
+        return
+    times = ve.crew_schedule_for(venue, series)
+    if not times:
+        return
+    table = find_schedule_table(doc)
+    if not table:
+        return
+    for r in table.rows:
+        # ve.norm_header folds "/"/"-" to spaces (daysheet's own norm()
+        # doesn't) — needed here since the template's real row labels are
+        # "Load In/Sound Check" and "Load-out", not space-separated.
+        key = ve.CREW_SCHEDULE_LABEL_ALIASES.get(ve.norm_header(r.cells[-1].text))
+        if key and times.get(key):
+            set_cell(r.cells[0], times[key])
+
+
 def fill_lead(doc, event):
     det = event.get("details") or {}
     t = find_lead_table(doc)
@@ -599,6 +645,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
     fill_location(grid, event)
     fill_event_type(grid, event, n)
     fill_engineer(grid, event, n)
+    fill_crew_schedule(doc, event)
     fill_lead(doc, event)
 
     # Column for one act: a 3-band bill has an unambiguous 1:1 slot->column

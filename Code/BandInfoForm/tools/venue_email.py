@@ -122,6 +122,22 @@ _BLOCK_HEADER_ALIASES = {
     "performance requirements": "requirements",
     "schedule": "schedule",
     "day schedule": "schedule",
+    "crew schedule": "crew_schedule",
+}
+
+# A "## Crew Schedule" section's lines are "Label: value" (unlike every
+# other section, which is free text) — it fills the day-sheet DOCX's own
+# small crew-schedule table (Crew Call / Load In-Sound Check / Performance /
+# Load-out / Curfew, top-left of the advance), separate from the email's
+# free-text "## Schedule" block. Only include the lines a series actually
+# wants filled; leave one out (or the whole section) and daysheet.py leaves
+# that row for a same-day hand call, same as always.
+CREW_SCHEDULE_LABEL_ALIASES = {
+    "crew call": "crew_call",
+    "load in sound check": "load_in_soundcheck",
+    "performance": "performance",
+    "load out": "load_out",
+    "curfew": "curfew",
 }
 
 # A "## Schedule" section is free text, same as every other section — it
@@ -136,7 +152,7 @@ def _norm_series(s):
     return re.sub(r"\s+", " ", (s or "").strip()).lower()
 
 
-def _norm_header(s):
+def norm_header(s):
     s = re.sub(r"[&/\-]+", " ", s.strip().lower())
     return re.sub(r"\s+", " ", s).strip().rstrip(":")
 
@@ -169,7 +185,7 @@ def _parse_series_email_file(text, label=""):
             continue
         commit()
         buf = []
-        header = _norm_header(m.group(1))
+        header = norm_header(m.group(1))
         key = _BLOCK_HEADER_ALIASES.get(header)
         if key is None:
             for alias, block_key in _BLOCK_HEADER_ALIASES.items():
@@ -218,6 +234,30 @@ def schedule_block_for(venue, series, root=None):
     changes (Brian, 2026-09-09: Salsa On The Square is the first)."""
     blocks = _load_series_block(venue, series, root)
     return blocks.get("schedule") or None
+
+
+def crew_schedule_for(venue, series, root=None):
+    """{crew_call, load_in_soundcheck, performance, load_out, curfew} (any
+    subset) for this venue + series — fills the day-sheet DOCX's own small
+    crew-schedule table (top-left of the advance) straight from a series'
+    locked times, instead of leaving it blank for a same-day hand call
+    (Brian, 2026-09-09: 'those never change' — same reasoning as the
+    email's Schedule lock, applied to the document itself). {} if the
+    series file has no Crew Schedule section."""
+    blocks = _load_series_block(venue, series, root)
+    raw = blocks.get("crew_schedule")
+    if not raw:
+        return {}
+    out = {}
+    for line in raw.splitlines():
+        if ":" not in line:
+            continue
+        label, _, value = line.partition(":")
+        key = CREW_SCHEDULE_LABEL_ALIASES.get(norm_header(label))
+        value = value.strip()
+        if key and value:
+            out[key] = value
+    return out
 
 
 def locked_schedule_series(root=None):
