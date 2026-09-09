@@ -171,6 +171,10 @@
         {
           "label": "ESP — NDI Bridge Keeper",
           "path": "/sop-esp-ndi-bridge-keeper"
+        },
+        {
+          "label": "Projector — Lens Swap",
+          "path": "/sop-projector-lens-swap"
         }
       ]
     },
