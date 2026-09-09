@@ -124,22 +124,12 @@ _BLOCK_HEADER_ALIASES = {
     "day schedule": "schedule",
 }
 
-# A "## Schedule" section's lines are "Label: value" (see SCHEDULE_FIELD_ALIASES
-# below), not prose — a fixed, never-typed-around schedule for a series whose
-# times never change (Brian, 2026-09-09: Salsa On The Square is the first —
-# always 6/6:30/7/10/11 regardless of what a staffer enters on the booking).
-# These OVERRIDE the booking's own schedule fields entirely, not just fill
-# blanks — see schedule_override_for().
-SCHEDULE_FIELD_ALIASES = {
-    "load in": "load_in",
-    "sound check": "soundcheck",
-    "soundcheck": "soundcheck",
-    "start": "event_start",
-    "start of event": "event_start",
-    "end": "event_end",
-    "end of event": "event_end",
-    "curfew": "curfew",
-}
+# A "## Schedule" section is free text, same as every other section — it
+# becomes the email's whole "Day Schedule:" block verbatim, not just a fill
+# for the 5 generic fields. For a series with a fixed schedule that never
+# changes (Brian, 2026-09-09: Salsa On The Square is the first) this is a
+# hard override of what a staffer typed on the booking, not a blank-filler —
+# see schedule_block_for().
 
 
 def _norm_series(s):
@@ -157,10 +147,20 @@ def _parse_series_email_file(text, label=""):
     blocks, current_key, buf = {}, None, []
 
     def commit():
-        if current_key and buf:
-            joined = "\n".join(buf).strip()
-            if joined:
-                blocks[current_key] = joined
+        if not current_key:
+            return
+        # Trim blank lines off each edge (the blank line right after a "##
+        # Header" and right before the next one) WITHOUT touching a real
+        # line's own leading whitespace — a block like Schedule relies on
+        # indentation to line up, and str.strip() on the joined text would
+        # have eaten only the first line's indent, not the rest.
+        lines = list(buf)
+        while lines and not lines[0].strip():
+            lines.pop(0)
+        while lines and not lines[-1].strip():
+            lines.pop()
+        if lines:
+            blocks[current_key] = "\n".join(lines)
 
     for line in text.splitlines():
         m = re.match(r"^#{1,3}\s+(.+?)\s*$", line)
@@ -209,35 +209,15 @@ def _load_series_block(venue, series, root=None):
     return {}
 
 
-def _parse_schedule_lines(text):
-    """A Schedule block's raw text ('Label: value' per line) -> {field_key:
-    value}. An unrecognized label is skipped with a log line, same
-    never-guess rule as an unrecognized section header."""
-    out = {}
-    for line in text.splitlines():
-        if ":" not in line:
-            continue
-        label, _, value = line.partition(":")
-        key = SCHEDULE_FIELD_ALIASES.get(_norm_header(label))
-        value = value.strip()
-        if key and value:
-            out[key] = value
-        elif value:
-            print(f"[venue_email] unrecognized schedule line {line!r}, skipped", file=sys.stderr)
-    return out
-
-
-def schedule_override_for(venue, series, root=None):
-    """{load_in, soundcheck, event_start, event_end, curfew} (any subset) for
-    this venue + series' locked schedule — {} if the series file has no
-    Schedule section, or no series/file at all. Callers should let this WIN
-    over whatever a booking's own schedule fields say, not just fill blanks —
-    that's the point of a series with a schedule that never changes."""
+def schedule_block_for(venue, series, root=None):
+    """The whole 'Day Schedule:' block, verbatim, for this venue + series —
+    None if the series file has no Schedule section (or no series/file at
+    all), meaning the generic per-show schedule fields apply as usual.
+    Callers should let a non-None result WIN over whatever a booking's own
+    schedule fields say — that's the point of a series whose schedule never
+    changes (Brian, 2026-09-09: Salsa On The Square is the first)."""
     blocks = _load_series_block(venue, series, root)
-    raw = blocks.get("schedule")
-    if not raw:
-        return {}
-    return _parse_schedule_lines(raw)
+    return blocks.get("schedule") or None
 
 
 def blocks_for(venue, series=None, **dynamic):
