@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Per-venue advance-email content blocks.
+"""Per-venue (and per-series) advance-email content blocks.
 
 The advance email's body is venue-specific — Fountain Square's garage QR codes and
 95 dBA-Slow ordinance have no business in a Washington Park or Memorial Hall email. This
@@ -11,12 +11,18 @@ To add a venue: copy the FSQ dict, replace the prose. Anything you leave out fal
 back to DEFAULT (a generic, non-FSQ-specific block that is safe to send as-is).
 COMMON_REQUIREMENTS is the 3CDC-wide policy and appends to every venue.
 
+A series can override any of those same blocks on top of its venue's content —
+SERIES_EMAIL (Brian, 2026-09-09: content supplied per series as they're created).
+A series with no entry there, or no series on the booking at all, falls straight
+through to the plain venue email — nothing changes until Brian adds one.
+
 A block's prose can reference `{some_key}` placeholders — draft_emails.py fills
 them per show via blocks_for's **dynamic kwargs (e.g. WP's {location}/{stage_size},
 sourced from the booking's Location field and forms_config.WP_LOCATIONS). Only
 blocks containing the referenced placeholder are touched; everything else is a
 plain string, unaffected by the substitution pass.
 """
+import re
 
 # 3CDC-wide, appended under Performance Requirements for every venue.
 COMMON_REQUIREMENTS = """\
@@ -89,11 +95,36 @@ Hospitality & Site:
     # Add Memorial Hall / etc. here as Brian supplies the content.
 }
 
+# Per-series overrides, layered on top of the venue's own blocks (which are
+# already layered on DEFAULT) — a series can override just one block (say,
+# hospitality for a series with its own hospitality arrangement) and leave
+# everything else as that venue's normal email. Keyed by the series name as
+# typed on the booking; matched case/whitespace-insensitively (series is
+# freeform per-booking text, not a fixed set like VENUE_EMAIL's keys) so
+# "Winter Piano" and "winter piano " both hit the same entry. Empty until
+# Brian supplies content for a given series — until then every series (and
+# a blank series) renders the plain venue email, unchanged.
+SERIES_EMAIL = {
+    # "Winter Piano": {
+    #     "hospitality": "...",
+    # },
+}
 
-def blocks_for(venue, **dynamic):
+
+def _norm_series(s):
+    return re.sub(r"\s+", " ", (s or "").strip()).lower()
+
+
+def blocks_for(venue, series=None, **dynamic):
     v = VENUE_EMAIL.get((venue or "").strip(), {})
     out = dict(DEFAULT)
     out.update({k: val for k, val in v.items() if val is not None})
+    if series:
+        target = _norm_series(series)
+        for key, override in SERIES_EMAIL.items():
+            if _norm_series(key) == target:
+                out.update({k: val for k, val in override.items() if val is not None})
+                break
     if dynamic:
         for k, text in out.items():
             if isinstance(text, str) and "{" in text:

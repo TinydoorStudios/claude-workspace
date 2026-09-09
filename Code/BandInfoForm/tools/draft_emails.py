@@ -286,7 +286,7 @@ def main():
 
             ctx = dict(
                 name=name, venue=venue,
-                blocks=ve.blocks_for(venue, **email_extra), common_requirements=ve.COMMON_REQUIREMENTS,
+                blocks=ve.blocks_for(venue, series=series, **email_extra), common_requirements=ve.COMMON_REQUIREMENTS,
                 personal_note=(lambda n: f"{n}\n\n" if n else "")((r.get("email_note") or "").strip()),
                 event_name=r.get("event_name") or "",
                 show_date=us_date(show_date),
