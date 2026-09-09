@@ -131,7 +131,7 @@
     </div>
     <p class="hint">Multiple bands on one bill? Log each band separately with the same event name, date, and venue.</p>
 
-    <details {% if form.lead_name or form.load_in or form.email_note %}open{% endif %}>
+    <details id="more_detail" {% if form.lead_name or form.load_in or form.email_note %}open{% endif %}>
       <summary>More detail (optional — schedule, contacts, note)</summary>
       <div class="grid2">
         <div><label>Event Type</label>
@@ -150,11 +150,14 @@
         </div>
         <div><label>Day-of Lead</label><input name="lead_name" value="{{ form.lead_name or '' }}"></div>
         <div><label>Lead Phone</label><input name="lead_phone" value="{{ form.lead_phone or '' }}"></div>
-        <div><label>Load-In</label><input name="load_in" value="{{ form.load_in or '' }}" placeholder="e.g. 4:30p"></div>
-        <div><label>Sound Check</label><input name="soundcheck" value="{{ form.soundcheck or '' }}" placeholder="e.g. 5:00p"></div>
-        <div><label>Start</label><input name="event_start" value="{{ form.event_start or '' }}" placeholder="e.g. 7:00p"></div>
-        <div><label>End</label><input name="event_end" value="{{ form.event_end or '' }}" placeholder="e.g. 10:00p"></div>
-        <div><label>Curfew</label><input name="curfew" value="{{ form.curfew or '' }}" placeholder="e.g. 11:00p"></div>
+        <div class="full hint" id="schedule_locked_note" style="display:none;margin-top:2px">This series has a fixed schedule — the times are locked in and don't need to be entered here.</div>
+        <div id="schedule_fields" style="display:contents">
+          <div><label>Load-In</label><input name="load_in" id="load_in_input" value="{{ form.load_in or '' }}" placeholder="e.g. 4:30p"></div>
+          <div><label>Sound Check</label><input name="soundcheck" id="soundcheck_input" value="{{ form.soundcheck or '' }}" placeholder="e.g. 5:00p"></div>
+          <div><label>Start</label><input name="event_start" id="event_start_input" value="{{ form.event_start or '' }}" placeholder="e.g. 7:00p"></div>
+          <div><label>End</label><input name="event_end" id="event_end_input" value="{{ form.event_end or '' }}" placeholder="e.g. 10:00p"></div>
+          <div><label>Curfew</label><input name="curfew" id="curfew_input" value="{{ form.curfew or '' }}" placeholder="e.g. 11:00p"></div>
+        </div>
       </div>
       <div style="margin-top:14px"><label>Email Note (personal line for this band's advance email)</label>
         <textarea name="email_note" placeholder="e.g. Great to have you back — same backline as last time?">{{ form.email_note or '' }}</textarea>
@@ -165,6 +168,29 @@
   </form>
   </div>
   <script>
+  // Series whose email schedule is locked in code (Series Email Templates/
+  // <Venue>/<Series>.md has a "## Schedule" section) — for those, the
+  // schedule-time fields below don't even show; whatever's hardcoded wins
+  // regardless (Brian, 2026-09-09). Just a form nicety: the real
+  // enforcement is server-side (venue_email.schedule_block_for), this only
+  // keeps staff from typing times that would be silently ignored.
+  var LOCKED_SCHEDULE_SERIES = {{ locked_schedule_series | tojson }};
+  var SCHEDULE_FIELD_IDS = ['load_in_input', 'soundcheck_input', 'event_start_input', 'event_end_input', 'curfew_input'];
+  function normSeries(s) {
+    return (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+  function updateScheduleLock() {
+    var sel = document.getElementById('seriesPick');
+    var custom = document.getElementById('seriesCustom');
+    var current = sel.value === '__custom__' ? custom.value : sel.value;
+    var locked = LOCKED_SCHEDULE_SERIES.some(function (s) { return normSeries(s) === normSeries(current); });
+    document.getElementById('schedule_fields').style.display = locked ? 'none' : 'contents';
+    document.getElementById('schedule_locked_note').style.display = locked ? 'block' : 'none';
+    if (locked) {
+      SCHEDULE_FIELD_IDS.forEach(function (id) { document.getElementById(id).value = ''; });
+      document.getElementById('more_detail').open = true;
+    }
+  }
   function onSeriesChange() {
     var sel = document.getElementById('seriesPick');
     var custom = document.getElementById('seriesCustom');
@@ -178,7 +204,10 @@
       custom.removeAttribute('name');
       sel.setAttribute('name', 'series');
     }
+    updateScheduleLock();
   }
+  document.getElementById('seriesCustom').addEventListener('input', updateScheduleLock);
+  updateScheduleLock();
   function onVenueChange() {
     var venue = document.getElementById('venue_select');
     var field = document.getElementById('wp_location_field');

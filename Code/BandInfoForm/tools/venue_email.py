@@ -220,6 +220,34 @@ def schedule_block_for(venue, series, root=None):
     return blocks.get("schedule") or None
 
 
+def locked_schedule_series(root=None):
+    """Every series name (flat across all venues) that has a locked '##
+    Schedule' section — used by the booking form to hide the schedule-time
+    fields entirely for a series whose times are fixed in code, rather than
+    silently accepting and ignoring whatever gets typed there (Brian,
+    2026-09-09). Flat rather than venue-scoped: on the rare chance the same
+    series name is ever locked at one venue and free at another, this errs
+    toward hiding the fields — a UI nicety, not the actual enforcement
+    (schedule_block_for stays properly venue-scoped and authoritative
+    regardless of what the form shows). Never raises — a missing folder or
+    an unreadable file just means nothing's reported as locked."""
+    root = Path(root) if root else SERIES_EMAIL_ROOT
+    out = set()
+    if not root.is_dir():
+        return []
+    for vdir in root.iterdir():
+        if not vdir.is_dir():
+            continue
+        for path in vdir.glob("*.md"):
+            try:
+                text = path.read_text(encoding="utf-8")
+            except Exception:  # noqa: BLE001 — best-effort, skip a bad file
+                continue
+            if _parse_series_email_file(text, label=str(path)).get("schedule"):
+                out.add(path.stem)
+    return sorted(out)
+
+
 def blocks_for(venue, series=None, **dynamic):
     v = VENUE_EMAIL.get((venue or "").strip(), {})
     out = dict(DEFAULT)

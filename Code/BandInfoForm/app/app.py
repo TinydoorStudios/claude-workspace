@@ -375,6 +375,19 @@ def staff():
 BOOKING_SLOTS = ["headliner", "direct_support", "opener"]
 
 
+def _locked_schedule_series():
+    """Best-effort — an empty list just means the booking form shows the
+    schedule-time fields for every series, never blocks the form from
+    loading."""
+    try:
+        sys.path.insert(0, str(TOOLS_DIR))
+        import venue_email as ve
+        return ve.locked_schedule_series()
+    except Exception as e:
+        _log_db_error("locked_schedule_series", e)
+        return []
+
+
 def _series_by_venue():
     """Best-effort — an empty dict just means the form falls back to a plain
     '+ Add new series…' entry, never blocks the booking form from loading.
@@ -413,6 +426,7 @@ def booking():
             return render_template("booking.html", venues=forms_config.VENUES,
                                    wp_locations=list(forms_config.WP_LOCATIONS),
                                    slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
+                                   locked_schedule_series=_locked_schedule_series(),
                                    error="Artist name and who's entering this are required.",
                                    form=f), 400
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
@@ -429,6 +443,7 @@ def booking():
             return render_template("booking.html", venues=forms_config.VENUES,
                                    wp_locations=list(forms_config.WP_LOCATIONS),
                                    slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
+                                   locked_schedule_series=_locked_schedule_series(),
                                    error="Couldn't save — the database is unreachable. Try again shortly.",
                                    form=f), 503
         _notify_email("booking", data)
@@ -445,7 +460,8 @@ def booking():
                                slots=BOOKING_SLOTS, saved=data, urgent=urgent)
     return render_template("booking.html", venues=forms_config.VENUES,
                            wp_locations=list(forms_config.WP_LOCATIONS),
-                           slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(), form={})
+                           slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
+                           locked_schedule_series=_locked_schedule_series(), form={})
 
 
 @app.post("/booking/run")
