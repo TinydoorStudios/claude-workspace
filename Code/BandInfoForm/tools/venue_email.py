@@ -243,20 +243,42 @@ def crew_schedule_for(venue, series, root=None):
     locked times, instead of leaving it blank for a same-day hand call
     (Brian, 2026-09-09: 'those never change' — same reasoning as the
     email's Schedule lock, applied to the document itself). {} if the
-    series file has no Crew Schedule section."""
+    series file has no Crew Schedule section.
+
+    A value can be one line ('Load In/Sound Check: 6:00 PM - 7:00 PM') or,
+    for a row that's really several sub-events (Performance covering
+    several sets with breaks between them — Brian, 2026-09-09), several:
+    put nothing after the label's colon and list the sub-lines below it,
+    up to the next recognized label. daysheet.set_cell_lines() renders each
+    line as its own paragraph in that cell."""
     blocks = _load_series_block(venue, series, root)
     raw = blocks.get("crew_schedule")
     if not raw:
         return {}
-    out = {}
+    out, current_key, buf = {}, None, []
+
+    def commit():
+        if not current_key:
+            return
+        lines = list(buf)
+        while lines and not lines[0].strip():
+            lines.pop(0)
+        while lines and not lines[-1].strip():
+            lines.pop()
+        if lines:
+            out[current_key] = "\n".join(lines)
+
     for line in raw.splitlines():
-        if ":" not in line:
-            continue
-        label, _, value = line.partition(":")
-        key = CREW_SCHEDULE_LABEL_ALIASES.get(norm_header(label))
-        value = value.strip()
-        if key and value:
-            out[key] = value
+        label, sep, value = line.partition(":")
+        key = CREW_SCHEDULE_LABEL_ALIASES.get(norm_header(label)) if sep else None
+        if key:
+            commit()
+            current_key = key
+            value = value.strip()
+            buf = [value] if value else []
+        elif current_key:
+            buf.append(line)
+    commit()
     return out
 
 

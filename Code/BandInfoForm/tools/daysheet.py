@@ -369,6 +369,28 @@ def set_cell(cell, text):
     (p.runs[0] if p.runs else p.add_run("")).text = text
 
 
+def set_cell_lines(cell, text):
+    """Like set_cell, but a value with embedded '\\n's becomes one real
+    paragraph per line instead of a single run with literal newline
+    characters in it (which Word wouldn't break visually) — for a crew-
+    schedule row that's really several sub-events, e.g. Performance
+    covering multiple sets with breaks between them (Brian, 2026-09-09).
+    Extra paragraphs are cloned from the cell's own first paragraph so they
+    inherit its formatting; a single-line value behaves exactly like
+    set_cell."""
+    lines = ("" if text is None else str(text)).split("\n") or [""]
+    paras = cell.paragraphs
+    while len(paras) < len(lines):
+        new_p = copy.deepcopy(paras[-1]._p)
+        paras[-1]._p.addnext(new_p)
+        paras = cell.paragraphs
+    for extra in paras[len(lines):]:
+        extra._element.getparent().remove(extra._element)
+    paras = cell.paragraphs
+    for p, line in zip(paras, lines):
+        set_para_text(p, line)
+
+
 def set_cell_link(cell, text, target):
     """Replace a cell's content with a single clickable hyperlink (blue, underlined).
     `target` is a relative path — the stage plot sits in the same folder as the doc,
@@ -574,7 +596,7 @@ def fill_crew_schedule(doc, event):
         # "Load In/Sound Check" and "Load-out", not space-separated.
         key = ve.CREW_SCHEDULE_LABEL_ALIASES.get(ve.norm_header(r.cells[-1].text))
         if key and times.get(key):
-            set_cell(r.cells[0], times[key])
+            set_cell_lines(r.cells[0], times[key])
 
 
 def fill_lead(doc, event):
