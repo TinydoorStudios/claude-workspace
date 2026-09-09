@@ -780,6 +780,25 @@ def daily_digest():
     return {"subject": subject, "html": html, "to": "blloyd@3cdc.org"}
 
 
+@app.post("/internal/crew-report")
+def crew_report_endpoint():
+    """Called by n8n's daily 'Crew Report' workflow. Who's staffing every
+    venue over the next 14 days — Mix/Tech/Stagehand/Stage Support/Other,
+    straight from the public 3CDC staffing sheet (Brian, 2026-09-09).
+    Doesn't touch advance-db at all (pure staffing-sheet read), so no
+    DB_OK gate. Token-protected, same as the other /internal endpoints."""
+    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
+        abort(403)
+    sys.path.insert(0, str(TOOLS_DIR))
+    from crew_report import build_report
+    try:
+        html = build_report(days=14)
+    except Exception as e:
+        _log_db_error("crew_report", e)
+        return {"error": e.__class__.__name__}, 500
+    return {"subject": "3CDC Crew Report — Next 14 Days", "html": html, "to": "blloyd@3cdc.org"}
+
+
 @app.get("/healthz")
 def healthz():
     status = {"form": "ok", "db": "unknown"}
