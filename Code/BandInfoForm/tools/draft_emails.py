@@ -222,8 +222,14 @@ def main():
             if r.get("set_time"):
                 set_line = f"Set length: {_setlen(r['set_time'])}" + (f" ({slot})" if slot else "")
 
+            # A series can lock its own schedule (Brian, 2026-09-09: Salsa On
+            # The Square never changes — 6/6:30/7/10/11 regardless of what a
+            # staffer types on the booking). That wins over BOTH the booking's
+            # own entry and the generic FSQ fallback — it's an override, not
+            # just a blank-filler.
+            schedule_lock = ve.schedule_override_for(venue, series) if series else {}
             def sched(k):
-                return r.get(k) or fs.SCHEDULE_DEFAULTS.get(k, "")
+                return schedule_lock.get(k) or r.get(k) or fs.SCHEDULE_DEFAULTS.get(k, "")
             schedule_block = "\n".join([
                 f"  {sched('load_in')}    Load-In",
                 f"  {sched('soundcheck')}    Sound Check",

@@ -78,7 +78,27 @@
   {% if error %}<div class="banner err">{{ error }}</div>{% endif %}
   <div class="card">
   <form method="post" action="{{ url_for('booking') }}">
-    <div class="full req"><label>Event Name</label><input name="event_name" value="{{ form.event_name or '' }}" placeholder="e.g. 513 Airwaves w/ Inhaler Radio" required></div>
+    {% set flat_series = [] %}
+    {% for v, opts in series_by_venue.items() %}{% for s in opts %}{% set _ = flat_series.append(s) %}{% endfor %}{% endfor %}
+    {% set series_is_custom = form.series and form.series not in flat_series %}
+    <div class="full"><label>Series</label>
+      <select id="seriesPick" onchange="onSeriesChange()" {% if not series_is_custom %}name="series"{% endif %}>
+        <option value="">— No series / one-off —</option>
+        {% for v, opts in series_by_venue.items() %}
+        <optgroup label="{{ v }}">
+          {% for s in opts %}<option value="{{ s }}" {% if form.series==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </optgroup>
+        {% endfor %}
+        <option value="__custom__" {% if series_is_custom %}selected{% endif %}>+ Add new series…</option>
+      </select>
+      <input type="text" id="seriesCustom" placeholder="New series name" autocomplete="off"
+             {% if series_is_custom %}name="series"{% endif %}
+             style="margin-top:8px{% if not series_is_custom %};display:none{% endif %}"
+             value="{{ form.series if series_is_custom else '' }}">
+    </div>
+    <div class="full"><label>Event Name</label><input name="event_name" value="{{ form.event_name or '' }}" placeholder="e.g. 513 Airwaves w/ Inhaler Radio">
+      <p class="hint" style="margin:6px 0 0">Optional.</p>
+    </div>
     <div class="req"><label>Event Date</label><input type="date" name="event_date" value="{{ form.event_date or '' }}" required></div>
     <div class="req"><label>Venue</label>
       <select name="venue" id="venue_select" onchange="onVenueChange()" required>
@@ -97,35 +117,17 @@
     <div class="req"><label>Contact Email</label><input type="email" name="contact_email" value="{{ form.contact_email or '' }}" placeholder="booking contact"></div>
     <div class="full req"><label>Entered By</label><input name="entered_by" value="{{ form.entered_by or '' }}" placeholder="your name" required></div>
     <div><label>Slot</label>
-      <select name="slot">
+      <select name="slot" id="slot_select">
         {% for s in slots %}<option value="{{ s }}" {% if form.slot==s %}selected{% endif %}>{{ s.replace('_',' ') }}</option>{% endfor %}
       </select>
     </div>
     <div><label>Set Length</label><input name="set_time" value="{{ form.set_time or '' }}" placeholder="e.g. 60 min"></div>
     <div><label>Bands on the Bill</label>
-      <select name="band_count">
+      <select name="band_count" id="band_count_select" onchange="onBandCountChange()">
         <option value="1" {% if (form.band_count or '1')=='1' %}selected{% endif %}>1 (single band)</option>
         <option value="2" {% if form.band_count=='2' %}selected{% endif %}>2</option>
         <option value="3" {% if form.band_count=='3' %}selected{% endif %}>3</option>
       </select>
-    </div>
-    {% set flat_series = [] %}
-    {% for v, opts in series_by_venue.items() %}{% for s in opts %}{% set _ = flat_series.append(s) %}{% endfor %}{% endfor %}
-    {% set series_is_custom = form.series and form.series not in flat_series %}
-    <div class="full"><label>Series</label>
-      <select id="seriesPick" onchange="onSeriesChange()" {% if not series_is_custom %}name="series"{% endif %}>
-        <option value="">— No series / one-off —</option>
-        {% for v, opts in series_by_venue.items() %}
-        <optgroup label="{{ v }}">
-          {% for s in opts %}<option value="{{ s }}" {% if form.series==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
-        </optgroup>
-        {% endfor %}
-        <option value="__custom__" {% if series_is_custom %}selected{% endif %}>+ Add new series…</option>
-      </select>
-      <input type="text" id="seriesCustom" placeholder="New series name" autocomplete="off"
-             {% if series_is_custom %}name="series"{% endif %}
-             style="margin-top:8px{% if not series_is_custom %};display:none{% endif %}"
-             value="{{ form.series if series_is_custom else '' }}">
     </div>
     <p class="hint">Multiple bands on one bill? Log each band separately with the same event name, date, and venue.</p>
 
@@ -187,6 +189,15 @@
     if (!show) { loc.value = ''; }
   }
   onVenueChange();
+  function onBandCountChange() {
+    // A solo act is unambiguously the headliner — default the slot there
+    // whenever the bill drops to 1 (Brian, 2026-09-09). Still just a
+    // default, not locked: staff can still pick something else after.
+    var count = document.getElementById('band_count_select');
+    var slot = document.getElementById('slot_select');
+    if (count.value === '1') { slot.value = 'headliner'; }
+  }
+  onBandCountChange();
   </script>
 {% endif %}
 </div>

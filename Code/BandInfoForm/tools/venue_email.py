@@ -120,6 +120,25 @@ _BLOCK_HEADER_ALIASES = {
     "hospitality site": "hospitality",
     "requirements": "requirements",
     "performance requirements": "requirements",
+    "schedule": "schedule",
+    "day schedule": "schedule",
+}
+
+# A "## Schedule" section's lines are "Label: value" (see SCHEDULE_FIELD_ALIASES
+# below), not prose — a fixed, never-typed-around schedule for a series whose
+# times never change (Brian, 2026-09-09: Salsa On The Square is the first —
+# always 6/6:30/7/10/11 regardless of what a staffer enters on the booking).
+# These OVERRIDE the booking's own schedule fields entirely, not just fill
+# blanks — see schedule_override_for().
+SCHEDULE_FIELD_ALIASES = {
+    "load in": "load_in",
+    "sound check": "soundcheck",
+    "soundcheck": "soundcheck",
+    "start": "event_start",
+    "start of event": "event_start",
+    "end": "event_end",
+    "end of event": "event_end",
+    "curfew": "curfew",
 }
 
 
@@ -188,6 +207,37 @@ def _load_series_block(venue, series, root=None):
             return {}
         return _parse_series_email_file(text, label=str(path))
     return {}
+
+
+def _parse_schedule_lines(text):
+    """A Schedule block's raw text ('Label: value' per line) -> {field_key:
+    value}. An unrecognized label is skipped with a log line, same
+    never-guess rule as an unrecognized section header."""
+    out = {}
+    for line in text.splitlines():
+        if ":" not in line:
+            continue
+        label, _, value = line.partition(":")
+        key = SCHEDULE_FIELD_ALIASES.get(_norm_header(label))
+        value = value.strip()
+        if key and value:
+            out[key] = value
+        elif value:
+            print(f"[venue_email] unrecognized schedule line {line!r}, skipped", file=sys.stderr)
+    return out
+
+
+def schedule_override_for(venue, series, root=None):
+    """{load_in, soundcheck, event_start, event_end, curfew} (any subset) for
+    this venue + series' locked schedule — {} if the series file has no
+    Schedule section, or no series/file at all. Callers should let this WIN
+    over whatever a booking's own schedule fields say, not just fill blanks —
+    that's the point of a series with a schedule that never changes."""
+    blocks = _load_series_block(venue, series, root)
+    raw = blocks.get("schedule")
+    if not raw:
+        return {}
+    return _parse_schedule_lines(raw)
 
 
 def blocks_for(venue, series=None, **dynamic):

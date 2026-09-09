@@ -409,11 +409,11 @@ def booking():
     away. Everything else runs on the normal next-daily-check cadence."""
     if request.method == "POST":
         f = request.form
-        if not f.get("artist_name") or not f.get("event_name") or not f.get("entered_by"):
+        if not f.get("artist_name") or not f.get("entered_by"):
             return render_template("booking.html", venues=forms_config.VENUES,
                                    wp_locations=list(forms_config.WP_LOCATIONS),
                                    slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
-                                   error="Event name, artist name, and who's entering this are required.",
+                                   error="Artist name and who's entering this are required.",
                                    form=f), 400
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
         saved = False
