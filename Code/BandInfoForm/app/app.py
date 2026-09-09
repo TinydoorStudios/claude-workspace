@@ -760,11 +760,15 @@ def run_recap_extraction():
 @app.post("/internal/daily-digest")
 def daily_digest():
     """Called by n8n's daily 'Daily Digest' workflow. Builds the morning
-    ops summary (today's shows + crew, advancing activity in the last 24h,
-    every show within 14 days ranked with its live status — Brian,
-    2026-09-09) and hands back {subject, html, to} for n8n's Gmail node to
-    SEND for real — unlike every band-facing advance email, this is
-    Brian's own internal digest, not something that needs review first.
+    ops summary (today's shows, today's crew across every staffed venue,
+    advancing activity in the last 24h, every show within 14 days ranked
+    with its live status — Brian, 2026-09-09) and hands back
+    {subject, html, to} for n8n's Gmail node to SEND for real — unlike
+    every band-facing advance email, this is Brian's own internal digest,
+    not something that needs review first. Absorbed the standalone Crew
+    Report's daily send the same day ("combine the two emails into one");
+    that workflow's cron trigger was removed, only its on-demand webhook
+    remains, still served by /internal/crew-report below.
     Token-protected, same as /internal/run-followups."""
     if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
         abort(403)
@@ -782,11 +786,13 @@ def daily_digest():
 
 @app.post("/internal/crew-report")
 def crew_report_endpoint():
-    """Called by n8n's daily 'Crew Report' workflow. Who's staffing every
-    venue over the next 14 days — Mix/Tech/Stagehand/Stage Support/Other,
-    straight from the public 3CDC staffing sheet (Brian, 2026-09-09).
-    Doesn't touch advance-db at all (pure staffing-sheet read), so no
-    DB_OK gate. Token-protected, same as the other /internal endpoints."""
+    """Standalone, on-demand only (n8n's 'Crew Report' webhook — its daily
+    cron trigger was removed 2026-09-09 now that Daily Digest carries
+    today's crew every morning). Who's staffing every venue over the next
+    14 days — Mix/Tech/Stagehand/Stage Support/Other, straight from the
+    public 3CDC staffing sheet. Doesn't touch advance-db at all (pure
+    staffing-sheet read), so no DB_OK gate. Token-protected, same as the
+    other /internal endpoints."""
     if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
         abort(403)
     sys.path.insert(0, str(TOOLS_DIR))

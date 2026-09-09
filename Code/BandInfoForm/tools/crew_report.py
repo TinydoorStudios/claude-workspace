@@ -7,7 +7,15 @@ staff_for()'s Tech/Stagehand/Stage Support/Other coverage, not just Mix).
 Fetches the schedule + codes sheets ONCE and reuses them across every
 venue/date in range — staff_for() itself fetches fresh per call, which is
 fine for a single lookup but far too slow for a report spanning 5 venues
-across many days.
+across many days. collect_days() is the reusable core (date -> entries);
+build_report() wraps it for this tool's own standalone 14-day email.
+
+daily_digest.py imports collect_days() directly to pull just today's rows
+across all 5 venues for the combined morning email (Brian, 2026-09-09:
+"combine the two emails into one" — the daily 7am send now happens there,
+not here). This tool's own daily cron trigger was removed from
+n8n/crew_report.json for that reason; the on-demand webhook (a standalone
+14-day pull) is untouched.
 
     python3 crew_report.py [--days 14] [--out FILE]
 """
@@ -61,12 +69,16 @@ def _unique_blocks():
     return out
 
 
-def build_report(days=14, start=None):
-    start = start or dt.date.today()
-    end = start + dt.timedelta(days=days)
-
-    schedule_rows = st._fetch_csv(st.SCHEDULE_GID)
-    codes_rows = st._fetch_csv(st.CODES_GID)
+def collect_days(start, end, schedule_rows=None, codes_rows=None):
+    """date -> [entry, ...] for every staffed venue block with real content
+    between start and end (inclusive), across all 5 venue blocks. Pass
+    schedule_rows/codes_rows through if the caller already fetched them
+    (daily_digest.py wants just today's rows and shouldn't pay for a
+    second sheet fetch on top of its own)."""
+    if schedule_rows is None:
+        schedule_rows = st._fetch_csv(st.SCHEDULE_GID)
+    if codes_rows is None:
+        codes_rows = st._fetch_csv(st.CODES_GID)
 
     by_date = {}
     for venue, cols in _unique_blocks():
@@ -98,6 +110,13 @@ def build_report(days=14, start=None):
                 else:
                     entry[key] = names
             by_date.setdefault(d, []).append(entry)
+    return by_date
+
+
+def build_report(days=14, start=None):
+    start = start or dt.date.today()
+    end = start + dt.timedelta(days=days)
+    by_date = collect_days(start, end)
 
     days_out = []
     d = start

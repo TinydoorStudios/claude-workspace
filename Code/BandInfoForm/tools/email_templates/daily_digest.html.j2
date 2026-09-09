@@ -32,8 +32,6 @@
           <strong>Band{{ 's' if ev.bands|length != 1 }}:</strong> {{ ev.bands|join(', ') if ev.bands else '—' }}
         </div>
         <div style="font-size:13px;color:#374151;margin-top:2px;">
-          <strong>Crew:</strong> {{ ev.crew }}
-          &nbsp;&nbsp;·&nbsp;&nbsp;
           <strong>Start–End:</strong> {{ ev.start }} – {{ ev.end }}
         </div>
       </td></tr>
@@ -44,7 +42,52 @@
     {% endif %}
   </td></tr>
 
-  <!-- Section 2: Advancing Activity, Last 24h -->
+  <!-- Section 2: Today's Crew — every staffed venue, not just tracked-advance ones -->
+  <tr><td style="padding:8px 28px 8px;">
+    <div style="font-size:15px;font-weight:700;color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:6px;">
+      Today's Crew {% if today_crew %}({{ today_crew|length }}){% endif %}
+    </div>
+  </td></tr>
+  <tr><td style="padding:8px 28px 20px;">
+    {% if today_crew %}
+    {% for r in today_crew %}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:{{ '0' if loop.last else '12' }}px;">
+      <tr>
+        <td style="width:6px;background:{{ r.color }};border-radius:4px;"></td>
+        <td style="padding:6px 0 6px 12px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="font-size:14px;font-weight:700;color:#111827;">{{ r.event }}</td>
+              <td align="right" style="font-size:11px;font-weight:700;color:#ffffff;background:{{ r.color }};border-radius:10px;padding:2px 10px;white-space:nowrap;">{{ r.venue }}</td>
+            </tr>
+          </table>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:5px;">
+            <tr valign="top">
+              {% set slots = [
+                ('Mix', (r.mix.foh and [r.mix.foh] or []) + (r.mix.mon and ['(Mon) ' + r.mix.mon] or [])),
+                ('Tech', r.tech), ('Stagehand', r.stagehand),
+                ('Stage Support', r.stage_support), ('Other', r.other)
+              ] %}
+              {% for label, names in slots %}
+                {% if names %}
+                <td style="padding:0 16px 0 0;">
+                  <div style="font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.03em;">{{ label }}</div>
+                  <div style="font-size:12.5px;color:#374151;">{{ names|join(', ') }}</div>
+                </td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    {% endfor %}
+    {% else %}
+    <div style="font-size:13px;color:#8b97a6;font-style:italic;">Nothing staffed today per the schedule sheet.</div>
+    {% endif %}
+  </td></tr>
+
+  <!-- Section 3: Advancing Activity, Last 24h -->
   <tr><td style="padding:8px 28px 8px;">
     <div style="font-size:15px;font-weight:700;color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:6px;">
       Advancing Activity — Last 24 Hours
@@ -87,7 +130,7 @@
     </table>
   </td></tr>
 
-  <!-- Section 3: Next 14 Days -->
+  <!-- Section 4: Next 14 Days — advance status only, the one section that looks past today -->
   <tr><td style="padding:8px 28px 8px;">
     <div style="font-size:15px;font-weight:700;color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:6px;">
       Next 14 Days {% if upcoming %}({{ upcoming|length }}){% endif %}

@@ -22,3 +22,5 @@ venv/
 
 # generated deliverables (day-sheets + drafts; may hold real contacts)
 output/
+deploy_digest_merge_log.txt
+send_internal_email_log.txt

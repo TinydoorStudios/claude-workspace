@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
-"""Daily digest — one morning email covering (Brian, 2026-09-09):
-  1. Today's shows: crew (from the public 3CDC staffing sheet), band
-     names, venue, start/end times.
-  2. Advancing activity in the last 24 hours: new advance drafts sent out
+"""Daily digest — one morning email covering (Brian, 2026-09-09; combined
+with the standalone Crew Report the same day per "the two emails combined
+into one"):
+  1. Today's shows: band names, venue, start/end times, from advance-db.
+  2. Today's crew: every venue staffed today per the public 3CDC staffing
+     sheet — Mix/Tech/Stagehand/Stage Support/Other — regardless of
+     whether the event has a tracked advance (reuses crew_report.py's
+     collect_days(), scoped to just today).
+  3. Advancing activity in the last 24 hours: new advance drafts sent out
      (outbound) and bands who responded (inbound) — two separate lanes,
      not the same thing said twice.
-  3. Every show within 14 days, ranked soonest-first, with its live
+  4. Every show within 14 days, ranked soonest-first, with its live
      advance status (queued/awaiting/ready_to_send/followup_due/
      followup_drafted/responded) — "a clear sight on the bands that are
-     advancing properly and bands that are not responding."
+     advancing properly and bands that are not responding." This is the
+     ONLY section that looks past today — Brian wants the 14-day window
+     for advance status specifically, not for shows/crew detail.
 
 Fired by n8n's "Daily Digest" workflow (n8n/daily_digest.json), which hits
 POST /internal/daily-digest on app.py and SENDS the result for real, to
 blloyd@3cdc.org — unlike every band-facing advance email, this is Brian's
-own internal ops summary, not something that needs his review first.
+own internal ops summary, not something that needs his review first. The
+standalone "Crew Report" workflow's daily cron trigger was removed since
+section 2 above now covers it every morning; its on-demand webhook (a
+full 14-day, all-venue pull) still works standalone.
 
     python3 daily_digest.py             # print the rendered HTML
     python3 daily_digest.py --out FILE  # save it instead
@@ -30,7 +40,7 @@ for _cand in (HERE.parent, HERE.parent / "app"):
         break
 sys.path.insert(0, str(HERE))
 import advance_db as db
-import staffing
+import crew_report as cr
 import venue_email as ve
 
 from jinja2 import Environment, FileSystemLoader
@@ -88,25 +98,29 @@ def _today_shows(cur, today):
             if timed:
                 ev["load_in"] = ev["load_in"] or timed[0][1]
                 ev["curfew"] = ev["curfew"] or timed[-1][1]
-        try:
-            names = staffing.engineers_for(venue, today.isoformat()) if venue else {}
-        except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the digest
-            print(f"[daily_digest] staffing lookup failed: {e!r}", file=sys.stderr)
-            names = {}
-        crew_bits = []
-        if names.get("foh"):
-            crew_bits.append(f"FOH – {names['foh']}")
-        if names.get("mon"):
-            crew_bits.append(f"Mon – {names['mon']}")
-        ev["crew"] = " / ".join(crew_bits) or "—"
         ev["start"] = ev["load_in"] or ev["event_start"] or "—"
         ev["end"] = ev["curfew"] or ev["event_end"] or "—"
         out.append(ev)
     return out
 
 
+def _today_crew(today):
+    """Every venue staffed today per the public 3CDC staffing sheet —
+    Mix/Tech/Stagehand/Stage Support/Other — same rows crew_report.py's
+    standalone 14-day report would show for today, just scoped to one
+    day. Independent of advance-db: a venue staffed today with no
+    tracked band still shows up here (Brian, 2026-09-09)."""
+    try:
+        by_date = cr.collect_days(today, today)
+    except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the digest
+        print(f"[daily_digest] crew lookup failed: {e!r}", file=sys.stderr)
+        return []
+    return sorted(by_date.get(today, []), key=lambda e: e["venue"])
+
+
 def build_digest(days_ahead=14, hours_back=24):
     today = dt.date.today()
+    today_crew = _today_crew(today)
     with db.get_conn() as conn, conn.cursor() as cur:
         today_shows = _today_shows(cur, today)
         drafted = db.advances_drafted_since(cur, hours=hours_back)
@@ -120,7 +134,8 @@ def build_digest(days_ahead=14, hours_back=24):
     tpl = env.get_template("daily_digest.html.j2")
     html = tpl.render(
         today=today.strftime("%A, %B ") + str(today.day) + today.strftime(", %Y"),
-        today_shows=today_shows, drafted=drafted, responded=responded, upcoming=upcoming,
+        today_shows=today_shows, today_crew=today_crew,
+        drafted=drafted, responded=responded, upcoming=upcoming,
     )
     subject = f"Advance Digest — {today.strftime('%a %m/%d')}"
     if today_shows:

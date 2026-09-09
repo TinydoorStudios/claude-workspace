@@ -1,31 +1,9 @@
 {
   "id": "crew-report",
-  "name": "Crew Report",
+  "name": "Crew Report (On-Demand)",
   "active": true,
   "settings": {},
   "nodes": [
-    {
-      "id": "sched-1",
-      "name": "Daily 7:10am",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        200,
-        300
-      ],
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "hours",
-              "hoursInterval": 24,
-              "triggerAtHour": 7,
-              "triggerAtMinute": 10
-            }
-          ]
-        }
-      }
-    },
     {
       "id": "http-1",
       "name": "Fetch Report",
@@ -107,17 +85,6 @@
     }
   ],
   "connections": {
-    "Daily 7:10am": {
-      "main": [
-        [
-          {
-            "node": "Fetch Report",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Fetch Report": {
       "main": [
         [
