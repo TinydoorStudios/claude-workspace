@@ -44,6 +44,7 @@ makes by hand (2026-09-03: "the granular items we will add by hand"):
   python3 daysheet.py --event 1
 """
 import argparse
+import copy
 import itertools
 import re
 import sys
@@ -291,6 +292,65 @@ def set_checkbox_paragraph(paragraph, labels, chosen, prefix=""):
         sep = "     " if i < len(labels) - 1 else ""
         paragraph.add_run(f" {label}{sep}")
     return paragraph
+
+
+def iter_paragraphs_deep(container):
+    """Every paragraph anywhere in `container` (a Document or a table cell) —
+    body-level paragraphs plus every paragraph inside every table/cell,
+    however deeply nested."""
+    for p in container.paragraphs:
+        yield p
+    for t in getattr(container, "tables", []):
+        for row in t.rows:
+            for cell in row.cells:
+                yield from iter_paragraphs_deep(cell)
+
+
+def convert_plain_checkboxes(paragraph):
+    """Catch-all for any ☐/☒ still sitting in `paragraph` as plain typed
+    text rather than a real control — static template content no fill()
+    function ever writes to (Brian, 2026-09-08: 'Drink Tickets'/'Talking
+    points'/'Dashboard parking permit' in the Band Deliverables list, and
+    the LIGHTING row's Pre-Scheduled/Live pair, were all missed by the
+    first pass, which only converted the specific rows the code actually
+    fills). Splits each run containing a glyph into real-control-in,
+    plain-text-around, preserving the run's own formatting on the
+    surrounding text and each glyph's existing checked/unchecked state —
+    it doesn't know the 'right' answer for content it never wrote, only
+    that it should be clickable like everything else. No-op on a run with
+    no plain glyph (already-real controls, e.g. from
+    set_checkbox_paragraph, are untouched since their glyph lives inside
+    an <w:sdt>, not a direct <w:r>)."""
+    p = paragraph._p
+    for r_el in list(p.findall(qn('w:r'))):
+        text = "".join(t.text or "" for t in r_el.findall(qn('w:t')))
+        if CHECKBOX_UNCHECKED not in text and CHECKBOX_CHECKED not in text:
+            continue
+        rPr_el = r_el.find(qn('w:rPr'))
+        pieces, buf = [], ""
+        for ch in text:
+            if ch in (CHECKBOX_UNCHECKED, CHECKBOX_CHECKED):
+                if buf:
+                    pieces.append(('text', buf))
+                    buf = ""
+                pieces.append(('box', ch == CHECKBOX_CHECKED))
+            else:
+                buf += ch
+        if buf:
+            pieces.append(('text', buf))
+        for kind, val in pieces:
+            if kind == 'box':
+                new_el = _make_checkbox_sdt(checked=val)
+            else:
+                new_el = OxmlElement('w:r')
+                if rPr_el is not None:
+                    new_el.append(copy.deepcopy(rPr_el))
+                t_el = OxmlElement('w:t')
+                t_el.set(qn('xml:space'), 'preserve')
+                t_el.text = val
+                new_el.append(t_el)
+            r_el.addprevious(new_el)
+        p.remove(r_el)
 
 
 def set_cell(cell, text):
