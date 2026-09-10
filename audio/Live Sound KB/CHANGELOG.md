@@ -1,4 +1,16 @@
-## 2026-09-09 (latest) — The advance database gets a backup that can actually rebuild the whole thing
+## 2026-09-09 (latest) — Cold Storage rotates at eight, and the backup gets its own report workflow
+
+Two follow-ups to the [Band Advance backup](/band-advance-pipeline) built earlier the same day, both Brian's asks. Cold Storage now holds a flat rotating **eight** archives — newest kept, oldest deleted every run — because that's the box he actually opens and eight weeks is the history he wants sitting there. The Audio NAS keeps the deeper tail (twelve weekly plus every first-of-month for two years), so nothing older is genuinely gone. Retention went per-target to do it: each `TARGETS` line carries its own `keep` and `monthly`, with `monthly: 0` meaning flat rotation.
+
+The completion email is now an n8n workflow of its own — **Band Advance — Backup Report (Cold Storage)** — rather than the backup script formatting its own mail. The job POSTs facts, the workflow owns the layout and the Graph send as Production@3cdc.org. The subject is deliberately blunt about the only thing that matters, *complete* or *FAILED on Cold Storage*, and **complete requires the archive's sha256 to have been re-verified on the NAS itself** — a copy that merely arrived reports as failed, on purpose. The body carries the archive and size, how many of the eight are held with newest and oldest labelled, what rotated off this run, the captured row counts, and any failures.
+
+Rotation was tested rather than assumed: eleven archives seeded onto Cold Storage, one run, eight left, newest kept. The report workflow's first real send returned a Graph 202 on execution 497168.
+
+A second zsh trap surfaced alongside the unmatched-glob one from this morning: **zsh does not word-split an unquoted variable** the way bash does, so a list of doomed files can't be expanded inline in a remote command — it has to go through a file and be read line by line. Combined rule for any command run against a TrueNAS box: match with `find`, never a glob, and never rely on word splitting.
+
+One more that cost a cycle: **n8n only mounts a newly imported webhook route on restart.** A freshly imported, published, genuinely-fine workflow returns 404 to its first POST until n8n is restarted. `install_backup.command` now restarts it as part of deploying the workflow.
+
+## 2026-09-09 — The advance database gets a backup that can actually rebuild the whole thing
 
 The [Band Advance pipeline](/band-advance-pipeline) had no backup of its own. The nightly Mac rsync of `~/Documents/Claude` covered the repo, but nothing covered the part that can't be recreated from code: the Postgres database, every stage plot and input list a band has uploaded, the env and secrets, the n8n workflows, or the Dropbox `Nyquist/` cockpit those forms are actually worked in. Brian's ask was blunt — package everything, weekly, to a second NAS, restorable in one command.
 
