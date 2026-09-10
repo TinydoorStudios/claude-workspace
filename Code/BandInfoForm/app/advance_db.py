@@ -62,9 +62,36 @@ def get_conn():
 
 # ── upserts ────────────────────────────────────────────────────────────────
 
-def upsert_artist(cur, name, email=None, phone=None):
+def upsert_artist(cur, name, email=None, phone=None, known_id=None):
     """Insert the band by exact name; on a match_key collision keep the existing
-    display name and only fill in newer contact info. Returns artist id."""
+    display name and only fill in newer contact info. Returns artist id.
+
+    known_id (Brian, 2026-09-09): the band's own form no longer locks Band /
+    Group Name read-only — it's editable like every other carried-over
+    answer. That means a submission from a prefill link now identifies its
+    artist two ways: the typed name (fuzzy, via match_key) and, when the
+    link came from a known artist, this id (exact). Pass known_id and a
+    real rename updates THAT row directly — including its match_key, which
+    is generated from name — instead of matching post-edit text and
+    creating a duplicate artist that orphans the band's whole history. Only
+    when known_id doesn't resolve (a deleted row, a bad id) does this fall
+    back to the ordinary name-matching insert below, same as when no id is
+    known at all (a brand new artist, or the bare public form)."""
+    if known_id:
+        cur.execute(
+            """
+            UPDATE artists SET
+                name = %s,
+                last_email = COALESCE(%s, last_email),
+                last_phone = COALESCE(%s, last_phone)
+            WHERE id = %s
+            RETURNING id
+            """,
+            (name, email, phone, known_id),
+        )
+        row = cur.fetchone()
+        if row:
+            return row["id"]
     cur.execute(
         """
         INSERT INTO artists (name, last_email, last_phone)
@@ -384,11 +411,16 @@ def record_submission(form: dict, file_info=None, source="form"):
     (artist_id, show_id, submission_id). Raises on failure — caller decides
     whether that's fatal (the form treats it as non-fatal)."""
     name = form.get("band_name") or "(unknown)"
+    known_id = form.get("artist_id")
+    try:
+        known_id = int(known_id) if known_id else None
+    except (TypeError, ValueError):
+        known_id = None
     with get_conn() as conn:
         with conn.cursor() as cur:
             artist_id = upsert_artist(
                 cur, name, email=form.get("contact_email"),
-                phone=form.get("contact_phone"),
+                phone=form.get("contact_phone"), known_id=known_id,
             )
             show_id = upsert_show(
                 cur, artist_id, form.get("venue"), to_date(form.get("show_date")),

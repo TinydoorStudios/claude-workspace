@@ -100,12 +100,10 @@
 
   <div class="field">
     <label class="q">Band / Group Name<span class="req">*</span></label>
-    {% if locked_band_name %}
-    <input type="text" class="locked" value="{{ v('band_name') }}" readonly>
-    <input type="hidden" name="band_name" value="{{ v('band_name') }}">
-    <p class="lockhint">🔒 Locked to your booking — email us if this needs to change.</p>
-    {% else %}
     <input type="text" name="band_name" required value="{{ v('band_name') }}">
+    {% if known_artist_id %}
+    <input type="hidden" name="artist_id" value="{{ known_artist_id }}">
+    <p class="help">Prefilled from your booking — update it if this has changed.</p>
     {% endif %}
   </div>
 

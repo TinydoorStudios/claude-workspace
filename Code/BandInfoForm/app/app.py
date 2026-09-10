@@ -103,7 +103,7 @@ def form():
         "form.html", venues=forms_config.VENUES, cfg=cfg,
         prefill={}, returning=False, artist_name=None,
         tech_packs=forms_config.tech_packs(),
-        locked_band_name=False, locked_venue=False, locked_date=False,
+        known_artist_id=None, locked_venue=False, locked_date=False,
     )
 
 
@@ -133,11 +133,14 @@ def prefilled_form(token):
         location=seed.get("location") or request.args.get("location"))
     prefill, returning, artist_name = {}, False, None
     # Locked = this specific value came from us (the booking record / matched
-    # artist), not from the band typing it — bands can't edit these three.
-    # A returning band's own PRIOR answers to every other question stay editable.
+    # artist), not from the band typing it — bands can't edit these two.
+    # Band / Group Name used to be a third locked field, but it's editable now
+    # (Brian, 2026-09-09) like every other carried-over answer — known_artist_id
+    # is how a rename still lands on the SAME artist record instead of a fuzzy
+    # name match risking a duplicate (see upsert_artist's known_id).
     locked_venue = bool(seed.get("venue"))
     locked_date = bool(seed.get("date"))
-    locked_band_name = False
+    known_artist_id = None
     # Seed venue/date into prefill independent of the DB lookup below — these
     # come straight from the signed token, so a locked field still renders its
     # real value even if the artist lookup skips or fails (DB down, no match).
@@ -152,7 +155,7 @@ def prefilled_form(token):
                 sub = advance_db.newest_submission(cur, payload["a"]) if artist else None
             if artist:
                 artist_name = artist["name"]
-                locked_band_name = True
+                known_artist_id = artist["id"]
                 base = {}
                 if sub:
                     base = dict(sub.get("data") or {})  # prior answers
@@ -182,7 +185,7 @@ def prefilled_form(token):
         "form.html", venues=forms_config.VENUES, cfg=cfg,
         prefill=prefill, returning=returning, artist_name=artist_name,
         tech_packs=forms_config.tech_packs(),
-        locked_band_name=locked_band_name, locked_venue=locked_venue,
+        known_artist_id=known_artist_id, locked_venue=locked_venue,
         locked_date=locked_date,
     )
 
@@ -205,7 +208,20 @@ def submit():
         if DB_OK:
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
-                    artist = advance_db.find_artist_by_name(cur, f.get("band_name"))
+                    # Prefer the known artist id (same reasoning as
+                    # record_submission's known_id) — a band that just edited
+                    # its own name shouldn't lose its "already have a stage
+                    # plot on file" exemption because the edited text no
+                    # longer matches its old match_key.
+                    artist = None
+                    known_id = f.get("artist_id")
+                    if known_id:
+                        try:
+                            artist = advance_db.get_artist(cur, int(known_id))
+                        except (TypeError, ValueError):
+                            artist = None
+                    if not artist:
+                        artist = advance_db.find_artist_by_name(cur, f.get("band_name"))
                     if artist:
                         sub = advance_db.newest_submission(cur, artist["id"])
                         if sub and (sub.get("data") or {}).get("stage_plot_file"):
@@ -715,8 +731,10 @@ def advance_lifecycle():
                     link = f"{PUBLIC_URL}/s/{code}"
                     when = f" on {us_date(r['show_date'])}" if r["show_date"] else ""
                     subject = f"Reminder — performance details for your 3CDC show ({r['venue']}{when})"
+                    greeting = (f"Hello {r['contact_name']} and {r['artist_name']}"
+                                if r["contact_name"] else f"Hello {r['artist_name']}")
                     body = (
-                        f"Hi {r['artist_name']},\n\n"
+                        f"{greeting},\n\n"
                         f"Circling back on the performance details for your show at "
                         f"{r['venue']}{when} — we still need them to run it well: stage "
                         "plot, monitors, hospitality, and a couple of site logistics. "

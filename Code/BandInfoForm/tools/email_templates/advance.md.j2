@@ -1,6 +1,6 @@
 Subject: Welcome to {% if event_name %}{{ event_name }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} — {{ show_date }}{% endif +%}
 
-Hi{% if name %} {{ name }}{% endif %},
+Hello{% if contact_name %} {{ contact_name }} and{% endif %}{% if name %} {{ name }}{% endif %},
 
 {% if returning %}Good to have you back{% if event_name %} for {{ event_name }}{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your advance at the link — we've pre-filled your last submission, so just confirm or update anything that's changed.{% else %}Welcome to {% if event_name %}{{ event_name }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your show advance at the link. It replaces the questions we used to ask in this email — contact info, stage plot, monitors, merch, headcount, and the acknowledgments — and takes about five minutes. Your show info is already filled in.{% endif %}
 

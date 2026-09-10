@@ -295,7 +295,7 @@ def main():
                         print(f"  (recap: live file, {recap_path.name})")
 
             ctx = dict(
-                name=name, venue=venue,
+                name=name, contact_name=r.get("contact_name") or "", venue=venue,
                 blocks=ve.blocks_for(venue, series=series, **email_extra), common_requirements=ve.COMMON_REQUIREMENTS,
                 personal_note=(lambda n: f"{n}\n\n" if n else "")((r.get("email_note") or "").strip()),
                 event_name=r.get("event_name") or "",
