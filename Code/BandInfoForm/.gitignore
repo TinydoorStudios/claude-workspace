@@ -24,3 +24,7 @@ venv/
 output/
 deploy_digest_merge_log.txt
 send_internal_email_log.txt
+
+# backup kit run logs
+backup/install_log.txt
+backup/restore_log.txt

@@ -1,0 +1,13 @@
+[Unit]
+Description=Band Advance — weekly full backup to both TrueNAS boxes
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/band-advance/backup/advance_backup.sh
+# The job builds a partial archive rather than nothing when a section fails,
+# and exits non-zero so systemd records the run as failed — both are wanted.
+TimeoutStartSec=3600
+Nice=10
+IOSchedulingClass=idle
