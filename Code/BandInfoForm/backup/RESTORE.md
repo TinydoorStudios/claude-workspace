@@ -113,10 +113,11 @@ If the VM is gone and you are starting on new hardware:
 
 ```bash
 # 1. New Debian 12 VM, static IP, your SSH key in ~/.ssh/authorized_keys
-# 2. Pull the newest archive off either NAS
-scp brian@192.168.200.35:/mnt/The-Pool/ClaudeBackup/band-advance/latest.tar.gz .
-#    (or the second copy, if Cold Storage is the thing that died)
+# 2. Pull the newest archive off either NAS — Audio NAS is the short-term
+#    primary, Cold Storage the long-term (2-year) archive
 scp brian@192.168.200.36:/mnt/AudioNas/brian/band-advance-backups/latest.tar.gz .
+#    (or the other copy, if Audio NAS is the thing that died)
+scp brian@192.168.200.35:/mnt/The-Pool/ClaudeBackup/band-advance/latest.tar.gz .
 
 # 3. Restore
 tar xzf latest.tar.gz && sudo ./band-advance-*/restore.sh

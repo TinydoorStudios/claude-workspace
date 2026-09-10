@@ -3,9 +3,9 @@
 
 GRACE_DAYS after a show, its filed advance .docx has had time to be corrected —
 this converts it to PDF + MD (saved into the SAME venue/month folder as the
-.docx, in the Dropbox tree) and stores the parsed recap in the DB. Currently
-1 day (next-day, temporary per Brian 2026-09-07, while there's only a
-handful of real runs to watch) — the original design was 3 days.
+.docx, in the Dropbox tree) and stores the parsed recap in the DB. Next-day
+(1 day) — set temporary 2026-09-07, confirmed as the permanent value by
+Brian 2026-09-10. The original design was 3 days.
 
 Why the DB write matters, not just the files: package_run.py TRUNCATEs and
 rebuilds `events`/`event_acts` from the live sheet on every run — that's a
@@ -39,8 +39,8 @@ sys.path.insert(0, str(HERE))
 import advance_db as db
 import daysheet as ds
 
-# Brian's call 2026-09-07, temporary "for the time being": next day, not 3
-# days out — shorten back once there's been enough real runs to trust it.
+# Brian's call: next day (1), not 3 days out. Set temporary 2026-09-07,
+# confirmed permanent 2026-09-10.
 GRACE_DAYS = 1
 
 

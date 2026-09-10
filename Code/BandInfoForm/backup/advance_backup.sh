@@ -44,12 +44,12 @@ RUN_AS="${RUN_AS:-brian}"
 #   keep    — how many archives this box holds, rotating (oldest deleted)
 #   monthly — extra 1st-of-month archives held on top; 0 means flat rotation
 #
-# Cold Storage is a flat rotating 8 (Brian, 2026-09-09). The Audio NAS keeps the
-# deeper history, so there is still a long tail somewhere even though the box
-# Brian watches stays at eight.
+# Audio NAS is the short-term primary — a flat rotating 8 (Brian, 2026-09-10,
+# swapped from Cold Storage). Cold Storage is the long-term archive: 12 weekly
+# plus a 1st-of-month copy held for 24 months, so there's a real two-year tail.
 TARGETS=(
-  "coldstorage|brian@192.168.200.35|/mnt/The-Pool/ClaudeBackup/band-advance|8|0"
-  "audionas|brian@192.168.200.36|/mnt/AudioNas/brian/band-advance-backups|12|24"
+  "coldstorage|brian@192.168.200.35|/mnt/The-Pool/ClaudeBackup/band-advance|12|24"
+  "audionas|brian@192.168.200.36|/mnt/AudioNas/brian/band-advance-backups|8|0"
 )
 
 KEEP_LOCAL="${KEEP_LOCAL:-4}"            # archives kept on the VM
@@ -81,7 +81,7 @@ FAILURES=()
 WARNINGS=()
 DB_COUNTS=""
 CS_OK=0; CS_VERIFIED=0; CS_DIR=""; CS_KEEP=8; CS_PRUNED=""; CS_REMAIN=""
-AN_OK=0; AN_VERIFIED=0
+AN_OK=0; AN_VERIFIED=0; AN_DIR=""; AN_KEEP=8; AN_PRUNED=""; AN_REMAIN=""
 
 log()  { printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" | tee -a "$LOG"; }
 step() { log ""; log "── $* ────────────────────────────────────────"; }
@@ -410,6 +410,7 @@ else
     TKEEP="${TKEEP:-$KEEP_WEEKLY}"; TMONTH="${TMONTH:-$KEEP_MONTHLY}"
     log "   → $NM ($HOST:$DIR) — holding $TKEEP$([ "$TMONTH" -gt 0 ] && echo " + $TMONTH monthly")"
     [ "$NM" = "coldstorage" ] && { CS_DIR="$DIR"; CS_KEEP="$TKEEP"; }
+    [ "$NM" = "audionas" ]    && { AN_DIR="$DIR"; AN_KEEP="$TKEEP"; }
 
     if ! ssh $SSH_OPTS "$HOST" "mkdir -p '$DIR'" 2>>"$LOG"; then
       fail "$NM unreachable — archive NOT copied there"
@@ -469,6 +470,7 @@ else
     NREMAIN=$(printf '%s\n' "$REMAIN_LIST" | grep -c . )
     ok "$NM: now holding $NREMAIN of $TKEEP$([ "$NPRUNED" -gt 0 ] && echo ", rotated off $NPRUNED")"
     if [ "$NM" = "coldstorage" ]; then CS_PRUNED="$PRUNED_LIST"; CS_REMAIN="$REMAIN_LIST"; fi
+    if [ "$NM" = "audionas" ];    then AN_PRUNED="$PRUNED_LIST"; AN_REMAIN="$REMAIN_LIST"; fi
   done
 
   [ "$PUSHED" -eq 0 ] && fail "archive reached ZERO NAS targets — it exists only on this VM"
@@ -490,12 +492,13 @@ log "failures:      ${#FAILURES[@]}"
 [ ${#FAILURES[@]} -gt 0 ] && printf '  ! %s\n' "${FAILURES[@]}" | tee -a "$LOG"
 log "log:           $LOG"
 
-# Hand the facts to the n8n workflow "Band Advance — Backup Report (Cold Storage)",
-# which owns the formatting and the send. The token lives in advance.env; the
+# Hand the facts to the n8n workflow "Band Advance — Backup Report", which
+# owns the formatting and the send. The token lives in advance.env; the
 # n8n-Postgres scrape is the fallback for a host where that file isn't readable.
 if [ "$NOTIFY" = "1" ] && [ "$DRY_RUN" = 0 ]; then
-  if [ "$NOTIFY_ONLY_ON_FAIL" = "1" ] && [ "$STATUS" = "COMPLETE" ] && [ "$CS_VERIFIED" = 1 ]; then
-    log "notify: skipped (Cold Storage verified, notify-only-on-fail)"
+  if [ "$NOTIFY_ONLY_ON_FAIL" = "1" ] && [ "$STATUS" = "COMPLETE" ] \
+     && [ "$CS_VERIFIED" = 1 ] && [ "$AN_VERIFIED" = 1 ]; then
+    log "notify: skipped (both NAS boxes verified, notify-only-on-fail)"
   else
     TOKEN="$(grep -m1 '^ADVANCE_INTERNAL_TOKEN=' "$APP_DIR/advance.env" 2>/dev/null | cut -d= -f2-)"
     if [ -z "$TOKEN" ]; then
@@ -509,7 +512,9 @@ if [ "$NOTIFY" = "1" ] && [ "$DRY_RUN" = 0 ]; then
       BA_BYTES="$(stat -c%s "$ARCHIVE" 2>/dev/null || echo 0)" \
       BA_TO="$NOTIFY_TO" BA_CS_DIR="$CS_DIR" BA_CS_KEEP="$CS_KEEP" \
       BA_CS_OK="$CS_OK" BA_CS_VER="$CS_VERIFIED" BA_AN_OK="$AN_OK" BA_AN_VER="$AN_VERIFIED" \
-      BA_CS_PRUNED="$CS_PRUNED" BA_CS_REMAIN="$CS_REMAIN" BA_COUNTS="$DB_COUNTS" \
+      BA_CS_PRUNED="$CS_PRUNED" BA_CS_REMAIN="$CS_REMAIN" \
+      BA_AN_DIR="$AN_DIR" BA_AN_KEEP="$AN_KEEP" \
+      BA_AN_PRUNED="$AN_PRUNED" BA_AN_REMAIN="$AN_REMAIN" BA_COUNTS="$DB_COUNTS" \
       BA_FAILURES="$(printf '%s\n' "${FAILURES[@]:-}")" \
       BA_WARNINGS="$(printf '%s\n' "${WARNINGS[@]:-}")" \
       python3 - > "$PAYLOAD" <<'PYPAY'
@@ -539,6 +544,11 @@ print(json.dumps({
     "audionas": {
         "ok":       os.environ.get("BA_AN_OK")  == "1",
         "verified": os.environ.get("BA_AN_VER") == "1",
+        "path":     os.environ.get("BA_AN_DIR", ""),
+        "keep":     int(os.environ.get("BA_AN_KEEP", "8") or 8),
+        "archives": lines("BA_AN_REMAIN"),
+        "pruned":   lines("BA_AN_PRUNED"),
+        "count":    len(lines("BA_AN_REMAIN")),
     },
     "db_rows":  counts,
     "failures": lines("BA_FAILURES"),
@@ -559,7 +569,7 @@ PYPAY
         esac
       done
       if [ "$SENT" = 1 ]; then
-        log "notify: Cold Storage report sent to $NOTIFY_TO (HTTP $CODE)"
+        log "notify: report sent to $NOTIFY_TO (HTTP $CODE)"
       else
         warn "notify: report webhook returned HTTP ${CODE:-none} — no email sent"
         head -c 300 /tmp/.ba_notify_resp 2>/dev/null >> "$LOG"
@@ -583,6 +593,8 @@ fi
   echo "  \"coldstorage_held\": $(printf '%s\n' "$CS_REMAIN" | grep -c .),"
   echo "  \"coldstorage_keep\": $CS_KEEP,"
   echo "  \"audionas_verified\": $([ "$AN_VERIFIED" = 1 ] && echo true || echo false),"
+  echo "  \"audionas_held\": $(printf '%s\n' "$AN_REMAIN" | grep -c .),"
+  echo "  \"audionas_keep\": $AN_KEEP,"
   echo "  \"failures\": ${#FAILURES[@]},"
   echo "  \"warnings\": ${#WARNINGS[@]}"
   echo "}"

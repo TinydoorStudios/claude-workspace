@@ -145,6 +145,21 @@ ALTER TABLE shows ADD COLUMN IF NOT EXISTS followup_draft_created_at TIMESTAMPTZ
 -- in Gmail is ready to go out — still never auto-sent. Fires once per show.
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS send_reminder_sent_at TIMESTAMPTZ;
 
+-- Multi-tier reminder cadence (Brian, 2026-09-10): the single follow-up at
+-- 7 days out became four — 7/3/2/1 days before the show, each firing once,
+-- independently, as long as the band still hasn't responded. One row per
+-- (show, tier) fired, so each tier gates itself instead of the old single
+-- followup_draft_created_at column (kept below for backward compat — it
+-- still gets stamped on whichever tier fires FIRST, so status_log.py /
+-- status_sheet.py / the advance_status view need no changes at all).
+CREATE TABLE IF NOT EXISTS advance_reminders (
+    id           SERIAL PRIMARY KEY,
+    show_id      INTEGER NOT NULL REFERENCES shows(id) ON DELETE CASCADE,
+    days_before  INTEGER NOT NULL,
+    drafted_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(show_id, days_before)
+);
+
 -- Dead column removed (Brian, 2026-09-09): nothing kept it in sync with
 -- reality (stamp_email_sent/mark_show_status, the only writers, were either
 -- unused or gated behind a --mark-sent flag nothing passes anymore), and

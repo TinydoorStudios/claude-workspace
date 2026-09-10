@@ -645,8 +645,10 @@ def advance_lifecycle():
         21-day-out window — a nudge that the draft already sitting in Gmail
         is ready to send, not a new draft. Carries no email content of its
         own.
-      - FOLLOW-UP drafts itself if nothing's heard back by 7 days out from the
-        show (date-driven, not tied to when the initial went out).
+      - FOLLOW-UP drafts itself if nothing's heard back, at each of 7/3/2/1
+        days out from the show (advance_db.FOLLOWUP_TIERS) — date-driven, not
+        tied to when the initial went out. Each tier fires once, independently
+        (Brian, 2026-09-10: the original single 7-day check became a cadence).
     initial/followup come back as {to, subject, body, ready_now} for n8n to
     create as real Gmail drafts (never sent from here) — Brian reviews and
     sends. send_reminders come back as {artist_name, venue, show_date} for
@@ -661,7 +663,11 @@ def advance_lifecycle():
     try:
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             due_initial = advance_db.shows_due_for_initial_advance(cur)
-            due_followup = advance_db.shows_due_for_followup(cur)
+            # (show_id, tier) tag carried alongside each row so mark_followup_drafted
+            # below stamps the RIGHT tier — a show can legitimately show up under
+            # more than one tier across different runs, never more than once per tier.
+            due_followup = [(tier, r) for tier in advance_db.FOLLOWUP_TIERS
+                             for r in advance_db.shows_due_for_followup(cur, tier)]
             due_reminders = advance_db.shows_due_for_send_reminder(cur)
 
         # ── initial advances: reuse draft_emails.py wholesale (NEW/RETURNING,
@@ -721,10 +727,11 @@ def advance_lifecycle():
                         advance_db.mark_send_reminder_sent(cur, r["show_id"])
                 conn.commit()
 
-        # ── follow-ups: date-driven, short-link, "performance detail" wording ──
+        # ── follow-ups: date-driven, short-link, "performance detail" wording,
+        # now fired at each of 7/3/2/1 days out (advance_db.FOLLOWUP_TIERS) ──
         if due_followup:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
-                for r in due_followup:
+                for tier, r in due_followup:
                     if not r["email"]:
                         continue
                     token = _signer.dumps({"a": r["artist_id"],
@@ -751,7 +758,7 @@ def advance_lifecycle():
                         "3CDC Events / Production"
                     )
                     followup.append({"to": r["email"], "subject": subject, "body": body})
-                    advance_db.mark_followup_drafted(cur, r["show_id"])
+                    advance_db.mark_followup_drafted(cur, r["show_id"], tier)
                 conn.commit()
 
         # ── send reminders: draft already exists (made at booking time) —

@@ -271,19 +271,25 @@ def _row_for(venue, show_date):
     return None
 
 
+def _format_row_or_raw(token, codes_rows):
+    """Resolved name if the code/first-name matches, otherwise the raw token
+    itself (Brian, 2026-09-10: for the crew email, an unrecognized letter
+    sequence should still show up rather than silently vanish — 'we can
+    manually figure out what that is'). Day-sheet paperwork stays on the
+    stricter _format_row(_resolve_row(...)) path — this fallback is only
+    for staff_for()'s crew-report/digest email output."""
+    name = _format_row(_resolve_row(token, codes_rows))
+    return name if name else token
+
+
 def _resolve_names(tokens, codes_rows):
-    """Every token that resolves to a real person, in order. Unlike Mix,
-    a non-mix role has no positional meaning (no FOH-vs-Mon to preserve),
-    so there's no 'exactly 1 or 2' gate — resolve whatever cleanly matches
-    a code, silently skip whatever doesn't (a stray '+1', a typo, a
-    genuinely unresolvable name). Zero names back is a normal, common
-    answer — most roles are blank most days."""
-    out = []
-    for t in tokens:
-        name = _format_row(_resolve_row(t, codes_rows))
-        if name:
-            out.append(name)
-    return out
+    """Every token, resolved to a real person where possible — otherwise the
+    raw code itself, so it's visible instead of silently dropped. Unlike
+    Mix, a non-mix role has no positional meaning (no FOH-vs-Mon to
+    preserve), so there's no 'exactly 1 or 2' gate: every token in the cell
+    comes back as something. Zero names back (an empty cell) is still a
+    normal, common answer — most roles are blank most days."""
+    return [_format_row_or_raw(t, codes_rows) for t in tokens]
 
 
 def staff_for(venue, show_date):
@@ -310,8 +316,8 @@ def staff_for(venue, show_date):
     mix_tokens = _split_mix_cell((row[cols["mix"]] or "").strip()) if cols.get("mix") is not None else []
     if len(mix_tokens) in (1, 2):
         out["mix"] = {
-            "foh": _format_row(_resolve_row(mix_tokens[0], codes_rows)),
-            "mon": _format_row(_resolve_row(mix_tokens[1], codes_rows)) if len(mix_tokens) == 2 else None,
+            "foh": _format_row_or_raw(mix_tokens[0], codes_rows),
+            "mon": _format_row_or_raw(mix_tokens[1], codes_rows) if len(mix_tokens) == 2 else None,
         }
 
     for key in _OTHER_ROLE_KEYS:

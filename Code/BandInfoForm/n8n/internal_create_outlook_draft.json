@@ -1,0 +1,96 @@
+{
+  "id": "internal-create-outlook-draft",
+  "name": "Internal Create Draft — Outlook (Production@3cdc.org)",
+  "active": true,
+  "settings": {},
+  "nodes": [
+    {
+      "id": "webhook-1",
+      "name": "Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "internal-create-outlook-draft",
+      "parameters": {
+        "path": "internal-create-outlook-draft",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-1",
+      "name": "Check Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const EXPECTED_TOKEN = 'REPLACE_WITH_ADVANCE_INTERNAL_TOKEN';\nconst item = $input.first();\nconst headers = item.json.headers || {};\nconst token = headers['x-advance-token'];\nif (token !== EXPECTED_TOKEN) {\n  return [];\n}\nreturn [{ json: item.json }];"
+      }
+    },
+    {
+      "id": "http-1",
+      "name": "Create Draft via Graph",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "url": "https://graph.microsoft.com/v1.0/users/production@3cdc.org/messages",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify((() => { const b = $json.body || $json; const recips = b.to ? [ { emailAddress: { address: b.to } } ] : []; return { subject: b.subject, body: { contentType: 'Text', content: b.body || b.html || '' }, toRecipients: recips }; })()) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "id": "REPLACE_WITH_GRAPH_CREDENTIAL_ID",
+          "name": "Microsoft Graph - Production@3cdc.org (App-only)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Token": {
+      "main": [
+        [
+          {
+            "node": "Create Draft via Graph",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

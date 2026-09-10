@@ -13,6 +13,7 @@ tools/doc_templates/advance_sheet*.docx   # generated stand-in; real templates A
 tools/doc_templates/._*
 deploy_log.txt
 deploy_recap_log.txt
+deploy_n8n_log.txt
 
 # python
 __pycache__/

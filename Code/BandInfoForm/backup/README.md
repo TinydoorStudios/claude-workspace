@@ -7,13 +7,14 @@ GitHub, or on the machine that made it.
 
 **Schedule:** Sundays 03:15 (`Persistent=true` — a missed run catches up on boot).
 **Runs on:** the n8n VM, `192.168.200.84`.
-**Lands on:** Cold Storage `/mnt/The-Pool/ClaudeBackup/band-advance/` **and**
-Audio NAS `/mnt/AudioNas/brian/band-advance-backups/`.
-**Retention:** Cold Storage holds a flat rotating **8** — newest kept, oldest deleted every run.
-The Audio NAS keeps the deeper history (12 weekly + every 1st-of-month for 24 months) so there
-is still a long tail somewhere. 4 kept locally on the VM.
+**Lands on:** Audio NAS `/mnt/AudioNas/brian/band-advance-backups/` **and**
+Cold Storage `/mnt/The-Pool/ClaudeBackup/band-advance/`.
+**Retention (swapped 2026-09-10):** Audio NAS is the short-term primary — a flat
+rotating **8**, newest kept, oldest deleted every run. Cold Storage is the
+long-term archive: 12 weekly plus every 1st-of-month for 24 months, a real
+two-year tail. 4 kept locally on the VM.
 **Report:** every run emails blloyd@3cdc.org from the n8n workflow
-**Band Advance — Backup Report (Cold Storage)**.
+**Band Advance — Backup Report**, with both boxes' status reported side by side.
 
 ---
 
@@ -36,7 +37,7 @@ re-run it any time, and after editing any script here.
 ~/Documents/Claude/Code/BandInfoForm/backup/restore_advance.command
 ```
 
-Pulls the newest archive off Cold Storage (falls back to the Audio NAS),
+Pulls the newest archive off Audio NAS (falls back to Cold Storage),
 verifies the sha256 on the Mac, ships it to the VM, and runs the archive's own
 restore. `--list` shows what exists, `--archive NAME` picks one, `--host` aims
 at different hardware, `--fetch-only` just downloads it.
@@ -103,13 +104,12 @@ passphrase can never hold the data hostage.
   left alone unless you explicitly say `--force-dropbox`.
 - **You hear about it.** Each run POSTs its facts to the n8n workflow
   `band-advance-backup-report`, which builds and sends the email as
-  Production@3cdc.org via Graph. The subject says plainly whether Cold Storage
-  is good — *"Band Advance backup complete on Cold Storage — 2026-09-13"* or
-  *"…FAILED on Cold Storage…"*. The body carries the archive name and size, the
-  Cold Storage path, whether the sha256 was re-verified **on the NAS**, all
-  eight archives it now holds (newest and oldest labelled), what rotated off
-  this run, the captured row counts, and any failures or warnings. Each run also
-  writes `/var/backups/band-advance/last_backup.json`.
+  Production@3cdc.org via Graph. The subject and body report **both boxes
+  side by side** — Audio NAS and Cold Storage each get their own verified/not
+  line, path, and holding count, so "complete" means both, not just one. The
+  body also carries the archive name and size, what's held and what rotated
+  off each box this run, the captured row counts, and any failures or
+  warnings. Each run also writes `/var/backups/band-advance/last_backup.json`.
 
 ---
 
@@ -147,12 +147,13 @@ name|ssh-destination|remote-directory|keep|monthly
 
 `keep` is how many archives that box holds, rotating. `monthly` is extra
 1st-of-month archives kept on top — `0` means a flat rotation, which is what
-Cold Storage runs.
+Audio NAS runs (the short-term primary). Cold Storage runs the deeper
+12-weekly-plus-24-monthly profile — the long-term, two-year archive.
 
 ### The report workflow
 
 `n8n/backup_report.json` in this repo, deployed as
-**Band Advance — Backup Report (Cold Storage)** (id `band-advance-backup-report`,
+**Band Advance — Backup Report** (id `band-advance-backup-report`,
 webhook `POST /webhook/band-advance-backup-report`, gated by the same
 `x-advance-token` header the other internal workflows use). The backup script
 sends it facts; the workflow owns the formatting and the Graph send, so the

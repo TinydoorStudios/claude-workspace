@@ -9,9 +9,10 @@
 #   ./restore_advance.command --fetch-only         # just pull it to ~/Downloads
 #   ./restore_advance.command -- --db-only         # anything after -- goes to restore.sh
 #
-# Pulls the newest verified archive off Cold Storage (falls back to the Audio
-# NAS), checks its sha256 on the Mac, ships it to the target host, and runs the
-# archive's own restore.sh there. Everything after `--` is passed through.
+# Pulls the newest verified archive off Audio NAS, the short-term primary
+# (falls back to Cold Storage), checks its sha256 on the Mac, ships it to the
+# target host, and runs the archive's own restore.sh there. Everything after
+# `--` is passed through.
 # =============================================================================
 set -o pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -22,8 +23,8 @@ TARGET="brian@192.168.200.84"
 SSH_NAS="ssh -i $NASKEY -o BatchMode=yes -o ConnectTimeout=15"
 
 SOURCES=(
-  "coldstorage|brian@192.168.200.35|/mnt/The-Pool/ClaudeBackup/band-advance"
   "audionas|brian@192.168.200.36|/mnt/AudioNas/brian/band-advance-backups"
+  "coldstorage|brian@192.168.200.35|/mnt/The-Pool/ClaudeBackup/band-advance"
 )
 
 ARCHIVE=""; LIST=0; FETCH_ONLY=0; PASSTHRU=()

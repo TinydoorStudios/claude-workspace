@@ -189,11 +189,23 @@ def shows_due_for_send_reminder(cur, days_out=21):
     return cur.fetchall()
 
 
-def shows_due_for_followup(cur, days_out=7):
-    """Shows within `days_out` days of their date with no response and no
-    follow-up drafted yet. Requires the initial advance to have already gone
-    out — a show booked late (already inside both windows on day one) gets its
-    initial advance first and only qualifies for a follow-up on a later run."""
+# Reminder cadence (Brian, 2026-09-10): 7 days out (the original single
+# follow-up), then 3, then 2, then 1 — each fires once, independently, as
+# long as the band still hasn't responded. Ordered so the caller can loop
+# widest-window-first (a show already inside the 1-day window on the day
+# it crosses 7 days is unusual but not impossible with a very late booking;
+# firing 7 before 3 before 2 before 1 keeps that order sane either way).
+FOLLOWUP_TIERS = (7, 3, 2, 1)
+
+
+def shows_due_for_followup(cur, days_before=7):
+    """Shows within `days_before` days of their date with no response and no
+    reminder drafted yet AT THIS TIER (advance_reminders is keyed per
+    show+tier, so 7/3/2/1 each gate independently — a show can get all four
+    over time, one per crossed threshold). Requires the initial advance to
+    have already gone out — a show booked late (already inside every window
+    on day one) gets its initial advance first and only qualifies for a
+    reminder on a later run."""
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
@@ -203,13 +215,14 @@ def shows_due_for_followup(cur, days_out=7):
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                   AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
            WHERE s.advance_draft_created_at IS NOT NULL
-             AND s.followup_draft_created_at IS NULL
              AND s.responded_at IS NULL
              AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+             AND NOT EXISTS (SELECT 1 FROM advance_reminders r
+                             WHERE r.show_id = s.id AND r.days_before = %s)
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
            ORDER BY s.show_date""",
-        (days_out,),
+        (days_before, days_before),
     )
     return cur.fetchall()
 
@@ -221,7 +234,16 @@ def mark_advance_drafted(cur, show_id):
     )
 
 
-def mark_followup_drafted(cur, show_id):
+def mark_followup_drafted(cur, show_id, days_before=7):
+    """Record that THIS tier's reminder drafted for this show (advance_reminders,
+    one row per show+tier — see FOLLOWUP_TIERS), and keep the legacy
+    shows.followup_draft_created_at column stamped on whichever tier fires
+    FIRST, so status_log.py/status_sheet.py/the advance_status view — all of
+    which only ever asked 'has a reminder gone out at all' — need no changes."""
+    cur.execute(
+        "INSERT INTO advance_reminders (show_id, days_before) VALUES (%s, %s) "
+        "ON CONFLICT (show_id, days_before) DO NOTHING", (show_id, days_before),
+    )
     cur.execute(
         "UPDATE shows SET followup_draft_created_at = COALESCE(followup_draft_created_at, now()) "
         "WHERE id = %s", (show_id,),
@@ -292,8 +314,9 @@ def upcoming_advance_status(cur, days=14):
 def due_for_recap_extraction(cur, grace_days=1, lookback_days=30):
     """Shows that finished at least `grace_days` ago (their advance doc has had
     time to be corrected/finalized) and haven't had their recap extracted yet.
-    Default matches extract_advance_recap.py's GRACE_DAYS (1, temporary per
-    Brian 2026-09-07 — was 3). `lookback_days` bounds the catch-up window so a
+    Default matches extract_advance_recap.py's GRACE_DAYS (1 — next day;
+    permanent per Brian 2026-09-10, was 3 originally). `lookback_days` bounds
+    the catch-up window so a
     show whose advance was never filed (or filed somewhere the extractor can't
     find) doesn't get retried forever — see tools/extract_advance_recap.py."""
     cur.execute(

@@ -17,9 +17,8 @@
         "rule": {
           "interval": [
             {
-              "field": "hours",
-              "hoursInterval": 24,
-              "triggerAtHour": 2
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
             }
           ]
         }
@@ -66,25 +65,28 @@
     {
       "id": "gmail-send-1",
       "name": "Send Summary",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         860,
         300
       ],
       "parameters": {
-        "sendTo": "blloyd@3cdc.org",
-        "subject": "={{ $json.subject }}",
-        "message": "={{ $json.html }}",
-        "options": {
-          "appendAttribution": false
-        }
-      },
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "nIrgTZKXgA3bJ9oP",
-          "name": "3CDCProduction@gmail.com"
-        }
+        "url": "http://localhost:5678/webhook/internal-send-outlook",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Advance-Token",
+              "value": "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ subject: $json.subject, html: $json.html, to: 'blloyd@3cdc.org' }) }}",
+        "options": {}
       }
     }
   ],

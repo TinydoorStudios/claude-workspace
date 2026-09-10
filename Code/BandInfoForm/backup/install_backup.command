@@ -10,7 +10,7 @@
 #   2. makes the VM an ed25519 key and authorises it on BOTH TrueNAS boxes
 #   3. creates the backup directories on both NAS boxes
 #   4. writes the GPG passphrase file on the VM (0600, root-only)
-#   4b. imports + publishes the n8n "Backup Report (Cold Storage)" workflow,
+#   4b. imports + publishes the n8n "Band Advance — Backup Report" workflow,
 #       resolving the Graph credential id and the internal token on the VM
 #   5. installs + enables the weekly systemd timer (Sundays 03:15)
 #   6. runs one backup immediately and reports the result
