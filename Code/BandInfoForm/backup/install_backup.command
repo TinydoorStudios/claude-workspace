@@ -10,6 +10,8 @@
 #   2. makes the VM an ed25519 key and authorises it on BOTH TrueNAS boxes
 #   3. creates the backup directories on both NAS boxes
 #   4. writes the GPG passphrase file on the VM (0600, root-only)
+#   4b. imports + publishes the n8n "Backup Report (Cold Storage)" workflow,
+#       resolving the Graph credential id and the internal token on the VM
 #   5. installs + enables the weekly systemd timer (Sundays 03:15)
 #   6. runs one backup immediately and reports the result
 #
@@ -80,6 +82,69 @@ $SSH_VM "printf '%s\n' '$BACKUP_PASS' | sudo tee /etc/band-advance-backup.pass >
          sudo chmod 600 /etc/band-advance-backup.pass
          sudo chown root:root /etc/band-advance-backup.pass
          echo '  /etc/band-advance-backup.pass written (0600 root)'"
+
+echo
+echo "--- 4b. n8n backup-report workflow ---"
+# Resolves the Graph credential id and the internal token on the VM, stamps them
+# into the workflow JSON, imports and publishes it. Same pattern as
+# send_internal_email.command — the secrets never land in the repo copy.
+TOKEN=$($SSH_VM "grep -m1 '^ADVANCE_INTERNAL_TOKEN=' /opt/band-advance/advance.env | cut -d= -f2-" | tail -1)
+if [ -z "$TOKEN" ]; then
+  echo "  !! ADVANCE_INTERNAL_TOKEN not found in /opt/band-advance/advance.env — skipping workflow deploy"
+else
+  $SSH_VM '
+    cd /opt/n8n
+    sudo docker compose exec -T n8n n8n export:credentials --all --output=/tmp/c.json >/dev/null 2>&1
+    sudo docker compose exec -T n8n cat /tmp/c.json
+    sudo docker compose exec -T n8n rm -f /tmp/c.json
+  ' > /tmp/ba_creds.json 2>/dev/null
+  CRED=$(python3 - <<'PY'
+import json, re
+raw = open('/tmp/ba_creds.json').read()
+m = re.search(r'\[.*\]', raw, re.S)
+creds = json.loads(m.group(0)) if m else []
+c = next((c for c in creds if 'graph' in (c.get('name') or '').lower()), None)
+print(f"{c['id']} {c['type']}" if c else "")
+PY
+)
+  rm -f /tmp/ba_creds.json
+  CRED_ID="${CRED%% *}"; CRED_TYPE="${CRED##* }"
+  if [ -z "$CRED_ID" ]; then
+    echo "  !! could not resolve the Graph credential — skipping workflow deploy"
+  else
+    echo "  Graph credential: $CRED_ID ($CRED_TYPE)"
+    python3 - "$HERE/../n8n/backup_report.json" "$CRED_ID" "$CRED_TYPE" "$TOKEN" <<'PY' > /tmp/ba_wf.json
+import json, sys
+path, cid, ctype, token = sys.argv[1:5]
+wf = json.load(open(path))
+for n in wf["nodes"]:
+    if n["type"] == "n8n-nodes-base.code":
+        n["parameters"]["jsCode"] = n["parameters"]["jsCode"].replace(
+            "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN", token)
+    if n["type"] == "n8n-nodes-base.httpRequest":
+        n["parameters"]["genericAuthType"] = ctype
+        n["credentials"] = {ctype: {"id": cid,
+            "name": "Microsoft Graph - Production@3cdc.org (App-only)"}}
+print(json.dumps(wf, ensure_ascii=False))
+PY
+    scp -q -J tds -i "$VMKEY" /tmp/ba_wf.json "$VM:/tmp/ba_wf.json" && rm -f /tmp/ba_wf.json
+    $SSH_VM '
+      cd /opt/n8n
+      sudo docker compose cp /tmp/ba_wf.json n8n:/tmp/ba_wf.json >/dev/null
+      sudo docker compose exec -T n8n n8n import:workflow --input=/tmp/ba_wf.json 2>&1 | tail -1
+      sudo docker compose exec -T n8n n8n publish:workflow --id=band-advance-backup-report 2>&1 | tail -1
+      sudo docker compose exec -T n8n rm -f /tmp/ba_wf.json; rm -f /tmp/ba_wf.json
+      # n8n only mounts a newly imported webhook route on restart — without this
+      # the first POST to it comes back 404 from a workflow that is actually fine.
+      sudo docker compose restart n8n >/dev/null 2>&1
+      for i in $(seq 1 24); do
+        curl -sf -o /dev/null http://localhost:5678/healthz && break; sleep 5
+      done
+      sleep 15   # routes register noticeably AFTER /healthz answers 200
+    '
+    echo "  workflow imported + published (webhook: band-advance-backup-report)"
+  fi
+fi
 
 echo
 echo "--- 5. systemd timer ---"

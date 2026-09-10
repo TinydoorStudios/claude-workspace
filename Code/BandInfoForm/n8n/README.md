@@ -240,3 +240,39 @@ from the live sheet on every run — a working model, not a history).
   `advance_db.get_advance_recap_by_show`) FIRST; only live-parses the filed
   `.docx` on the spot (`daysheet.read_filed_advance`, no DB write) as a
   fallback for a show too recent for the nightly job to have caught yet.
+
+---
+
+# n8n — Band Advance Backup Report / Cold Storage (2026-09-09)
+
+Emails Brian at blloyd@3cdc.org every time the weekly backup finishes, with the
+Cold Storage result as the headline. The backup job supplies the facts; this
+workflow owns the formatting and the send, so the email can be reworked without
+touching the backup script.
+
+- Workflow: `backup_report.json` · id `band-advance-backup-report` · webhook
+  `POST /webhook/band-advance-backup-report`, gated on the `x-advance-token`
+  header (same `ADVANCE_INTERNAL_TOKEN` the other internal workflows use — the
+  repo copy carries a placeholder, the live copy carries the real value).
+- Sends as Production@3cdc.org through the same app-only Microsoft Graph
+  credential as `internal_send_outlook.json`, with `fullResponse` + `neverError`
+  so a Graph failure comes back to the caller instead of vanishing.
+- Caller: `backup/advance_backup.sh` §9, which POSTs a JSON payload —
+  `stamp`, `status`, `archive`, `bytes`, a `coldstorage` object
+  (`ok`, `verified`, `path`, `keep`, `archives[]`, `pruned[]`), an `audionas`
+  object, `db_rows`, `failures[]`, `warnings[]`.
+- The subject is deliberately blunt about the one thing that matters:
+  `Band Advance backup complete on Cold Storage — YYYY-MM-DD`, or
+  `… FAILED on Cold Storage …`. **Complete only counts if the archive landed
+  AND its sha256 was re-verified on the NAS itself** — a copy that arrived
+  unverified reports as failed, on purpose.
+- Body: archive name/size, the Cold Storage path, verified yes/no, how many of
+  the rotating 8 it now holds, the full held list with newest and oldest
+  labelled, what rotated off this run, the captured row counts, then any
+  failures/warnings, then the one-line restore command.
+- Deploy / redeploy: `backup/install_backup.command` (step 4b) resolves the
+  Graph credential id and the token on the VM, stamps them in, imports,
+  publishes, **and restarts n8n**. The restart is required — n8n only mounts a
+  newly imported webhook route on restart, so the first POST to a freshly
+  imported workflow returns 404 from something that is actually fine.
+- Verified 2026-09-09: execution `497168` success, Graph returned 202.

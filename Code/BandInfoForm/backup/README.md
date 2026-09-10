@@ -9,7 +9,11 @@ GitHub, or on the machine that made it.
 **Runs on:** the n8n VM, `192.168.200.84`.
 **Lands on:** Cold Storage `/mnt/The-Pool/ClaudeBackup/band-advance/` **and**
 Audio NAS `/mnt/AudioNas/brian/band-advance-backups/`.
-**Retention per NAS:** 12 weekly + every 1st-of-month kept 24 months. 4 kept locally on the VM.
+**Retention:** Cold Storage holds a flat rotating **8** — newest kept, oldest deleted every run.
+The Audio NAS keeps the deeper history (12 weekly + every 1st-of-month for 24 months) so there
+is still a long tail somewhere. 4 kept locally on the VM.
+**Report:** every run emails blloyd@3cdc.org from the n8n workflow
+**Band Advance — Backup Report (Cold Storage)**.
 
 ---
 
@@ -97,9 +101,15 @@ passphrase can never hold the data hostage.
 - **Restores don't destroy.** A populated database is renamed aside, never
   dropped. An existing app dir is moved aside. A live `~/Dropbox/Nyquist` is
   left alone unless you explicitly say `--force-dropbox`.
-- **You hear about it.** Each run emails a report to `blloyd@3cdc.org` through
-  the internal-send-outlook Graph workflow, and writes
-  `/var/backups/band-advance/last_backup.json` for the morning digest to read.
+- **You hear about it.** Each run POSTs its facts to the n8n workflow
+  `band-advance-backup-report`, which builds and sends the email as
+  Production@3cdc.org via Graph. The subject says plainly whether Cold Storage
+  is good — *"Band Advance backup complete on Cold Storage — 2026-09-13"* or
+  *"…FAILED on Cold Storage…"*. The body carries the archive name and size, the
+  Cold Storage path, whether the sha256 was re-verified **on the NAS**, all
+  eight archives it now holds (newest and oldest labelled), what rotated off
+  this run, the captured row counts, and any failures or warnings. Each run also
+  writes `/var/backups/band-advance/last_backup.json`.
 
 ---
 
@@ -126,8 +136,33 @@ $VM 'ls -t /var/log/band-advance/*.log | head -1 | xargs tail -40'
 ```
 
 Settings can be overridden without editing the script — put them in
-`/etc/band-advance-backup.conf` on the VM (`KEEP_WEEKLY`, `KEEP_MONTHLY`,
-`KEEP_LOCAL`, `NOTIFY`, `NOTIFY_TO`, `NOTIFY_ONLY_ON_FAIL`, `TARGETS`).
+`/etc/band-advance-backup.conf` on the VM (`KEEP_LOCAL`, `NOTIFY`, `NOTIFY_TO`,
+`NOTIFY_ONLY_ON_FAIL`, `NOTIFY_URL`, `TARGETS`).
+
+Per-box retention lives in the `TARGETS` array, one line per NAS:
+
+```
+name|ssh-destination|remote-directory|keep|monthly
+```
+
+`keep` is how many archives that box holds, rotating. `monthly` is extra
+1st-of-month archives kept on top — `0` means a flat rotation, which is what
+Cold Storage runs.
+
+### The report workflow
+
+`n8n/backup_report.json` in this repo, deployed as
+**Band Advance — Backup Report (Cold Storage)** (id `band-advance-backup-report`,
+webhook `POST /webhook/band-advance-backup-report`, gated by the same
+`x-advance-token` header the other internal workflows use). The backup script
+sends it facts; the workflow owns the formatting and the Graph send, so the
+email can be changed without touching the backup script.
+
+`install_backup.command` redeploys it — it resolves the Graph credential id and
+the token on the VM, stamps them into the JSON, imports, publishes, and restarts
+n8n. **That restart matters:** n8n only mounts a newly imported webhook route on
+restart, so without it the first POST comes back 404 from a workflow that is
+actually fine.
 
 ---
 

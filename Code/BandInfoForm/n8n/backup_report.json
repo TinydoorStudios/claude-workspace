@@ -1,0 +1,124 @@
+{
+  "id": "band-advance-backup-report",
+  "name": "Band Advance — Backup Report (Cold Storage)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "band-advance-backup-report",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "bkrep-trigger",
+      "name": "Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -260,
+        0
+      ],
+      "webhookId": "band-advance-backup-report"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const EXPECTED_TOKEN = 'REPLACE_WITH_ADVANCE_INTERNAL_TOKEN';\nconst item = $input.first();\nconst headers = item.json.headers || {};\nif (headers['x-advance-token'] !== EXPECTED_TOKEN) {\n  return [];\n}\nreturn [{ json: item.json.body || item.json }];"
+      },
+      "id": "bkrep-token",
+      "name": "Check Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Build the Cold Storage backup report email.\n// Payload comes from /opt/band-advance/backup/advance_backup.sh.\nconst b = $input.first().json;\n\nconst cs = b.coldstorage || {};\nconst an = b.audionas || {};\nconst failures = b.failures || [];\nconst warnings = b.warnings || [];\n\n// Cold Storage is what this report is about: it is only a success if the\n// archive landed there AND its checksum was re-verified on the NAS itself.\nconst csGood = cs.ok === true && cs.verified === true;\nconst overall = csGood && failures.length === 0 ? 'COMPLETE' : (csGood ? 'COMPLETE (with warnings)' : 'FAILED');\nconst good = csGood && failures.length === 0;\n\nconst OK = '#065F46', BAD = '#9B2222', WARN = '#B45309';\nconst accent = good ? OK : (csGood ? WARN : BAD);\n\nconst mb = (n) => n ? (n / 1048576).toFixed(1) + ' MB' : '—';\nconst esc = (s) => String(s == null ? '' : s)\n  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n// stamp is YYYYMMDD-HHMMSS\nconst st = String(b.stamp || '');\nconst pretty = st.length >= 15\n  ? `${st.slice(0,4)}-${st.slice(4,6)}-${st.slice(6,8)} ${st.slice(9,11)}:${st.slice(11,13)}`\n  : st;\nconst dateOnly = st.length >= 8 ? `${st.slice(0,4)}-${st.slice(4,6)}-${st.slice(6,8)}` : st;\n\nconst row = (k, v) =>\n  `<tr><td style=\"padding:5px 14px 5px 0;color:#374151;white-space:nowrap\">${k}</td>` +\n  `<td style=\"padding:5px 0;color:#111827;font-family:Consolas,monospace\">${v}</td></tr>`;\n\nconst held = Array.isArray(cs.archives) ? cs.archives : [];\nconst pruned = Array.isArray(cs.pruned) ? cs.pruned : [];\n\nlet heldBlock = '';\nif (held.length) {\n  heldBlock =\n    `<h3 style=\"font:bold 12px/1.4 Arial,sans-serif;color:#374151;margin:22px 0 6px;` +\n    `text-transform:uppercase;letter-spacing:.06em\">Held on Cold Storage — ${held.length} of ${cs.keep || 8}</h3>` +\n    '<table style=\"border-collapse:collapse;font:12px/1.5 Consolas,monospace\">' +\n    held.map((f, i) =>\n      `<tr><td style=\"padding:2px 12px 2px 0;color:#9CA3AF\">${i === 0 ? 'newest' : (i === held.length - 1 ? 'oldest' : '')}</td>` +\n      `<td style=\"padding:2px 0;color:#111827\">${esc(f)}</td></tr>`).join('') +\n    '</table>';\n}\n\nlet prunedBlock = '';\nif (pruned.length) {\n  prunedBlock =\n    `<h3 style=\"font:bold 12px/1.4 Arial,sans-serif;color:#374151;margin:22px 0 6px;` +\n    `text-transform:uppercase;letter-spacing:.06em\">Rotated off this run</h3>` +\n    '<table style=\"border-collapse:collapse;font:12px/1.5 Consolas,monospace\">' +\n    pruned.map(f => `<tr><td style=\"padding:2px 0;color:#6B7280\">${esc(f)}</td></tr>`).join('') +\n    '</table>';\n}\n\nlet rowsBlock = '';\nconst dbr = b.db_rows || {};\nconst dbKeys = Object.keys(dbr);\nif (dbKeys.length) {\n  rowsBlock =\n    '<h3 style=\"font:bold 12px/1.4 Arial,sans-serif;color:#374151;margin:22px 0 6px;' +\n    'text-transform:uppercase;letter-spacing:.06em\">Database captured</h3>' +\n    '<table style=\"border-collapse:collapse;font:12px/1.5 Consolas,monospace\">' +\n    dbKeys.map(k =>\n      `<tr><td style=\"padding:2px 16px 2px 0;color:#374151\">${esc(k)}</td>` +\n      `<td style=\"padding:2px 0;color:#111827;text-align:right\">${esc(dbr[k])}</td></tr>`).join('') +\n    '</table>';\n}\n\nlet problems = '';\nif (failures.length || warnings.length) {\n  problems =\n    `<div style=\"margin:22px 0 0;padding:12px 14px;background:${failures.length ? '#FEE2E2' : '#FFE4B5'};` +\n    'border-radius:4px;font:13px/1.6 Arial,sans-serif;color:#1F2937\">' +\n    (failures.length ? '<strong>Failures</strong><ul style=\"margin:6px 0 0;padding-left:18px\">' +\n      failures.map(f => `<li>${esc(f)}</li>`).join('') + '</ul>' : '') +\n    (warnings.length ? '<strong style=\"display:block;margin-top:' + (failures.length ? '10px' : '0') +\n      '\">Warnings</strong><ul style=\"margin:6px 0 0;padding-left:18px\">' +\n      warnings.map(w => `<li>${esc(w)}</li>`).join('') + '</ul>' : '') +\n    '</div>';\n}\n\nconst html =\n  '<div style=\"font:14px/1.6 Arial,Helvetica,sans-serif;color:#111827;max-width:640px\">' +\n    `<div style=\"background:#1F2937;color:#fff;padding:14px 18px;border-radius:4px 4px 0 0\">` +\n      '<div style=\"font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#9CA3AF\">Band Advance — weekly backup</div>' +\n      `<div style=\"font-size:19px;font-weight:bold;margin-top:2px\">Cold Storage: ${esc(overall)}</div>` +\n    '</div>' +\n    `<div style=\"border:1px solid #E5E7EB;border-top:0;border-radius:0 0 4px 4px;padding:16px 18px\">` +\n      `<div style=\"color:${accent};font-weight:bold;margin-bottom:12px\">` +\n        (csGood\n          ? '&#10003; Archive is on Cold Storage and its checksum was re-verified there.'\n          : '&#10007; The archive did NOT land verified on Cold Storage. Check the VM.') +\n      '</div>' +\n      '<table style=\"border-collapse:collapse;font:13px/1.6 Arial,sans-serif\">' +\n        row('Run', esc(pretty)) +\n        row('Archive', esc(b.archive || '—')) +\n        row('Size', mb(b.bytes)) +\n        row('Cold Storage', esc(cs.path || '—')) +\n        row('Verified on NAS', csGood ? 'yes — sha256 matched' : 'NO') +\n        row('Now holding', csGood ? `${held.length || cs.count || 0} of ${cs.keep || 8}` + (pruned.length ? ` — ${pruned.length} rotated off this run` : '') : 'unknown — could not read the NAS') +\n        row('Second copy', an.ok === true ? (an.verified ? 'Audio NAS — verified' : 'Audio NAS — copied') : 'Audio NAS — NOT written') +\n      '</table>' +\n      heldBlock + prunedBlock + rowsBlock + problems +\n      '<div style=\"margin-top:22px;padding-top:12px;border-top:1px solid #E5E7EB;' +\n        'font:12px/1.6 Arial,sans-serif;color:#6B7280\">' +\n        'Restore in one command:<br>' +\n        '<code style=\"font-family:Consolas,monospace;color:#374151\">' +\n        `tar xzf ${esc(b.archive || 'band-advance-*.tar.gz')} &amp;&amp; sudo ./${esc((b.archive || '').replace(/\\.tar\\.gz$/, '') || 'band-advance-*')}/restore.sh</code>` +\n        '<br>or run <code style=\"font-family:Consolas,monospace;color:#374151\">backup/restore_advance.command</code> from the Mac.' +\n      '</div>' +\n    '</div>' +\n  '</div>';\n\nreturn [{ json: {\n  to: b.to || 'blloyd@3cdc.org',\n  subject: `Band Advance backup ${csGood ? 'complete' : 'FAILED'} on Cold Storage — ${dateOnly}`,\n  html\n} }];"
+      },
+      "id": "bkrep-build",
+      "name": "Build Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.microsoft.com/v1.0/users/production@3cdc.org/sendMail",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: { subject: $json.subject, body: { contentType: 'HTML', content: $json.html }, toRecipients: [ { emailAddress: { address: $json.to } } ] }, saveToSentItems: true }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "bkrep-send",
+      "name": "Send via Graph",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        0
+      ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "REPLACE_WITH_GRAPH_CREDENTIAL_ID",
+          "name": "Microsoft Graph - Production@3cdc.org (App-only)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Token": {
+      "main": [
+        [
+          {
+            "node": "Build Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Report": {
+      "main": [
+        [
+          {
+            "node": "Send via Graph",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

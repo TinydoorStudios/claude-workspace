@@ -40,21 +40,29 @@ PASS_FILE="${PASS_FILE:-/etc/band-advance-backup.pass}"
 SSH_KEY="${SSH_KEY:-/home/brian/.ssh/nas_backup}"
 RUN_AS="${RUN_AS:-brian}"
 
-# NAS targets:  name|ssh-destination|remote-directory
+# NAS targets:  name|ssh-destination|remote-directory|keep|monthly
+#   keep    — how many archives this box holds, rotating (oldest deleted)
+#   monthly — extra 1st-of-month archives held on top; 0 means flat rotation
+#
+# Cold Storage is a flat rotating 8 (Brian, 2026-09-09). The Audio NAS keeps the
+# deeper history, so there is still a long tail somewhere even though the box
+# Brian watches stays at eight.
 TARGETS=(
-  "coldstorage|brian@192.168.200.35|/mnt/The-Pool/ClaudeBackup/band-advance"
-  "audionas|brian@192.168.200.36|/mnt/AudioNas/brian/band-advance-backups"
+  "coldstorage|brian@192.168.200.35|/mnt/The-Pool/ClaudeBackup/band-advance|8|0"
+  "audionas|brian@192.168.200.36|/mnt/AudioNas/brian/band-advance-backups|12|24"
 )
 
 KEEP_LOCAL="${KEEP_LOCAL:-4}"            # archives kept on the VM
-KEEP_WEEKLY="${KEEP_WEEKLY:-12}"         # weekly archives kept on each NAS
-KEEP_MONTHLY="${KEEP_MONTHLY:-24}"       # 1st-of-month archives kept on each NAS
+KEEP_WEEKLY="${KEEP_WEEKLY:-12}"         # fallback when a target omits its keep
+KEEP_MONTHLY="${KEEP_MONTHLY:-24}"       # fallback when a target omits its monthly
 N8N_PGDUMP_MAX_MB="${N8N_PGDUMP_MAX_MB:-1024}"
 
-# Optional email report through the proven internal-send-outlook n8n workflow.
+# Email report — the n8n "Band Advance — Backup Report (Cold Storage)" workflow
+# owns the formatting and the send; this script just hands it the facts.
 NOTIFY="${NOTIFY:-1}"
 NOTIFY_TO="${NOTIFY_TO:-blloyd@3cdc.org}"
 NOTIFY_ONLY_ON_FAIL="${NOTIFY_ONLY_ON_FAIL:-0}"
+NOTIFY_URL="${NOTIFY_URL:-http://localhost:5678/webhook/band-advance-backup-report}"
 
 [ -f /etc/band-advance-backup.conf ] && . /etc/band-advance-backup.conf
 
@@ -71,6 +79,9 @@ mkdir -p "$WORKROOT" "$LOG_DIR"
 LOG="$LOG_DIR/backup-$STAMP.log"
 FAILURES=()
 WARNINGS=()
+DB_COUNTS=""
+CS_OK=0; CS_VERIFIED=0; CS_DIR=""; CS_KEEP=8; CS_PRUNED=""; CS_REMAIN=""
+AN_OK=0; AN_VERIFIED=0
 
 log()  { printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" | tee -a "$LOG"; }
 step() { log ""; log "── $* ────────────────────────────────────────"; }
@@ -118,6 +129,8 @@ if docker inspect "$DB_CONTAINER" >/dev/null 2>&1; then
                false, true, '')))[1]::text::bigint
      from pg_stat_user_tables order by relname;" \
     > "$STAGE/db/counts.txt" 2>>"$LOG" && ok "exact row counts captured" || warn "row counts unavailable"
+  # Held for the emailed report — $STAGE is deleted once the tarball is built.
+  DB_COUNTS="$(cat "$STAGE/db/counts.txt" 2>/dev/null)"
 
   docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
     "select version();" > "$STAGE/db/pg_version.txt" 2>/dev/null
@@ -393,39 +406,69 @@ elif [ ! -f "$ARCHIVE" ]; then
   fail "no archive to push"
 else
   for t in "${TARGETS[@]}"; do
-    NM="${t%%|*}"; REST="${t#*|}"; HOST="${REST%%|*}"; DIR="${REST##*|}"
-    log "   → $NM ($HOST:$DIR)"
+    IFS='|' read -r NM HOST DIR TKEEP TMONTH <<< "$t"
+    TKEEP="${TKEEP:-$KEEP_WEEKLY}"; TMONTH="${TMONTH:-$KEEP_MONTHLY}"
+    log "   → $NM ($HOST:$DIR) — holding $TKEEP$([ "$TMONTH" -gt 0 ] && echo " + $TMONTH monthly")"
+    [ "$NM" = "coldstorage" ] && { CS_DIR="$DIR"; CS_KEEP="$TKEEP"; }
+
     if ! ssh $SSH_OPTS "$HOST" "mkdir -p '$DIR'" 2>>"$LOG"; then
       fail "$NM unreachable — archive NOT copied there"
       continue
     fi
-    if rsync -a --partial -e "ssh $SSH_OPTS" \
-         "$ARCHIVE" "$ARCHIVE.sha256" "$HOST:$DIR/" >>"$LOG" 2>&1; then
-      REMOTE_SHA="$(ssh $SSH_OPTS "$HOST" "sha256sum '$DIR/$NAME.tar.gz' 2>/dev/null | awk '{print \$1}'")"
-      if [ "$REMOTE_SHA" = "$ARCHIVE_SHA" ]; then
-        ok "$NM: copied and checksum-verified on the NAS"
-        PUSHED=$((PUSHED+1))
-        # Keep a restore bootstrap beside the archives.
-        ssh $SSH_OPTS "$HOST" "cd '$DIR' && ln -sf '$NAME.tar.gz' latest.tar.gz && ln -sf '$NAME.tar.gz.sha256' latest.tar.gz.sha256" 2>>"$LOG"
-        # Retention, on the NAS: keep weekly N, keep every 1st-of-month for KEEP_MONTHLY.
-        # NOTE: the TrueNAS login shell is zsh, where an unmatched glob ABORTS the
-        # command rather than passing through — so match with find, never a glob.
-        ssh $SSH_OPTS "$HOST" "
-          cd '$DIR' || exit 0
-          find . -maxdepth 1 -name 'band-advance-*.tar.gz' -printf '%f\\n' 2>/dev/null \
-            | grep -vE 'band-advance-[0-9]{6}01-' | sort -r | tail -n +$((KEEP_WEEKLY+1)) \
-            | while read -r f; do rm -f \"./\$f\" \"./\$f.sha256\"; done
-          find . -maxdepth 1 -name 'band-advance-*01-*.tar.gz' -printf '%f\\n' 2>/dev/null \
-            | sort -r | tail -n +$((KEEP_MONTHLY+1)) \
-            | while read -r f; do rm -f \"./\$f\" \"./\$f.sha256\"; done
-        " 2>>"$LOG"
-        ok "$NM: retention applied (weekly $KEEP_WEEKLY, monthly $KEEP_MONTHLY)"
-      else
-        fail "$NM: checksum MISMATCH after copy (local $ARCHIVE_SHA / remote ${REMOTE_SHA:-none})"
-      fi
-    else
+    if ! rsync -a --partial -e "ssh $SSH_OPTS" \
+           "$ARCHIVE" "$ARCHIVE.sha256" "$HOST:$DIR/" >>"$LOG" 2>&1; then
       fail "$NM: rsync failed"
+      continue
     fi
+    [ "$NM" = "coldstorage" ] && CS_OK=1
+    [ "$NM" = "audionas" ]    && AN_OK=1
+
+    REMOTE_SHA="$(ssh $SSH_OPTS "$HOST" "sha256sum '$DIR/$NAME.tar.gz' 2>/dev/null | awk '{print \$1}'")"
+    if [ "$REMOTE_SHA" != "$ARCHIVE_SHA" ]; then
+      fail "$NM: checksum MISMATCH after copy (local $ARCHIVE_SHA / remote ${REMOTE_SHA:-none})"
+      continue
+    fi
+    ok "$NM: copied and checksum-verified on the NAS"
+    PUSHED=$((PUSHED+1))
+    [ "$NM" = "coldstorage" ] && CS_VERIFIED=1
+    [ "$NM" = "audionas" ]    && AN_VERIFIED=1
+
+    # Keep a restore bootstrap beside the archives.
+    ssh $SSH_OPTS "$HOST" "cd '$DIR' && ln -sf '$NAME.tar.gz' latest.tar.gz && ln -sf '$NAME.tar.gz.sha256' latest.tar.gz.sha256" 2>>"$LOG"
+
+    # ---- retention, on the NAS --------------------------------------------
+    # Two zsh facts matter here, because the TrueNAS login shell IS zsh:
+    #   1. an unmatched glob ABORTS the command instead of passing through, so
+    #      everything is matched with find, never a glob;
+    #   2. zsh does NOT word-split an unquoted variable, so the doomed list is
+    #      passed through a file and read line by line, never expanded inline.
+    if [ "$TMONTH" -gt 0 ]; then
+      SELECT_DOOMED="{ find . -maxdepth 1 -name 'band-advance-*.tar.gz' -printf '%f\\n' 2>/dev/null \
+            | grep -vE 'band-advance-[0-9]{6}01-' | sort -r | tail -n +$((TKEEP+1)) ;
+          find . -maxdepth 1 -name 'band-advance-*01-*.tar.gz' -printf '%f\\n' 2>/dev/null \
+            | sort -r | tail -n +$((TMONTH+1)) ; }"
+    else
+      SELECT_DOOMED="find . -maxdepth 1 -name 'band-advance-*.tar.gz' -printf '%f\\n' 2>/dev/null \
+            | sort -r | tail -n +$((TKEEP+1))"
+    fi
+    RET_OUT="$(ssh $SSH_OPTS "$HOST" "
+      cd '$DIR' || exit 0
+      D=/tmp/.ba_prune_$STAMP
+      $SELECT_DOOMED > \"\$D\" 2>/dev/null
+      echo '---PRUNED---'
+      cat \"\$D\"
+      while read -r f; do [ -n \"\$f\" ] && rm -f \"./\$f\" \"./\$f.sha256\"; done < \"\$D\"
+      rm -f \"\$D\"
+      echo '---REMAINING---'
+      find . -maxdepth 1 -name 'band-advance-*.tar.gz' -printf '%f\\n' 2>/dev/null | sort -r
+    " 2>>"$LOG")"
+
+    PRUNED_LIST="$(printf '%s\n' "$RET_OUT" | sed -n '/^---PRUNED---$/,/^---REMAINING---$/p' | grep -v '^---' )"
+    REMAIN_LIST="$(printf '%s\n' "$RET_OUT" | sed -n '/^---REMAINING---$/,$p'                | grep -v '^---' )"
+    NPRUNED=$(printf '%s\n' "$PRUNED_LIST" | grep -c . )
+    NREMAIN=$(printf '%s\n' "$REMAIN_LIST" | grep -c . )
+    ok "$NM: now holding $NREMAIN of $TKEEP$([ "$NPRUNED" -gt 0 ] && echo ", rotated off $NPRUNED")"
+    if [ "$NM" = "coldstorage" ]; then CS_PRUNED="$PRUNED_LIST"; CS_REMAIN="$REMAIN_LIST"; fi
   done
 
   [ "$PUSHED" -eq 0 ] && fail "archive reached ZERO NAS targets — it exists only on this VM"
@@ -447,45 +490,83 @@ log "failures:      ${#FAILURES[@]}"
 [ ${#FAILURES[@]} -gt 0 ] && printf '  ! %s\n' "${FAILURES[@]}" | tee -a "$LOG"
 log "log:           $LOG"
 
-# Email report through the internal-send-outlook workflow (token read live from
-# n8n's own Postgres, so this script never stores it).
+# Hand the facts to the n8n workflow "Band Advance — Backup Report (Cold Storage)",
+# which owns the formatting and the send. The token lives in advance.env; the
+# n8n-Postgres scrape is the fallback for a host where that file isn't readable.
 if [ "$NOTIFY" = "1" ] && [ "$DRY_RUN" = 0 ]; then
-  if [ "$NOTIFY_ONLY_ON_FAIL" = "1" ] && [ "$STATUS" = "COMPLETE" ]; then
-    log "notify: skipped (COMPLETE, notify-only-on-fail)"
+  if [ "$NOTIFY_ONLY_ON_FAIL" = "1" ] && [ "$STATUS" = "COMPLETE" ] && [ "$CS_VERIFIED" = 1 ]; then
+    log "notify: skipped (Cold Storage verified, notify-only-on-fail)"
   else
-    TOKEN="$(docker exec n8n-postgres-1 psql -U "$N8N_PG_USER" -d "$N8N_PG_DB" -tAc \
-      "select nodes::text from workflow_entity where name ilike '%internal%send%' limit 1;" 2>/dev/null \
-      | grep -oE "EXPECTED_TOKEN = '[^']+'" | head -1 | sed "s/.*'\(.*\)'/\1/")"
+    TOKEN="$(grep -m1 '^ADVANCE_INTERNAL_TOKEN=' "$APP_DIR/advance.env" 2>/dev/null | cut -d= -f2-)"
+    if [ -z "$TOKEN" ]; then
+      TOKEN="$(docker exec n8n-postgres-1 psql -U "$N8N_PG_USER" -d "$N8N_PG_DB" -tAc \
+        "select nodes::text from workflow_entity where name ilike '%backup report%' limit 1;" 2>/dev/null \
+        | grep -oE "EXPECTED_TOKEN = '[^']+'" | head -1 | sed "s/.*'\(.*\)'/\1/")"
+    fi
     if [ -n "$TOKEN" ]; then
-      NOTIFY_HTML="$(mktemp)"
-      python3 - "$LOG" "$STATUS" > "$NOTIFY_HTML" <<'PYHTML'
-import html, sys
-log_path, status = sys.argv[1], sys.argv[2]
-body = html.escape(open(log_path, encoding="utf-8", errors="replace").read())
-color = "#065F46" if status == "COMPLETE" else "#9B2222"
-print(f'<h2 style="color:{color};margin:0 0 8px">Band Advance backup: {status}</h2>'
-      f'<pre style="font:12px/1.45 Consolas,monospace;background:#F4F0E8;'
-      f'padding:12px;border-radius:4px;white-space:pre-wrap">{body}</pre>')
-PYHTML
-      TOKEN="$TOKEN" TO="$NOTIFY_TO" BSTAMP="$STAMP" BSTATUS="$STATUS" HTMLFILE="$NOTIFY_HTML" \
-      python3 - <<'PYSEND' >>"$LOG" 2>&1
-import json, os, urllib.request
-payload = {"to": os.environ["TO"],
-           "subject": "Band Advance backup %s \u2014 %s" % (os.environ["BSTATUS"], os.environ["BSTAMP"]),
-           "html": open(os.environ["HTMLFILE"], encoding="utf-8").read()}
-req = urllib.request.Request("http://localhost:5678/webhook/internal-send-outlook",
-      data=json.dumps(payload).encode(), method="POST",
-      headers={"Content-Type": "application/json",
-               "x-advance-token": os.environ["TOKEN"]})
-try:
-    print("notify:", urllib.request.urlopen(req, timeout=30).status)
-except Exception as e:
-    print("notify failed:", e)
-PYSEND
-      rm -f "$NOTIFY_HTML"
-      log "notify: report emailed to $NOTIFY_TO"
+      PAYLOAD="$(mktemp)"
+      BA_STAMP="$STAMP" BA_STATUS="$STATUS" BA_ARCHIVE="$NAME.tar.gz" \
+      BA_BYTES="$(stat -c%s "$ARCHIVE" 2>/dev/null || echo 0)" \
+      BA_TO="$NOTIFY_TO" BA_CS_DIR="$CS_DIR" BA_CS_KEEP="$CS_KEEP" \
+      BA_CS_OK="$CS_OK" BA_CS_VER="$CS_VERIFIED" BA_AN_OK="$AN_OK" BA_AN_VER="$AN_VERIFIED" \
+      BA_CS_PRUNED="$CS_PRUNED" BA_CS_REMAIN="$CS_REMAIN" BA_COUNTS="$DB_COUNTS" \
+      BA_FAILURES="$(printf '%s\n' "${FAILURES[@]:-}")" \
+      BA_WARNINGS="$(printf '%s\n' "${WARNINGS[@]:-}")" \
+      python3 - > "$PAYLOAD" <<'PYPAY'
+import json, os
+def lines(v):
+    return [x.strip() for x in os.environ.get(v, "").splitlines() if x.strip()]
+counts = {}
+for row in lines("BA_COUNTS"):
+    if "|" in row:
+        t, n = row.split("|", 1)
+        counts[t.strip()] = n.strip()
+print(json.dumps({
+    "to":      os.environ.get("BA_TO", "blloyd@3cdc.org"),
+    "stamp":   os.environ.get("BA_STAMP", ""),
+    "status":  os.environ.get("BA_STATUS", ""),
+    "archive": os.environ.get("BA_ARCHIVE", ""),
+    "bytes":   int(os.environ.get("BA_BYTES", "0") or 0),
+    "coldstorage": {
+        "ok":       os.environ.get("BA_CS_OK")  == "1",
+        "verified": os.environ.get("BA_CS_VER") == "1",
+        "path":     os.environ.get("BA_CS_DIR", ""),
+        "keep":     int(os.environ.get("BA_CS_KEEP", "8") or 8),
+        "archives": lines("BA_CS_REMAIN"),
+        "pruned":   lines("BA_CS_PRUNED"),
+        "count":    len(lines("BA_CS_REMAIN")),
+    },
+    "audionas": {
+        "ok":       os.environ.get("BA_AN_OK")  == "1",
+        "verified": os.environ.get("BA_AN_VER") == "1",
+    },
+    "db_rows":  counts,
+    "failures": lines("BA_FAILURES"),
+    "warnings": lines("BA_WARNINGS"),
+}))
+PYPAY
+      # n8n registers webhook routes noticeably AFTER /healthz answers 200, so a
+      # first-attempt 404 means "not mounted yet", not "workflow is broken".
+      SENT=0
+      for i in 1 2 3 4 5 6; do
+        CODE="$(curl -sS -o /tmp/.ba_notify_resp -w '%{http_code}' -X POST \
+          -H "x-advance-token: $TOKEN" -H 'Content-Type: application/json' \
+          --data @"$PAYLOAD" "$NOTIFY_URL" 2>>"$LOG")"
+        case "$CODE" in
+          2*) SENT=1; break ;;
+          404|000) sleep 5 ;;
+          *) break ;;
+        esac
+      done
+      if [ "$SENT" = 1 ]; then
+        log "notify: Cold Storage report sent to $NOTIFY_TO (HTTP $CODE)"
+      else
+        warn "notify: report webhook returned HTTP ${CODE:-none} — no email sent"
+        head -c 300 /tmp/.ba_notify_resp 2>/dev/null >> "$LOG"
+      fi
+      rm -f "$PAYLOAD" /tmp/.ba_notify_resp
     else
-      warn "notify: could not resolve the internal-send token — no email sent"
+      warn "notify: could not resolve ADVANCE_INTERNAL_TOKEN — no email sent"
     fi
   fi
 fi
@@ -498,6 +579,10 @@ fi
   echo "  \"archive\": \"$NAME.tar.gz\","
   echo "  \"bytes\": $(stat -c%s "$ARCHIVE" 2>/dev/null || echo 0),"
   echo "  \"nas_copies\": $PUSHED,"
+  echo "  \"coldstorage_verified\": $([ "$CS_VERIFIED" = 1 ] && echo true || echo false),"
+  echo "  \"coldstorage_held\": $(printf '%s\n' "$CS_REMAIN" | grep -c .),"
+  echo "  \"coldstorage_keep\": $CS_KEEP,"
+  echo "  \"audionas_verified\": $([ "$AN_VERIFIED" = 1 ] && echo true || echo false),"
   echo "  \"failures\": ${#FAILURES[@]},"
   echo "  \"warnings\": ${#WARNINGS[@]}"
   echo "}"
