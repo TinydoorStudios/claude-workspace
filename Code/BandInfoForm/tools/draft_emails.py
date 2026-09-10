@@ -260,7 +260,8 @@ def main():
             band_count = (r.get("band_count") or "").strip()
             multiband = int(band_count) >= 2 if band_count.isdigit() else bool(bill_block)
 
-            token = _token(artist_id, venue, show_date, series, r.get("location"))
+            token = _token(artist_id, venue, show_date, series, r.get("location"),
+                           r.get("contact_name"), r.get("contact_email") or r.get("email"))
             with conn.cursor() as cur:
                 short_code = db.get_or_create_short_link(cur, token)
             conn.commit()
@@ -329,7 +330,12 @@ def main():
     print("Nothing was sent. Review the drafts, then send from Gmail once approved.")
 
 
-def _token(artist_id, venue, show_date, series=None, location=None):
+def _token(artist_id, venue, show_date, series=None, location=None,
+           contact_name=None, contact_email=None):
+    """contact_name/contact_email are the STAFF-typed booking contact (Brian,
+    2026-09-09) — carried into the band's own form as an editable starting
+    value at /f/<token>, same as venue/date/location already are. Never
+    locked: a band can always correct what staff typed."""
     from itsdangerous import URLSafeSerializer
     secret = os.environ.get("ADVANCE_SECRET", "dev-insecure-secret-change-me")
     signer = URLSafeSerializer(secret, salt="advance-prefill")
@@ -337,7 +343,9 @@ def _token(artist_id, venue, show_date, series=None, location=None):
                          "s": {"venue": venue,
                                "date": show_date.isoformat() if show_date else None,
                                "series": series or None,
-                               "location": location or None}})
+                               "location": location or None,
+                               "contact_name": (contact_name or "").strip() or None,
+                               "contact_email": (contact_email or "").strip() or None}})
 
 
 def _q(s):

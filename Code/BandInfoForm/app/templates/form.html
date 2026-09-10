@@ -169,6 +169,7 @@
     <p class="help">Describe your input list / stage layout, or paste a link — required only if you didn't upload a file above.</p>
   </div>
 
+  {% if cfg.drum_riser_available %}
   <div class="field">
     <label class="q">Would you prefer a flat stage or a drum riser?<span class="req">*</span></label>
     {% set st = prefill.get('stage_type') %}
@@ -178,6 +179,7 @@
       <option {{ 'selected' if st=='Drum riser' else '' }}>Drum riser</option>
     </select>
   </div>
+  {% endif %}
 
   <div class="field">
     <label class="q">How many monitors do you need?<span class="req">*</span></label>

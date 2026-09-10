@@ -164,6 +164,15 @@ def prefilled_form(token):
                     seed_fields["venue"] = seed["venue"]
                 if seed.get("date"):
                     seed_fields["show_date"] = seed["date"]
+                # Staff-typed contact for THIS booking (Brian, 2026-09-09) wins
+                # over a stale contact from a prior show — but only if staff
+                # actually entered one; otherwise the prior submission's own
+                # contact_name/contact_email (already in base, if any) stands.
+                # Never locked: editable like every other carried-over answer.
+                if seed.get("contact_name"):
+                    seed_fields["contact_name"] = seed["contact_name"]
+                if seed.get("contact_email"):
+                    seed_fields["contact_email"] = seed["contact_email"]
                 prefill = {**base, **seed_fields}
                 if not cfg.get("venue_preselect"):
                     cfg["venue_preselect"] = prefill.get("venue")
@@ -649,6 +658,8 @@ def advance_lifecycle():
                 "slot": r["slot"] or "", "set_time": r["set_time"] or "",
                 "email_note": r["email_note"] or "",
                 "band_count": str(r["band_count"]) if r["band_count"] else "",
+                "contact_name": r["contact_name"] or "",
+                "contact_email": r["booking_contact_email"] or "",
             } for r in due_initial]
             batch_file = TOOLS_DIR / ".lifecycle_initial_batch.json"
             batch_file.write_text(json.dumps(batch))
@@ -697,7 +708,9 @@ def advance_lifecycle():
                                            "s": {"venue": r["venue"],
                                                  "date": r["show_date"].isoformat(),
                                                  "series": r["series"] or None,
-                                                 "location": r["location"] or None}})
+                                                 "location": r["location"] or None,
+                                                 "contact_name": r["contact_name"] or None,
+                                                 "contact_email": r["booking_contact_email"] or None}})
                     code = advance_db.get_or_create_short_link(cur, token)
                     link = f"{PUBLIC_URL}/s/{code}"
                     when = f" on {us_date(r['show_date'])}" if r["show_date"] else ""

@@ -244,6 +244,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     slot          TEXT,
     set_time      TEXT,
     artist_name   TEXT,
+    contact_name  TEXT,
     contact_email TEXT,
     email_note    TEXT,
     entered_by    TEXT,
@@ -252,6 +253,10 @@ CREATE TABLE IF NOT EXISTS bookings (
 );
 -- for DBs created before this column existed:
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS location TEXT;
+-- staff-entered contact name (Brian, 2026-09-09): carries into the band's own
+-- advance form as an editable starting value — see /f/<token> prefill in
+-- app.py and _token() in draft_emails.py. contact_email already existed.
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS contact_name TEXT;
 
 -- Bands on the bill (Brian, 2026-09-08): declared explicitly per booking so a
 -- multi-band bill entered one act at a time (band 1 today, band 2 next week)

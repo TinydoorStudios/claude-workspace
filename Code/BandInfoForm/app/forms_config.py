@@ -39,12 +39,15 @@ def tech_packs():
 # stage_size (added 2026-09-07, Brian): footprint quoted to bands in the advance
 # email (tools/venue_email.py). Porch + Main Stage are Brian-confirmed; Bandstand
 # has no published dimensions anywhere online — TBD until he measures/confirms it.
+# drum_riser (added 2026-09-09, Brian): only Main Stage has one available —
+# Porch and Bandstand don't, so the "flat stage or drum riser?" question
+# doesn't apply there either, same treatment as lighting.
 WP_LOCATIONS = {
-    "Main Stage": {"monitor_cap": 6, "lighting": True,
+    "Main Stage": {"monitor_cap": 6, "lighting": True, "drum_riser": True,
                    "stage_size": "20' wide x 20' deep"},
-    "Porch":      {"monitor_cap": 2, "lighting": False,
+    "Porch":      {"monitor_cap": 2, "lighting": False, "drum_riser": False,
                    "stage_size": "20' wide x 12' deep"},
-    "Bandstand":  {"monitor_cap": 4, "lighting": False,
+    "Bandstand":  {"monitor_cap": 4, "lighting": False, "drum_riser": False,
                    "stage_size": "TBD — confirm with your day-of contact"},
 }
 
@@ -85,14 +88,16 @@ def get_config(series_key=None, venue=None, location=None):
     cfg["venue_preselect"] = venue if venue in VENUES else None
     cfg["series_key"] = series_key or "default"
 
-    # WP sub-venue: monitor cap + (Porch/Bandstand) no lighting question
+    # WP sub-venue: monitor cap + (Porch/Bandstand) no lighting, no drum riser
     cfg["location"] = None
     cfg["monitor_cap"] = None
+    cfg["drum_riser_available"] = True  # every non-WP venue keeps the question
     if venue == "Washington Park" and location in WP_LOCATIONS:
         loc = WP_LOCATIONS[location]
         cfg["location"] = location
         cfg["monitor_cap"] = loc["monitor_cap"]
         cfg["blocks"] = dict(cfg["blocks"])
         cfg["blocks"]["lighting"] = loc["lighting"]
+        cfg["drum_riser_available"] = loc["drum_riser"]
 
     return cfg

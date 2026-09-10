@@ -130,7 +130,8 @@ def shows_due_for_initial_advance(cur):
                   b.load_in AS load_in, b.soundcheck AS soundcheck,
                   b.event_start AS event_start, b.event_end AS event_end,
                   b.curfew AS curfew, b.slot AS slot, b.set_time AS set_time,
-                  b.email_note AS email_note, b.band_count AS band_count
+                  b.email_note AS email_note, b.band_count AS band_count,
+                  b.contact_name AS contact_name, b.contact_email AS booking_contact_email
            FROM shows s JOIN artists a ON a.id = s.artist_id
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                   AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
@@ -169,7 +170,8 @@ def shows_due_for_followup(cur, days_out=7):
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
-                  b.location AS location
+                  b.location AS location,
+                  b.contact_name AS contact_name, b.contact_email AS booking_contact_email
            FROM shows s JOIN artists a ON a.id = s.artist_id
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                   AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
@@ -585,7 +587,7 @@ def event_acts(cur, event_id):
 BOOKING_FIELDS = [
     "event_name", "event_date", "venue", "location", "series", "event_type", "paying_band",
     "lead_name", "lead_phone", "load_in", "soundcheck", "event_start",
-    "event_end", "curfew", "slot", "set_time", "artist_name", "contact_email",
+    "event_end", "curfew", "slot", "set_time", "artist_name", "contact_name", "contact_email",
     "email_note", "entered_by", "band_count",
 ]
 
