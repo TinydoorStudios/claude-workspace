@@ -1,3 +1,17 @@
+## 2026-09-09 (later) — The band's own form loses its last locked field
+
+Three changes to the [band self-serve form](/band-advance-pipeline), same day as the digest merge above, all Brian's direct asks.
+
+Staff's Contact Name (a new field on the booking intake) and Contact Email now carry over to the band's own form as an editable starting value, the same treatment the venue/date fields already got. A fresh booking's contact wins over a stale one from a prior submission, but only when staff actually typed one — a returning band's own last answer still shows otherwise, and a brand-new band with neither just sees blank fields.
+
+Band / Group Name was the one field still locked read-only from the original prefill design. Unlocking it safely was the actual work: `/submit` has always re-identified the artist by re-matching the typed name against the database, so an unlocked field on its own would let an edit quietly spin off a duplicate artist and orphan the band's real history under the old record. The fix carries the artist's real database id alongside the now-editable name field — present, a rename updates that exact record; absent (a brand new artist, or the bare public form), it falls back to the same name-matching that's always run. The same id now backs the stage-plot-on-file exemption check too, so an edited name doesn't cost a returning band that exemption.
+
+Two more Washington Park location gates joined the existing lighting-question one: the drum-riser question is Main-Stage-only now (Porch and Bandstand don't have one), and the private band-tent / dressing-space question drops for the Porch specifically — Bandstand keeps it, there's room there. Both reuse the same per-location config mechanism the lighting gate already established, so neither needed new template logic.
+
+Last, every band-facing email draft — the initial ask and the follow-up reminder — opens "Hello {contact name} and {band name}," instead of "Hi {band name}," gracefully dropping the "and {contact name}" half when none is on file yet.
+
+A mid-session scare worth a note for anyone hitting it again: the repo's checked-out branch flipped from `advance-system` back to `main` on its own partway through this work — the same thing a 2026-09-08 session logged once before. Nothing was lost (all commits were safe on `advance-system` the whole time), but the working tree briefly showed a much older, pre-database version of the Flask app. `git branch --show-current` is worth a glance if a file ever looks inexplicably wrong mid-session.
+
 ## 2026-09-09 — Two morning emails become one, and the Outlook send path finally sends
 
 The Band Advance pipeline's [morning digest](/band-advance-pipeline) is now a single 7am email to Brian instead of a Daily Digest plus a Crew Report ten minutes behind it. The split was wrong in a specific way: the crew half only mattered for the day in front of him, while the fourteen-day horizon only mattered for advance status. Merged, each sits at the scope it earns — today's shows, today's crew across every staffed venue, 24 hours of advancing activity, then fourteen days of lifecycle status. Today's crew reads the 3CDC schedule sheet rather than advance records on purpose, so a venue with crew but no band in the pipeline (a training session, a plaza event nobody advanced) still shows up. The Crew Report kept its webhook for an on-demand fourteen-day pull and lost its daily trigger.
