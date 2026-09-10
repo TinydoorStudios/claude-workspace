@@ -1,3 +1,17 @@
+## 2026-09-09 (latest) — The advance database gets a backup that can actually rebuild the whole thing
+
+The [Band Advance pipeline](/band-advance-pipeline) had no backup of its own. The nightly Mac rsync of `~/Documents/Claude` covered the repo, but nothing covered the part that can't be recreated from code: the Postgres database, every stage plot and input list a band has uploaded, the env and secrets, the n8n workflows, or the Dropbox `Nyquist/` cockpit those forms are actually worked in. Brian's ask was blunt — package everything, weekly, to a second NAS, restorable in one command.
+
+It runs on the n8n VM rather than the Mac, because the VM is the one machine holding all of it at once, including a live Dropbox mirror of `Nyquist/`. Sundays 03:15, `Persistent=true` so a missed run catches up on boot. Each run builds one archive and pushes it to **both** TrueNAS boxes — Cold Storage and the Audio NAS — keeping twelve weeklies plus two years of first-of-month archives on each.
+
+Two decisions shaped the design more than anything else. **Secrets are separate and optional.** Everything except one GPG file is plaintext, so a restore always works; if the passphrase is ever lost the restore mints fresh credentials and carries on, and the entire cost is that outstanding prefill links die and the Graph credential needs re-entering. The obvious alternative — encrypt the whole archive — makes a forgotten passphrase into total data loss, which is precisely backwards for a system whose only job is preventing that. **Restores refuse to destroy:** a populated database is renamed aside rather than dropped, an existing app dir is moved aside, and a live `~/Dropbox/Nyquist` is left alone unless you explicitly say otherwise.
+
+The other half of the work was making it fail loudly. A failed section is recorded and the run continues, so a partial archive still exists and says so in its manifest while the job exits non-zero. The tarball is re-extracted and every inner checksum re-verified before it ships; the sha256 is then recomputed on each NAS and compared. One unreachable NAS is a warning, zero is a failure. Every run emails a report through the now-proven Graph workflow.
+
+Drilled the same day rather than assumed: the archive was pulled back off Cold Storage, all 212 inner checksums verified, the dump restored into a throwaway Postgres container where all ten tables hit their exact backup-time row counts, and the GPG bundle opened to confirm all twelve n8n credentials were recoverable.
+
+One gotcha worth carrying: **the TrueNAS login shell is zsh, where an unmatched glob aborts the command** instead of passing through the way bash does. The first run's retention step died silently on `band-advance-*01-*.tar.gz` matching nothing. Any remote command run against a TrueNAS box should match with `find`, never a shell glob.
+
 ## 2026-09-09 (later) — The band's own form loses its last locked field
 
 Three changes to the [band self-serve form](/band-advance-pipeline), same day as the digest merge above, all Brian's direct asks.
