@@ -83,7 +83,8 @@ TEMPLATES_BY_VENUE = {
     },
     "Washington Park": {
         1: TEMPLATES / "WP Single Band Advance.docx",
-        # no 2/3-band WP template yet
+        2: TEMPLATES / "WP 2 Band Advance.docx",
+        # no 3-band WP template yet
     },
 }
 # kept for callers that don't pass one / don't know the venue yet
@@ -502,18 +503,23 @@ def fill_event_type(grid, event, n=1):
 WP_LOCATIONS = ["Main Stage", "Porch", "Bandstand"]
 
 
-def fill_location(grid, event):
+def fill_location(grid, event, n=1):
     """WP-only Location row (☐ Main Stage ☐ Porch ☐ Bandstand) — checked from
     the booking (events.details.location, seeded via the sheet's Location
-    column). No-op if the template has no Location row (FSQ) or the event has
-    no location on file yet."""
+    column). Event-level, not per-band, so it's written into every act
+    column the same way Event Type already is (fixed 2026-09-10 when the
+    2-band WP template was built — this used to only ever touch cells[1],
+    which would've left column 2 pristine-blank on any multi-band WP bill).
+    No-op if the template has no Location row (FSQ) or the event has no
+    location on file yet."""
     det = event.get("details") or {}
     loc = det.get("location")
     if not loc:
         return
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "location":
-            set_checkbox_paragraph(r.cells[1].paragraphs[0], WP_LOCATIONS, loc)
+            for cell in r.cells[1:1 + n]:
+                set_checkbox_paragraph(cell.paragraphs[0], WP_LOCATIONS, loc)
             return
 
 
@@ -649,7 +655,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
 
     single = n == 1
     fill_header(grid, event, acts, single)
-    fill_location(grid, event)
+    fill_location(grid, event, n)
     fill_event_type(grid, event, n)
     fill_engineer(grid, event, n)
     fill_crew_schedule(doc, event)
