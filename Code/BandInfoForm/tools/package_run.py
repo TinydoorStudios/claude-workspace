@@ -105,7 +105,7 @@ def main():
     run("status_sheet.py", "--json", str(out / "status.json"))
 
     # 3. file each event into the venue tree
-    n_events = n_emails = n_followups = n_plots = 0
+    n_events = n_emails = n_followups = n_plots = n_failed = 0
     plot_rels = {}   # (band, venue, date) -> relative path to the filed stage plot
     with db.get_conn() as conn, conn.cursor() as cur:
         for e in db.list_events(cur):
@@ -148,8 +148,21 @@ def main():
                 plot_rels[key] = rel
                 n_plots += 1
 
-            daysheet.fill(eid, out_path=folder / f"{stem}.docx",
-                          stageplot_names=stageplot_names)
+            # One event's day-sheet failing (e.g. no template for a venue/act-count
+            # combo that's never come up before) must never take down every OTHER
+            # event in the same run — that silently blocked three unrelated real
+            # shows behind one bad one (caught 2026-09-10). Log it, keep going: the
+            # band-facing email drafts below still get filed even without a day-sheet.
+            try:
+                daysheet.fill(eid, out_path=folder / f"{stem}.docx",
+                              stageplot_names=stageplot_names)
+            except (Exception, SystemExit) as e:
+                # daysheet.fill() calls sys.exit(1) on a missing template — that's
+                # a SystemExit, not an Exception, so it has to be caught here too
+                # or it walks right past this try/except like it isn't there.
+                n_failed += 1
+                print(f"  ! day-sheet failed for '{stem}' ({ev.get('venue')}): {e}",
+                      file=sys.stderr)
 
             date = ev.get("event_date").isoformat() if ev.get("event_date") else None
             drafts_dir = folder / fs.EMAIL_DRAFTS_DIR
@@ -183,7 +196,8 @@ def main():
 
     print(f"\nPackage built at {out}")
     print(f"  {n_events} event(s) filed · {n_emails} email(s) · "
-          f"{n_followups} follow-up(s) · {n_plots} stage plot(s)")
+          f"{n_followups} follow-up(s) · {n_plots} stage plot(s) · "
+          f"{n_failed} day-sheet failure(s)")
 
 
 if __name__ == "__main__":

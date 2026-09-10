@@ -323,13 +323,20 @@ def _run_pipeline_background():
     """Kick off run_now.py in the background — never blocks or risks the request
     it's called from. Detached (start_new_session) so it outlives this worker.
     run_now.py's own lock file makes overlapping triggers (this + the booking
-    button) safe."""
+    button) safe. Output goes to a log, not /dev/null (2026-09-10) — a real
+    failure here used to vanish with zero trace anywhere, which is exactly
+    what let one bad event silently block every band's advance for hours."""
     try:
-        subprocess.Popen(
-            [sys.executable, "run_now.py"], cwd=TOOLS_DIR,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            start_new_session=True,
-        )
+        log_path = BASE / "data" / "run_now_background.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "a") as logf:
+            logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')} ---\n")
+            logf.flush()
+            subprocess.Popen(
+                [sys.executable, "run_now.py"], cwd=TOOLS_DIR,
+                stdout=logf, stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
     except Exception as e:
         _log_db_error("run_pipeline_background", e)
 

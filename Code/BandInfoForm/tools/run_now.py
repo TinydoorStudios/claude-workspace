@@ -59,7 +59,7 @@ def main():
 
     acquire_lock()
     try:
-        summary = {"seeded": 0, "events": 0, "emails": 0, "followups": 0, "plots": 0}
+        summary = {"seeded": 0, "events": 0, "emails": 0, "followups": 0, "plots": 0, "failed": 0}
 
         # 1. pull any new staff bookings into the sheet
         bk = run("seed_bookings.py", "--json")
@@ -79,10 +79,11 @@ def main():
         # 2. rebuild the package (events, day-sheets, email drafts, status.json)
         out = HERE / "_package"
         built = run("package_run.py", sheet, "--out", "_package")
-        m = re.search(r"(\d+) event\(s\) filed .+? (\d+) email\(s\) .+? (\d+) follow-up\(s\) .+? (\d+) stage plot",
+        m = re.search(r"(\d+) event\(s\) filed .+? (\d+) email\(s\) .+? (\d+) follow-up\(s\) .+? "
+                      r"(\d+) stage plot\(s\) .+? (\d+) day-sheet failure",
                       built.stdout)
         if m:
-            summary["events"], summary["emails"], summary["followups"], summary["plots"] = \
+            summary["events"], summary["emails"], summary["followups"], summary["plots"], summary["failed"] = \
                 (int(x) for x in m.groups())
 
         # 3. overlay the built tree into the live Dropbox-synced folder (no delete —
