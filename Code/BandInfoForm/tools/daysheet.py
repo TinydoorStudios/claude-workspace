@@ -29,9 +29,10 @@ wins, same merge policy as the email drafts. Writes:
     since it has to generalize past WP's own three named spots
   - Event Type / Paying?, Lead name + cell
   - per-act: Set Length, act name (header row), Stage Plot, Monitors, IEMs,
-    Input Notes (also carries any lighting request / split snake text —
-    there's no dedicated cell for those), Stage Type, Scenic Notes, Merch,
-    Parking, Drink Tix, Dressing Room Tent, Backline, Band Contact — Name/Cell
+    Number of IEMs, Input Notes (also carries own-IEM-system / split-snake
+    text — there's no dedicated cell for those), Stage Type, Scenic Notes,
+    Lighting Notes, Merch, Parking, Number of Performers, Dressing Room
+    Tent, Backline, Band Contact — Name/Cell
   - Engineer (FOH – / Mon –), same value repeated into every act column —
     pulled from the public 3CDC staffing sheet via staffing.engineers_for()
     (Brian, 2026-09-08); a line left as its unfilled placeholder ('FOH – ')
@@ -180,10 +181,11 @@ def act_row_values(f):
         notes.append(f"Own IEM system: {f['own_iems']}")
     if str(f.get("own_iems", "")).lower() == "yes" and f.get("split_snake"):
         notes.append(f"Split snake: {f['split_snake']}")
-    if f.get("lighting"):
-        notes.append(f"Lighting request: {f['lighting']}")
     if notes:
         out["input notes"] = " · ".join(notes)
+
+    if f.get("lighting"):
+        out["lighting notes"] = f["lighting"]
 
     if f.get("stage_type"):
         out["stage type"] = Checkbox(
