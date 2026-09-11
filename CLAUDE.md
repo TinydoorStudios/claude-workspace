@@ -309,7 +309,7 @@ Moved 2026-08-02 to `audio/_skills/show-deep-build/references/genre-geometry.md`
 | Mic notes / engineer notes bg | `#F4F0E8` (warm cream) |
 
 ### Typography
-- Body: Calibri or Arial 10pt
+- Body: Calibri (locked 2026-09-11 — default for any document created, not just show packets)
 - Title: 20pt bold white
 - Section headers: 11pt bold black
 - Ch / Split Patch columns: Consolas font

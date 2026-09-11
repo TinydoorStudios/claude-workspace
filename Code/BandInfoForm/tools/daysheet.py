@@ -1,34 +1,37 @@
 #!/usr/bin/env python3
-"""Fill an advance day-sheet — single-band, 2-band, or 3-band — from an
-event. The old 513 Airwaves-specific template is retired; nothing here
-references it.
+"""Fill an advance day-sheet from an event — every venue, every band count
+(1/2/3), ONE template: doc_templates/3CDC Universal Show Advance.docx
+(Brian, 2026-09-11: "make sure all of the advancing workflow uses the new
+three band generic doc"). The five retired venue-specific templates (FSQ
+Single/2/3-Band, WP Single/2-Band) are no longer used to fill anything —
+they're left on disk only as historical reference and so recap-extraction
+can still diff an old already-filed doc against the right pristine shape
+while it ages out of the catch-up window.
 
-Template is picked automatically by VENUE + how many acts the event has:
-  Fountain Square, 1 act  -> doc_templates/FSQ Single Band Advance.docx
-  Fountain Square, 2 acts -> doc_templates/FSQ 2 Band Advance.docx
-  Fountain Square, 3 acts -> doc_templates/FSQ 3 Band Advance.docx
-  Washington Park, 1 act  -> doc_templates/WP Single Band Advance.docx
-  (Washington Park has no 2/3-band template yet — those events error out
-  with a clear message instead of silently reusing the wrong template.)
-Acts map to columns left-to-right in event_acts' own slot_order (opener,
-direct_support, headliner) — whichever slots the event actually has, in that
-order, so a 2-band show booked as opener+headliner or as
-direct_support+headliner both land correctly without a slot-name lookup.
+The document always has all 3 act columns (Opener / Direct Support /
+Headliner), regardless of how many bands are really on the bill — unused
+columns just render blank. Column assignment is a straight slot -> column
+rule (see _col()), not "how many acts, in what order":
+  - 3-band bill: slot_order already IS the column (1/2/3).
+  - 2-band bill: whichever act is actually the headliner takes column 3;
+    the other act takes column 2 regardless of whether it was slotted
+    "opener" or "direct support" — a 2-band universal doc always reads
+    Headliner + Direct Support, never Opener.
+  - 1-band bill: everything goes under Headliner, column 3, full stop.
 
 Source of truth is the advance SPREADSHEET (event + any band overrides); the
 advance FORM fills whatever the sheet left blank — the spreadsheet value
 wins, same merge policy as the email drafts. Writes:
-  - EVENT INFORMATION: Date / Event always; Band (single-band only — a
-    multi-band show's names go on the act-header row instead); TONIGHT —
-    MC/DJ (multi-band only)
-  - Location (Washington Park only — Main Stage/Porch/Bandstand, from the
-    sheet's Location column, seeded from bookings.location at booking time)
+  - EVENT INFORMATION: Date / Event / Venue / Location / TONIGHT — MC/DJ
+  - Location: Fountain Square is always "Main Stage" (its only location);
+    Washington Park (and anywhere else) uses whatever's on file for the
+    booking (bookings.location) — free text, not a fixed checkbox set,
+    since it has to generalize past WP's own three named spots
   - Event Type / Paying?, Lead name + cell
-  - per-act: Set Length, act name (multi-band header row), Stage Plot,
-    Monitors, IEMs, Input Notes (also carries any lighting request / split
-    snake text — there's no dedicated cell for those), Stage Type, Scenic
-    Notes, Merch, Parking, Drink Tix, Dressing Room Tent, Backline, Band
-    Contact — Name / Cell
+  - per-act: Set Length, act name (header row), Stage Plot, Monitors, IEMs,
+    Input Notes (also carries any lighting request / split snake text —
+    there's no dedicated cell for those), Stage Type, Scenic Notes, Merch,
+    Parking, Drink Tix, Dressing Room Tent, Backline, Band Contact — Name/Cell
   - Engineer (FOH – / Mon –), same value repeated into every act column —
     pulled from the public 3CDC staffing sheet via staffing.engineers_for()
     (Brian, 2026-09-08); a line left as its unfilled placeholder ('FOH – ')
@@ -41,7 +44,9 @@ wins, same merge policy as the email drafts. Writes:
     a same-day hand call the way every other show's crew schedule needs)
 
 Left BLANK, always — no data source, or a same-day production call Brian
-makes by hand (2026-09-03: "the granular items we will add by hand"):
+makes by hand (2026-09-03: "the granular items we will add by hand";
+2026-09-11: PA/Consoles joined this list once one template had to work for
+every venue — no honest single default for either one generalizes):
   - the crew SCHEDULE table for every OTHER show (the minute-by-minute
     choreography is normally a day-of call, not form data)
   - Consoles, PA, Subs, LIGHTING (Pre-Scheduled/Live), VIDEO, Buyout
@@ -75,21 +80,18 @@ from urllib.parse import quote
 TEMPLATES = HERE / "doc_templates"
 FILLED = HERE / "filled"
 FILLED.mkdir(exist_ok=True)
-TEMPLATES_BY_VENUE = {
-    "Fountain Square": {
-        1: TEMPLATES / "FSQ Single Band Advance.docx",
-        2: TEMPLATES / "FSQ 2 Band Advance.docx",
-        3: TEMPLATES / "FSQ 3 Band Advance.docx",
-    },
-    "Washington Park": {
-        1: TEMPLATES / "WP Single Band Advance.docx",
-        2: TEMPLATES / "WP 2 Band Advance.docx",
-        # no 3-band WP template yet
-    },
-}
-# kept for callers that don't pass one / don't know the venue yet
-TEMPLATE_BY_ACTS = TEMPLATES_BY_VENUE["Fountain Square"]
-DEFAULT_TEMPLATE = TEMPLATE_BY_ACTS[1]
+
+# Every venue, every band count — ONE template (Brian, 2026-09-11).
+UNIVERSAL_TEMPLATE = TEMPLATES / "3CDC Universal Show Advance.docx"
+
+# Retired — fill() never picks from these again, and _template_defaults()
+# doesn't either (an already-filed doc could be genuinely old-shaped OR a
+# new 3-column universal doc that happens to match one of these by act
+# count; there's no reliable way to tell which from the file alone, and
+# guessing wrong is worse than just always diffing against the current
+# template). Left on disk purely as historical/manual reference — not
+# deleted, just no longer read by anything here.
+#   FSQ Single/2/3 Band Advance.docx, WP Single/2 Band Advance.docx
 
 
 def norm(s):
@@ -451,22 +453,42 @@ def find_schedule_table(doc):
     return None
 
 
-def fill_header(grid, event, acts, single):
-    """EVENT INFORMATION value cell: Date / Event / Band (single-band only) /
-    TONIGHT — MC/DJ (multi-band only) — each its own paragraph."""
+def _location_for(event):
+    """Where within the venue this show is happening (Brian, 2026-09-11):
+    Fountain Square is always "Main Stage" — there's no other location
+    there. Washington Park (and anywhere else) uses whatever's on file for
+    the booking (events.details.location, seeded from bookings.location) —
+    free text, not a fixed checkbox set, since a single cross-venue field
+    can't assume WP's three named spots apply everywhere."""
+    if event.get("venue") == "Fountain Square":
+        return "Main Stage"
+    det = event.get("details") or {}
+    return det.get("location") or ""
+
+
+def fill_header(grid, event):
+    """EVENT INFORMATION value cell: Date / Event / Venue / Location /
+    TONIGHT — MC/DJ — each its own paragraph. This is ONE cell shared
+    across all 3 act columns (confirmed via the raw XML: 2 real <w:tc>
+    elements in this row, not 4 — python-docx's own .cells accessor just
+    reports the shared one three times), so it's written once, not per
+    column."""
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "event information":
             value_cell = r.cells[1]
             date = event.get("event_date").isoformat() if event.get("event_date") else ""
+            venue = event.get("venue") or ""
+            location = _location_for(event)
             for p in value_cell.paragraphs:
                 t = p.text.strip()
                 if t.startswith("Date:"):
                     set_para_text(p, f"Date: {date}" if date else "Date:")
                 elif t.startswith("Event:"):
                     set_para_text(p, f"Event: {event.get('name') or ''}")
-                elif t.startswith("Band:") and single:
-                    bands = ", ".join(a["artist"]["name"] for a in acts if a.get("artist"))
-                    set_para_text(p, f"Band: {bands}" if bands else "Band:")
+                elif t.startswith("Venue:"):
+                    set_para_text(p, f"Venue: {venue}" if venue else "Venue:")
+                elif t.startswith("Location:"):
+                    set_para_text(p, f"Location: {location}" if location else "Location:")
                 elif t.startswith("TONIGHT"):
                     det = event.get("details") or {}
                     if det.get("mc"):
@@ -476,16 +498,37 @@ def fill_header(grid, event, acts, single):
             return
 
 
+def _active_cols(n):
+    """Which of the universal template's 3 value columns are actually in
+    play for an n-band bill — NOT the first n columns left to right, since
+    the doc always reads Opener/Direct Support/Headliner regardless of band
+    count (Brian, 2026-09-11): a 1-band bill's one act is under Headliner
+    (column 3), a 2-band bill occupies Direct Support + Headliner (2, 3),
+    only a 3-band bill actually uses all three (1, 2, 3). Event-level rows
+    that repeat across every act column (Event Type, Engineer) need to know
+    exactly these columns, not a contiguous slice from column 1 — matches
+    fill()'s own _col() rule."""
+    if n >= 3:
+        return [1, 2, 3]
+    if n == 2:
+        return [2, 3]
+    return [3]
+
+
 def fill_event_type(grid, event, n=1):
     """Event Type / Paying Band — an event-level fact, but the 2/3-band
     templates repeat this row once per act column (same shape as Engineer/
-    Consoles), so it's written into every column, not just the first
-    (fixed 2026-09-08 — cells 2/3 used to stay pristine-blank forever on a
-    multi-band bill)."""
+    Consoles), so it's written into every column actually in play for this
+    band count, not just the first n (fixed 2026-09-08 — cells 2/3 used to
+    stay pristine-blank forever on a multi-band bill; fixed again 2026-09-11
+    when a 1-band bill's act moved to column 3, not column 1)."""
     det = event.get("details") or {}
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "event type":
-            for value_cell in r.cells[1:1 + n]:
+            for ci in _active_cols(n):
+                if ci >= len(r.cells):
+                    continue
+                value_cell = r.cells[ci]
                 paras = value_cell.paragraphs
                 if len(paras) >= 1 and det.get("event_type"):
                     set_checkbox_paragraph(
@@ -497,29 +540,6 @@ def fill_event_type(grid, event, n=1):
                     yn = "Yes" if norm(det["paying_band"]) == "yes" else "No"
                     set_checkbox_paragraph(paras[1], ["Yes", "No"], yn,
                                             prefix="Are we paying the band?   ")
-            return
-
-
-WP_LOCATIONS = ["Main Stage", "Porch", "Bandstand"]
-
-
-def fill_location(grid, event, n=1):
-    """WP-only Location row (☐ Main Stage ☐ Porch ☐ Bandstand) — checked from
-    the booking (events.details.location, seeded via the sheet's Location
-    column). Event-level, not per-band, so it's written into every act
-    column the same way Event Type already is (fixed 2026-09-10 when the
-    2-band WP template was built — this used to only ever touch cells[1],
-    which would've left column 2 pristine-blank on any multi-band WP bill).
-    No-op if the template has no Location row (FSQ) or the event has no
-    location on file yet."""
-    det = event.get("details") or {}
-    loc = det.get("location")
-    if not loc:
-        return
-    for r in grid.rows:
-        if r.cells and norm(r.cells[0].text) == "location":
-            for cell in r.cells[1:1 + n]:
-                set_checkbox_paragraph(cell.paragraphs[0], WP_LOCATIONS, loc)
             return
 
 
@@ -546,7 +566,10 @@ def fill_engineer(grid, event, n):
         return
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "engineer":
-            for cell in r.cells[1:1 + n]:
+            for ci in _active_cols(n):
+                if ci >= len(r.cells):
+                    continue
+                cell = r.cells[ci]
                 for p in cell.paragraphs:
                     t = p.text.strip()
                     if t.startswith("FOH") and names.get("foh"):
@@ -605,7 +628,9 @@ def act_columns(grid, n_acts):
     """Row -> its N value cells, keyed by normalized label. Cells inside a
     colSpan report once per spanned grid column in python-docx, so a
     single-value row (Event Type, MISC header, …) still resolves fine —
-    callers that expect N distinct act cells use cells[1:1+n_acts]."""
+    callers that need a specific act's column use _col()/_active_cols(),
+    not a contiguous cells[1:1+n] slice (retired 2026-09-11 — a 1- or
+    2-band bill's acts don't sit in the first n columns any more)."""
     rows = {}
     for r in grid.rows:
         label = norm(r.cells[0].text)
@@ -635,15 +660,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
     # declared one.
     n = max(len(acts), declared_n) if declared_n else len(acts)
     if template is None:
-        venue = event.get("venue") or "Fountain Square"
-        by_venue = TEMPLATES_BY_VENUE.get(venue, {})
-        template = by_venue.get(n)
-        if template is None:
-            available = sorted(by_venue) or "none"
-            print(f"Event {event_id} @ {venue} has {n} act(s) — no template for "
-                  f"that venue/count combo (have templates for {available} act(s) "
-                  f"at {venue}).", file=sys.stderr)
-            sys.exit(1)
+        template = UNIVERSAL_TEMPLATE
     if not template.exists():
         print(f"Template not found: {template}", file=sys.stderr)
         sys.exit(1)
@@ -653,46 +670,52 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
     if grid is None:
         print("Couldn't find the EVENT INFORMATION table.", file=sys.stderr); sys.exit(1)
 
-    single = n == 1
-    fill_header(grid, event, acts, single)
-    fill_location(grid, event, n)
+    fill_header(grid, event)
     fill_event_type(grid, event, n)
     fill_engineer(grid, event, n)
     fill_crew_schedule(doc, event)
     fill_lead(doc, event)
 
-    # Column for one act: a 3-band bill has an unambiguous 1:1 slot->column
-    # mapping (opener=1/direct support=2/headliner=3, per SLOT_ORDER), so use
-    # the act's own slot_order directly — critical once a bill can be entered
-    # one act at a time (the band_count override above): a lone direct_support
-    # act has no opener/headliner rows yet, and a plain enumerate() position
-    # would put it in column 1 regardless (real bug, caught on Sylmar's actual
-    # direct-support booking landing under Opener on the filled sheet). A
-    # 2-band bill is deliberately more flexible — it's ANY 2 of the 3 slots
-    # (opener+headliner or direct_support+headliner both valid), so there's no
-    # fixed slot->column table for it; keep the original relative-rank-among-
-    # the-acts-present behavior there (and trivially for a single-band bill).
-    def _col(a, i):
-        return a["slot_order"] if n >= 3 else 1 + i
+    # Which of the 3 act columns (1=Opener, 2=Direct Support, 3=Headliner)
+    # this act's data goes into. The universal doc always has all 3 columns
+    # regardless of how many bands are really on the bill (Brian, 2026-09-11),
+    # so this is purely slot -> column, never "how many acts, in what order":
+    #   - 3-band bill: unambiguous — slot_order already IS the column
+    #     (opener=1/direct_support=2/headliner=3).
+    #   - 2-band bill: whichever act is actually the headliner always takes
+    #     column 3 (its slot_order already is 3); the OTHER act takes column
+    #     2 regardless of whether it was slotted "opener" or "direct support"
+    #     at booking time — a 2-band universal doc always reads Headliner +
+    #     Direct Support, never Opener.
+    #   - 1-band bill: everything goes under Headliner, column 3, full stop,
+    #     regardless of what slot got stored for the lone act.
+    def _col(a):
+        if n >= 3:
+            return a["slot_order"]
+        if n == 1:
+            return 3
+        return 3 if a.get("slot") == "headliner" else 2
 
-    # multi-band act-name header row: bold slot label already printed by the
-    # template, second paragraph is the blank line for the actual band name
-    if not single:
-        for r in grid.rows:
-            if r.cells and r.cells[0].text.strip() == "" and any(
-                    c.paragraphs and c.paragraphs[0].runs and c.paragraphs[0].runs[0].bold
-                    for c in r.cells[1:1 + n]):
-                for i, a in enumerate(acts):
-                    if not a.get("artist"):
-                        continue
-                    ci = _col(a, i)
-                    if ci < len(r.cells) and len(r.cells[ci].paragraphs) >= 2:
-                        set_para_text(r.cells[ci].paragraphs[1], a["artist"]["name"])
-                break
+    # act-name header row: bold slot label already printed by the template
+    # (OPENER:/DIR SUPPORT:/HEADLINER:), second paragraph is the blank line
+    # for the actual band name. Always present now, even on a 1-band bill —
+    # the universal template has no separate single-band "Band:" line the
+    # way the old retired templates did.
+    for r in grid.rows:
+        if r.cells and r.cells[0].text.strip() == "" and any(
+                c.paragraphs and c.paragraphs[0].runs and c.paragraphs[0].runs[0].bold
+                for c in r.cells[1:]):
+            for a in acts:
+                if not a.get("artist"):
+                    continue
+                ci = _col(a)
+                if ci < len(r.cells) and len(r.cells[ci].paragraphs) >= 2:
+                    set_para_text(r.cells[ci].paragraphs[1], a["artist"]["name"])
+            break
 
     rows_by_label = act_columns(grid, n)
     filled_acts = 0
-    for i, a in enumerate(acts):
+    for a in acts:
         mf = merged_fields(a)
         if a.get("set_time"):
             mf_set_length = a["set_time"]
@@ -711,7 +734,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
             row = rows_by_label.get(label)
             if not row:
                 continue
-            ci = _col(a, i)
+            ci = _col(a)
             if ci >= len(row.cells):
                 continue
             if label == "stage plot" and saved_plot:
@@ -811,18 +834,21 @@ def _act_count_and_column(grid, target_norm, require_name_match):
     return 1, None
 
 
-def _template_defaults(venue, n_acts, ci):
-    """label(norm) -> the PRISTINE template's own default text in that act
-    column. A filled doc's row that still matches this is unfilled boilerplate
-    ("N/A", "No scenic elements", a blank "FOH – \\nMon –") rather than real
-    on-file data, regardless of which specific placeholder text the template
-    happens to use for that row — cheaper and more general than hardcoding
-    every known placeholder string."""
-    template = TEMPLATES_BY_VENUE.get(venue, {}).get(n_acts)
-    if not template or not template.exists():
+def _template_defaults(ci):
+    """label(norm) -> the pristine universal template's own default text in
+    that act column. A filled doc's row that still matches this is unfilled
+    boilerplate ("N/A", a blank "FOH – \\nMon –") rather than real on-file
+    data, regardless of which specific placeholder text the template happens
+    to use for that row — cheaper and more general than hardcoding every
+    known placeholder string. Only meaningful for a doc actually filed under
+    the universal template (2026-09-11 on); an older doc filed under one of
+    the retired venue-specific templates may occasionally show its own old
+    boilerplate as if it were real, until it ages out of the recap-
+    extraction catch-up window — a narrow, self-resolving gap, not a crash."""
+    if not UNIVERSAL_TEMPLATE.exists():
         return {}
     try:
-        doc = Document(str(template))
+        doc = Document(str(UNIVERSAL_TEMPLATE))
     except Exception:
         return {}
     grid = find_grid(doc)
@@ -855,7 +881,7 @@ def read_filed_advance(venue, event_date, artist_name, root=None):
         n_acts, ci = _act_count_and_column(grid, target, require_name_match=ambiguous)
         if ci is None:
             continue
-        defaults = _template_defaults(venue, n_acts, ci)
+        defaults = _template_defaults(ci)
         rows = []
         for r in grid.rows:
             label_norm = norm(r.cells[0].text)
