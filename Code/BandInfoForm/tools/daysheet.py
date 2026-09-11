@@ -170,11 +170,12 @@ def act_row_values(f):
         # back to the own-system answer, same as before this field existed
         out["iems"] = Checkbox(["Yes", "No"], f["own_iems"])
 
+    if str(uses_iems or "").lower() == "yes" and f.get("iem_count") not in (None, ""):
+        out["number of iems"] = str(f["iem_count"])
+
     notes = []
     if f.get("input_notes"):
         notes.append(f["input_notes"])
-    if str(uses_iems or "").lower() == "yes" and f.get("iem_count"):
-        notes.append(f"IEM systems needed: {f['iem_count']}")
     if str(uses_iems or "").lower() == "yes" and f.get("own_iems"):
         notes.append(f"Own IEM system: {f['own_iems']}")
     if str(f.get("own_iems", "")).lower() == "yes" and f.get("split_snake"):
@@ -195,7 +196,7 @@ def act_row_values(f):
     if f.get("large_vehicle"):
         out["parking"] = "Large vehicle" if str(f["large_vehicle"]).lower() == "yes" else "Standard"
     if f.get("performers") not in (None, ""):
-        out["drink tix"] = str(f["performers"])
+        out["number of performers"] = str(f["performers"])
     if f.get("band_tent"):
         out["dressing room tent"] = "Yes" if str(f["band_tent"]).lower().startswith("yes") else "No"
     if f.get("backline"):

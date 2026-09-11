@@ -126,7 +126,7 @@ BAND_FIELDS = [
     ("Merch",         "merch",         ["Yes", "No"], "merch"),
     ("Band Tent",     "band_tent",     ["Yes, please provide the tent",
                                         "No, not needed"], "dressing room tent"),
-    ("Performers",    "performers",    None, "drink tix"),
+    ("Performers",    "performers",    None, "number of performers"),
     ("Large Vehicle", "large_vehicle", ["Yes", "No"], "parking"),
 ]
 
