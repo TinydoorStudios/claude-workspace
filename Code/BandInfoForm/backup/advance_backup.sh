@@ -9,7 +9,10 @@
 #
 # It builds ONE self-contained, self-restoring archive and pushes it to both
 # TrueNAS boxes. Every archive carries its own restore.sh and RESTORE.md — you
-# never need this repo, this script, or a network to rebuild from one.
+# never need this repo, this script, or a network to rebuild from one. It also
+# keeps a second, completely different kind of backup on Cold Storage only: a
+# plain uncompressed mirror of the live Dropbox folder, no tar/zip, browsable
+# directly for instant access in an emergency (Brian, 2026-09-11).
 #
 # Scheduled by band-advance-backup.timer (Sundays 03:15). Manual run:
 #   sudo /opt/band-advance/backup/advance_backup.sh
@@ -52,13 +55,21 @@ TARGETS=(
   "audionas|brian@192.168.200.36|/mnt/AudioNas/brian/band-advance-backups|8|0"
 )
 
+# Cold-Storage-only, uncompressed mirror of the live Dropbox Nyquist folder
+# (Brian, 2026-09-11): no tar, no zip, nothing to extract — the whole point is
+# that in an emergency, someone can open this directory on the NAS directly
+# and every advance/template/status sheet is just... there. A true mirror
+# (rsync --delete), not a version history — that's what the tarball archive
+# above is for. Deliberately Cold-Storage-only, not also on Audio NAS.
+MIRROR_DIR="${MIRROR_DIR:-/mnt/The-Pool/ClaudeBackup/band-advance-dropbox-mirror}"
+
 KEEP_LOCAL="${KEEP_LOCAL:-4}"            # archives kept on the VM
 KEEP_WEEKLY="${KEEP_WEEKLY:-12}"         # fallback when a target omits its keep
 KEEP_MONTHLY="${KEEP_MONTHLY:-24}"       # fallback when a target omits its monthly
 N8N_PGDUMP_MAX_MB="${N8N_PGDUMP_MAX_MB:-1024}"
 
-# Email report — the n8n "Band Advance — Backup Report (Cold Storage)" workflow
-# owns the formatting and the send; this script just hands it the facts.
+# Email report — the n8n "Band Advance — Backup Report" workflow owns the
+# formatting and the send; this script just hands it the facts.
 NOTIFY="${NOTIFY:-1}"
 NOTIFY_TO="${NOTIFY_TO:-blloyd@3cdc.org}"
 NOTIFY_ONLY_ON_FAIL="${NOTIFY_ONLY_ON_FAIL:-0}"
@@ -82,6 +93,7 @@ WARNINGS=()
 DB_COUNTS=""
 CS_OK=0; CS_VERIFIED=0; CS_DIR=""; CS_KEEP=8; CS_PRUNED=""; CS_REMAIN=""
 AN_OK=0; AN_VERIFIED=0; AN_DIR=""; AN_KEEP=8; AN_PRUNED=""; AN_REMAIN=""
+MIRROR_OK=0; MIRROR_FILES=0
 
 log()  { printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" | tee -a "$LOG"; }
 step() { log ""; log "── $* ────────────────────────────────────────"; }
@@ -101,7 +113,7 @@ mkdir -p "$STAGE"/{db,app,appdata,dropbox,n8n,systemd,docker,secrets-plain}
 # ============================================================================
 # 1. Postgres — the advance database (the irreplaceable part)
 # ============================================================================
-step "1/9  advance database"
+step "1/10  advance database"
 if docker inspect "$DB_CONTAINER" >/dev/null 2>&1; then
   # Custom-format dump: compact, the one restore.sh uses.
   if docker exec "$DB_CONTAINER" pg_dump -U "$DB_USER" -d "$DB_NAME" -Fc \
@@ -144,7 +156,7 @@ cp "$APP_DIR/db/schema.sql" "$STAGE/db/schema.sql" 2>/dev/null \
 # ============================================================================
 # 2. Application code — exactly what is running, not what a repo thinks is
 # ============================================================================
-step "2/9  deployed application"
+step "2/10  deployed application"
 if rsync -a \
      --exclude 'venv/' --exclude '__pycache__/' --exclude '*.pyc' \
      --exclude 'app.py.bak.*' --exclude 'data/' --exclude '.git/' \
@@ -162,7 +174,7 @@ fi
 # ============================================================================
 # 3. Runtime data — disk-first submission JSON + every band-uploaded file
 # ============================================================================
-step "3/9  runtime data (submissions + uploads)"
+step "3/10  runtime data (submissions + uploads)"
 mkdir -p "$STAGE/appdata/json" "$STAGE/appdata/uploads"
 if compgen -G "$APP_DIR/data/*.json" >/dev/null; then
   cp -p "$APP_DIR"/data/*.json "$STAGE/appdata/json/" 2>>"$LOG" \
@@ -185,7 +197,7 @@ fi
 # 4. Dropbox — the Advancing cockpit: the xlsx sheets, the venue archives,
 #    the blank advances, the series email templates, generate.command
 # ============================================================================
-step "4/9  Dropbox Nyquist tree"
+step "4/10  Dropbox Nyquist tree"
 if [ -d "$DROPBOX_DIR" ]; then
   mkdir -p "$STAGE/dropbox/Nyquist"
   if rsync -a --exclude '.DS_Store' --exclude '~\$*' --exclude '.dropbox*' \
@@ -205,7 +217,7 @@ fi
 # ============================================================================
 # 5. n8n — the automation half (workflows, credentials, full DB)
 # ============================================================================
-step "5/9  n8n workflows + credentials"
+step "5/10  n8n workflows + credentials"
 mkdir -p "$STAGE/n8n/workflows"
 N8N_CTR="${N8N_CTR:-n8n-n8n-1}"
 NC="docker exec $N8N_CTR n8n"
@@ -254,7 +266,7 @@ cp "$APP_DIR/n8n"/*.json "$STAGE/n8n/" 2>/dev/null   # repo copies, as shipped
 # ============================================================================
 # 6. Host wiring — systemd units, docker compose, cloudflare ingress note
 # ============================================================================
-step "6/9  host configuration"
+step "6/10  host configuration"
 for unit in band-advance.service band-advance-backup.service band-advance-backup.timer; do
   cp "/etc/systemd/system/$unit" "$STAGE/systemd/$unit" 2>/dev/null && ok "unit: $unit"
 done
@@ -273,7 +285,7 @@ cp "$N8N_DIR/docker-compose.yml"    "$STAGE/docker/n8n.compose.yml"        2>/de
 # ============================================================================
 # 7. Secrets — separate, encrypted, and never required for a data restore
 # ============================================================================
-step "7/9  secrets bundle"
+step "7/10  secrets bundle"
 cp "$APP_DIR/advance.env" "$STAGE/secrets-plain/advance.env" 2>/dev/null && ok "advance.env"
 cp "$APP_DIR/db/.env"     "$STAGE/secrets-plain/advance-db.env" 2>/dev/null && ok "advance-db .env"
 cp "$N8N_DIR/.env"        "$STAGE/secrets-plain/n8n.env" 2>/dev/null && ok "n8n .env (carries N8N_ENCRYPTION_KEY)"
@@ -305,7 +317,7 @@ rm -rf "$STAGE/secrets-plain"
 # ============================================================================
 # 8. Manifest, restore script, checksums, tarball
 # ============================================================================
-step "8/9  manifest + restore kit + package"
+step "8/10  manifest + restore kit + package"
 cp "$APP_DIR/backup/restore.sh" "$STAGE/restore.sh" 2>/dev/null \
   || cp "$(dirname "$0")/restore.sh" "$STAGE/restore.sh" 2>/dev/null
 if [ -f "$STAGE/restore.sh" ]; then chmod +x "$STAGE/restore.sh"; ok "restore.sh embedded"
@@ -397,7 +409,7 @@ rm -rf "$STAGE"
 # ============================================================================
 # 9. Ship to both NAS boxes, verify remotely, prune
 # ============================================================================
-step "9/9  push to NAS + retention"
+step "9/10  push to NAS + retention"
 SSH_OPTS="-i $SSH_KEY -o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new"
 PUSHED=0
 if [ "$DRY_RUN" = 1 ]; then
@@ -481,6 +493,41 @@ else
   find "$LOG_DIR" -name 'backup-*.log' -mtime +120 -delete 2>/dev/null
 fi
 
+# ============================================================================
+# 10. Cold Storage only — a plain, uncompressed mirror of the live Dropbox
+#     folder, browsable directly with no extraction step (Brian, 2026-09-11)
+# ============================================================================
+step "10/10 Cold Storage — uncompressed Dropbox mirror"
+if [ "$DRY_RUN" = 1 ]; then
+  log "   (dry run — skipping the mirror sync)"
+elif [ ! -d "$DROPBOX_DIR" ]; then
+  fail "mirror: $DROPBOX_DIR not found on this VM — nothing to sync"
+else
+  CS_HOST=""
+  for t in "${TARGETS[@]}"; do
+    IFS='|' read -r NM HOST _ <<< "$t"
+    [ "$NM" = "coldstorage" ] && CS_HOST="$HOST"
+  done
+  if [ -z "$CS_HOST" ]; then
+    fail "mirror: no coldstorage entry in TARGETS — can't find a host"
+  elif ! ssh $SSH_OPTS "$CS_HOST" "mkdir -p '$MIRROR_DIR'" 2>>"$LOG"; then
+    fail "mirror: $CS_HOST unreachable — Dropbox mirror NOT updated"
+  else
+    # --delete makes this a TRUE mirror of what's in Dropbox right now, not
+    # an accumulating pile — the point is "exactly what's really there
+    # today," which is what someone needs in an emergency, not a history
+    # (the tarball archive above is what covers history/point-in-time).
+    if rsync -a --delete --partial -e "ssh $SSH_OPTS" \
+           "$DROPBOX_DIR/" "$CS_HOST:$MIRROR_DIR/" >>"$LOG" 2>&1; then
+      MIRROR_OK=1
+      MIRROR_FILES=$(ssh $SSH_OPTS "$CS_HOST" "find '$MIRROR_DIR' -type f | wc -l" 2>/dev/null | tr -d ' ')
+      ok "mirror: synced — $MIRROR_FILES files now on Cold Storage at $MIRROR_DIR, no extraction needed"
+    else
+      fail "mirror: rsync to Cold Storage failed"
+    fi
+  fi
+fi
+
 # ------------------------------------------------------------- summary ------
 step "summary"
 [ ${#FAILURES[@]} -gt 0 ] && STATUS="PARTIAL"
@@ -515,6 +562,7 @@ if [ "$NOTIFY" = "1" ] && [ "$DRY_RUN" = 0 ]; then
       BA_CS_PRUNED="$CS_PRUNED" BA_CS_REMAIN="$CS_REMAIN" \
       BA_AN_DIR="$AN_DIR" BA_AN_KEEP="$AN_KEEP" \
       BA_AN_PRUNED="$AN_PRUNED" BA_AN_REMAIN="$AN_REMAIN" BA_COUNTS="$DB_COUNTS" \
+      BA_MIRROR_OK="$MIRROR_OK" BA_MIRROR_FILES="$MIRROR_FILES" BA_MIRROR_DIR="$MIRROR_DIR" \
       BA_FAILURES="$(printf '%s\n' "${FAILURES[@]:-}")" \
       BA_WARNINGS="$(printf '%s\n' "${WARNINGS[@]:-}")" \
       python3 - > "$PAYLOAD" <<'PYPAY'
@@ -549,6 +597,11 @@ print(json.dumps({
         "archives": lines("BA_AN_REMAIN"),
         "pruned":   lines("BA_AN_PRUNED"),
         "count":    len(lines("BA_AN_REMAIN")),
+    },
+    "mirror": {
+        "ok":    os.environ.get("BA_MIRROR_OK") == "1",
+        "files": int(os.environ.get("BA_MIRROR_FILES", "0") or 0),
+        "path":  os.environ.get("BA_MIRROR_DIR", ""),
     },
     "db_rows":  counts,
     "failures": lines("BA_FAILURES"),
@@ -595,6 +648,8 @@ fi
   echo "  \"audionas_verified\": $([ "$AN_VERIFIED" = 1 ] && echo true || echo false),"
   echo "  \"audionas_held\": $(printf '%s\n' "$AN_REMAIN" | grep -c .),"
   echo "  \"audionas_keep\": $AN_KEEP,"
+  echo "  \"mirror_ok\": $([ "$MIRROR_OK" = 1 ] && echo true || echo false),"
+  echo "  \"mirror_files\": $MIRROR_FILES,"
   echo "  \"failures\": ${#FAILURES[@]},"
   echo "  \"warnings\": ${#WARNINGS[@]}"
   echo "}"

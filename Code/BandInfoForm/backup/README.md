@@ -16,6 +16,15 @@ two-year tail. 4 kept locally on the VM.
 **Report:** every run emails blloyd@3cdc.org from the n8n workflow
 **Band Advance — Backup Report**, with both boxes' status reported side by side.
 
+**Also, Cold Storage only (added 2026-09-11):** a second, completely different
+kind of backup — a plain, uncompressed mirror of the live Dropbox `Nyquist/`
+folder at `/mnt/The-Pool/ClaudeBackup/band-advance-dropbox-mirror/`. No tar, no
+zip, nothing to extract: in an emergency, every advance doc, template, and
+status sheet is just sitting there, openable directly. It's a true mirror
+(`rsync --delete`) of what's in Dropbox right now, not a version history —
+that's what the tarball archive above is for. Deliberately not also on Audio
+NAS; the tarball archive already covers that box.
+
 ---
 
 ## Install (once)
@@ -137,7 +146,7 @@ $VM 'ls -t /var/log/band-advance/*.log | head -1 | xargs tail -40'
 
 Settings can be overridden without editing the script — put them in
 `/etc/band-advance-backup.conf` on the VM (`KEEP_LOCAL`, `NOTIFY`, `NOTIFY_TO`,
-`NOTIFY_ONLY_ON_FAIL`, `NOTIFY_URL`, `TARGETS`).
+`NOTIFY_ONLY_ON_FAIL`, `NOTIFY_URL`, `TARGETS`, `MIRROR_DIR`).
 
 Per-box retention lives in the `TARGETS` array, one line per NAS:
 
