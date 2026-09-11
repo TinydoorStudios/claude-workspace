@@ -114,6 +114,7 @@ def form_fields(sub):
         "monitors": (str(sub["monitors"]) if sub.get("monitors") is not None
                      else d.get("monitors")),
         "uses_iems": d.get("uses_iems"),
+        "iem_count": d.get("iem_count"),
         "own_iems": _yn(sub.get("own_iems")) or d.get("own_iems"),
         "split_snake": sub.get("split_snake") or d.get("split_snake"),
         "stage_plot_desc": d.get("stage_plot_desc"),
@@ -172,6 +173,8 @@ def act_row_values(f):
     notes = []
     if f.get("input_notes"):
         notes.append(f["input_notes"])
+    if str(uses_iems or "").lower() == "yes" and f.get("iem_count"):
+        notes.append(f"IEM systems needed: {f['iem_count']}")
     if str(uses_iems or "").lower() == "yes" and f.get("own_iems"):
         notes.append(f"Own IEM system: {f['own_iems']}")
     if str(f.get("own_iems", "")).lower() == "yes" and f.get("split_snake"):

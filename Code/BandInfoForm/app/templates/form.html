@@ -198,6 +198,11 @@
     </select>
   </div>
 
+  <div class="field conditional hidden" id="iem_count_field">
+    <label class="q">How many in-ear systems do you need?<span class="req">*</span></label>
+    <input type="number" name="iem_count" id="iem_count" min="1" step="1" value="{{ v('iem_count') }}">
+  </div>
+
   <div class="field conditional hidden" id="own_iems_field">
     <label class="q">Are you bringing your own in-ear system?<span class="req">*</span></label>
     {% set ie = prefill.get('own_iems') %}
@@ -349,6 +354,8 @@
 
 <script>
   var usesIems = document.getElementById('uses_iems');
+  var iemCountField = document.getElementById('iem_count_field');
+  var iemCount = document.getElementById('iem_count');
   var ownIemsField = document.getElementById('own_iems_field');
   var iem = document.getElementById('own_iems');
   var splitField = document.getElementById('split_field');
@@ -361,6 +368,9 @@
   }
   function syncOwnIems(){
     var show = usesIems.value === 'Yes';
+    iemCountField.classList.toggle('hidden', !show);
+    iemCount.required = show;
+    if(!show){ iemCount.value = ''; }
     ownIemsField.classList.toggle('hidden', !show);
     iem.required = show;
     if(!show){ iem.value = ''; }
