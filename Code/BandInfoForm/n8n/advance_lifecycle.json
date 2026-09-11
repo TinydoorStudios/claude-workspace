@@ -65,25 +65,28 @@
     {
       "id": "gmail-draft-1",
       "name": "Create Draft",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         860,
         300
       ],
       "parameters": {
-        "resource": "draft",
-        "subject": "={{ $json.subject }}",
-        "message": "={{ $json.body }}",
-        "options": {
-          "sendTo": "={{ $json.to }}"
-        }
-      },
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "nIrgTZKXgA3bJ9oP",
-          "name": "3CDCProduction@gmail.com"
-        }
+        "url": "http://localhost:5678/webhook/internal-create-outlook-draft",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Advance-Token",
+              "value": "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ subject: $json.subject, body: $json.body, to: $json.to }) }}",
+        "options": {}
       },
       "alwaysOutputData": true
     },
