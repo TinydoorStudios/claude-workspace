@@ -52,7 +52,7 @@
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify((() => { const b = $json.body || $json; return { message: { subject: b.subject, body: { contentType: 'HTML', content: b.html }, toRecipients: [ { emailAddress: { address: b.to || 'blloyd@3cdc.org' } } ] }, saveToSentItems: true }; })()) }}",
+        "jsonBody": "={{ JSON.stringify((() => { const b = $json.body || $json; const addrs = String(b.to || 'blloyd@3cdc.org').split(',').map(s => s.trim()).filter(Boolean); return { message: { subject: b.subject, body: { contentType: 'HTML', content: b.html }, toRecipients: addrs.map(a => ({ emailAddress: { address: a } })) }, saveToSentItems: true }; })()) }}",
         "options": {
           "response": {
             "response": {
