@@ -412,7 +412,7 @@ def _run_pipeline_then_trigger_now():
 
 # ── gated views (passcode) ──────────────────────────────────────────────────
 
-GATED_PREFIXES = ("/staff", "/search", "/artist", "/file", "/submission", "/booking")
+GATED_PREFIXES = ("/staff", "/search", "/artist", "/file", "/submission", "/booking", "/dashboard")
 
 
 @app.before_request
@@ -438,6 +438,62 @@ def staff():
     new booking, or browse bands already advanced. Linked from the dashboard;
     the gate lands here by default too."""
     return render_template("staff.html")
+
+
+# ── live dashboard (Brian, 2026-09-12) ──────────────────────────────────────
+# Every advance from today forward — sites, bands, where each stands in the
+# pipeline. Meant to be left open (a kiosk tab, a second monitor): the page is
+# static HTML/JS that polls /dashboard/data on an interval, so nothing here
+# ever needs a hard reload to stay current.
+
+DASHBOARD_STATE_LABELS = {
+    "queued":           ("Queued",          "queued"),
+    "awaiting":         ("Awaiting Window", "awaiting"),
+    "ready_to_send":    ("Ready to Send",   "ready"),
+    "followup_due":     ("Follow-up Due",   "due"),
+    "followup_drafted": ("Follow-up Sent",  "followup"),
+    "responded":        ("Advanced",        "responded"),
+}
+
+
+@app.get("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+
+@app.get("/dashboard/data")
+def dashboard_data():
+    """JSON feed the dashboard polls. Rows sharing a venue+date are grouped
+    into one bill (same assumption `shows`' own unique constraint makes —
+    artist+venue+date is the booking key) so a multi-band night reads as one
+    card, not three separate ones."""
+    if not DB_OK:
+        return {"error": "db-unavailable", "bills": [], "generated_at": dt.datetime.now().isoformat()}, 503
+    try:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            rows = advance_db.dashboard_status(cur)
+    except Exception as e:
+        _log_db_error("dashboard_data", e)
+        return {"error": "query-failed", "bills": [], "generated_at": dt.datetime.now().isoformat()}, 500
+
+    bills, order = {}, []
+    for r in rows:
+        key = (r["show_date"], r["venue"])
+        if key not in bills:
+            bills[key] = {
+                "date": r["show_date"].isoformat() if r["show_date"] else None,
+                "venue": r["venue"] or "Venue TBD",
+                "series": r["show_series"] or "",
+                "days_until": r["days_until_show"],
+                "acts": [],
+            }
+            order.append(key)
+        label, css = DASHBOARD_STATE_LABELS.get(r["state"], (r["state"] or "Unknown", "queued"))
+        bills[key]["acts"].append({
+            "band": r["band"], "state": r["state"],
+            "state_label": label, "state_css": css,
+        })
+    return {"bills": [bills[k] for k in order], "generated_at": dt.datetime.now().isoformat()}
 
 
 BOOKING_SLOTS = ["headliner", "direct_support", "opener"]

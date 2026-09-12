@@ -331,6 +331,19 @@ def upcoming_advance_status(cur, days=14):
     return cur.fetchall()
 
 
+def dashboard_status(cur):
+    """Every show from today forward, no upper bound — the live dashboard's
+    feed (Brian, 2026-09-12: 'nothing that has passed'). Unlike
+    upcoming_advance_status this never caps how far out it looks; the
+    dashboard groups/sorts client-side."""
+    cur.execute(
+        """SELECT * FROM advance_status
+           WHERE days_until_show >= 0
+           ORDER BY show_date ASC, venue ASC, band ASC"""
+    )
+    return cur.fetchall()
+
+
 def due_for_recap_extraction(cur, grace_days=1, lookback_days=30):
     """Shows that finished at least `grace_days` ago (their advance doc has had
     time to be corrected/finalized) and haven't had their recap extracted yet.

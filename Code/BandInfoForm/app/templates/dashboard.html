@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Band Advance — Live Dashboard</title>
+<style>
+  :root{color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#0d1117;color:#e6edf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;}
+
+  header{background:#1A3A5C;color:#fff;padding:18px 24px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    position:sticky;top:0;z-index:10;box-shadow:0 2px 10px rgba(0,0,0,.35);}
+  header .title{display:flex;align-items:center;gap:10px;}
+  header h1{margin:0;font-size:19px;font-weight:600;letter-spacing:.2px;}
+  .pulse{width:9px;height:9px;border-radius:50%;background:#3fb950;
+    box-shadow:0 0 0 rgba(63,185,80,.6);animation:pulse 2.2s infinite;}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(63,185,80,.55);}
+    70%{box-shadow:0 0 0 8px rgba(63,185,80,0);}
+    100%{box-shadow:0 0 0 0 rgba(63,185,80,0);}
+  }
+  .meta{font-size:12.5px;color:#c7d6e6;}
+
+  .chips{display:flex;gap:8px;padding:14px 24px 0;flex-wrap:wrap;}
+  .chip{border:1px solid #2a323d;background:#161b22;color:#8b97a6;border-radius:999px;
+    padding:6px 14px;font-size:12.5px;cursor:pointer;user-select:none;transition:.15s;}
+  .chip:hover{border-color:#4da3ff;color:#e6edf3;}
+  .chip.active{background:#1A3A5C;border-color:#2E6DA4;color:#fff;}
+
+  main{max-width:1100px;margin:0 auto;padding:20px 24px 60px;}
+
+  .day{margin-top:28px;}
+  .day:first-child{margin-top:20px;}
+  .day-head{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;
+    border-bottom:1px solid #21262d;padding-bottom:8px;}
+  .day-head .rel{font-size:15px;font-weight:700;color:#e6edf3;}
+  .day-head .abs{font-size:12.5px;color:#8b97a6;}
+
+  .bills{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+  .bill{background:#161b22;border:1px solid #2a323d;border-radius:12px;padding:16px 18px;
+    transition:border-color .15s;}
+  .bill:hover{border-color:#3a4453;}
+  .bill-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;}
+  .venue{font-size:14px;font-weight:700;color:#4da3ff;}
+  .series{font-size:12px;color:#8b97a6;margin-top:2px;}
+  .days-badge{flex-shrink:0;font-size:11px;color:#8b97a6;background:#0d1117;border:1px solid #2a323d;
+    border-radius:999px;padding:3px 9px;white-space:nowrap;}
+
+  .acts{display:flex;flex-direction:column;gap:7px;}
+  .act{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .band{font-size:13.5px;color:#e6edf3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pill{flex-shrink:0;font-size:11px;font-weight:600;border-radius:999px;padding:3px 10px;
+    white-space:nowrap;}
+  .pill.queued{background:#21262d;color:#8b97a6;}
+  .pill.awaiting{background:#2d333b;color:#a9b4c0;}
+  .pill.ready{background:rgba(77,163,255,.15);color:#4da3ff;}
+  .pill.due{background:rgba(248,81,73,.15);color:#f85149;}
+  .pill.followup{background:rgba(210,153,34,.18);color:#d29922;}
+  .pill.responded{background:rgba(63,185,80,.16);color:#3fb950;}
+
+  .empty{text-align:center;color:#8b97a6;padding:80px 20px;font-size:14px;}
+  .empty .big{font-size:32px;margin-bottom:10px;}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;padding:18px 24px 0;font-size:11.5px;color:#8b97a6;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <span class="pulse" id="pulse"></span>
+    <h1>Band Advance — Live</h1>
+  </div>
+  <div class="meta" id="updated">loading…</div>
+</header>
+
+<div class="legend">
+  <span><i style="background:#3fb950"></i> Advanced</span>
+  <span><i style="background:#f85149"></i> Follow-up Due</span>
+  <span><i style="background:#d29922"></i> Follow-up Sent</span>
+  <span><i style="background:#4da3ff"></i> Ready to Send</span>
+  <span><i style="background:#a9b4c0"></i> Awaiting Window</span>
+  <span><i style="background:#8b97a6"></i> Queued</span>
+</div>
+
+<div class="chips" id="chips"></div>
+
+<main id="main">
+  <div class="empty">loading…</div>
+</main>
+
+<script>
+const REFRESH_MS = 20000;
+let activeVenue = "All";
+let lastBills = [];
+
+function fmtDay(iso, daysUntil){
+  const d = new Date(iso + "T12:00:00");
+  const abs = d.toLocaleDateString(undefined, {weekday:"long", month:"short", day:"numeric"});
+  let rel;
+  if (daysUntil === 0) rel = "Today";
+  else if (daysUntil === 1) rel = "Tomorrow";
+  else rel = d.toLocaleDateString(undefined, {weekday:"long"});
+  return {rel, abs};
+}
+
+function render(bills){
+  lastBills = bills;
+  const venues = ["All", ...new Set(bills.map(b => b.venue))];
+  const chips = document.getElementById("chips");
+  chips.innerHTML = "";
+  venues.forEach(v => {
+    const el = document.createElement("div");
+    el.className = "chip" + (v === activeVenue ? " active" : "");
+    el.textContent = v;
+    el.onclick = () => { activeVenue = v; render(lastBills); };
+    chips.appendChild(el);
+  });
+
+  const filtered = activeVenue === "All" ? bills : bills.filter(b => b.venue === activeVenue);
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+
+  if (!filtered.length){
+    main.innerHTML = '<div class="empty"><div class="big">🎤</div>Nothing on the books right now.</div>';
+    return;
+  }
+
+  const byDay = {};
+  const order = [];
+  filtered.forEach(b => {
+    if (!(b.date in byDay)){ byDay[b.date] = []; order.push(b.date); }
+    byDay[b.date].push(b);
+  });
+
+  order.forEach(dateIso => {
+    const dayBills = byDay[dateIso];
+    const {rel, abs} = fmtDay(dateIso, dayBills[0].days_until);
+    const day = document.createElement("div");
+    day.className = "day";
+    day.innerHTML = `<div class="day-head"><span class="rel">${rel}</span><span class="abs">${abs}</span></div>`;
+    const grid = document.createElement("div");
+    grid.className = "bills";
+    dayBills.forEach(b => {
+      const card = document.createElement("div");
+      card.className = "bill";
+      const actsHtml = b.acts.map(a =>
+        `<div class="act"><span class="band">${a.band}</span><span class="pill ${a.state_css}">${a.state_label}</span></div>`
+      ).join("");
+      card.innerHTML = `
+        <div class="bill-head">
+          <div><div class="venue">${b.venue}</div>${b.series ? `<div class="series">${b.series}</div>` : ""}</div>
+          <div class="days-badge">${b.days_until === 0 ? "today" : b.days_until + "d"}</div>
+        </div>
+        <div class="acts">${actsHtml}</div>`;
+      grid.appendChild(card);
+    });
+    day.appendChild(grid);
+    main.appendChild(day);
+  });
+}
+
+async function refresh(){
+  try{
+    const res = await fetch("/dashboard/data", {cache:"no-store"});
+    const data = await res.json();
+    render(data.bills || []);
+    const dt = new Date(data.generated_at || Date.now());
+    document.getElementById("updated").textContent = "updated " + dt.toLocaleTimeString();
+    document.getElementById("pulse").style.background = data.error ? "#f85149" : "#3fb950";
+  }catch(e){
+    document.getElementById("updated").textContent = "connection lost — retrying…";
+    document.getElementById("pulse").style.background = "#f85149";
+  }
+}
+
+refresh();
+setInterval(refresh, REFRESH_MS);
+</script>
+</body>
+</html>
