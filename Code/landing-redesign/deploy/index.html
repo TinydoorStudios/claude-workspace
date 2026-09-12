@@ -115,32 +115,39 @@ a.station:hover{border-color:var(--cy-dim);background:#0b1119}
 .ltg-det{font-size:9px;color:var(--dim);letter-spacing:1px;margin-top:4px}
 .radar svg{display:block}
 
-/* ── services manifest ── */
-.svc-group{margin-bottom:16px}
-.svc-group:last-child{margin-bottom:0}
-.svc-head{display:flex;align-items:center;gap:8px;font-size:9px;font-weight:700;letter-spacing:2.5px;
-  color:var(--dim);text-transform:uppercase;margin:0 0 6px 2px}
-.svc-head::after{content:'';flex:1;height:1px;background:var(--edge)}
-/* minmax(0,1fr), not bare 1fr — a bare 1fr track won't shrink below its
-   content's min-content width, so a long name+description silently pushed
-   the whole panel past the viewport instead of the row's own ellipsis ever
-   kicking in (Brian, 2026-09-12: "way off the right side of the screen"). */
-.svc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2px 26px;min-width:0}
-@media(max-width:760px){.svc{grid-template-columns:minmax(0,1fr)}}
-a.row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:2px;
-  text-decoration:none;color:var(--ink);font-size:12px;border-left:2px solid transparent;
-  min-width:0}
+/* ── services manifest ──────────────────────────────────────────────────
+   One table, not a 2-up card grid (Brian, 2026-09-12: "chaotic... every-
+   thing should line up, all of the similar information should be lined
+   up"). #svcList sets --cols ONCE; every row in every section reuses the
+   exact same grid-template-columns, so name/description/ping/tag all fall
+   into the same vertical columns from the first section to the last. */
+#svcList{--cols:26px 150px minmax(0,1fr) 66px 84px;}
+.svc-group{margin-bottom:4px}
+.svc-head{font-size:9px;font-weight:700;letter-spacing:2.5px;color:var(--dim);
+  text-transform:uppercase;margin:16px 0 4px;padding:0 10px 6px;border-bottom:1px solid var(--edge)}
+.svc-group:first-child .svc-head{margin-top:0}
+.svc{display:flex;flex-direction:column}
+a.row{display:grid;grid-template-columns:var(--cols);align-items:center;gap:10px;
+  padding:7px 10px;border-radius:2px;text-decoration:none;color:var(--ink);
+  font-size:12px;border-left:2px solid transparent;min-width:0}
 a.row:hover{background:rgba(55,200,255,.06);border-left-color:var(--cy)}
-.row .idx{color:var(--dim);font-size:10px;width:22px;flex:none}
-.row .nm{font-weight:700;letter-spacing:.5px;flex:none;color:#fff}
-.row .ds{color:var(--mut);font-size:10px;letter-spacing:.5px;flex:1;min-width:0;
+.row .idx{color:var(--dim);font-size:10px}
+.row .nm{font-weight:700;letter-spacing:.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .ds{color:var(--mut);font-size:10px;letter-spacing:.5px;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ping{font-size:9px;letter-spacing:1px;color:var(--dim);flex:none;width:74px;text-align:right}
+.ping{font-size:9px;letter-spacing:1px;color:var(--dim);text-align:right}
 .ping.up{color:var(--ok)} .ping.dn{color:var(--bad)}
-.tag{font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:2px;flex:none;border:1px solid}
+.tag{font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:2px;
+  border:1px solid;justify-self:start;white-space:nowrap}
 .lock{color:var(--warn);border-color:rgba(255,210,77,.4)}
 .login{color:#c792ea;border-color:rgba(199,146,234,.4)}
 .lan{color:var(--cy);border-color:rgba(55,200,255,.4)}
+/* narrow screens: drop the idx + ping columns rather than let the fixed
+   columns force a horizontal scroll again */
+@media(max-width:640px){
+  #svcList{--cols:150px minmax(0,1fr) 78px;}
+  .row .idx, .row .ping{display:none}
+}
 .foot{color:var(--dim);font-size:10px;letter-spacing:2px;margin-top:26px;text-align:center;text-transform:uppercase}
 </style>
 </head>
