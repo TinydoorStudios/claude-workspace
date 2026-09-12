@@ -116,6 +116,11 @@ a.station:hover{border-color:var(--cy-dim);background:#0b1119}
 .radar svg{display:block}
 
 /* ── services manifest ── */
+.svc-group{margin-bottom:16px}
+.svc-group:last-child{margin-bottom:0}
+.svc-head{display:flex;align-items:center;gap:8px;font-size:9px;font-weight:700;letter-spacing:2.5px;
+  color:var(--dim);text-transform:uppercase;margin:0 0 6px 2px}
+.svc-head::after{content:'';flex:1;height:1px;background:var(--edge)}
 .svc{display:grid;grid-template-columns:1fr 1fr;gap:2px 26px}
 @media(max-width:760px){.svc{grid-template-columns:1fr}}
 a.row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:2px;
@@ -392,30 +397,44 @@ function connectTempest(){
 }
 connectTempest();
 
-// ══ SERVICES + live reachability probes ══
-const SERVICES = [
-  { nm:'LIVE SOUND KB', ds:'wiki — articles + shows', href:'https://kb.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://kb.tinydoorstudios.com' },
-  { nm:'N8N', ds:'automation workflows', href:'https://n8n.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://n8n.tinydoorstudios.com/healthz' },
-  { nm:'SHOWBUILDER', ds:'Q225 paperwork + .ses package', href:'https://showbuilder.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://showbuilder.tinydoorstudios.com' },
-  { nm:'BAND ADVANCE', ds:'staff hub — new booking + artist directory (beta)', href:'https://advance.tinydoorstudios.com/staff', tag:['lock','PASSCODE'], probe:'https://advance.tinydoorstudios.com' },
-  { nm:'NEW BOOKING', ds:'log a band straight in — skips the staff hub', href:'https://advance.tinydoorstudios.com/booking', tag:['lock','PASSCODE'], probe:'https://advance.tinydoorstudios.com' },
-  { nm:'BAND ADVANCE — LIVE', ds:'live board — sites, bands, advance status, today forward', href:'https://advance.tinydoorstudios.com/dashboard', tag:['lock','PASSCODE'], probe:'https://advance.tinydoorstudios.com' },
-  { nm:'UPLOADS', ds:'guest file drop — AFX (Cold Storage)', href:'https://uploads.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://uploads.tinydoorstudios.com' },
-  { nm:'GROW TENTS', ds:'AC Infinity monitor + control', href:'https://grow.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://grow.tinydoorstudios.com' },
-  { nm:'SPL — FSQ', ds:'Fountain Square FOH SPL — live during shows', href:'https://spl.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://spl.tinydoorstudios.com' },
-  { nm:'SPL — MEMO', ds:'Memorial Hall FOH SPL — live during shows', href:'https://memo-spl.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://memo-spl.tinydoorstudios.com' },
-  { nm:'TEMPEST', ds:'3-station weather net', href:'https://tempest.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://tempest.tinydoorstudios.com' },
-  { nm:'CAMERAS', ds:'reboot 3× JVC PTZ (Memo)', href:'/cameras/', tag:['login','LOGIN'], probe:'same-origin:/cameras/' },
-  { nm:'VM RACK', ds:'infra dashboard — host, VMs, services', href:'/rack/', tag:['lock','PASSCODE'], probe:null },
-  { nm:'PROXMOX', ds:'TDS host management', href:'https://tds.tail9c92b.ts.net:8006', tag:['lan','TAILNET'], probe:null },
-  { nm:'IDRAC', ds:'Dell out-of-band mgmt', href:'https://192.168.0.7', tag:['lan','LAN'], probe:null },
+// ══ SERVICES + live reachability probes — grouped by function (Brian, 2026-09-12) ══
+const SERVICE_GROUPS = [
+  { group:'BAND ADVANCE', items:[
+    { nm:'STAFF HUB', ds:'new booking + artist directory (beta)', href:'https://advance.tinydoorstudios.com/staff', tag:['lock','PASSCODE'], probe:'https://advance.tinydoorstudios.com' },
+    { nm:'NEW BOOKING', ds:'log a band straight in — skips the staff hub', href:'https://advance.tinydoorstudios.com/booking', tag:['lock','PASSCODE'], probe:'https://advance.tinydoorstudios.com' },
+    { nm:'LIVE DASHBOARD', ds:'sites, bands, advance status — today forward', href:'https://advance.tinydoorstudios.com/dashboard', tag:['lock','PASSCODE'], probe:'https://advance.tinydoorstudios.com' },
+  ]},
+  { group:'SHOW TOOLS', items:[
+    { nm:'LIVE SOUND KB', ds:'wiki — articles + shows', href:'https://kb.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://kb.tinydoorstudios.com' },
+    { nm:'SHOWBUILDER', ds:'Q225 paperwork + .ses package', href:'https://showbuilder.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://showbuilder.tinydoorstudios.com' },
+    { nm:'SPL — FSQ', ds:'Fountain Square FOH SPL — live during shows', href:'https://spl.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://spl.tinydoorstudios.com' },
+    { nm:'SPL — MEMO', ds:'Memorial Hall FOH SPL — live during shows', href:'https://memo-spl.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://memo-spl.tinydoorstudios.com' },
+    { nm:'TEMPEST', ds:'3-station weather net', href:'https://tempest.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://tempest.tinydoorstudios.com' },
+    { nm:'CAMERAS', ds:'reboot 3× JVC PTZ (Memo)', href:'/cameras/', tag:['login','LOGIN'], probe:'same-origin:/cameras/' },
+  ]},
+  { group:'INFRASTRUCTURE', items:[
+    { nm:'N8N', ds:'automation workflows', href:'https://n8n.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://n8n.tinydoorstudios.com/healthz' },
+    { nm:'VM RACK', ds:'infra dashboard — host, VMs, services', href:'/rack/', tag:['lock','PASSCODE'], probe:null },
+    { nm:'PROXMOX', ds:'TDS host management', href:'https://tds.tail9c92b.ts.net:8006', tag:['lan','TAILNET'], probe:null },
+    { nm:'IDRAC', ds:'Dell out-of-band mgmt', href:'https://192.168.0.7', tag:['lan','LAN'], probe:null },
+  ]},
+  { group:'OTHER', items:[
+    { nm:'UPLOADS', ds:'guest file drop — AFX (Cold Storage)', href:'https://uploads.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://uploads.tinydoorstudios.com' },
+    { nm:'GROW TENTS', ds:'AC Infinity monitor + control', href:'https://grow.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://grow.tinydoorstudios.com' },
+  ]},
 ];
+const SERVICES = SERVICE_GROUPS.flatMap(g => g.items);  // flat, for the probe loop's indexing
 function renderServices(){
-  document.getElementById('svcList').innerHTML = SERVICES.map((s,i) =>
-    '<a class="row" href="'+s.href+'"><span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
-    '<span class="nm">'+s.nm+'</span><span class="ds">'+s.ds+'</span>'+
-    '<span class="ping" id="ping'+i+'">'+(s.probe ? '· · ·' : '—')+'</span>'+
-    '<span class="tag '+s.tag[0]+'">'+s.tag[1]+'</span></a>').join('');
+  let i = -1;
+  document.getElementById('svcList').innerHTML = SERVICE_GROUPS.map(g =>
+    '<div class="svc-group"><div class="svc-head">'+g.group+'</div><div class="svc">'+
+    g.items.map(s => { i++;
+      return '<a class="row" href="'+s.href+'"><span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
+        '<span class="nm">'+s.nm+'</span><span class="ds">'+s.ds+'</span>'+
+        '<span class="ping" id="ping'+i+'">'+(s.probe ? '· · ·' : '—')+'</span>'+
+        '<span class="tag '+s.tag[0]+'">'+s.tag[1]+'</span></a>';
+    }).join('') +
+    '</div></div>').join('');
 }
 renderServices();
 async function probeAll(){
