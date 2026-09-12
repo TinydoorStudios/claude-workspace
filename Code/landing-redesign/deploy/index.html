@@ -121,14 +121,19 @@ a.station:hover{border-color:var(--cy-dim);background:#0b1119}
 .svc-head{display:flex;align-items:center;gap:8px;font-size:9px;font-weight:700;letter-spacing:2.5px;
   color:var(--dim);text-transform:uppercase;margin:0 0 6px 2px}
 .svc-head::after{content:'';flex:1;height:1px;background:var(--edge)}
-.svc{display:grid;grid-template-columns:1fr 1fr;gap:2px 26px}
-@media(max-width:760px){.svc{grid-template-columns:1fr}}
+/* minmax(0,1fr), not bare 1fr — a bare 1fr track won't shrink below its
+   content's min-content width, so a long name+description silently pushed
+   the whole panel past the viewport instead of the row's own ellipsis ever
+   kicking in (Brian, 2026-09-12: "way off the right side of the screen"). */
+.svc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2px 26px;min-width:0}
+@media(max-width:760px){.svc{grid-template-columns:minmax(0,1fr)}}
 a.row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:2px;
-  text-decoration:none;color:var(--ink);font-size:12px;border-left:2px solid transparent}
+  text-decoration:none;color:var(--ink);font-size:12px;border-left:2px solid transparent;
+  min-width:0}
 a.row:hover{background:rgba(55,200,255,.06);border-left-color:var(--cy)}
 .row .idx{color:var(--dim);font-size:10px;width:22px;flex:none}
 .row .nm{font-weight:700;letter-spacing:.5px;flex:none;color:#fff}
-.row .ds{color:var(--mut);font-size:10px;letter-spacing:.5px;flex:1;
+.row .ds{color:var(--mut);font-size:10px;letter-spacing:.5px;flex:1;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ping{font-size:9px;letter-spacing:1px;color:var(--dim);flex:none;width:74px;text-align:right}
 .ping.up{color:var(--ok)} .ping.dn{color:var(--bad)}
