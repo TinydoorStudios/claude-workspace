@@ -195,16 +195,30 @@ def _load_series_block(venue, series, root=None):
     matches (case/whitespace-insensitive, since series is freeform text
     typed per booking), or the file can't be read. Never raises — a missing
     or malformed template just means that series renders the plain venue
-    email, same as no series at all."""
+    email, same as no series at all.
+
+    Exact match wins; failing that, a PREFIX match (2026-09-12, for 513
+    Airwaves) — some recurring series get the week's guest act appended
+    right into the `series` field itself ('513 Airwaves w/ Inhaler Radio'
+    one week, a different act the next), so a file named '513 Airwaves.md'
+    matches any series value that starts with '513 airwaves '. Longest
+    matching stem wins if more than one file could prefix-match."""
     if not venue or not series:
         return {}
     vdir = (Path(root) if root else SERIES_EMAIL_ROOT) / venue.strip()
     if not vdir.is_dir():
         return {}
     target = _norm_series(series)
+    best_prefix = None
     for path in sorted(vdir.glob("*.md")):
-        if _norm_series(path.stem) != target:
-            continue
+        stem = _norm_series(path.stem)
+        if stem == target:
+            best_prefix = path
+            break
+        if target.startswith(stem + " ") and (best_prefix is None or
+                len(stem) > len(_norm_series(best_prefix.stem))):
+            best_prefix = path
+    for path in ([best_prefix] if best_prefix else []):
         try:
             text = path.read_text(encoding="utf-8")
         except Exception as e:  # noqa: BLE001 — an unreadable template isn't fatal
