@@ -615,7 +615,7 @@ def _shift_house_time(s, minutes):
 
 def fill_crew_schedule(doc, event):
     """The day-of crew table (Crew Call / per-act Load-In & Sound Check /
-    Starts / Set End / Load Out / Curfew).
+    Starts / Headliner End / Load Out / Curfew).
 
     Two ways it gets filled:
       1. A series with a locked '## Crew Schedule' section (e.g. Salsa On The
@@ -624,9 +624,9 @@ def fill_crew_schedule(doc, event):
       2. Otherwise, fill the template's OWN rows from the event's derived
          schedule (Brian, 2026-09-11 — without this the WP advance docs came
          out with every time blank). The schedule is show-level and anchored
-         on the headliner, so the Headliner rows + Crew Call / Set End / Curfew
-         get times; per-act Opener/Direct Support rows are left for you to
-         finish on a multi-band bill.
+         on the headliner, so the Headliner rows + Crew Call / Headliner End /
+         Curfew get times; per-act Opener/Direct Support rows are left for you
+         to finish on a multi-band bill.
     No-op only if the template has no crew table at all."""
     table = find_schedule_table(doc)
     if not table:
@@ -668,7 +668,7 @@ def fill_crew_schedule(doc, event):
         "headliner load-in": det.get("load_in"),
         "headliner sound check": det.get("soundcheck"),
         "headliner starts": det.get("event_start"),
-        "set end": det.get("event_end"),
+        "headliner end": det.get("event_end"),
         "curfew": curfew,
     }
     for r in table.rows:
