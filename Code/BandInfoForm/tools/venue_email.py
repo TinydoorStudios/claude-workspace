@@ -75,27 +75,30 @@ Hospitality & Site:
 - Hospitality: drink tickets and water are provided for all performers and crew.""",
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
-    # One generic block for all three WP locations (Brian, 2026-09-07) — {location}
-    # and {stage_size} are filled per show by draft_emails.py; monitor count isn't
-    # quoted here since it varies 6/2/4 by location and is already a hard cap on
-    # the band form itself.
+    # WP copy adapted from the Fountain Square block (Brian, 2026-09-11): FSQ→WP
+    # wording, the "load-in process has changed / review attached doc" section
+    # removed, and the garage-QR-code paragraph replaced with the validations
+    # follow-up line. {location} is filled per show; {lighting_line} and
+    # {riser_phrase} are set by draft_emails.py and are EMPTY for Porch/Bandstand
+    # — lighting and a drum riser exist only at the Main Stage, so those shows
+    # must mention neither.
     "Washington Park": {
         "location": "Washington Park – {location}; 1230 Elm St, Cincinnati, OH 45202",
         "load_in": """\
 Load-In & Parking:
-Unload on Elm St., across from Memorial Hall, next to the park. This is 15-minute unloading only — the vehicle must be moved before going into sound check. Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
-Parking: we can validate parking if all band members are traveling in personal vehicles — larger vehicles are more difficult. Note your vehicle count and any large-vehicle needs on the form.""",
+Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
+We will follow-up with parking validations.""",
         "technical": """\
 Technical:
-- Stage: your footprint is {stage_size}.
-- Backline / instrumentation: artists provide all instruments, including amps.
-- Audio: we provide access to power, mics, monitor wedges, stands, cables, and a sound system, plus a house engineer who mixes FOH and monitors. Coordinate in advance if you're bringing your own.
-- Stage plot / input list and monitor count — all on the form.""",
+- Backline / instrumentation: artists provide all instruments, including amps and 1/4" cables.
+- Audio: we provide an engineer who mixes FOH and monitors from FOH. Coordinate in advance if you're bringing your own. All engineers mix within the 95 dBA-Slow ordinance; the Washington Park engineer may baffle amps to reduce stage volume if needed.{lighting_line}
+- Stage plot / input list, {riser_phrase}monitor count, and any scenic elements — all on the form.""",
         "hospitality": """\
 Hospitality & Site:
-- Merch: if you're selling, you provide the seller, point of sale, and bank.
-- Hospitality: drink tickets and water are provided for all performers — confirm your total headcount on the form.""",
-        "requirements": "",
+- Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
+- Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
+- Hospitality: drink tickets and water are provided for all performers and crew.""",
+        "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
     # Add Memorial Hall / etc. here as Brian supplies the content.
 }

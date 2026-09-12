@@ -585,38 +585,129 @@ def fill_engineer(grid, event, n):
             return
 
 
+def _shift_house_time(s, minutes):
+    """Shift a house-format time string ('6:00p') by minutes; '' if unparseable."""
+    import datetime as _dt
+    s = (s or "").strip().lower().replace(" ", "")
+    if not s:
+        return ""
+    ap = None
+    if s and s[-1] in ("a", "p"):
+        ap, s = s[-1], s[:-1]
+    t = None
+    for fmt in ("%I:%M", "%I", "%H:%M"):
+        try:
+            t = _dt.datetime.strptime(s, fmt)
+            break
+        except ValueError:
+            continue
+    if t is None:
+        return ""
+    h = t.hour
+    if ap == "p" and h < 12:
+        h += 12
+    elif ap == "a" and h == 12:
+        h = 0
+    base = t.replace(hour=h)
+    out = (base + _dt.timedelta(minutes=minutes)).strftime("%I:%M%p").lstrip("0").lower()
+    return out[:-1]  # '4:00pm' -> '4:00p'
+
+
 def fill_crew_schedule(doc, event):
-    """The day-of crew table (top-left, normally Crew Call / Load In-Sound
-    Check / Performance / Load-out / Curfew, all blank for a same-day hand
-    call) — for a series with a locked '## Crew Schedule' section, its rows
-    are REPLACED wholesale with the series' own list, one real table row
-    per time change (Brian, 2026-09-09: a multi-set series like Salsa On
-    The Square needs its own row per set/break, not several sub-events
-    crammed into one cell — hard to read). No-op if the event has no
-    venue/series, the series has no Crew Schedule section, or the template
-    has no crew table at all."""
-    venue = event.get("venue")
-    series = event.get("series")
-    if not venue or not series:
-        return
-    rows = ve.crew_schedule_for(venue, series)
-    if not rows:
-        return
+    """The day-of crew table (Crew Call / per-act Load-In & Sound Check /
+    Starts / Set End / Load Out / Curfew).
+
+    Two ways it gets filled:
+      1. A series with a locked '## Crew Schedule' section (e.g. Salsa On The
+         Square) REPLACES the rows wholesale with the series' own list, one
+         row per time change (Brian, 2026-09-09).
+      2. Otherwise, fill the template's OWN rows from the event's derived
+         schedule (Brian, 2026-09-11 — without this the WP advance docs came
+         out with every time blank). The schedule is show-level and anchored
+         on the headliner, so the Headliner rows + Crew Call / Set End / Curfew
+         get times; per-act Opener/Direct Support rows are left for you to
+         finish on a multi-band bill.
+    No-op only if the template has no crew table at all."""
     table = find_schedule_table(doc)
     if not table:
         return
-    # Clone the template's own first row for every replacement row, so each
-    # keeps its exact cell formatting/borders/shading — then drop every
-    # original row and build the new set fresh in order.
-    template_tr = copy.deepcopy(table.rows[0]._tr)
-    tbl_el = table._tbl
-    for r in list(table.rows):
-        tbl_el.remove(r._tr)
-    for label, time_value in rows:
-        tbl_el.append(copy.deepcopy(template_tr))
-        new_row = table.rows[-1]
-        set_cell(new_row.cells[0], time_value)
-        set_cell(new_row.cells[-1], label)
+    venue = event.get("venue")
+    series = event.get("series")
+    locked = ve.crew_schedule_for(venue, series) if (venue and series) else []
+    if locked:
+        # Clone the template's own first row for every replacement row, so each
+        # keeps its exact cell formatting/borders/shading — then drop every
+        # original row and build the new set fresh in order.
+        template_tr = copy.deepcopy(table.rows[0]._tr)
+        tbl_el = table._tbl
+        for r in list(table.rows):
+            tbl_el.remove(r._tr)
+        for label, time_value in locked:
+            tbl_el.append(copy.deepcopy(template_tr))
+            new_row = table.rows[-1]
+            set_cell(new_row.cells[0], time_value)
+            set_cell(new_row.cells[-1], label)
+        return
+    # No locked schedule: fill the template's own labelled rows from the event's
+    # derived times. Crew Call and Curfew come from the staffing sheet's Event
+    # cell when present (Brian, 2026-09-11, all sites — 'Jazz (3:30-10)'); they
+    # fall back to computed (crew = start - 2:00) / booking curfew otherwise.
+    det = event.get("details") or {}
+    start = det.get("event_start")
+    staff_times = {}
+    try:
+        import staffing
+        staff_times = staffing.event_times_for(venue, event.get("event_date")) or {}
+    except Exception:
+        staff_times = {}
+    crew_call = staff_times.get("crew_call") or (_shift_house_time(start, -120) if start else "")
+    curfew = staff_times.get("curfew") or det.get("curfew")
+    by_label = {
+        "crew call": crew_call,
+        "headliner load-in": det.get("load_in"),
+        "headliner sound check": det.get("soundcheck"),
+        "headliner starts": det.get("event_start"),
+        "set end": det.get("event_end"),
+        "curfew": curfew,
+    }
+    for r in table.rows:
+        val = by_label.get(norm(r.cells[-1].text))
+        if val:
+            set_cell(r.cells[0], val)
+
+
+def _consoles_text(event):
+    """Console line for the Consoles row (Brian, 2026-09-11):
+      - Fountain Square: FOH is DiGiCo; the M32 monitor desk is listed by
+        DEFAULT only for 513 Airwaves and Salsa — every other FSQ show adds
+        monitors by hand when needed, so it isn't printed.
+      - Washington Park Main Stage: FOH is M32 (monitors added when needed).
+      - Washington Park Porch / Bandstand: one M32R.
+      - Anywhere else: left blank for now."""
+    venue = event.get("venue")
+    det = event.get("details") or {}
+    loc = (det.get("location") or "").strip()
+    hay = f"{event.get('series') or ''} {event.get('name') or ''}".lower()
+    if venue == "Fountain Square":
+        default_mon = ("513 airwaves" in hay) or ("salsa" in hay)
+        return "FOH: DiGiCo Quantum 225" + (" · Mon: M32" if default_mon else "")
+    if venue == "Washington Park":
+        if loc in ("Porch", "Bandstand"):
+            return "M32R"
+        return "FOH: M32"
+    return ""
+
+
+def fill_consoles(grid, event):
+    """Write the Consoles row from _consoles_text(); no-op if it's blank (a
+    venue we haven't set a rule for) or the row isn't in this template."""
+    text = _consoles_text(event)
+    if not text:
+        return
+    for r in grid.rows:
+        if norm(r.cells[0].text) == "consoles" and len(r.cells) > 1:
+            set_cell(r.cells[1], text)
+            break
 
 
 def fill_lead(doc, event):
@@ -679,6 +770,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
     fill_header(grid, event)
     fill_event_type(grid, event, n)
     fill_engineer(grid, event, n)
+    fill_consoles(grid, event)
     fill_crew_schedule(doc, event)
     fill_lead(doc, event)
 

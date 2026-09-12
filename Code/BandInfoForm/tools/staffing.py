@@ -192,6 +192,64 @@ def _mix_tokens(venue, show_date):
     return _split_mix_cell(raw_mix), codes_rows
 
 
+def _event_time(tok):
+    """One side of an Event-cell range ('*4:15', '10', '9a') -> house time
+    '4:15p'. Times are ALWAYS PM (Brian, 2026-09-11) — the evening shows that
+    flow through advances are all PM, so asterisks and any a/p suffix in the
+    source are ignored and PM is assumed."""
+    tok = re.sub(r"[*\s]", "", tok).lower()
+    m = re.match(r"^(\d{1,2})(?::(\d{2}))?", tok)
+    if not m:
+        return None
+    return f"{int(m.group(1))}:{int(m.group(2) or 0):02d}p"
+
+
+def event_times_for(venue, show_date):
+    """{'crew_call','curfew'} for this venue+date, read from the staffing
+    sheet's Event cell — the '<Event> (<crew>-<curfew>)' pattern (Brian,
+    2026-09-11, all sites; e.g. 'Jazz (3:30-10)' -> crew 3:30p, curfew 10:00p).
+    Both times PM. None if the venue isn't wired, the sheet is unreachable, the
+    date isn't on it, or its Event cell carries no (start-end) range — callers
+    fall back to their computed schedule."""
+    cols = SCHEDULE_COLUMNS.get(venue)
+    if not cols or not show_date:
+        return None
+    if isinstance(show_date, str):
+        try:
+            show_date = dt.date.fromisoformat(show_date)
+        except ValueError:
+            return None
+    try:
+        rows = _fetch_csv(SCHEDULE_GID)
+    except Exception as e:  # noqa: BLE001 — sheet down isn't fatal
+        print(f"[staffing] fetch failed: {e!r}", flush=True)
+        return None
+    ev_col = cols["event"]
+    need = max(cols.values())
+    for row in rows:
+        if len(row) <= need:
+            continue
+        if _parse_date(row[cols["date"]]) != show_date:
+            continue
+        cell = (row[ev_col] or "").strip()
+        if not cell:
+            continue
+        line = cell.splitlines()[0]
+        paren = re.search(r"\(([^)]*)\)", line)
+        if not paren:
+            continue
+        rng = re.search(
+            r"(\*{0,2}\d{1,2}(?::\d{2})?\s*(?:am|pm|a|p)?)\s*-\s*"
+            r"(\*{0,2}\d{1,2}(?::\d{2})?\s*(?:am|pm|a|p)?)",
+            paren.group(1), re.I)
+        if not rng:
+            continue
+        crew, curfew = _event_time(rng.group(1)), _event_time(rng.group(2))
+        if crew and curfew:
+            return {"crew_call": crew, "curfew": curfew}
+    return None
+
+
 def engineer_for(venue, show_date):
     """'Gyasi Henderson (513-313-2431)' for the FOH engineer staffed on
     show_date at venue — or None if the venue isn't wired, the sheet is

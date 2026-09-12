@@ -134,6 +134,26 @@ def stamp_email_sent(cur, show_id):
 # itself if nothing's heard back by 7 days out. Both are DRAFTS — a human still
 # sends. See /internal/advance-lifecycle in app.py.
 
+def slot_for(cur, artist_id, venue, show_date):
+    r"""This artist's slot (opener / direct_support / headliner) on the event at
+    venue+date, or None. Used to tailor the band's own form — e.g. FSQ hides the
+    drum-riser question for openers/direct support (Brian, 2026-09-11)."""
+    if isinstance(show_date, str):
+        try:
+            show_date = dt.date.fromisoformat(show_date[:10])
+        except ValueError:
+            return None
+    cur.execute(
+        """SELECT ea.slot FROM event_acts ea
+           JOIN events e ON e.id = ea.event_id
+           WHERE ea.artist_id = %s AND e.venue = %s AND e.event_date = %s
+           ORDER BY ea.id DESC LIMIT 1""",
+        (artist_id, venue, show_date),
+    )
+    row = cur.fetchone()
+    return row["slot"] if row else None
+
+
 def shows_due_for_initial_advance(cur):
     """Shows that haven't been drafted yet (and haven't already passed) — no
     date-out ceiling. Drafted as soon as a booking is seeded, whenever that

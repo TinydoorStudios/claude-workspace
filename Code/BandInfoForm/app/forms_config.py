@@ -55,6 +55,17 @@ WP_LOCATIONS = {
                    "stage_size": "TBD — confirm with your day-of contact"},
 }
 
+# Each WP series plays a fixed stage (Brian, 2026-09-11): Neo Soul on the
+# Bandstand, Blues & Brews on the Porch. This is the AUTHORITATIVE source of a
+# booking's WP location — the per-show/booking location can be blank (it lives
+# on the event, not always the show), so the series is what reliably drives the
+# monitor cap and which questions (lighting, drum riser, band tent) are hidden.
+# Add a WP series here to bind it to a stage.
+SERIES_LOCATION = {
+    "Neo Soul Nights": "Bandstand",
+    "Blues & Brews": "Porch",
+}
+
 # Show series -> overrides. `blocks` toggles optional sections; `intro` overrides
 # the header subtitle; `label` is the human name. Extend freely.
 SERIES = {
@@ -79,7 +90,7 @@ SERIES = {
 }
 
 
-def get_config(series_key=None, venue=None, location=None):
+def get_config(series_key=None, venue=None, location=None, slot=None):
     base = dict(SERIES["default"])
     cfg = dict(base)
     if series_key and series_key in SERIES:
@@ -97,6 +108,12 @@ def get_config(series_key=None, venue=None, location=None):
     cfg["location"] = None
     cfg["monitor_cap"] = None
     cfg["drum_riser_available"] = True  # every non-WP venue keeps the question
+    # WP location is fixed by the series — fall back to it whenever the caller
+    # didn't pass a concrete WP location (e.g. a prefill token whose location is
+    # blank), so the form still hides the right questions and applies the right
+    # monitor cap (Brian, 2026-09-11).
+    if venue == "Washington Park" and location not in WP_LOCATIONS:
+        location = SERIES_LOCATION.get((series_key or "").strip(), location)
     if venue == "Washington Park" and location in WP_LOCATIONS:
         loc = WP_LOCATIONS[location]
         cfg["location"] = location
@@ -105,5 +122,11 @@ def get_config(series_key=None, venue=None, location=None):
         cfg["blocks"]["lighting"] = loc["lighting"]
         cfg["blocks"]["band_tent"] = loc["band_tent"]
         cfg["drum_riser_available"] = loc["drum_riser"]
+
+    # Fountain Square: only the headliner is asked about a drum riser — an
+    # opener or direct-support act has no riser call of its own, so hide the
+    # question on their form (Brian, 2026-09-11).
+    if venue == "Fountain Square" and (slot or "").strip().lower() in ("opener", "direct_support"):
+        cfg["drum_riser_available"] = False
 
     return cfg

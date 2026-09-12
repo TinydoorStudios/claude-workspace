@@ -128,9 +128,19 @@ def prefilled_form(token):
     payload = read_prefill_token(token) or {}
     seed = payload.get("s") or {}
     series = seed.get("series") or request.args.get("series")
+    # This act's slot drives a couple of form tweaks (FSQ hides the drum-riser
+    # question for openers/direct support — Brian, 2026-09-11). Looked up live
+    # so it works for links issued before slot was carried anywhere.
+    slot = None
+    if payload.get("a") and DB_OK and seed.get("venue") and seed.get("date"):
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                slot = advance_db.slot_for(cur, payload["a"], seed["venue"], seed["date"])
+        except Exception as e:
+            _log_db_error("slot_lookup", e)
     cfg = forms_config.get_config(
         series_key=series, venue=seed.get("venue") or request.args.get("venue"),
-        location=seed.get("location") or request.args.get("location"))
+        location=seed.get("location") or request.args.get("location"), slot=slot)
     prefill, returning, artist_name = {}, False, None
     # Locked = this specific value came from us (the booking record / matched
     # artist), not from the band typing it — bands can't edit these two.
@@ -275,12 +285,38 @@ def submit():
     _notify_submission(rec)
     _notify_email("submission", rec)
 
-    # 4) Run the pipeline in the background — doc/day-sheet/email drafts/venue
-    # tree/sheet status all catch up on this response without anyone clicking
-    # anything. Fire-and-forget: the band's thank-you page never waits on it.
-    _run_pipeline_background()
+    # 4) Regenerate ONLY this band's advance doc in the background (Brian,
+    # 2026-09-11) — a submit must not re-file every other show. Fire-and-forget:
+    # the band's thank-you page never waits on it.
+    _regen_submitted_show(rec)
 
     return render_template("thanks.html", band=f.get("band_name"))
+
+
+def _regen_submitted_show(rec):
+    """Regenerate just the submitting show's advance doc — never the whole tree
+    (Brian, 2026-09-11: one band's submission was restamping every file). Needs
+    venue + show_date + band_name, all carried on the form. Detached, best-effort."""
+    venue = (rec.get("venue") or "").strip()
+    date = (rec.get("show_date") or "").strip()[:10]
+    artist = (rec.get("band_name") or "").strip()
+    if not (venue and date and artist):
+        return
+    try:
+        log_path = BASE / "data" / "regen_show.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "a") as logf:
+            logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')} "
+                       f"{artist} @ {venue} {date} ---\n")
+            logf.flush()
+            subprocess.Popen(
+                [sys.executable, "regen_show.py", "--venue", venue,
+                 "--date", date, "--artist", artist],
+                cwd=TOOLS_DIR, stdout=logf, stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+    except Exception as e:
+        _log_db_error("regen_submitted_show", e)
 
 
 def _notify_submission(rec):

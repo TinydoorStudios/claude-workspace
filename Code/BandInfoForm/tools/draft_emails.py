@@ -214,6 +214,16 @@ def main():
                 email_extra["location"] = loc_name or "confirm with your day-of contact"
                 email_extra["stage_size"] = (loc_cfg["stage_size"] if loc_cfg
                                               else "confirm with your day-of contact")
+                # Lighting exists only at the Main Stage; Porch and Bandstand
+                # have none, so the LD line is dropped from their emails
+                # entirely (Brian, 2026-09-11).
+                email_extra["lighting_line"] = (
+                    "\n- Lighting: we provide a house LD."
+                    if loc_name == "Main Stage" else "")
+                # Drum riser is a Main Stage option only; Porch/Bandstand have
+                # none, so drop "flat vs. drum riser" from their emails too.
+                email_extra["riser_phrase"] = (
+                    "flat vs. drum riser, " if loc_name == "Main Stage" else "")
             def _setlen(v):
                 v = str(v).strip()
                 return f"{v} min" if v.isdigit() else v
@@ -299,6 +309,7 @@ def main():
                 blocks=ve.blocks_for(venue, series=series, **email_extra), common_requirements=ve.COMMON_REQUIREMENTS,
                 personal_note=(lambda n: f"{n}\n\n" if n else "")((r.get("email_note") or "").strip()),
                 event_name=r.get("event_name") or "",
+                series=series or "",
                 show_date=us_date(show_date),
                 advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
                 set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
