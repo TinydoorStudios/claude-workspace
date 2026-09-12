@@ -4,41 +4,54 @@ The advance pipeline: collect show details from artists, store them in one query
 database, detect returning artists, draft their advance emails, and auto-fill the
 standard show document. Built on the existing self-hosted Flask form.
 
-## VM-native Dropbox sync (2026-09-02)
+## VM-native Dropbox sync (2026-09-02, widened 2026-09-12)
 
 The n8n VM (192.168.200.84) runs its own headless Dropbox client (`~/.dropbox-dist/dropboxd`
-+ `~/dropbox.py`, linked to Brian's account, **selective sync restricted to `Nyquist/`
-only** — every other top-level item is excluded so the VM never holds Brian's other
-Dropbox content locally). `~/Dropbox/Nyquist/` on the VM is the same live folder as
-`~/Dropbox/Nyquist/` on the Mac; Dropbox propagates either side's writes to the other
-in a few seconds. **Caveat:** the exclude list is a snapshot of what existed at setup
-time (188 items) — a brand-new top-level item in Brian's Dropbox won't be auto-excluded.
-Brian chose to accept that for now rather than set up a dedicated Dropbox account
-scoped to only the Nyquist folder (the structurally bulletproof version); revisit if
-he asks. **Rule: nothing outside `Nyquist/` is ever written or deleted from this side.**
++ `~/dropbox.py`, linked to Brian's account, selective sync). Originally restricted to
+`Nyquist/` only; **as of 2026-09-12, sync also includes every real `3CDC <Venue>` folder**
+(Court Street, Elm Street Plaza, Fountain Square, Imagination Alley, Memorial Hall,
+Washington Park, Ziegler Park) so the VM can file advance docs straight into them.
+Everything else at the Dropbox root (the loose legacy files, `FSQ`/`FSQ Archive`/`FSQ SPL`,
+`Production`, `3CDC - BUDGETS`, `3CDC - All Sites Folder`, etc.) stays excluded — Brian's
+explicit call, narrower than "sync everything." The keep-list lives in `~/dropbox_exclude.sh`
+on the VM (a copy is checked in at `ops/dropbox_exclude.sh` for reference/redeploy). `~/Dropbox/`
+on the VM is the same live account as `~/Dropbox/` on the Mac for every synced folder; Dropbox
+propagates either side's writes to the other in a few seconds. **Caveat:** the exclude list is a
+snapshot taken at setup/widen time — a brand-new top-level item in Brian's Dropbox won't be
+auto-included or auto-excluded; re-run `dropbox_exclude.sh` (or hand-edit the exclude list) if
+one shows up that matters. **Rule: nothing outside the keep-list is ever written or deleted from
+this side.**
 
 This lets `tools/run_now.py` do the whole generate pipeline locally on the VM — seed
 pending staff bookings into `advance-list.xlsx`, run `package_run.py`, overlay the
-built tree into the live folder, fold status back into the sheet — with no SSH/scp/
+built tree into the live folders, fold status back into the sheet — with no SSH/scp/
 rsync hop back to the Mac. `/booking/run` (gated) wraps it; the `/booking` thank-you
 page has a **"Run advance now"** button that calls it and shows a result summary.
 The Mac's `generate.command` still works (it uses its own separate upload path to
 `lists/_current.xlsx`, not the Dropbox-synced copy) but is now largely redundant for
 day-to-day use — the button/VM path is the live one.
 
-## The front door: `Advancing/`
+## The front door: real 3CDC venue folders (2026-09-12)
 
 Day-to-day, Brian never opens this code tree. The production cockpit is the top-level
-**`Advancing/`** folder (destined for a shared Dropbox — set `ADVANCE_ROOT` to point
-there): he edits `advance-list.xlsx`, double-clicks `generate.command`, and each show
-files into a venue archive at **`<VenueAbbr>/<Year>/<MM Month>/<MMDDYY> <Event> advance.docx`**
-with email drafts in an `Email Drafts/` subfolder. Status folds back into the sheet as a
-color-coded block (see below). `generate.command` uploads the sheet, runs
-**`tools/package_run.py`** on the VM (rebuild events → fill each advance doc → draft each
-email → emit `status.json` → assemble the venue tree under `_package/`), then rsyncs it
-back **as an overlay (no --delete)** so the archive accumulates. Filing scheme (venue
-abbreviations, month-folder format, filename) lives in `tools/fieldspec.py`. Generation
-never marks anything sent — that moves to Outlook. See `Advancing/README.md`.
+**`Nyquist/`** folder in Brian's actual Dropbox: he edits `advance-list.xlsx`, and each
+show's **finished advance doc + stage plot file directly into the real, shared 3CDC venue
+folder** — the same one Brian and the rest of the production team have always hand-filed
+into — at **`~/Dropbox/<Real Venue Folder>/<MM.YYYY Code>/<MMDDYY> <Event> Prod Adv.docx`**
+(e.g. `3CDC Fountain Square/09.2026 FSQ/091826 Wishy Prod Adv.docx`), matching that folder's
+own long-standing hand-typed naming convention. Email drafts have no equivalent there (an
+internal working artifact, not a finished document) and stay under `Nyquist/<VenueAbbr>/
+<Year>/<MM Month>/Email Drafts/` — the old scheme, unchanged. Status folds back into the
+sheet as a color-coded block (see below), with the Stage Plot cell linking across to the
+real folder. `generate.command` uploads the sheet, runs **`tools/package_run.py`** on the VM
+(rebuild events → fill each advance doc → draft each email → emit `status.json` → assemble
+BOTH subtrees under `_package/filed/` and `_package/drafts/`), then rsyncs `filed/` onto the
+real Dropbox root and `drafts/` onto `Nyquist/`, **each as an overlay (no --delete)** so both
+archives accumulate. Filing scheme (real venue folder names, month-folder codes, filename
+convention) lives in `tools/fieldspec.py`. Generation never marks anything sent — that moves
+to Outlook. Before 2026-09-12 this filed into a Nyquist-only `<VenueAbbr>/<Year>/<MM Month>/`
+archive; that history was migrated into the real folders on that date (see
+`Nyquist/MIGRATION-LOG-2026-09-12.md`).
 
 ## The shape
 

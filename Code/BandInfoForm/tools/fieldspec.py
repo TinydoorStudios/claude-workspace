@@ -12,6 +12,7 @@ band fields — the day-sheet row it maps to.
 Merge rule (Brian's directive): the SPREADSHEET value wins when present; the FORM
 submission fills anything the spreadsheet left blank.
 """
+from pathlib import Path
 
 VENUES = [
     "Fountain Square", "Washington Park", "Elm Street Plaza",
@@ -19,10 +20,43 @@ VENUES = [
 ]
 SLOTS = ["opener", "direct_support", "headliner"]
 
-# ── Dropbox filing framework ──────────────────────────────────────────────────
-# The finished advance doc files into <VenueAbbr>/<Year>/<MM Month>/, named
-# "<MMDDYY> <Event Name> advance.docx". Email drafts go in an "Email Drafts"
-# subfolder of the same month. Change these three lines to retune the whole scheme.
+# ── Dropbox filing framework (2026-09-12 — real venue folders) ────────────────
+# The finished advance doc + stage plot file into the REAL, human-used venue
+# folder in Brian's actual Dropbox — not the Nyquist working archive:
+#
+#   ~/Dropbox/<Real Venue Folder>/<MM.YYYY Code>/<MMDDYY> <Event Name> Prod Adv.docx
+#   ~/Dropbox/<Real Venue Folder>/<MM.YYYY Code>/<MMDDYY> <Event Name> Stageplot.<ext>
+#
+# e.g. ~/Dropbox/3CDC Fountain Square/09.2026 FSQ/091826 Wishy Prod Adv.docx —
+# matching the convention Brian and the rest of the 3CDC production team have
+# always hand-typed into that folder, so the pipeline's output sits exactly
+# where a human would look for it, named the way a human would name it.
+#
+# Email drafts have no analog in the real, shared folders (they're an internal
+# working artifact, not a finished document) and stay under the Nyquist
+# cockpit instead, in the OLD scheme: Nyquist/<VenueAbbr>/<Year>/<MM Month>/
+# Email Drafts/ — see VENUE_ABBR + month_folder() below, unchanged from before
+# this migration. real_venue_folder()/real_month_folder() are the new ones;
+# venue_abbr()/month_folder() are legacy-but-still-live, Nyquist-drafts-only.
+REAL_DROPBOX_ROOT = Path.home() / "Dropbox"
+
+VENUE_REAL_FOLDER = {
+    "Fountain Square": "3CDC Fountain Square", "Washington Park": "3CDC Washington Park",
+    "Elm Street Plaza": "3CDC Elm Street Plaza", "Court Street Plaza": "3CDC Court Street",
+    "Imagination Alley": "3CDC Imagination Alley",
+    "Zeigler Park": "3CDC Ziegler Park",  # real folder spells it "Ziegler", not "Zeigler"
+    "Memorial Hall": "3CDC Memorial Hall",
+}
+VENUE_MONTH_CODE = {
+    "Fountain Square": "FSQ", "Washington Park": "WP", "Elm Street Plaza": "ESP",
+    "Court Street Plaza": "CSP", "Imagination Alley": "IA",
+    "Zeigler Park": "ZP", "Memorial Hall": "MEMO",
+}
+
+# Legacy Nyquist-drafts scheme (Email Drafts/ only, as of 2026-09-12) — do not
+# repoint these at the real folders, and do not rename the codes below (WP/FSQ
+# folders already exist on disk under these names); Court/Memo casing here is
+# cosmetic and only ever touched Nyquist's own working tree, never the real one.
 VENUE_ABBR = {
     "Fountain Square": "FSQ", "Washington Park": "WP", "Elm Street Plaza": "ESP",
     "Court Street Plaza": "Court", "Imagination Alley": "IA",
@@ -31,6 +65,19 @@ VENUE_ABBR = {
 MONTHS = [None, "January", "February", "March", "April", "May", "June",
           "July", "August", "September", "October", "November", "December"]
 EMAIL_DRAFTS_DIR = "Email Drafts"
+
+
+def real_dropbox_root():
+    return REAL_DROPBOX_ROOT
+
+
+def real_venue_folder(v):
+    return VENUE_REAL_FOLDER.get((v or "").strip(), (v or "Venue TBD").strip())
+
+
+def real_month_folder(v, d):
+    code = VENUE_MONTH_CODE.get((v or "").strip(), venue_abbr(v))
+    return f"{d.month:02d}.{d.year} {code}"
 
 
 def venue_abbr(v):
@@ -48,13 +95,14 @@ def _clean(name):
 
 
 def advance_stem(event_name, d):
-    """Filename stem (no extension): '090626 513 Airwaves w Inhaler Radio advance'."""
-    return f"{d.strftime('%m%d%y')} {_clean(event_name)} advance"
+    """Filename stem (no extension): '090626 513 Airwaves w Inhaler Radio Prod Adv'
+    — matches the real folders' own hand-typed convention (Brian/3CDC staff)."""
+    return f"{d.strftime('%m%d%y')} {_clean(event_name)} Prod Adv"
 
 
 def stageplot_stem(event_name, d):
-    """Filename stem for a filed stage plot: '090626 513 Airwaves... stageplot'."""
-    return f"{d.strftime('%m%d%y')} {_clean(event_name)} stageplot"
+    """Filename stem for a filed stage plot: '090626 513 Airwaves... Stageplot'."""
+    return f"{d.strftime('%m%d%y')} {_clean(event_name)} Stageplot"
 
 # (column label, internal key, choices|None)
 EVENT_FIELDS = [

@@ -38,6 +38,7 @@ for _cand in (HERE.parent, HERE.parent / "app"):
 sys.path.insert(0, str(HERE))
 import advance_db as db
 import daysheet as ds
+import fieldspec as fs
 
 # Brian's call: next day (1), not 3 days out. Set temporary 2026-09-07,
 # confirmed permanent 2026-09-10.
@@ -66,7 +67,7 @@ def combined_md(venue, show_date, source_docx, acts):
     regardless of which act's run wrote it, or in what order."""
     import re
     title = re.sub(r"^\d{6} ", "", source_docx.stem)   # drop the MMDDYY prefix
-    title = re.sub(r" advance$", "", title, flags=re.I)  # drop the trailing "advance"
+    title = re.sub(r"\s+(advance|Prod Adv)$", "", title, flags=re.I)  # drop the trailing suffix
     lines = [
         f"# {title} — {venue} ({show_date.strftime('%m/%d/%Y')})",
         "",
@@ -83,10 +84,13 @@ def combined_md(venue, show_date, source_docx, acts):
 
 
 def relative_to_root(path):
-    try:
-        return str(path.relative_to(ds.NYQUIST_DEFAULT))
-    except ValueError:
-        return str(path)  # root override in use (e.g. tests) — store the absolute path
+    # 2026-09-12: filed docs live under the real Dropbox root now, not Nyquist.
+    for root in (fs.real_dropbox_root(), ds.NYQUIST_DEFAULT):
+        try:
+            return str(path.relative_to(root))
+        except ValueError:
+            continue
+    return str(path)  # root override in use (e.g. tests) — store the absolute path
 
 
 def run():

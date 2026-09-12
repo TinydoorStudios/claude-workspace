@@ -2,19 +2,24 @@
 """Build the advance filing tree from the advance list spreadsheet.
 
 The single entrypoint generate.command runs on the VM. It rebuilds events+acts
-from the sheet (form submissions are never touched), then files each event into
-the venue tree under --out:
+from the sheet (form submissions are never touched), then files each event
+into TWO separate subtrees under --out (2026-09-12 — real venue folders):
 
-    <VenueAbbr>/<Year>/<MM Month>/
-        <MMDDYY> <Event Name> advance.docx
-        Email Drafts/
-            <MMDDYY> <Event Name> email - <Band>.md      (one per act)
-            <MMDDYY> <Event Name> followup - <Band>.md    (only if queued)
+    filed/<Real Venue Folder>/<MM.YYYY Code>/
+        <MMDDYY> <Event Name> Prod Adv.docx
+        <MMDDYY> <Band Name> Stageplot.<ext>
+    drafts/<VenueAbbr>/<Year>/<MM Month>/Email Drafts/
+        <MMDDYY> <Event Name> email - <Band>.md      (one per act)
+        <MMDDYY> <Event Name> followup - <Band>.md    (only if queued)
     status.json                                            (for the sheet's Status)
 
-The Mac's generate.command OVERLAYS this into the Advancing/ folder (never
-deletes) so the tree accumulates as a real archive. Nothing is ever sent — the
-send step moves to Outlook, so generate no longer stamps email_sent_at.
+`filed/` mirrors the real, human-used 3CDC venue folders (e.g. "3CDC Fountain
+Square/09.2026 FSQ/") using their own hand-typed naming convention — run_now.py
+overlays it straight onto ~/Dropbox/, alongside everyone else's files. `drafts/`
+has no equivalent in the real folders (an internal working artifact, not a
+finished document) and stays under the Nyquist cockpit instead, in the old
+scheme. Nothing is ever sent — the send step moves to Outlook, so generate no
+longer stamps email_sent_at.
 
   python3 package_run.py lists/_current.xlsx --out _package
 """
@@ -54,12 +59,24 @@ def safe(s):
 
 
 def event_dir(out, ev, acts):
-    """<out>/<VenueAbbr>/<Year>/<MM Month>/ for this event."""
-    venue = fs.venue_abbr(ev.get("venue"))
+    """<out>/filed/<Real Venue Folder>/<MM.YYYY Code>/ — where this event's
+    advance doc + stage plot land, mirroring the real Dropbox venue folder."""
+    venue = ev.get("venue")
+    real_folder = fs.real_venue_folder(venue)
     d = ev.get("event_date")
     if d:
-        return out / safe(venue) / str(d.year) / fs.month_folder(d)
-    return out / safe(venue) / "No Date"
+        return out / "filed" / safe(real_folder) / fs.real_month_folder(venue, d)
+    return out / "filed" / safe(real_folder) / "No Date"
+
+
+def event_drafts_dir(out, ev):
+    """<out>/drafts/<VenueAbbr>/<Year>/<MM Month>/Email Drafts/ — internal
+    working drafts, stays on the Nyquist-cockpit scheme, never the real folder."""
+    venue = fs.venue_abbr(ev.get("venue"))
+    d = ev.get("event_date")
+    base = (out / "drafts" / safe(venue) / str(d.year) / fs.month_folder(d)
+            if d else out / "drafts" / safe(venue) / "No Date")
+    return base / fs.EMAIL_DRAFTS_DIR
 
 
 def event_stem(ev, acts):
@@ -72,7 +89,7 @@ def event_stem(ev, acts):
             or "Untitled")
     if d:
         return fs.advance_stem(name, d)
-    return f"{safe(name)} advance"
+    return f"{safe(name)} Prod Adv"
 
 
 def find_one(folder, pattern):
@@ -145,7 +162,12 @@ def main():
                 fname = f"{plot_stem}{ext}"
                 shutil.copy(src, folder / fname)
                 stageplot_names[band] = fname
-                rel = (folder / fname).relative_to(out).as_posix()
+                # Link stored in the sheet is relative to the WORKBOOK
+                # (~/Dropbox/Nyquist/advance-list.xlsx), not to `out` — the
+                # filed doc now lives one level up from Nyquist, in the real
+                # venue folder, so "../<Real Venue Folder>/<Month>/<file>".
+                rel = (Path("..") / fs.real_venue_folder(ev.get("venue")) /
+                       fs.real_month_folder(ev.get("venue"), d) / fname).as_posix()
                 key = (band.strip().lower(),
                        (ev.get("venue") or "").strip().lower(),
                        d.isoformat() if d else "")
@@ -169,7 +191,7 @@ def main():
                       file=sys.stderr)
 
             date = ev.get("event_date").isoformat() if ev.get("event_date") else None
-            drafts_dir = folder / fs.EMAIL_DRAFTS_DIR
+            drafts_dir = event_drafts_dir(out, ev)
             for a in acts:
                 if not a.get("artist"):
                     continue
@@ -177,12 +199,12 @@ def main():
                 sg = slug(name)
                 draft = find_one(DRAFTS, f"{sg}__{date}__*.md" if date else f"{sg}__*.md")
                 if draft:
-                    drafts_dir.mkdir(exist_ok=True)
+                    drafts_dir.mkdir(parents=True, exist_ok=True)
                     shutil.copy(draft, drafts_dir / f"{stem} email - {safe(name)}.md")
                     n_emails += 1
                 fu = find_one(FOLLOWUPS, f"{sg}__followup.md")
                 if fu:
-                    drafts_dir.mkdir(exist_ok=True)
+                    drafts_dir.mkdir(parents=True, exist_ok=True)
                     shutil.copy(fu, drafts_dir / f"{stem} followup - {safe(name)}.md")
                     n_followups += 1
 

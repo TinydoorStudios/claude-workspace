@@ -26,7 +26,6 @@ import advance_db as db
 import fieldspec as fs
 import daysheet
 
-NYQUIST = Path.home() / "Dropbox" / "Nyquist"
 UPLOADS = HERE.parent / "data" / "uploads"
 
 
@@ -45,7 +44,7 @@ def find_event(cur, venue, date, artist):
     return r["id"] if r else None
 
 
-def regen(venue, date, artist, root=NYQUIST):
+def regen(venue, date, artist, root=None):
     with db.get_conn() as conn, conn.cursor() as cur:
         eid = find_event(cur, venue, date, artist)
         if not eid:
@@ -56,7 +55,8 @@ def regen(venue, date, artist, root=NYQUIST):
         acts = db.event_acts(cur, eid)
 
     d = ev.get("event_date")
-    folder = root / fs.venue_abbr(ev.get("venue")) / str(d.year) / fs.month_folder(d)
+    root = root or fs.real_dropbox_root()
+    folder = root / fs.real_venue_folder(ev.get("venue")) / fs.real_month_folder(ev.get("venue"), d)
     folder.mkdir(parents=True, exist_ok=True)
     # Same stable-name rule as package_run.event_stem: event name, else series,
     # else the band — never let the filename drift with the act list.

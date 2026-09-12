@@ -881,6 +881,8 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
 # the DB. Brian's explicit call (2026-09-07) over the DB-reconstruction option.
 
 NYQUIST_DEFAULT = Path.home() / "Dropbox" / "Nyquist"  # same default run_now.py uses
+# 2026-09-12: filed advance docs live in the REAL Dropbox venue folders now,
+# not Nyquist — see fieldspec.real_venue_folder()/real_month_folder().
 
 # event-level rows (not band-specific) plus the staff-only production rows
 # daysheet.py's own module docstring lists as "left BLANK, always — ... a
@@ -896,15 +898,16 @@ RECAP_EXCLUDE_ROWS = {
 
 def _candidate_docs(venue, event_date, root=None):
     """Filed advance(s) for this venue+date, per package_run.py's own filing
-    scheme (<VenueAbbr>/<Year>/<MM Month>/<MMDDYY> <Event Name> advance.docx) —
-    globbed by date stamp since a past event's real name isn't reliably in the
-    DB any more (events/event_acts is a working model, not an archive)."""
-    root = Path(root) if root else NYQUIST_DEFAULT
-    folder = root / fs.venue_abbr(venue) / str(event_date.year) / fs.month_folder(event_date)
+    scheme (<Real Venue Folder>/<MM.YYYY Code>/<MMDDYY> <Event Name> Prod
+    Adv.docx, in the real Dropbox tree) — globbed by date stamp since a past
+    event's real name isn't reliably in the DB any more (events/event_acts is
+    a working model, not an archive)."""
+    root = Path(root) if root else fs.real_dropbox_root()
+    folder = root / fs.real_venue_folder(venue) / fs.real_month_folder(venue, event_date)
     if not folder.exists():
         return []
     stamp = event_date.strftime("%m%d%y")
-    return sorted(folder.glob(f"{stamp} * advance.docx"))
+    return sorted(folder.glob(f"{stamp} * Prod Adv.docx"))
 
 
 def _act_count_and_column(grid, target_norm, require_name_match):

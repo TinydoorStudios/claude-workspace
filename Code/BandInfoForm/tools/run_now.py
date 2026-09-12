@@ -86,10 +86,14 @@ def main():
             summary["events"], summary["emails"], summary["followups"], summary["plots"], summary["failed"] = \
                 (int(x) for x in m.groups())
 
-        # 3. overlay the built tree into the live Dropbox-synced folder (no delete —
-        #    it's an archive, not a mirror)
-        subprocess.run(["rsync", "-a", "--exclude=status.json", f"{out}/", f"{nyquist}/"],
-                        check=True)
+        # 3. overlay the built tree (no delete — it's an archive, not a mirror):
+        #    filed/  -> the real Dropbox root, alongside everyone else's files
+        #    drafts/ -> stays on the Nyquist cockpit, internal working copies only
+        #    (2026-09-12 — real venue folders; status.json is a sibling of both,
+        #    at the top of `out`, so it's naturally excluded from either rsync)
+        dropbox_root = nyquist.parent
+        subprocess.run(["rsync", "-a", f"{out}/filed/", f"{dropbox_root}/"], check=True)
+        subprocess.run(["rsync", "-a", f"{out}/drafts/", f"{nyquist}/"], check=True)
 
         # 4. fold status + band answers back into the same sheet, in place
         status_path = out / "status.json"
