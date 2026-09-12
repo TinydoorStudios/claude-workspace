@@ -42,6 +42,7 @@ INTERNAL_TOKEN = os.environ.get("ADVANCE_INTERNAL_TOKEN", "")
 PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
 NOTIFY_URL = os.environ.get("ADVANCE_NOTIFY_URL", "")
 LIFECYCLE_NOW_URL = os.environ.get("ADVANCE_LIFECYCLE_NOW_URL", "")
+CLEANUP_DRAFTS_URL = os.environ.get("ADVANCE_CLEANUP_DRAFTS_URL", "")
 TOOLS_DIR = BASE / "tools"
 
 app = Flask(__name__)
@@ -293,6 +294,11 @@ def submit():
     # the band's thank-you page never waits on it.
     _regen_submitted_show(rec)
 
+    # 5) A band that just submitted no longer needs a "please fill this out"
+    # nag sitting in Outlook — clean up any stale draft for them (Brian,
+    # 2026-09-12). Best-effort, same as the notify/regen steps above.
+    _cleanup_outlook_drafts(rec)
+
     return render_template("thanks.html", band=f.get("band_name"))
 
 
@@ -356,6 +362,45 @@ def _notify_email(event_type, fields):
         urllib.request.urlopen(req, timeout=6)
     except Exception as e:
         _log_db_error("notify_email", e)
+
+
+def _cleanup_outlook_drafts(rec):
+    """Best-effort: once a band submits, any drafted (or scheduled-but-unsent)
+    Outlook email still sitting there for them is stale — delete it so nobody
+    accidentally sends a "please fill this out" nag to a band that already
+    responded (Brian, 2026-09-12).
+
+    Matches by the artist's own KNOWN contact email (artists.last_email — the
+    address any advance/follow-up draft was actually addressed to), not
+    whatever the band just typed into the form — that could be a different
+    band member's inbox than the one staff have on file and drafted to."""
+    if not CLEANUP_DRAFTS_URL or not DB_OK:
+        return
+    try:
+        email = None
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            artist = None
+            known_id = rec.get("artist_id")
+            if known_id:
+                try:
+                    artist = advance_db.get_artist(cur, int(known_id))
+                except (TypeError, ValueError):
+                    artist = None
+            if not artist:
+                artist = advance_db.find_artist_by_name(cur, rec.get("band_name"))
+            if artist:
+                email = (artist.get("last_email") or "").strip()
+        if not email:
+            return
+        import urllib.request
+        body = json.dumps({"band": rec.get("band_name"), "email": email}).encode()
+        req = urllib.request.Request(
+            CLEANUP_DRAFTS_URL, data=body,
+            headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN},
+        )
+        urllib.request.urlopen(req, timeout=8)
+    except Exception as e:
+        _log_db_error("cleanup_outlook_drafts", e)
 
 
 def _run_pipeline_background():

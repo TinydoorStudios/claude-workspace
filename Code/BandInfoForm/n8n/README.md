@@ -276,3 +276,50 @@ touching the backup script.
   newly imported webhook route on restart, so the first POST to a freshly
   imported workflow returns 404 from something that is actually fine.
 - Verified 2026-09-09: execution `497168` success, Graph returned 202.
+
+---
+
+# n8n — Delete Outlook Drafts on Submit (2026-09-12)
+
+Once a band submits their advance form, any drafted email still sitting there
+for them is stale — they already answered, so a "please fill this out" nag
+should never accidentally go out. `/submit` fires this cleanup right after
+recording the submission (best-effort, same fire-and-forget pattern as
+`_notify_email`/`_regen_submitted_show` — never blocks or breaks the band's
+thank-you page).
+
+- Workflow: `internal_delete_outlook_drafts.json` (id
+  `internal-delete-outlook-drafts`, token + Graph credential placeholdered).
+  Webhook `POST /webhook/internal-delete-outlook-drafts`, token-protected
+  (`X-Advance-Token`, same as every other internal workflow) → lists every
+  message in `production@3cdc.org`'s **Drafts** folder via Graph
+  (`GET /mailFolders/drafts/messages`, `$top=200`) → keeps only the ones whose
+  `toRecipients` includes the given email → `DELETE`s each match via Graph.
+- **Matches by recipient email, never by subject.** The subject on a band's
+  advance draft is series-based ("513 Airwaves", "Blues & Brews"), never the
+  band's own name — matching on subject would silently miss every real draft.
+  Every advance/follow-up draft is addressed to exactly one band's own
+  contact address, so recipient email is the one reliable key.
+- App-side: `app/app.py` — `_cleanup_outlook_drafts(rec)`, called from
+  `/submit` step 5. Looks up the artist by `rec["artist_id"]` (if the form was
+  pre-filled) else by name, and uses **`artists.last_email`** — the address
+  staff/the pipeline actually drafted to — not whatever email the band just
+  typed into the form itself, which could be a different person's inbox than
+  the one the draft was addressed to. No artist match or no email on file =
+  silently skipped, same as every other best-effort notify step.
+- New env var: `ADVANCE_CLEANUP_DRAFTS_URL=http://localhost:5678/webhook/internal-delete-outlook-drafts`
+  in `/opt/band-advance/advance.env` — same `localhost:5678` pattern as
+  `ADVANCE_NOTIFY_URL`/`ADVANCE_LIFECYCLE_NOW_URL` (Cloudflare's bot
+  protection blocks the public tunnel for server-to-server calls). Empty/unset
+  just skips this step, same as the other optional notify URLs.
+- **"Scheduled" emails**: this whole pipeline is drafts-only, nothing is ever
+  auto-sent or scheduled for later send (see "No auto-send" throughout this
+  file), so there's no separate Outbox/scheduled-send case to handle — Drafts
+  is the only folder that can ever hold something stale for a band.
+- Deploy: `./deploy_n8n_workflows.command internal_delete_outlook_drafts.json`
+  (resolves both placeholders + restarts n8n, same as every workflow here),
+  then `./deploy_app.command` for the Flask side. Verified 2026-09-12:
+  execution `514821` success — Graph returned real drafts (`statusCode: 200`,
+  real `toRecipients` data), zero matches against a test email that shouldn't
+  match anything (didn't test an actual delete against real production
+  drafts, on purpose).
