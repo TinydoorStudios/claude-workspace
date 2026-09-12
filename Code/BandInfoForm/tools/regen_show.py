@@ -58,7 +58,9 @@ def regen(venue, date, artist, root=NYQUIST):
     d = ev.get("event_date")
     folder = root / fs.venue_abbr(ev.get("venue")) / str(d.year) / fs.month_folder(d)
     folder.mkdir(parents=True, exist_ok=True)
-    stem = fs.advance_stem(ev.get("name") or artist, d)
+    # Same stable-name rule as package_run.event_stem: event name, else series,
+    # else the band — never let the filename drift with the act list.
+    stem = fs.advance_stem(ev.get("name") or ev.get("series") or artist, d)
 
     # file each act's uploaded stage plot next to the doc (band-named), same as
     # package_run does, so the day-sheet's Stage Plot cell can point at it.

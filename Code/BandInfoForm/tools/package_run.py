@@ -64,8 +64,12 @@ def event_dir(out, ev, acts):
 
 def event_stem(ev, acts):
     d = ev.get("event_date")
-    name = ev.get("name") or ", ".join(
-        a["artist"]["name"] for a in acts if a.get("artist")) or "Untitled"
+    # Prefer a stable name: the event's own name, else its SERIES — so the
+    # filename doesn't drift (and orphan the old file) every time a band is
+    # added to the bill (Brian, 2026-09-11). Act names are only the last resort.
+    name = (ev.get("name") or ev.get("series")
+            or ", ".join(a["artist"]["name"] for a in acts if a.get("artist"))
+            or "Untitled")
     if d:
         return fs.advance_stem(name, d)
     return f"{safe(name)} advance"
