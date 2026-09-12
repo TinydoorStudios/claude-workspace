@@ -35,6 +35,9 @@ UPLOADS.mkdir(exist_ok=True)
 import os
 SECRET = os.environ.get("ADVANCE_SECRET", "dev-insecure-secret-change-me")
 GATE_PASS = os.environ.get("ADVANCE_GATE_PASS", "lockdown")
+# Second standing passcode (Brian, 2026-09-12) — either one opens the gate.
+GATE_PASS_2 = os.environ.get("ADVANCE_GATE_PASS_2", "1313")
+VALID_GATE_PASSES = {p for p in (GATE_PASS, GATE_PASS_2) if p}
 INTERNAL_TOKEN = os.environ.get("ADVANCE_INTERNAL_TOKEN", "")
 PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
 NOTIFY_URL = os.environ.get("ADVANCE_NOTIFY_URL", "")
@@ -425,7 +428,7 @@ def _gate():
 @app.route("/gate", methods=["GET", "POST"])
 def gate():
     if request.method == "POST":
-        if request.form.get("passcode") == GATE_PASS:
+        if request.form.get("passcode") in VALID_GATE_PASSES:
             session["auth"] = True
             return redirect(request.args.get("next") or url_for("staff"))
         return render_template("gate.html", error="Incorrect passcode."), 403
