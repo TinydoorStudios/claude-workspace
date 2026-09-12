@@ -287,6 +287,13 @@ def locked_schedule_series(root=None):
     return sorted(out)
 
 
+class _SafeDict(dict):
+    """str.format_map backing that renders an unsupplied placeholder as '' rather
+    than raising — so one missing key can't turn a whole block into literal braces."""
+    def __missing__(self, key):
+        return ""
+
+
 def blocks_for(venue, series=None, **dynamic):
     v = VENUE_EMAIL.get((venue or "").strip(), {})
     out = dict(DEFAULT)
@@ -295,10 +302,14 @@ def blocks_for(venue, series=None, **dynamic):
         override = _load_series_block(venue, series)
         out.update({k: val for k, val in override.items() if val is not None})
     if dynamic:
+        safe = _SafeDict(dynamic)
         for k, text in out.items():
             if isinstance(text, str) and "{" in text:
                 try:
-                    out[k] = text.format(**dynamic)
-                except (KeyError, IndexError):
-                    pass  # a referenced placeholder wasn't supplied — leave as-is
+                    # format_map with a blank-defaulting dict: a missing
+                    # placeholder renders empty instead of leaving the WHOLE
+                    # block's {braces} literal in the email (Brian, 2026-09-11).
+                    out[k] = text.format_map(safe)
+                except (IndexError, ValueError):
+                    pass  # positional/malformed braces — leave as-is
     return out

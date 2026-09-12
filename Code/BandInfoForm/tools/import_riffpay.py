@@ -344,6 +344,50 @@ def preview(events):
     print()
 
 
+def seed_bookings(events):
+    """Create a `bookings` row per act so a RiffPay import is a true booking
+    entry (Brian, 2026-09-11). The advance pipeline's email/lifecycle path reads
+    location + schedule from `bookings` (shows LEFT JOIN bookings), so without
+    this the auto-drafted email for a RiffPay show comes out with a null
+    location and a generic schedule. Dedup on venue+date+artist (delete+insert),
+    so re-running is idempotent. Needs the advance DB — run on the VM; best
+    effort, warns and returns 0 if the DB isn't reachable (e.g. run from the Mac)."""
+    for cand in (HERE.parent, HERE.parent / "app"):
+        if (cand / "advance_db.py").exists():
+            sys.path.insert(0, str(cand))
+            break
+    try:
+        import advance_db as db
+    except Exception as e:  # noqa: BLE001
+        print(f"  ! advance_db not importable — bookings NOT seeded ({e})", file=sys.stderr)
+        return 0
+    n = 0
+    try:
+        with db.get_conn() as conn, conn.cursor() as cur:
+            for ev in events:
+                for act in ev["acts"]:
+                    cur.execute(
+                        "DELETE FROM bookings WHERE venue=%s AND event_date=%s AND artist_name=%s",
+                        (ev["venue"], ev["event_date"], act["artist_name"]))
+                    db.insert_booking(cur, {
+                        "event_name": ev["event_name"], "event_date": ev["event_date"],
+                        "venue": ev["venue"], "location": ev["location"],
+                        "series": ev["series"], "band_count": ev["band_count"],
+                        "load_in": ev["load_in"], "soundcheck": ev["soundcheck"],
+                        "event_start": ev["event_start"], "event_end": ev["event_end"],
+                        "curfew": ev["curfew"], "slot": act["slot"],
+                        "artist_name": act["artist_name"],
+                        "contact_email": act["contact_email"],
+                        "entered_by": "riffpay-import",
+                    })
+                    n += 1
+            conn.commit()
+    except Exception as e:  # noqa: BLE001
+        print(f"  ! bookings NOT seeded (DB unreachable?): {e}", file=sys.stderr)
+        return 0
+    return n
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -353,6 +397,8 @@ def main():
     ap.add_argument("--today", help="pin today's date (YYYY-MM-DD); default = real today")
     ap.add_argument("--apply", action="store_true",
                     help="write rows to --sheet (default: preview only)")
+    ap.add_argument("--no-db", action="store_true",
+                    help="skip seeding bookings into the DB (sheet only)")
     args = ap.parse_args()
 
     today = parse_date(args.today) if args.today else dt.date.today()
@@ -371,6 +417,9 @@ def main():
     print(f"{verb} {appended} new act row(s) to {args.sheet}"
           f"{'' if args.apply else ' (dry run — add --apply)'}; "
           f"{dup} already present.")
+    if args.apply and not args.no_db:
+        seeded = seed_bookings(events)
+        print(f"Seeded {seeded} booking row(s) into the DB.")
 
 
 if __name__ == "__main__":

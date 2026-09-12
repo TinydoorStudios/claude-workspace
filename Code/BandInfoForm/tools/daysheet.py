@@ -657,7 +657,8 @@ def fill_crew_schedule(doc, event):
     staff_times = {}
     try:
         import staffing
-        staff_times = staffing.event_times_for(venue, event.get("event_date")) or {}
+        staff_times = staffing.event_times_for(
+            venue, event.get("event_date"), series=event.get("series")) or {}
     except Exception:
         staff_times = {}
     crew_call = staff_times.get("crew_call") or (_shift_house_time(start, -120) if start else "")
@@ -687,9 +688,11 @@ def _consoles_text(event):
     venue = event.get("venue")
     det = event.get("details") or {}
     loc = (det.get("location") or "").strip()
-    hay = f"{event.get('series') or ''} {event.get('name') or ''}".lower()
+    # Match the SERIES only (not a band name) so a band literally called
+    # "Salsa ___" doesn't trip the monitor default (Brian, 2026-09-11).
+    series = (event.get("series") or "").lower()
     if venue == "Fountain Square":
-        default_mon = ("513 airwaves" in hay) or ("salsa" in hay)
+        default_mon = ("513 airwaves" in series) or ("salsa" in series)
         return "FOH: DiGiCo Quantum 225" + (" · Mon: M32" if default_mon else "")
     if venue == "Washington Park":
         if loc in ("Porch", "Bandstand"):
@@ -699,14 +702,17 @@ def _consoles_text(event):
 
 
 def fill_consoles(grid, event):
-    """Write the Consoles row from _consoles_text(); no-op if it's blank (a
-    venue we haven't set a rule for) or the row isn't in this template."""
+    """Write the Consoles row from _consoles_text() into EVERY act column
+    (Opener / Direct Support / Headliner), so the console shows under each band
+    on the bill (Brian, 2026-09-12). No-op if blank (a venue with no rule) or
+    the row isn't in this template."""
     text = _consoles_text(event)
     if not text:
         return
     for r in grid.rows:
         if norm(r.cells[0].text) == "consoles" and len(r.cells) > 1:
-            set_cell(r.cells[1], text)
+            for c in r.cells[1:]:
+                set_cell(c, text)
             break
 
 

@@ -83,10 +83,24 @@ def _export_url(gid):
     return f"https://docs.google.com/spreadsheets/d/{SCHEDULE_SHEET_ID}/export?format=csv&gid={gid}"
 
 
+_CSV_CACHE = {}          # gid -> (fetched_at, rows)
+_CSV_TTL = 300           # seconds — one package_run (seconds) reuses; a long-
+                         # lived app process still refreshes every 5 min.
+
+
 def _fetch_csv(gid, timeout=10):
+    """Fetch (and briefly cache) a sheet tab. The cache keeps a full package_run
+    — which fills one doc per event, each reading the schedule — from hitting
+    Google Sheets N times (and, if the sheet is down, waiting N×timeout);
+    (Brian, 2026-09-11)."""
+    hit = _CSV_CACHE.get(gid)
+    if hit and (dt.datetime.now().timestamp() - hit[0]) < _CSV_TTL:
+        return hit[1]
     with urllib.request.urlopen(_export_url(gid), timeout=timeout) as resp:
         text = resp.read().decode("utf-8", errors="replace")
-    return list(csv.reader(io.StringIO(text)))
+    rows = list(csv.reader(io.StringIO(text)))
+    _CSV_CACHE[gid] = (dt.datetime.now().timestamp(), rows)
+    return rows
 
 
 def _parse_date(s):
@@ -204,13 +218,16 @@ def _event_time(tok):
     return f"{int(m.group(1))}:{int(m.group(2) or 0):02d}p"
 
 
-def event_times_for(venue, show_date):
+def event_times_for(venue, show_date, series=None):
     """{'crew_call','curfew'} for this venue+date, read from the staffing
     sheet's Event cell — the '<Event> (<crew>-<curfew>)' pattern (Brian,
     2026-09-11, all sites; e.g. 'Jazz (3:30-10)' -> crew 3:30p, curfew 10:00p).
-    Both times PM. None if the venue isn't wired, the sheet is unreachable, the
-    date isn't on it, or its Event cell carries no (start-end) range — callers
-    fall back to their computed schedule."""
+    Both times PM. When `series` is given and a date has more than one event
+    row, the row whose Event cell names that series wins (so a double-booked day
+    doesn't hand back the wrong show's times); otherwise the first parseable row
+    is used. None if the venue isn't wired, the sheet is unreachable, the date
+    isn't on it, or no row has a (start-end) range — callers fall back to their
+    computed schedule."""
     cols = SCHEDULE_COLUMNS.get(venue)
     if not cols or not show_date:
         return None
@@ -226,6 +243,8 @@ def event_times_for(venue, show_date):
         return None
     ev_col = cols["event"]
     need = max(cols.values())
+    target = (series or "").strip().lower()
+    first = None
     for row in rows:
         if len(row) <= need:
             continue
@@ -245,9 +264,16 @@ def event_times_for(venue, show_date):
         if not rng:
             continue
         crew, curfew = _event_time(rng.group(1)), _event_time(rng.group(2))
-        if crew and curfew:
-            return {"crew_call": crew, "curfew": curfew}
-    return None
+        if not (crew and curfew):
+            continue
+        rec = {"crew_call": crew, "curfew": curfew}
+        # prefer the row whose Event name matches the show's series on a
+        # multi-event day; otherwise keep the first parseable row.
+        if target and target in line.lower():
+            return rec
+        if first is None:
+            first = rec
+    return first
 
 
 def engineer_for(venue, show_date):
