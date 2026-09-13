@@ -128,9 +128,10 @@
     <div class="full req"><label>Entered By</label><input name="entered_by" value="{{ form.entered_by or '' }}" placeholder="your name" required></div>
     <div class="full" style="background:#1c232d;border:1px solid #2a323d;border-radius:8px;padding:12px 14px">
       <label style="display:flex;align-items:flex-start;gap:9px;text-transform:none;font-weight:400;letter-spacing:normal;color:#e6edf3;font-size:14px;cursor:pointer">
-        <input type="checkbox" name="skip_welcome_email" style="width:auto;margin-top:2px" {% if form.skip_welcome_email %}checked{% endif %}>
-        <span>Band already emailed their info directly — I'll fill in their advance form myself. Don't send them the automated welcome email.</span>
+        <input type="checkbox" name="skip_welcome_email" style="width:auto;margin-top:2px" {% if form.skip_welcome_email or (not form and request.args.get('manual')) %}checked{% endif %}>
+        <span>Manual band advance</span>
       </label>
+      <p class="hint" style="margin:6px 0 0 25px">Band already emailed their info directly — no automated welcome email, you'll fill in their form yourself.</p>
     </div>
     <div><label>Slot</label>
       <select name="slot" id="slot_select">

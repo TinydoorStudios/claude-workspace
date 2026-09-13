@@ -11,7 +11,7 @@
   .wrap{max-width:720px;margin:0 auto;padding:0 16px;}
   header h1{margin:0;font-size:20px;}
   header p{margin:6px 0 0;font-size:13px;color:#c7d6e6;}
-  .options{max-width:720px;margin:36px auto;padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .options{max-width:720px;margin:36px auto;padding:0 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;}
   @media (max-width:600px){ .options{grid-template-columns:1fr;} }
   a.option{display:block;background:#161b22;border:1px solid #2a323d;border-radius:14px;
     padding:26px 22px;text-decoration:none;color:inherit;transition:border-color .15s,background .15s;}
@@ -23,12 +23,16 @@
 <body>
 <header><div class="wrap">
   <h1>Band Advance — Staff</h1>
-  <p>Log a new booking, or look up a band that's already been advanced.</p>
+  <p>Log a new booking, enter one manually, or look up a band that's already been advanced.</p>
 </div></header>
 <div class="options">
   <a class="option" href="{{ url_for('booking') }}">
     <h2>New Booking</h2>
     <p>Log a new artist booking. Seeds the sheet, builds the package, and starts the advance draft on its own.</p>
+  </a>
+  <a class="option" href="{{ url_for('booking', manual=1) }}">
+    <h2>Manual Band Advance</h2>
+    <p>Band already emailed their info directly? Log the booking, skip their welcome email, and fill in their form yourself.</p>
   </a>
   <a class="option" href="{{ url_for('search') }}">
     <h2>Browse Advanced Bands</h2>
