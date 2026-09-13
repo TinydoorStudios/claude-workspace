@@ -176,6 +176,19 @@
   // enforcement is server-side (venue_email.schedule_block_for), this only
   // keeps staff from typing times that would be silently ignored.
   var LOCKED_SCHEDULE_SERIES = {{ locked_schedule_series | tojson }};
+  // Series -> venue (Brian, 2026-09-13): a series belongs to one venue in
+  // practice — the Series dropdown's own optgroups above are already
+  // grouped by venue — so picking an existing series is authoritative for
+  // venue, not a guess. Built from the same series_by_venue the dropdown
+  // itself renders from. If a series name were ever booked under two
+  // venues, whichever venue iterates last here wins; not worth guarding
+  // against for a case that shouldn't happen.
+  var SERIES_VENUE = {
+    {% for v, opts in series_by_venue.items() %}
+    {% for s in opts %}{{ s|tojson }}: {{ v|tojson }},
+    {% endfor %}
+    {% endfor %}
+  };
   var SCHEDULE_FIELD_IDS = ['load_in_input', 'soundcheck_input', 'event_start_input', 'event_end_input', 'curfew_input'];
   function normSeries(s) {
     return (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -204,6 +217,10 @@
       custom.style.display = 'none';
       custom.removeAttribute('name');
       sel.setAttribute('name', 'series');
+      if (sel.value && SERIES_VENUE[sel.value]) {
+        document.getElementById('venue_select').value = SERIES_VENUE[sel.value];
+        onVenueChange();
+      }
     }
     updateScheduleLock();
   }
