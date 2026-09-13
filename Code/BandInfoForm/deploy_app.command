@@ -15,7 +15,7 @@ KEY="$HOME/.ssh/proxmox_tds"
   STAMP=$(date +%Y%m%d-%H%M%S)
 
   echo "--- stage payloads ---"
-  tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   app.py advance_db.py forms_config.py templates || exit 1
+  tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   app.py advance_db.py forms_config.py i18n.py es_translate.py templates || exit 1
   tar -C "$HERE/tools" -czf /tmp/adv_tools.tgz draft_emails.py backfill.py event.py daysheet.py sheet.py import_sheet.py fieldspec.py build_template.py dump_followups.py status_sheet.py package_run.py venue_email.py staffing.py extract_advance_recap.py seed_bookings.py append_bookings.py merge_status.py run_now.py status_log.py daily_digest.py crew_report.py regen_show.py email_templates lists doc_templates || exit 1
 
   echo "--- copy to VM ---"

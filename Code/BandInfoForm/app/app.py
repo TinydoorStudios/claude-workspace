@@ -24,6 +24,8 @@ from werkzeug.utils import secure_filename
 from itsdangerous import URLSafeSerializer, BadData
 
 import forms_config
+import i18n
+import es_translate
 
 BASE = Path(__file__).resolve().parent
 DATA = BASE / "data"
@@ -43,6 +45,15 @@ PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudi
 NOTIFY_URL = os.environ.get("ADVANCE_NOTIFY_URL", "")
 LIFECYCLE_NOW_URL = os.environ.get("ADVANCE_LIFECYCLE_NOW_URL", "")
 CLEANUP_DRAFTS_URL = os.environ.get("ADVANCE_CLEANUP_DRAFTS_URL", "")
+# n8n's real-send webhook, called directly (Brian, 2026-09-13) for the
+# unresponded-at-3-days alert — an actual SEND, never a draft, so it skips
+# the "Advance Notify" formatting workflow NOTIFY_URL points at (that one's
+# shape is booking/submission-specific). Flask and n8n run on the same VM
+# (see n8n/README.md), so localhost:5678 is a safe default with no env var
+# required — override only if that ever changes.
+INTERNAL_SEND_URL = os.environ.get("ADVANCE_INTERNAL_SEND_URL",
+                                    "http://localhost:5678/webhook/internal-send-outlook")
+UNRESPONDED_ALERT_TO = os.environ.get("ADVANCE_UNRESPONDED_ALERT_TO", "blloyd@3cdc.org")
 TOOLS_DIR = BASE / "tools"
 
 app = Flask(__name__)
@@ -94,6 +105,36 @@ def read_prefill_token(token):
         return None
 
 
+# ── language ─────────────────────────────────────────────────────────────────
+# ?lang=es on any form route serves the Spanish copy (form.html pulls every
+# label/help/option string from i18n.py's STRINGS table via `t()`). Field
+# `name=`s and stored option `value=`s stay English regardless of `lang` —
+# only display text changes, so the DB/docfill/daysheet pipeline never has
+# to know which language a band used. `form_lang` is a hidden field carrying
+# that choice through to /submit, so the thank-you page (and, later, the
+# submission-notify translation step) know the language after the redirect
+# away from any `?lang=` query string.
+
+def _lang():
+    l = (request.args.get("lang") or "").strip().lower()
+    return "es" if l == "es" else "en"
+
+
+def _lang_url(new_lang):
+    """Current path, query string swapped to `lang=new_lang` — for the
+    Español/English toggle link on the form itself."""
+    from urllib.parse import urlencode
+    args = request.args.to_dict(flat=True)
+    args["lang"] = new_lang
+    return f"{request.path}?{urlencode(args)}"
+
+
+@app.context_processor
+def _inject_i18n():
+    lang = _lang()
+    return {"lang": lang, "t": i18n.translator(lang), "lang_url": _lang_url}
+
+
 # ── public form ─────────────────────────────────────────────────────────────
 
 @app.get("/")
@@ -102,6 +143,7 @@ def form():
         series_key=request.args.get("series"),
         venue=request.args.get("venue"),
         location=request.args.get("location"),
+        lang=_lang(),
     )
     return render_template(
         "form.html", venues=forms_config.VENUES, cfg=cfg,
@@ -121,7 +163,11 @@ def short_link(code):
         token = advance_db.resolve_short_link(cur, code)
     if not token:
         abort(404)
-    return redirect(url_for("prefilled_form", token=token))
+    # Carry ?lang= through the redirect (Flask's url_for doesn't inherit the
+    # incoming query string) so a Spanish-language emailed link still opens
+    # the Spanish form after the short-code hop.
+    kw = {"lang": request.args["lang"]} if request.args.get("lang") else {}
+    return redirect(url_for("prefilled_form", token=token, **kw))
 
 
 @app.get("/f/<token>")
@@ -144,7 +190,8 @@ def prefilled_form(token):
             _log_db_error("slot_lookup", e)
     cfg = forms_config.get_config(
         series_key=series, venue=seed.get("venue") or request.args.get("venue"),
-        location=seed.get("location") or request.args.get("location"), slot=slot)
+        location=seed.get("location") or request.args.get("location"), slot=slot,
+        lang=_lang())
     prefill, returning, artist_name = {}, False, None
     # Locked = this specific value came from us (the booking record / matched
     # artist), not from the band typing it — bands can't edit these two.
@@ -275,6 +322,23 @@ def submit():
             "size": dest.stat().st_size if dest.exists() else None,
         }
 
+    # 0) A Spanish-language submission (form_lang, carried on the hidden
+    # form_lang field set by the language the band's form was rendered in —
+    # see i18n.py) gets its free-text answers translated to English HERE,
+    # before anything downstream — disk JSON, Postgres, the notify email,
+    # the filed advance/daysheet doc — ever sees them (Brian, 2026-09-12).
+    # Every select/radio/number field is already English regardless of
+    # language (i18n.py only swaps the on-screen label, never the stored
+    # value), so only the open textareas need this. Fails soft: on any
+    # error (no API key configured, the API down/slow, a bad response) the
+    # original Spanish text is left in place rather than blocking or
+    # corrupting the submission.
+    if (rec.get("form_lang") or "").strip().lower() == "es":
+        try:
+            es_translate.translate_es_fields(rec, log=_log_db_error)
+        except Exception as e:
+            _log_db_error("es_translate", e)
+
     # 1) DISK FIRST — the durable record. Never fails the request over the DB.
     (DATA / f"{stamp}__{slug}.json").write_text(json.dumps(rec, indent=2))
 
@@ -299,7 +363,14 @@ def submit():
     # 2026-09-12). Best-effort, same as the notify/regen steps above.
     _cleanup_outlook_drafts(rec)
 
-    return render_template("thanks.html", band=f.get("band_name"))
+    # The language the BAND used (carried on the form's hidden form_lang
+    # field), not whatever ?lang= happens to be on this POST's query string
+    # (there usually isn't one) — explicit kwargs here win over the
+    # context processor's query-string-based default (Flask re-applies the
+    # caller's own context keys last).
+    submitted_lang = "es" if (f.get("form_lang") or "").strip().lower() == "es" else "en"
+    return render_template("thanks.html", band=f.get("band_name"),
+                            lang=submitted_lang, t=i18n.translator(submitted_lang))
 
 
 def _regen_submitted_show(rec):
@@ -370,6 +441,48 @@ def _notify_email(event_type, fields):
         urllib.request.urlopen(req, timeout=6)
     except Exception as e:
         _log_db_error("notify_email", e)
+
+
+def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=15):
+    """Fire an ACTUAL send (never a draft) via n8n's 'Internal Send —
+    Outlook' webhook — used for BOTH Brian's own internal alerts and, as
+    of the 2026-09-13 live-send migration, band-facing advance/follow-up
+    email too (previously routed through 'Internal Create Draft' for
+    Brian to review; that path is no longer used by this app). Pass
+    `body` for plain text (the normal case — every advance/follow-up
+    email is plain text) or `html` for a formatted internal alert; not
+    both. `attachment` is (name, content_type, base64_content), same
+    shape venue_email.venue_attachment() returns. Best-effort: never
+    raises, returns True/False so the caller can decide whether to stamp
+    a 'sent' flag. Never blocks the request it's called from beyond the
+    timeout (band-facing sends get a longer one than internal alerts —
+    Graph attachment uploads can be slow)."""
+    if not INTERNAL_SEND_URL:
+        return False
+    try:
+        import urllib.request
+        payload = {"to": to, "subject": subject}
+        if html:
+            payload["html"] = html
+        else:
+            payload["body"] = body or ""
+        if attachment:
+            payload["attachment_name"], payload["attachment_type"], payload["attachment_content"] = attachment
+        req = urllib.request.Request(
+            INTERNAL_SEND_URL, data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN},
+        )
+        urllib.request.urlopen(req, timeout=timeout)
+        return True
+    except Exception as e:
+        _log_db_error("send_outlook_email", e)
+        return False
+
+
+def _send_internal_email(subject, html, to=None):
+    """Brian's own internal alerts (HTML) — thin wrapper over
+    _send_outlook_email defaulting `to` to his address."""
+    return _send_outlook_email(to or UNRESPONDED_ALERT_TO, subject, html=html)
 
 
 def _cleanup_outlook_drafts(rec):
@@ -595,11 +708,13 @@ def _series_by_venue():
 def booking():
     """Short staff intake form for a new artist booking. Writes to the bookings
     table, then runs the pipeline — seeds the sheet, builds the package, and
-    gets the initial advance drafted in Gmail without anyone clicking anything.
-    A show already inside the 21-day window at booking time can't wait for the
-    next daily check: that case runs the pipeline synchronously (background
-    thread, response isn't held up) and triggers the draft + notify right
-    away. Everything else runs on the normal next-daily-check cadence."""
+    gets the initial advance sent via Outlook without anyone clicking anything
+    (live-send migration, Brian 2026-09-13 — used to draft in Gmail, then
+    Outlook; now a real send). A show already inside the 21-day window at
+    booking time can't wait for the next daily check: that case runs the
+    pipeline synchronously (background thread, response isn't held up) and
+    triggers the send + notify right away. Everything else runs on the
+    normal next-daily-check cadence."""
     if request.method == "POST":
         f = request.form
         if not f.get("artist_name") or not f.get("entered_by"):
@@ -778,47 +893,82 @@ def run_followups():
 @app.post("/internal/advance-lifecycle")
 def advance_lifecycle():
     """Called by n8n's daily 'Advance Lifecycle Check', and on-demand for a
-    late booking (see _trigger_immediate_advance). Three guardrails (Brian,
-    2026-09-03; drafting moved earlier same day; late-booking on-demand
-    trigger added same day):
-      - INITIAL advance drafts itself as soon as a booking is seeded — no
-        longer waits for the 21-day mark. Reuses draft_emails.py as-is, so
-        the NEW-vs-RETURNING 6-month cross-venue check applies automatically
-        — nothing new needed there. A show already inside the 21-day window
-        the moment it's drafted (late booking, or catching up a backlog)
-        carries ready_now: true and gets its send-reminder flag set in the
-        same pass — it doesn't wait a separate day to be told what's already
-        true.
-      - SEND REMINDER fires once a previously-drafted show crosses into the
-        21-day-out window — a nudge that the draft already sitting in Gmail
-        is ready to send, not a new draft. Carries no email content of its
-        own.
-      - FOLLOW-UP drafts itself if nothing's heard back, at each of 7/3/2/1
-        days out from the show (advance_db.FOLLOWUP_TIERS) — date-driven, not
-        tied to when the initial went out. Each tier fires once, independently
-        (Brian, 2026-09-10: the original single 7-day check became a cadence).
-    initial/followup come back as {to, subject, body, ready_now} for n8n to
-    create as real Gmail drafts (never sent from here) — Brian reviews and
-    sends. send_reminders come back as {artist_name, venue, show_date} for
-    n8n to list in the summary email only. Token-protected, same as
-    /internal/run-followups."""
+    late booking (see _trigger_immediate_advance). LIVE-SEND MIGRATION
+    (Brian, 2026-09-13): both guardrails below now SEND for real (via
+    _send_outlook_email, straight to n8n's internal-send-outlook webhook)
+    instead of building an Outlook draft for Brian to review — no more
+    human-in-the-loop step for either one. Three guardrails (drafting-vs-
+    sending history: drafted immediately at booking 2026-09-03; live-send
+    migration + tier cadence trimmed to 7/3/1 + unresponded alert all
+    2026-09-13):
+      - INITIAL advance sends itself as soon as a booking is seeded — no
+        21-day wait. Reuses draft_emails.py's render as-is (writes to
+        tools/drafts/*.md same as always, unchanged), so the NEW-vs-
+        RETURNING 6-month cross-venue check applies automatically, then
+        sends that rendered content directly instead of turning it into a
+        draft. Right after sending, any FOLLOWUP_TIERS mark already on or
+        before TODAY (same day counts as already-passed too — a reminder
+        never fires the same day as the welcome) is pre-skipped for this
+        show for good (mark_stale_followup_tiers_skipped) — only tiers
+        still strictly ahead of today stay open to fire later as their
+        date arrives. The old 21-day "your draft is ready to send" nudge
+        (shows_due_for_send_reminder/send_reminder_sent_at) is RETIRED —
+        nothing to nudge about once the welcome sends itself.
+      - FOLLOW-UP sends itself if nothing's heard back, at each of 7/3/1
+        days out from the show (advance_db.FOLLOWUP_TIERS, trimmed from
+        7/3/2/1 — the 2-day tier is gone) — date-driven, not tied to when
+        the initial went out. Each tier fires at most once, independently,
+        whether it actually sent (an email existed) or was marked resolved
+        with nothing to send (mark_followup_sent(..., sent=False) for a
+        band with no email on file, or because it was pre-skipped as
+        stale above) — either way it never asks again for that tier.
+      - UNRESPONDED ALERT fires ONE real email to Brian (bypassing n8n's
+        draft path entirely, same as the two above) the first time a show
+        crosses 3 days out with no submission on file — a flag for him to
+        follow up by hand, listing every band that qualifies this run.
+        Independent of the tier-3 band-facing follow-up above (own
+        shows.unresponded_alert_sent_at column, own gate) and NOT skipped
+        for a band with no email — he especially wants to know about those.
+    due_followup/due_unresponded are queried in a FRESH query, after
+    due_initial's own sends are committed, not before — a late booking
+    already inside one of those windows at the moment it's booked must
+    show up in THIS SAME run, not wait for tomorrow (bug found 2026-09-13:
+    querying them up front, before due_initial's advance_draft_created_at
+    commit, meant a same-request late booking could never appear in its
+    own run since every one of these gates requires
+    advance_draft_created_at IS NOT NULL).
+    initial/followup come back as lightweight {artist_name, venue,
+    show_date} summaries (no subject/body/to — those already went out for
+    real) purely for n8n's own digest email to Brian. Token-protected,
+    same as /internal/run-followups."""
     if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
         abort(403)
     if not DB_OK:
         return {"error": "db-unavailable"}, 503
 
-    initial, followup, send_reminders = [], [], []
+    initial, followup = [], []
     sys.path.insert(0, str(TOOLS_DIR))
     import venue_email as ve
     try:
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             due_initial = advance_db.shows_due_for_initial_advance(cur)
-            # (show_id, tier) tag carried alongside each row so mark_followup_drafted
-            # below stamps the RIGHT tier — a show can legitimately show up under
-            # more than one tier across different runs, never more than once per tier.
-            due_followup = [(tier, r) for tier in advance_db.FOLLOWUP_TIERS
-                             for r in advance_db.shows_due_for_followup(cur, tier)]
-            due_reminders = advance_db.shows_due_for_send_reminder(cur)
+
+        # due_followup/due_reminders are queried AFTER due_initial is fully
+        # processed and committed below, not up here (bug found 2026-09-13:
+        # a late booking inside its OWN follow-up tier at the moment it's
+        # booked — e.g. a Salsa band booked only 4 days out — was drafting
+        # its initial advance but silently missing an immediately-due
+        # follow-up for a full day, until the next 9am cron. Both queries
+        # gate on `advance_draft_created_at IS NOT NULL`
+        # (shows_due_for_followup/shows_due_for_send_reminder), which is
+        # still NULL for a show due_initial hasn't drafted yet — querying
+        # them here, before that commit, meant a same-request late booking
+        # could never appear in its own run's due_followup, even when it's
+        # already inside that tier's window. send_reminder never showed
+        # this symptom only because the ready_now branch below already
+        # special-cases it inline; follow-up had no equivalent. Querying
+        # both fresh after the commit fixes it for good instead of adding
+        # another one-off special case.)
 
         # ── initial advances: reuse draft_emails.py wholesale (NEW/RETURNING,
         # venue blocks, short link, bill grouping — all of it, unchanged) ──
@@ -860,32 +1010,57 @@ def advance_lifecycle():
                     text = hits[0].read_text()
                     subj_line, _, body = text.partition("\n")
                     subject = subj_line.removeprefix("Subject:").strip()
-                    if not r["email"]:
-                        continue
-                    # a show already inside the 21-day window the moment it's
-                    # drafted (a late booking, or this run just caught up on
-                    # a backlog) doesn't need a SEPARATE reminder tomorrow —
-                    # flag it ready now instead of making it wait a full
-                    # extra day to be told what's already true.
-                    ready_now = bool(r["show_date"]
-                                      and r["show_date"] <= dt.date.today() + dt.timedelta(days=21))
-                    item = {"to": r["email"], "subject": subject,
-                            "body": body.lstrip("\n"), "ready_now": ready_now}
-                    att = ve.venue_attachment(r["venue"])
-                    if att:
-                        item["attachment_name"], item["attachment_type"], item["attachment_content"] = att
-                    initial.append(item)
+                    # advance_draft_created_at is stamped regardless of
+                    # whether an email address exists — the show has now
+                    # been through the pipeline once, same as before this
+                    # change; a band with no email just never gets sent
+                    # anything (same gap that existed under drafting too).
+                    days_out = (r["show_date"] - dt.date.today()).days if r["show_date"] else None
+                    if r["email"]:
+                        att = ve.venue_attachment(r["venue"])
+                        ok = _send_outlook_email(r["email"], subject, body=body.lstrip("\n"),
+                                                  attachment=att)
+                        if ok:
+                            initial.append({"artist_name": r["artist_name"],
+                                            "venue": r["venue"] or "",
+                                            "show_date": us_date(r["show_date"])})
                     advance_db.mark_advance_drafted(cur, r["show_id"])
-                    if ready_now:
-                        advance_db.mark_send_reminder_sent(cur, r["show_id"])
+                    # Live-send migration (Brian, 2026-09-13): the welcome
+                    # sends for real the moment the booking is seeded, so
+                    # there's no draft left sitting around to nudge Brian
+                    # about at the 21-day mark — mark_send_reminder_sent /
+                    # shows_due_for_send_reminder are retired, not called
+                    # anywhere anymore. Any FOLLOWUP_TIERS mark that's
+                    # already on or before TODAY (same day as this welcome
+                    # counts as "already passed" too) gets permanently
+                    # skipped for this show instead of firing a backdated
+                    # reminder later — only tiers still ahead of today stay
+                    # open to fire normally as their date arrives.
+                    advance_db.mark_stale_followup_tiers_skipped(cur, r["show_id"], days_out)
                 conn.commit()
 
+        # Fresh queries, now that any show due_initial just drafted has its
+        # advance_draft_created_at actually committed — see the note above
+        # due_initial for why this can't run any earlier in this request.
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            # (show_id, tier) tag carried alongside each row so mark_followup_sent
+            # below stamps the RIGHT tier — a show can legitimately show up under
+            # more than one tier across different runs, never more than once per tier.
+            due_followup = [(tier, r) for tier in advance_db.FOLLOWUP_TIERS
+                             for r in advance_db.shows_due_for_followup(cur, tier)]
+            due_unresponded = advance_db.shows_due_for_unresponded_alert(cur, 3)
+
         # ── follow-ups: date-driven, short-link, "performance detail" wording,
-        # now fired at each of 7/3/2/1 days out (advance_db.FOLLOWUP_TIERS) ──
+        # fired for real at each of 7/3/1 days out (advance_db.FOLLOWUP_TIERS)
+        # — live-send migration, Brian 2026-09-13. A tier already on or before
+        # the day a show was booked never reaches this point at all: it was
+        # pre-skipped in the due_initial loop above (mark_stale_followup_
+        # tiers_skipped), so shows_due_for_followup never returns it.
         if due_followup:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
                 for tier, r in due_followup:
                     if not r["email"]:
+                        advance_db.mark_followup_sent(cur, r["show_id"], tier, sent=False)
                         continue
                     token = _signer.dumps({"a": r["artist_id"],
                                            "s": {"venue": r["venue"],
@@ -910,30 +1085,50 @@ def advance_lifecycle():
                         "If you've already sent this over, disregard. Thanks,\n"
                         "3CDC Events / Production"
                     )
-                    item = {"to": r["email"], "subject": subject, "body": body}
                     att = ve.venue_attachment(r["venue"])
-                    if att:
-                        item["attachment_name"], item["attachment_type"], item["attachment_content"] = att
-                    followup.append(item)
-                    advance_db.mark_followup_drafted(cur, r["show_id"], tier)
+                    ok = _send_outlook_email(r["email"], subject, body=body, attachment=att)
+                    if ok:
+                        followup.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
+                                          "show_date": us_date(r["show_date"]), "days_out": tier})
+                    advance_db.mark_followup_sent(cur, r["show_id"], tier, sent=ok)
                 conn.commit()
 
-        # ── send reminders: draft already exists (made at booking time) —
-        # just tell Brian it's crossed into the 21-day window and is ready.
-        if due_reminders:
+        # ── unresponded-at-3-days alert: a real SENT email to Brian, not a
+        # draft (Brian, 2026-09-13) — a flag for him to follow up manually,
+        # separate from and in addition to the band-facing tier-3 follow-up
+        # above. Includes a band with no email on file (the tier-3 follow-up
+        # above skips those); one email listing every band that just crossed
+        # the mark this run, not one email per band.
+        unresponded_sent = 0
+        if due_unresponded:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
-                for r in due_reminders:
-                    send_reminders.append({
-                        "artist_name": r["artist_name"], "venue": r["venue"] or "",
-                        "show_date": us_date(r["show_date"]),
-                    })
-                    advance_db.mark_send_reminder_sent(cur, r["show_id"])
+                rows = [(r["artist_name"], r["venue"] or "", us_date(r["show_date"]))
+                        for r in due_unresponded]
+                for r in due_unresponded:
+                    advance_db.mark_unresponded_alert_sent(cur, r["show_id"])
                 conn.commit()
+            band_word = "band" if len(rows) == 1 else "bands"
+            subject = f"Advance follow-up needed — {len(rows)} {band_word} unresponded at 3 days out"
+            tr = "".join(
+                f"<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;"
+                f"font:13px -apple-system,sans-serif\">{n}</td>"
+                f"<td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">"
+                f"<b>{v}</b> — {d}</td></tr>"
+                for n, v, d in rows
+            )
+            html = (f"<div style=\"font-family:-apple-system,sans-serif\">"
+                    f"<p>These bands are now inside the 3-day mark with no advance "
+                    f"form on file — worth a manual follow-up:</p>"
+                    f"<table>{tr}</table>"
+                    f"<p style=\"margin-top:14px\">"
+                    f"<a href=\"{PUBLIC_URL}/search\">Open the advance search →</a></p></div>")
+            _send_internal_email(subject, html)
+            unresponded_sent = len(rows)
     except Exception as e:
         _log_db_error("advance_lifecycle", e)
         return {"error": e.__class__.__name__}, 500
 
-    return {"initial": initial, "followup": followup, "send_reminders": send_reminders}
+    return {"initial": initial, "followup": followup, "unresponded_alert_sent": unresponded_sent}
 
 
 @app.post("/internal/run-recap-extraction")
@@ -965,9 +1160,9 @@ def daily_digest():
     ops summary (today's shows, today's crew across every staffed venue,
     advancing activity in the last 24h, every show within 14 days ranked
     with its live status — Brian, 2026-09-09) and hands back
-    {subject, html, to} for n8n's Gmail node to SEND for real — unlike
-    every band-facing advance email, this is Brian's own internal digest,
-    not something that needs review first. Absorbed the standalone Crew
+    {subject, html, to} for n8n's Send Summary node to send via Outlook for
+    real, same as every band-facing advance/follow-up email since the
+    2026-09-13 live-send migration. Absorbed the standalone Crew
     Report's daily send the same day ("combine the two emails into one");
     that workflow's cron trigger was removed, only its on-demand webhook
     remains, still served by /internal/crew-report below.

@@ -160,6 +160,15 @@ CREATE TABLE IF NOT EXISTS advance_reminders (
     UNIQUE(show_id, days_before)
 );
 
+-- Live-send migration (Brian, 2026-09-13): cadence trimmed 7/3/2/1 -> 7/3/1
+-- (see advance_db.FOLLOWUP_TIERS), and a row here no longer always means
+-- "actually sent" — `sent` distinguishes a genuine send from a tier
+-- resolved with nothing to do: no email on file, or pre-skipped as
+-- already-stale relative to when the show was booked
+-- (mark_stale_followup_tiers_skipped). Historical rows all default true —
+-- they really were drafted/sent under the pre-migration system.
+ALTER TABLE advance_reminders ADD COLUMN IF NOT EXISTS sent BOOLEAN NOT NULL DEFAULT true;
+
 -- Dead column removed (Brian, 2026-09-09): nothing kept it in sync with
 -- reality (stamp_email_sent/mark_show_status, the only writers, were either
 -- unused or gated behind a --mark-sent flag nothing passes anymore), and
@@ -313,3 +322,14 @@ CREATE TABLE IF NOT EXISTS short_links (
     token      TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Internal "hasn't responded" alert to Brian (2026-09-13): a manual-
+-- follow-up flag, separate from the band-facing tier reminders in
+-- advance_reminders. Fires once per show, the first time it's inside 3
+-- days of its date with no response — deliberately NOT gated on the band
+-- having an email on file the way the band-facing tier-3 follow-up is
+-- (shows_due_for_followup skips those since there's nowhere to send it;
+-- this alert is for Brian, so a band with no email qualifies too — if
+-- anything he needs to know about those MORE, since automated follow-up
+-- can't even reach them). See advance_db.shows_due_for_unresponded_alert.
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS unresponded_alert_sent_at TIMESTAMPTZ;

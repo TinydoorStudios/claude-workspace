@@ -191,10 +191,12 @@ def shows_due_for_initial_advance(cur):
 
 
 def shows_due_for_send_reminder(cur, days_out=21):
-    """Shows already drafted (at booking time) that have now crossed into the
-    21-day-out window and haven't been flagged for a send reminder yet — the
-    nudge that tells Brian a draft sitting in Gmail is ready to send. Fires
-    once per show, whenever the draft happened."""
+    """RETIRED (Brian, 2026-09-13, live-send migration) — no longer called
+    anywhere. Used to nudge Brian that a draft sitting in Gmail/Outlook was
+    ready to send at the 21-day mark; now that the initial advance sends
+    itself for real at booking time, there's no draft left to nudge about.
+    Left in place (unused) rather than deleted in case anything ever needs
+    the historical shape back."""
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date
@@ -209,23 +211,32 @@ def shows_due_for_send_reminder(cur, days_out=21):
     return cur.fetchall()
 
 
-# Reminder cadence (Brian, 2026-09-10): 7 days out (the original single
-# follow-up), then 3, then 2, then 1 — each fires once, independently, as
-# long as the band still hasn't responded. Ordered so the caller can loop
-# widest-window-first (a show already inside the 1-day window on the day
-# it crosses 7 days is unusual but not impossible with a very late booking;
-# firing 7 before 3 before 2 before 1 keeps that order sane either way).
-FOLLOWUP_TIERS = (7, 3, 2, 1)
+# Reminder cadence (Brian, 2026-09-10: 7/3/2/1; trimmed 2026-09-13 to
+# 7/3/1 — the 2-day tier is gone — as part of the live-send migration).
+# Each fires at most once, independently, as long as the band still
+# hasn't responded — EXCEPT a tier already on or before the day a show
+# was booked, which is pre-skipped for good right when the welcome sends
+# (see mark_stale_followup_tiers_skipped) and never reaches
+# shows_due_for_followup at all. Ordered so a caller looping over it
+# processes widest-window-first, though with live sends each tier is
+# independent and order no longer really matters the way it did when
+# multiple tiers could pile up behind one unsent draft.
+FOLLOWUP_TIERS = (7, 3, 1)
 
 
 def shows_due_for_followup(cur, days_before=7):
     """Shows within `days_before` days of their date with no response and no
-    reminder drafted yet AT THIS TIER (advance_reminders is keyed per
-    show+tier, so 7/3/2/1 each gate independently — a show can get all four
-    over time, one per crossed threshold). Requires the initial advance to
-    have already gone out — a show booked late (already inside every window
-    on day one) gets its initial advance first and only qualifies for a
-    reminder on a later run."""
+    reminder resolved yet AT THIS TIER (advance_reminders is keyed per
+    show+tier, so each of FOLLOWUP_TIERS gates independently). 'Resolved'
+    covers three cases, all recorded via mark_followup_sent /
+    mark_stale_followup_tiers_skipped: actually sent, skipped because the
+    band has no email on file, or pre-skipped as already-stale at booking
+    time — any of the three permanently closes this tier for this show, so
+    this query only ever returns a tier that's genuinely still open.
+    Requires the initial advance to have already gone out — a show booked
+    late (already inside every window on day one) gets its initial advance
+    first; mark_stale_followup_tiers_skipped in that same pass then decides
+    which tiers (if any) are even still eligible to show up here later."""
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
@@ -248,21 +259,33 @@ def shows_due_for_followup(cur, days_before=7):
 
 
 def mark_advance_drafted(cur, show_id):
+    """Name kept from the drafting era — this column (advance_draft_created_at)
+    now means 'the initial advance was SENT' as of the 2026-09-13 live-send
+    migration. Not renamed: touches too many other readers (advance_status
+    view, status_log.py, status_sheet.py, the dashboard) for the size of
+    this change to be worth it; the meaning shift is real, just not the name."""
     cur.execute(
         "UPDATE shows SET advance_draft_created_at = COALESCE(advance_draft_created_at, now()) "
         "WHERE id = %s", (show_id,),
     )
 
 
-def mark_followup_drafted(cur, show_id, days_before=7):
-    """Record that THIS tier's reminder drafted for this show (advance_reminders,
-    one row per show+tier — see FOLLOWUP_TIERS), and keep the legacy
-    shows.followup_draft_created_at column stamped on whichever tier fires
-    FIRST, so status_log.py/status_sheet.py/the advance_status view — all of
-    which only ever asked 'has a reminder gone out at all' — need no changes."""
+def mark_followup_sent(cur, show_id, days_before=7, sent=True):
+    """Record that THIS tier is resolved for this show — sent=True for an
+    actual send, sent=False when there was nothing to send (no email on
+    file) or when mark_stale_followup_tiers_skipped pre-skipped it as
+    already stale at booking time. Either way, shows_due_for_followup's
+    NOT EXISTS check closes this tier for good the moment ANY row exists
+    here, real send or not — `sent` only matters for telling the two
+    apart later if that's ever needed for reporting. Also keeps the
+    legacy shows.followup_draft_created_at column stamped on whichever
+    tier resolves FIRST (renamed in meaning, not in name, same reasoning
+    as mark_advance_drafted) so status_log.py/status_sheet.py/the
+    advance_status view need no changes. Named mark_followup_drafted
+    before the live-send migration (2026-09-13)."""
     cur.execute(
-        "INSERT INTO advance_reminders (show_id, days_before) VALUES (%s, %s) "
-        "ON CONFLICT (show_id, days_before) DO NOTHING", (show_id, days_before),
+        "INSERT INTO advance_reminders (show_id, days_before, sent) VALUES (%s, %s, %s) "
+        "ON CONFLICT (show_id, days_before) DO NOTHING", (show_id, days_before, sent),
     )
     cur.execute(
         "UPDATE shows SET followup_draft_created_at = COALESCE(followup_draft_created_at, now()) "
@@ -270,9 +293,63 @@ def mark_followup_drafted(cur, show_id, days_before=7):
     )
 
 
+def mark_stale_followup_tiers_skipped(cur, show_id, days_out):
+    """Live-send migration (Brian, 2026-09-13): right after a show's welcome
+    sends, pre-skip — for good, never reconsidered — any FOLLOWUP_TIERS
+    mark that's already on or before TODAY relative to `days_out` (the
+    show's days-out at the moment the welcome sent). A tier coinciding
+    with the SAME day as the welcome counts as already-passed too (a
+    reminder should never fire the same day as the welcome it's supposedly
+    following up on) — hence `>=`, not `>`. Only tiers strictly ahead of
+    today are left open, to fire normally later via shows_due_for_followup
+    as their own date arrives. No-ops if days_out is None (no show_date)."""
+    if days_out is None:
+        return
+    for tier in FOLLOWUP_TIERS:
+        if tier >= days_out:
+            cur.execute(
+                "INSERT INTO advance_reminders (show_id, days_before, sent) "
+                "VALUES (%s, %s, false) ON CONFLICT (show_id, days_before) DO NOTHING",
+                (show_id, tier),
+            )
+
+
 def mark_send_reminder_sent(cur, show_id):
+    """RETIRED (Brian, 2026-09-13) — see shows_due_for_send_reminder."""
     cur.execute(
         "UPDATE shows SET send_reminder_sent_at = COALESCE(send_reminder_sent_at, now()) "
+        "WHERE id = %s", (show_id,),
+    )
+
+
+def shows_due_for_unresponded_alert(cur, days_before=3):
+    """Shows within `days_before` days of their date with no response and no
+    internal alert sent yet — Brian's manual-follow-up flag (2026-09-13), a
+    real SENT email to him, separate from the band-facing tier reminders
+    in advance_reminders. Fires once per show (unresponded_alert_sent_at),
+    regardless of whether the band has an email on file — unlike
+    shows_due_for_followup, which skips those since there's nowhere to
+    send a band-facing reminder. Requires the initial advance to have
+    already gone out, same as the band-facing follow-up."""
+    cur.execute(
+        """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date
+           FROM shows s JOIN artists a ON a.id = s.artist_id
+           WHERE s.advance_draft_created_at IS NOT NULL
+             AND s.responded_at IS NULL
+             AND s.unresponded_alert_sent_at IS NULL
+             AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+             AND s.show_date IS NOT NULL
+             AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
+           ORDER BY s.show_date""",
+        (days_before,),
+    )
+    return cur.fetchall()
+
+
+def mark_unresponded_alert_sent(cur, show_id):
+    cur.execute(
+        "UPDATE shows SET unresponded_alert_sent_at = COALESCE(unresponded_alert_sent_at, now()) "
         "WHERE id = %s", (show_id,),
     )
 

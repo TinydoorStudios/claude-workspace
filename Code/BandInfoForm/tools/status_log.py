@@ -225,10 +225,11 @@ def build(rows, manual_by_id):
     lg.merge_cells("A1:B1")
     meanings = {
         "Not Started": "Show is booked but no advance-ask email has been drafted yet.",
-        "Drafted": "The advance-ask draft exists in Gmail but the show is still more than 21 days out.",
-        "Ready to Send": "Inside the 21-day window — the draft is sitting in Gmail ready to send.",
-        "Follow-up Due": "No response yet and the show is inside 7 days out — a reminder needs to go out.",
-        "Follow-up Sent": "A follow-up draft exists (still drafts-only — you send it by hand).",
+        "Drafted": "The advance-ask has gone out via Outlook (live-send migration, 2026-09-13 — "
+                    "this used to mean a Gmail/Outlook draft awaiting your send; now it means sent).",
+        "Ready to Send": "Legacy state from before the live-send migration — shouldn't newly occur.",
+        "Follow-up Due": "No response yet and the show is inside its next reminder tier (7/3/1 days out).",
+        "Follow-up Sent": "A follow-up has gone out via Outlook for real (live-send migration, 2026-09-13).",
         "Completed": "The band responded — their submission is in.",
     }
     row_i = 3

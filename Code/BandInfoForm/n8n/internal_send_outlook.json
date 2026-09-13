@@ -52,7 +52,7 @@
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify((() => { const b = $json.body || $json; const addrs = String(b.to || 'blloyd@3cdc.org').split(',').map(s => s.trim()).filter(Boolean); return { message: { subject: b.subject, body: { contentType: 'HTML', content: b.html }, toRecipients: addrs.map(a => ({ emailAddress: { address: a } })) }, saveToSentItems: true }; })()) }}",
+        "jsonBody": "={{ JSON.stringify((() => { const b = $json.body || $json; const addrs = String(b.to || 'blloyd@3cdc.org').split(',').map(s => s.trim()).filter(Boolean); const msg = { subject: b.subject, body: { contentType: b.html ? 'HTML' : 'Text', content: b.html || b.body || '' }, toRecipients: addrs.map(a => ({ emailAddress: { address: a } })) }; if (b.attachment_content) { msg.attachments = [ { '@odata.type': '#microsoft.graph.fileAttachment', name: b.attachment_name || 'attachment', contentType: b.attachment_type || 'application/octet-stream', contentBytes: b.attachment_content } ]; } return { message: msg, saveToSentItems: true }; })()) }}",
         "options": {
           "response": {
             "response": {
