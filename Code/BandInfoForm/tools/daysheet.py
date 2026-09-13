@@ -199,6 +199,13 @@ def act_row_values(f):
         out["parking"] = "Large vehicle" if str(f["large_vehicle"]).lower() == "yes" else "Standard"
     if f.get("performers") not in (None, ""):
         out["number of performers"] = str(f["performers"])
+        # Drink Tix = 2x band/crew headcount (Brian, 2026-09-13) — computed,
+        # never band- or staff-entered; skip silently if performers isn't a
+        # clean number rather than write garbage into the cell.
+        try:
+            out["drink tix"] = str(int(f["performers"]) * 2)
+        except (TypeError, ValueError):
+            pass
     if f.get("band_tent"):
         out["dressing room tent"] = "Yes" if str(f["band_tent"]).lower().startswith("yes") else "No"
     if f.get("backline"):
