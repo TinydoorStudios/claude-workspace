@@ -90,6 +90,26 @@ def _first_name(s):
     return s.split()[0] if s else ""
 
 
+def _norm_cmp(s):
+    """Whitespace-collapsed, lowercased — same normalization the rest of
+    this codebase uses for 'are these the same, ignoring typing noise'
+    comparisons (artists.match_key)."""
+    return re.sub(r"\s+", " ", (s or "").strip().lower())
+
+
+def _greeting_contact_name(contact_name, band_name):
+    """Brian, 2026-09-13: a solo act that books under their own name (band
+    name IS the contact, exactly, nothing else added) doesn't need both —
+    'Hello Dali Amador,' not 'Hello Dali and Dali Amador,'. Returns '' in
+    that case, which the template's own {% if contact_name %} already
+    collapses the greeting down to just the band name — no template
+    change needed. Otherwise returns the usual first-name-only greeting
+    (_first_name)."""
+    if contact_name and _norm_cmp(contact_name) == _norm_cmp(band_name):
+        return ""
+    return _first_name(contact_name)
+
+
 def _split_subject(rendered):
     """A rendered advance*.md.j2's first line is always 'Subject: ...' —
     split it off from the rest of the body. app.py's automated lifecycle
@@ -376,7 +396,7 @@ def main():
             last_rows = summarize_submission(prior) if returning else []
             personal_note_en = (r.get("email_note") or "").strip()
             ctx = dict(
-                name=name, contact_name=_first_name(r.get("contact_name")), venue=venue,
+                name=name, contact_name=_greeting_contact_name(r.get("contact_name"), name), venue=venue,
                 blocks=ve.blocks_for(venue, series=series, **email_extra), common_requirements=ve.COMMON_REQUIREMENTS,
                 personal_note=(f"{personal_note_en}\n\n" if personal_note_en else ""),
                 event_name=r.get("event_name") or "",
