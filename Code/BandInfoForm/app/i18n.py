@@ -181,6 +181,12 @@ STRINGS = {
     "performers_help":   {"en": "Drink tickets and water are provided for all performers and crew.",
                            "es": "Se proporcionan boletos de bebida y agua para todos los artistas y el "
                                  "equipo de trabajo."},
+    "vehicle_count_label": {"en": "How many vehicles will you be arriving in?",
+                             "es": "¿Con cuántos vehículos llegarán?"},
+    "vehicle_count_help": {"en": "Total vehicles for your whole group — this is how many parking "
+                                  "garage validations we prepare for you.",
+                            "es": "Total de vehículos de todo su grupo — así sabemos cuántas "
+                                  "validaciones de estacionamiento preparar para ustedes."},
     "large_vehicle_label": {"en": "Do you need large vehicle parking?",
                              "es": "¿Necesitan estacionamiento para vehículo grande?"},
     "large_vehicle_help": {"en": "Includes any vehicle over 6 ft 8 in (the garage "

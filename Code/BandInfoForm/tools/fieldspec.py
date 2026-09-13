@@ -230,6 +230,7 @@ BAND_FIELDS = [
     ("Band Tent",     "band_tent",     ["Yes, please provide the tent",
                                         "No, not needed"], "dressing room tent"),
     ("Performers",    "performers",    None, "number of performers"),
+    ("Vehicle Count", "vehicle_count", None, "parking"),
     ("Large Vehicle", "large_vehicle", ["Yes", "No"], "parking"),
 ]
 

@@ -537,8 +537,9 @@ def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
         INSERT INTO submissions (
             artist_id, show_id, contact_name, contact_email, contact_phone,
             venue, show_date, performers, monitors, own_iems, split_snake,
-            stage_type, own_engineer, merch, band_tent, large_vehicle, data, source
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            stage_type, own_engineer, merch, band_tent, large_vehicle,
+            vehicle_count, data, source
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         RETURNING id
         """,
         (
@@ -549,7 +550,7 @@ def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
             to_bool(data.get("own_iems")), data.get("split_snake"),
             data.get("stage_type"), data.get("own_engineer"),
             to_bool(data.get("merch")), data.get("band_tent"),
-            to_bool(data.get("large_vehicle")),
+            to_bool(data.get("large_vehicle")), to_int(data.get("vehicle_count")),
             json.dumps(data), source,
         ),
     )

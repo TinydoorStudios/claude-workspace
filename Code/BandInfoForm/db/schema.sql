@@ -355,3 +355,10 @@ CREATE TABLE IF NOT EXISTS short_links (
 -- anything he needs to know about those MORE, since automated follow-up
 -- can't even reach them). See advance_db.shows_due_for_unresponded_alert.
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS unresponded_alert_sent_at TIMESTAMPTZ;
+
+-- Vehicle count (Brian, 2026-09-13): paired with the existing large_vehicle
+-- yes/no question so a headcount-of-vehicles drives how many parking garage
+-- validations to prep per band, instead of that only ever showing up as a
+-- free-text note. See form.html's large_vehicle block, fieldspec.BAND_FIELDS,
+-- and daysheet.act_row_values' "parking" row.
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS vehicle_count INTEGER;

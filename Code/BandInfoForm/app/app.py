@@ -958,10 +958,9 @@ def finalize_show(artist_id, show_id):
     double-click or two staff acting at once can never double-fire whatever
     happens next.
 
-    Thank-you email deliberately NOT wired yet (Brian, 2026-09-13) — wording
-    still to be drafted together. Once it exists, it sends here, gated on
-    `result` being non-None (a genuine first-time transition) and an email
-    being on file."""
+    Thank-you email: decided against, permanently (Brian, 2026-09-13, after
+    trying a sample draft) — finalizing a show never sends anything to the
+    band. Not a pending TODO; don't wire one back in without him asking."""
     if not DB_OK:
         abort(503)
     with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -971,11 +970,8 @@ def finalize_show(artist_id, show_id):
         st = advance_db.show_state(cur, show_id)
         if st not in ("responded", "finalized"):
             abort(400, "This show has no response on file yet — nothing to finalize.")
-        result = advance_db.finalize_show(cur, show_id)
+        advance_db.finalize_show(cur, show_id)
         conn.commit()
-    if result and result.get("email"):
-        # Thank-you send goes here once wording is agreed — see docstring.
-        pass
     return redirect(url_for("artist_detail", artist_id=artist_id))
 
 

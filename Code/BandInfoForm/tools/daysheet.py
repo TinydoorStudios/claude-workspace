@@ -195,8 +195,17 @@ def act_row_values(f):
 
     if f.get("merch"):
         out["merch"] = f["merch"]
-    if f.get("large_vehicle"):
-        out["parking"] = "Large vehicle" if str(f["large_vehicle"]).lower() == "yes" else "Standard"
+    vc, lv = f.get("vehicle_count"), f.get("large_vehicle")
+    if vc not in (None, "") or lv:
+        # Vehicle count (Brian, 2026-09-13) — paired with the existing large-
+        # vehicle yes/no so this cell tells him how many parking garage
+        # validations to prep per band, not just whether one of them is big.
+        bits = []
+        if vc not in (None, ""):
+            bits.append(f"{vc} vehicle" + ("" if str(vc) == "1" else "s"))
+        if lv:
+            bits.append("Large vehicle" if str(lv).lower() == "yes" else "Standard")
+        out["parking"] = " — ".join(bits)
     if f.get("performers") not in (None, ""):
         out["number of performers"] = str(f["performers"])
         # Drink Tix = 2x band/crew headcount (Brian, 2026-09-13) — computed,

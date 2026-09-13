@@ -143,6 +143,7 @@ def _band_fields(sub):
         "band_tent": g(sub, "band_tent"),
         "performers": g(sub, "performers"),
         "large_vehicle": yn(sub.get("large_vehicle")),
+        "vehicle_count": g(sub, "vehicle_count"),
     }
     return {k: ("" if v is None else str(v)) for k, v in out.items() if v not in (None, "")}
 

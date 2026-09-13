@@ -297,6 +297,12 @@
 
   {% if cfg.blocks.large_vehicle %}
   <div class="field">
+    <label class="q">{{ t('vehicle_count_label') }}<span class="req">*</span></label>
+    <input type="number" name="vehicle_count" min="0" step="1" required value="{{ v('vehicle_count') }}">
+    <p class="help">{{ t('vehicle_count_help') }}</p>
+  </div>
+
+  <div class="field">
     <label class="q">{{ t('large_vehicle_label') }}<span class="req">*</span></label>
     {% set lv = prefill.get('large_vehicle') %}
     <select name="large_vehicle" required>
