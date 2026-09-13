@@ -987,8 +987,15 @@ def advance_lifecycle():
     sending history: drafted immediately at booking 2026-09-03; live-send
     migration + tier cadence trimmed to 7/3/1 + unresponded alert all
     2026-09-13):
-      - INITIAL advance sends itself as soon as a booking is seeded — no
-        21-day wait. Reuses draft_emails.py's render as-is (writes to
+      - INITIAL advance sends itself the moment a show is within 21 days
+        AND a lifecycle run happens to touch it (daily cron, or any
+        unrelated urgent booking's on-demand trigger) — ceiling restored
+        on shows_due_for_initial_advance itself same day (see its
+        docstring for the incident this closes: with no ceiling on the
+        send gate, one urgent booking's on-demand trigger swept up and
+        live-sent the welcome for every queued show, including ones
+        3-6 weeks out that were never meant to go out yet). Reuses
+        draft_emails.py's render as-is (writes to
         tools/drafts/*.md same as always, unchanged), so the NEW-vs-
         RETURNING 6-month cross-venue check applies automatically, then
         sends that rendered content directly instead of turning it into a

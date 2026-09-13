@@ -155,11 +155,32 @@ def slot_for(cur, artist_id, venue, show_date):
 
 
 def shows_due_for_initial_advance(cur):
-    """Shows that haven't been drafted yet (and haven't already passed) — no
-    date-out ceiling. Drafted as soon as a booking is seeded, whenever that
-    happens to be; the 21-day mark is now a SEND reminder, not a draft trigger
-    (Brian, 2026-09-03: draft at booking time, hold for his send at T-21 —
-    see shows_due_for_send_reminder).
+    """Shows within 21 days of their date that haven't had their initial
+    advance sent yet (and haven't already passed).
+
+    INCIDENT (Brian, 2026-09-13, caught same day): this query originally had
+    NO date-out ceiling at all — "drafted as soon as a booking is seeded,
+    whenever that happens to be" was the 2026-09-03 design, back when
+    hitting this path only created a Gmail DRAFT that sat unsent until
+    Brian manually sent it at the real T-21 mark (shows_due_for_send_
+    reminder). The live-send migration (also 2026-09-13, earlier the same
+    day) turned that draft step into a real, immediate Outlook send —
+    but kept the "no ceiling" query as-is. Consequence: ANY on-demand
+    lifecycle trigger (any single urgent booking within 21 days hits
+    _trigger_immediate_advance) swept up and live-sent the welcome for
+    EVERY show still sitting in the queue, including ones 3-6 weeks out
+    that were never meant to be emailed yet. Three real bands (Dixie Karas
+    @ 43 days out, Queen City Cabaret @ 29, Jordan Pollard Trio @ 22) got
+    their welcome sent early this way at 2026-09-13 21:04 UTC, triggered by
+    an unrelated urgent booking's on-demand call — confirmed via n8n's own
+    execution log (mode=webhook) cross-referenced with shows.advance_
+    draft_created_at, not just an HTTP status. Fixed by restoring the
+    21-day ceiling directly on the send gate itself (previously that
+    ceiling only ever lived on the now-retired draft-is-ready-to-send
+    REMINDER, never on an actual send condition) — a show booked further
+    out than that now simply waits, un-queued, until a lifecycle run
+    happens while it's genuinely inside the window, no matter how many
+    unrelated on-demand triggers fire in the meantime.
 
     Bug fixed 2026-09-08: this only ever selected `b.location` from the
     bookings LEFT JOIN, so event_name/schedule/lead/slot/set_time/email_note
@@ -193,6 +214,7 @@ def shows_due_for_initial_advance(cur):
            WHERE s.advance_draft_created_at IS NULL
              AND s.show_date IS NOT NULL
              AND s.show_date >= CURRENT_DATE
+             AND s.show_date <= CURRENT_DATE + 21
              AND b.skip_welcome_email IS NOT TRUE
            ORDER BY s.show_date"""
     )
