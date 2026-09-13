@@ -349,12 +349,20 @@ def _notify_submission(rec):
 def _notify_email(event_type, fields):
     """Fire the n8n 'Advance Notify' webhook — a quick-glance summary email for a
     new booking or a completed advance form. Best-effort: never blocks or breaks
-    the request the event came from."""
+    the request the event came from.
+
+    event_type MUST win the dict merge (Brian, 2026-09-13 — "Second Wind"/
+    "Wishy" bug): the booking form has its own "Event Type" field
+    (Internal/Third Party), stored under the same key `event_type`. With
+    `fields` unpacked SECOND, that field silently clobbered the discriminator
+    n8n's Format Email node branches on, so every single booking (any booking
+    has an Event Type) mis-rendered as "Advance form completed" instead of
+    "New booking" — not intermittent, guaranteed on every one."""
     if not NOTIFY_URL:
         return
     try:
         import urllib.request
-        body = json.dumps({"event_type": event_type, **fields}).encode()
+        body = json.dumps({**fields, "event_type": event_type}).encode()
         req = urllib.request.Request(
             NOTIFY_URL, data=body,
             headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN},
