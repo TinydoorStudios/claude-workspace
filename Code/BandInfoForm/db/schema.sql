@@ -176,6 +176,14 @@ ALTER TABLE advance_reminders ADD COLUMN IF NOT EXISTS sent BOOLEAN NOT NULL DEF
 -- computes the real live state from timestamps + submissions instead.
 ALTER TABLE shows DROP COLUMN IF EXISTS status;
 
+-- Finalized sign-off (Brian, 2026-09-13): the point after a band has responded
+-- where a human reviews everything and confirms the advance is fully done.
+-- Distinct from responded_at — a show can sit "responded" (now labeled
+-- "Advancing In Progress") for a while before anyone signs off. See
+-- advance_status below (checked ahead of 'responded' — finalized only ever
+-- follows a response) and app.py's POST /artist/<id>/finalize/<show_id>.
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS finalized_at TIMESTAMPTZ;
+
 -- One row per advance (band + show) with its computed state, for n8n's daily
 -- checks and the status report. DROP first — CREATE OR REPLACE can't insert a
 -- column ahead of existing ones, only append at the end.
@@ -194,9 +202,11 @@ SELECT
     s.advance_draft_created_at,
     s.followup_draft_created_at,
     s.send_reminder_sent_at,
+    s.finalized_at,
     (SELECT max(sub.submitted_at) FROM submissions sub WHERE sub.show_id = s.id)
                     AS last_submission,
     CASE
+        WHEN s.finalized_at IS NOT NULL THEN 'finalized'
         WHEN s.responded_at IS NOT NULL
              OR EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
             THEN 'responded'

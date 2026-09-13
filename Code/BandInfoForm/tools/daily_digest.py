@@ -12,7 +12,7 @@ into one"):
      not the same thing said twice.
   4. Every show within 14 days, ranked soonest-first, with its live
      advance status (queued/awaiting/ready_to_send/followup_due/
-     followup_drafted/responded) — "a clear sight on the bands that are
+     followup_drafted/responded/finalized) — "a clear sight on the bands that are
      advancing properly and bands that are not responding." This is the
      ONLY section that looks past today — Brian wants the 14-day window
      for advance status specifically, not for shows/crew detail.
@@ -48,14 +48,18 @@ from jinja2 import Environment, FileSystemLoader
 TEMPLATES = HERE / "email_templates"
 
 # Same palette as status_log.py's STATE_STYLE / merge_status.py's STATE_FILL —
-# one consistent look across every status surface in the pipeline.
+# one consistent look across every status surface in the pipeline. "responded"
+# relabeled "Advancing In Progress" and "finalized" added (Brian, 2026-09-13),
+# kept in sync with status_log.py's own STATE_STYLE — see that file's comment
+# for why.
 STATE_STYLE = {
-    "queued":           ("Not Started",    "#E5E7EB", "#1F2937"),
-    "awaiting":         ("Drafted",        "#FEF3C7", "#78350F"),
-    "ready_to_send":    ("Ready to Send",  "#C7D2FE", "#1E3A5F"),
-    "followup_due":     ("Follow-up Due",  "#FFE4B5", "#7C2D12"),
-    "followup_drafted": ("Follow-up Sent", "#DBEAFE", "#1E3A5F"),
-    "responded":        ("Completed",      "#C6EFCE", "#14532D"),
+    "queued":           ("Not Started",           "#E5E7EB", "#1F2937"),
+    "awaiting":         ("Drafted",                "#FEF3C7", "#78350F"),
+    "ready_to_send":    ("Ready to Send",          "#C7D2FE", "#1E3A5F"),
+    "followup_due":     ("Follow-up Due",          "#FFE4B5", "#7C2D12"),
+    "followup_drafted": ("Follow-up Sent",         "#DBEAFE", "#1E3A5F"),
+    "responded":        ("Advancing In Progress",  "#E9D8FD", "#44337A"),
+    "finalized":        ("Finalized",              "#C6EFCE", "#14532D"),
 }
 
 SCHEDULE_FIELDS = ("load_in", "soundcheck", "event_start", "event_end", "curfew")

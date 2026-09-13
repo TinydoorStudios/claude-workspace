@@ -27,9 +27,13 @@ _JSON = "--json" in sys.argv[1:]
 _args = [a for a in sys.argv[1:] if not a.startswith("--")]
 OUT = Path(_args[0]) if _args else (HERE / "advance_status.xlsx")
 NAVY = "1A3A5C"
+# "finalized" added (Brian, 2026-09-13) — human sign-off after the band
+# responds; "responded" ("Advancing In Progress" elsewhere in the pipeline)
+# keeps its own tint since it's now a distinct, earlier stage.
 STATE_FILL = {
     "queued": "E5E7EB", "awaiting": "FEF3C7", "ready_to_send": "C7D2FE",
-    "followup_due": "FFE4B5", "followup_drafted": "DBEAFE", "responded": "DCFCE7",
+    "followup_due": "FFE4B5", "followup_drafted": "DBEAFE", "responded": "E9D8FD",
+    "finalized": "DCFCE7",
 }
 
 
@@ -55,8 +59,12 @@ FOLLOWUP_DAYS_BEFORE_SHOW = 7  # matches the advance_status view + n8n check (20
 
 def followup_due(st):
     """Date a follow-up is/was due — only while the advance isn't completed.
-    Date-driven off the show date now, not days-since-email (Brian, 2026-09-03)."""
-    if st["state"] == "responded":          # completed box is checked
+    Date-driven off the show date now, not days-since-email (Brian, 2026-09-03).
+    Checks both "responded" and "finalized" (2026-09-13) — a submission is on
+    file either way, so no follow-up is ever due for either state; checking
+    only "responded" would wrongly show a follow-up date again the moment a
+    show gets finalized, since its state moves on to "finalized" at that point."""
+    if st["state"] in ("responded", "finalized"):   # completed box is checked
         return ""
     if st.get("followup_draft_created_at"):
         return "drafted " + d(st["followup_draft_created_at"])
@@ -76,7 +84,7 @@ COLS = [
     ("Status", 14, lambda st, sub, a: st["state"]),
     ("Advance Drafted", 14, lambda st, sub, a: d(st["advance_draft_created_at"])),
     ("Follow-up Due", 13, lambda st, sub, a: followup_due(st)),
-    ("Completed", 11, lambda st, sub, a: "Yes" if st["state"] == "responded" else ""),
+    ("Completed", 11, lambda st, sub, a: "Yes" if st["state"] in ("responded", "finalized") else ""),
     ("Responded", 12, lambda st, sub, a: d(st["responded_at"])),
     ("Contact Name", 18, lambda st, sub, a: g(sub, "contact_name")),
     ("Contact Email", 22, lambda st, sub, a: g(sub, "contact_email") or (st.get("contact_email") or "")),
@@ -155,7 +163,7 @@ def records():
                 "state": st["state"],
                 "advance_drafted": d(st["advance_draft_created_at"]),
                 "followup_due": followup_due(st),
-                "completed": "Yes" if st["state"] == "responded" else "",
+                "completed": "Yes" if st["state"] in ("responded", "finalized") else "",
                 "responded": d(st["responded_at"]),
                 "changed_notes": g(sub, "changed_notes"),
                 "additional": g(sub, "additional"),

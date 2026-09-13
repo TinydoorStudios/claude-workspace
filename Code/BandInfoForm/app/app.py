@@ -669,13 +669,23 @@ def staff():
 # the Show Status Log, just never carried over to this page. Same label for
 # both states on purpose (days-out is already shown on the bill card itself
 # via days-badge, so nothing is lost by not distinguishing them here).
+#
+# "responded" relabeled "Advancing In Progress" and "finalized" added
+# (Brian, 2026-09-13) — the point after a band responds where a human still
+# has to review everything and sign off (POST /artist/<id>/finalize/<show_id>)
+# before it's really done. Same rename applied everywhere else this state is
+# shown — status_log.py/daily_digest.py (which used "Completed", a different
+# word for the same state — already-existing drift, fixed here too) and
+# merge_status.py/status_sheet.py's color maps — so nothing says something
+# different from this page ever again.
 DASHBOARD_STATE_LABELS = {
-    "queued":           ("Queued",                 "queued"),
-    "awaiting":         ("Sent — Awaiting Reply",   "awaiting"),
-    "ready_to_send":    ("Sent — Awaiting Reply",   "ready"),
-    "followup_due":     ("Follow-up Due",           "due"),
-    "followup_drafted": ("Follow-up Sent",          "followup"),
-    "responded":        ("Advanced",                "responded"),
+    "queued":           ("Queued",                  "queued"),
+    "awaiting":         ("Sent — Awaiting Reply",    "awaiting"),
+    "ready_to_send":    ("Sent — Awaiting Reply",    "ready"),
+    "followup_due":     ("Follow-up Due",            "due"),
+    "followup_drafted": ("Follow-up Sent",           "followup"),
+    "responded":        ("Advancing In Progress",    "responded"),
+    "finalized":        ("Finalized",                "finalized"),
 }
 
 
@@ -927,7 +937,42 @@ def artist_detail(artist_id):
         subs = advance_db.artist_submissions(cur, artist_id)
         files_by_sub = {s["id"]: advance_db.submission_files(cur, s["id"]) for s in subs}
     return render_template("artist.html", artist=artist, shows=shows,
-                           subs=subs, files_by_sub=files_by_sub)
+                           subs=subs, files_by_sub=files_by_sub,
+                           state_labels=DASHBOARD_STATE_LABELS)
+
+
+@app.post("/artist/<int:artist_id>/finalize/<int:show_id>")
+def finalize_show(artist_id, show_id):
+    """Human sign-off that a show's advance is fully complete (Brian,
+    2026-09-13) — falls under the existing /artist gate prefix, no GATED_
+    PREFIXES change needed. Never trusts the button alone: re-checks server-
+    side that the show actually belongs to this artist and has a response on
+    file (state 'responded' or 'finalized' — the button is hidden before
+    that, but a stale page / replayed request must not be able to finalize a
+    show with nothing on file). advance_db.finalize_show's own `WHERE
+    finalized_at IS NULL` makes the actual stamp atomically idempotent — a
+    double-click or two staff acting at once can never double-fire whatever
+    happens next.
+
+    Thank-you email deliberately NOT wired yet (Brian, 2026-09-13) — wording
+    still to be drafted together. Once it exists, it sends here, gated on
+    `result` being non-None (a genuine first-time transition) and an email
+    being on file."""
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        show = advance_db.get_show(cur, show_id)
+        if not show or show["artist_id"] != artist_id:
+            abort(404)
+        st = advance_db.show_state(cur, show_id)
+        if st not in ("responded", "finalized"):
+            abort(400, "This show has no response on file yet — nothing to finalize.")
+        result = advance_db.finalize_show(cur, show_id)
+        conn.commit()
+    if result and result.get("email"):
+        # Thank-you send goes here once wording is agreed — see docstring.
+        pass
+    return redirect(url_for("artist_detail", artist_id=artist_id))
 
 
 @app.get("/file/<int:file_id>")

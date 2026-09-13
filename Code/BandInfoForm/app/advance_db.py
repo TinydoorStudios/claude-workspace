@@ -672,11 +672,54 @@ def search_artists(cur, q):
 
 
 def artist_shows(cur, artist_id):
+    """Sourced from advance_status (Brian, 2026-09-13), not raw `shows` — the
+    template's Status column used to read `s.status`, a column dropped
+    2026-09-09; it had been silently rendering blank ever since. The view
+    carries every column the template needs (show_date/venue/show_series)
+    plus the real computed `state`, the same one the dashboard reads."""
     cur.execute(
-        "SELECT * FROM shows WHERE artist_id=%s ORDER BY show_date DESC NULLS LAST",
+        "SELECT * FROM advance_status WHERE artist_id=%s ORDER BY show_date DESC NULLS LAST",
         (artist_id,),
     )
     return cur.fetchall()
+
+
+def get_show(cur, show_id):
+    cur.execute("SELECT * FROM shows WHERE id = %s", (show_id,))
+    return cur.fetchone()
+
+
+def show_state(cur, show_id):
+    """This show's current computed state from advance_status, or None if the
+    id doesn't exist. Used by the finalize endpoint to re-check server-side
+    that a response is actually on file before allowing sign-off — never
+    trust that the button was only ever shown when it should have been."""
+    cur.execute("SELECT state FROM advance_status WHERE show_id = %s", (show_id,))
+    row = cur.fetchone()
+    return row["state"] if row else None
+
+
+def finalize_show(cur, show_id):
+    """Sign off a show's advance as fully complete (Brian, 2026-09-13) — the
+    point after a band has responded where a human has reviewed everything.
+    `WHERE finalized_at IS NULL` makes this atomically idempotent: a 0-row
+    result means it was already finalized (double-click, two staff at once,
+    a retried request), so the caller knows never to send a second thank-you
+    email for it. Returns the show's id + artist_id + contact email when this
+    call was the genuine first transition, or None when it was a no-op."""
+    cur.execute(
+        """UPDATE shows SET finalized_at = now()
+           WHERE id = %s AND finalized_at IS NULL
+           RETURNING id, artist_id""",
+        (show_id,),
+    )
+    row = cur.fetchone()
+    if not row:
+        return None
+    cur.execute("SELECT last_email FROM artists WHERE id = %s", (row["artist_id"],))
+    artist = cur.fetchone()
+    return {"show_id": row["id"], "artist_id": row["artist_id"],
+            "email": (artist or {}).get("last_email")}
 
 
 def artist_submissions(cur, artist_id):

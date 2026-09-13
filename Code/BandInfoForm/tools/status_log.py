@@ -45,14 +45,21 @@ WHITE = "FFFFFF"
 MANUAL_TINT = "FFF3CD"  # matches the amber TOUR/hand-filled convention elsewhere
 
 # same state colors as merge_status.py's STATE_FILL, for one consistent palette
-# across the whole pipeline
+# across the whole pipeline. "responded" relabeled "Advancing In Progress" and
+# "finalized" added (Brian, 2026-09-13) — a human sign-off step after the band
+# responds, before the advance is really done (app.py's POST /artist/<id>/
+# finalize/<show_id>). "Completed" used to mean what "Advancing In Progress"
+# means now — that word moved to "finalized" instead, same wording the live
+# dashboard uses for the same state, so nothing here says something different
+# from that page ever again.
 STATE_STYLE = {
-    "queued":           ("Not Started",    "E5E7EB", "1F2937"),
-    "awaiting":         ("Drafted",        "FEF3C7", "78350F"),
-    "ready_to_send":    ("Ready to Send",  "C7D2FE", "1E3A5F"),
-    "followup_due":     ("Follow-up Due",  "FFE4B5", "7C2D12"),
-    "followup_drafted": ("Follow-up Sent", "DBEAFE", "1E3A5F"),
-    "responded":        ("Completed",      "C6EFCE", "14532D"),
+    "queued":           ("Not Started",           "E5E7EB", "1F2937"),
+    "awaiting":         ("Drafted",                "FEF3C7", "78350F"),
+    "ready_to_send":    ("Ready to Send",          "C7D2FE", "1E3A5F"),
+    "followup_due":     ("Follow-up Due",          "FFE4B5", "7C2D12"),
+    "followup_drafted": ("Follow-up Sent",         "DBEAFE", "1E3A5F"),
+    "responded":        ("Advancing In Progress",  "E9D8FD", "44337A"),
+    "finalized":        ("Finalized",              "C6EFCE", "14532D"),
 }
 
 # (label, width, "live" | "manual")
@@ -226,11 +233,18 @@ def build(rows, manual_by_id):
     meanings = {
         "Not Started": "Show is booked but no advance-ask email has been drafted yet.",
         "Drafted": "The advance-ask has gone out via Outlook (live-send migration, 2026-09-13 — "
-                    "this used to mean a Gmail/Outlook draft awaiting your send; now it means sent).",
-        "Ready to Send": "Legacy state from before the live-send migration — shouldn't newly occur.",
+                    "this used to mean a Gmail/Outlook draft awaiting your send; now it means sent). "
+                    "Grandfathered/legacy only — a 21-day ceiling on the send itself (2026-09-13) means "
+                    "this can't newly occur; a show now only ever sends once inside that window.",
+        "Ready to Send": "Sent, more than a week out from the show, no response yet. The NORMAL state a "
+                    "freshly-sent show lands in (welcome only sends within 21 days of the show, "
+                    "2026-09-13) — not legacy, despite the name.",
         "Follow-up Due": "No response yet and the show is inside its next reminder tier (7/3/1 days out).",
         "Follow-up Sent": "A follow-up has gone out via Outlook for real (live-send migration, 2026-09-13).",
-        "Completed": "The band responded — their submission is in.",
+        "Advancing In Progress": "The band responded — their submission is in. Waiting on a human to "
+                    "review everything and sign off (Mark Finalized, 2026-09-13).",
+        "Finalized": "A human has reviewed everything and signed off — the advance is fully done "
+                    "(2026-09-13).",
     }
     row_i = 3
     for label, desc in meanings.items():

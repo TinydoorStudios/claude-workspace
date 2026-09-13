@@ -39,9 +39,15 @@ NAVY = "1A3A5C"
 BAND_TINT = "DDEBF7"          # band-provided answer
 BANDING = "EAF1F8"           # the sheet's even-row banding
 GROUP_FILL = "2E7D5B"        # STATUS group bar (green = auto)
+# "finalized" added (Brian, 2026-09-13) — human sign-off after the band
+# responds (app.py's POST /artist/<id>/finalize/<show_id>); "responded" keeps
+# its own tint since it's now a distinct, earlier stage ("Advancing In
+# Progress" elsewhere in the pipeline — this column shows the raw state key
+# verbatim, same as it always has for every other state).
 STATE_FILL = {
     "queued": "E5E7EB", "awaiting": "FEF3C7", "ready_to_send": "C7D2FE",
-    "followup_due": "FFE4B5", "followup_drafted": "DBEAFE", "responded": "C6EFCE",
+    "followup_due": "FFE4B5", "followup_drafted": "DBEAFE", "responded": "E9D8FD",
+    "finalized": "C6EFCE",
 }
 
 # appended status columns: (label, json key, width)
