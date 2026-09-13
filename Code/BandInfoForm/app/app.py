@@ -202,13 +202,25 @@ def prefilled_form(token):
     locked_venue = bool(seed.get("venue"))
     locked_date = bool(seed.get("date"))
     known_artist_id = None
-    # Seed venue/date into prefill independent of the DB lookup below — these
-    # come straight from the signed token, so a locked field still renders its
-    # real value even if the artist lookup skips or fails (DB down, no match).
+    # Seed venue/date/contact/band-name into prefill independent of the DB
+    # lookup below — these come straight from the signed token, so a link
+    # still renders real values even if the artist lookup skips or fails (DB
+    # down, no match) or there's no artist id at all yet (a brand-new
+    # manual-entry booking — see _manual_fill_link — issued before the
+    # pipeline has ever created an artist row for this band). None of these
+    # are locked except venue/date; the artist-found branch below overwrites
+    # this dict wholesale with the same seed values plus prior-submission
+    # data, so nothing here is lost when a match does exist.
     if locked_venue:
         prefill["venue"] = seed["venue"]
     if locked_date:
         prefill["show_date"] = seed["date"]
+    if seed.get("band_name"):
+        prefill["band_name"] = seed["band_name"]
+    if seed.get("contact_name"):
+        prefill["contact_name"] = seed["contact_name"]
+    if seed.get("contact_email"):
+        prefill["contact_email"] = seed["contact_email"]
     if payload.get("a") and DB_OK:
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -733,6 +745,37 @@ def _series_by_venue():
     return ordered
 
 
+def _manual_fill_link(data):
+    """One-time-use-in-practice link to the band's own full advance form, for a
+    skip_welcome_email booking (Brian, 2026-09-13: a band that emailed its info
+    directly instead of using the form). Same signed-token/short-link shape as
+    the returning-artist reminder link (see advance_lifecycle), just without an
+    artist id — none may exist yet, since the pipeline that creates the shows
+    row hasn't run. venue/date/series/contact prefill and lock the same way any
+    other seeded link does; band name and everything else is left for staff to
+    type in from the band's email. Falls back to the un-shortened /f/<token>
+    URL if the DB is down or the short-link insert fails — still a working link,
+    just longer."""
+    token = _signer.dumps({"a": None, "s": {
+        "venue": data.get("venue") or None,
+        "date": data.get("event_date") or None,
+        "series": data.get("series") or None,
+        "location": data.get("location") or None,
+        "band_name": data.get("artist_name") or None,
+        "contact_name": data.get("contact_name") or None,
+        "contact_email": data.get("contact_email") or None,
+    }})
+    if DB_OK:
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                code = advance_db.get_or_create_short_link(cur, token)
+                conn.commit()
+            return f"{PUBLIC_URL}/s/{code}"
+        except Exception as e:
+            _log_db_error("manual_fill_link", e)
+    return f"{PUBLIC_URL}/f/{token}"
+
+
 @app.route("/booking", methods=["GET", "POST"])
 def booking():
     """Short staff intake form for a new artist booking. Writes to the bookings
@@ -743,7 +786,18 @@ def booking():
     booking time can't wait for the next daily check: that case runs the
     pipeline synchronously (background thread, response isn't held up) and
     triggers the send + notify right away. Everything else runs on the
-    normal next-daily-check cadence."""
+    normal next-daily-check cadence.
+
+    "Skip welcome email" checkbox (Brian, 2026-09-13): for a band that emailed
+    its info directly instead of using the form. Stamps skip_welcome_email on
+    the booking row, which shows_due_for_initial_advance reads via its own
+    bookings LEFT JOIN to permanently exclude this show from the automated
+    welcome/initial-advance send — permanent (matched on venue+date+artist
+    name, same as everything else that join does), not a one-shot race
+    against the immediate on-booking trigger below. The sheet-seed/docfill/
+    dashboard pipeline still runs exactly as normal; only that one send is
+    suppressed. The thank-you page gets a direct link to the band's own full
+    form (_manual_fill_link) for staff to fill in themselves right there."""
     if request.method == "POST":
         f = request.form
         if not f.get("artist_name") or not f.get("entered_by"):
@@ -754,6 +808,7 @@ def booking():
                                    error="Artist name and who's entering this are required.",
                                    form=f), 400
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
+        data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
         saved = False
         if DB_OK:
             try:
@@ -780,8 +835,10 @@ def booking():
             threading.Thread(target=_run_pipeline_then_trigger_now, daemon=True).start()
         else:
             _run_pipeline_background()
+        fill_link = _manual_fill_link(data) if data["skip_welcome_email"] else None
         return render_template("booking.html", venues=forms_config.VENUES,
-                               slots=BOOKING_SLOTS, saved=data, urgent=urgent)
+                               slots=BOOKING_SLOTS, saved=data, urgent=urgent,
+                               fill_link=fill_link)
     return render_template("booking.html", venues=forms_config.VENUES,
                            wp_locations=list(forms_config.WP_LOCATIONS),
                            slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),

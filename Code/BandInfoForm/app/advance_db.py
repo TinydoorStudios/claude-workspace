@@ -168,7 +168,15 @@ def shows_due_for_initial_advance(cur):
     CSV/xlsx batch path draft_emails.py also supports has always carried all
     of it; this immediate/lifecycle path just never pulled it). Caught on
     Brian's first real live booking: the draft came back with a generic day
-    schedule and no event name despite real values being on file."""
+    schedule and no event name despite real values being on file.
+
+    Manual-entry bookings (Brian, 2026-09-13) are excluded here via
+    `b.skip_welcome_email` — staff is filling in the band's own form by
+    hand (they emailed it directly), so the "please fill this out" welcome
+    would be pointless and confusing. `b.*` is NULL whenever no matching
+    booking row exists at all (a submission-only show), so
+    `IS NOT TRUE` — not `= false` — is required: it reads NULL as "no flag
+    set, don't exclude" instead of silently dropping every such show."""
     cur.execute(
         """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
@@ -185,6 +193,7 @@ def shows_due_for_initial_advance(cur):
            WHERE s.advance_draft_created_at IS NULL
              AND s.show_date IS NOT NULL
              AND s.show_date >= CURRENT_DATE
+             AND b.skip_welcome_email IS NOT TRUE
            ORDER BY s.show_date"""
     )
     return cur.fetchall()
@@ -758,7 +767,12 @@ BOOKING_FIELDS = [
 
 
 def insert_booking(cur, data: dict):
-    """Insert one staff-entered booking. Blank strings stored as NULL."""
+    """Insert one staff-entered booking. Blank strings stored as NULL.
+
+    skip_welcome_email is handled outside the BOOKING_FIELDS loop above —
+    that loop's "blank -> NULL" rule is for optional text fields; this is a
+    NOT NULL boolean (default false), so it needs a real True/False, never
+    None. See shows_due_for_initial_advance for what it gates."""
     vals = {k: (data.get(k) or None) for k in BOOKING_FIELDS}
     ed = vals.get("event_date")
     if isinstance(ed, str) and ed.strip():
@@ -766,8 +780,9 @@ def insert_booking(cur, data: dict):
             vals["event_date"] = dt.date.fromisoformat(ed.strip()[:10])
         except ValueError:
             vals["event_date"] = None
-    cols = ", ".join(BOOKING_FIELDS)
-    ph = ", ".join(f"%({k})s" for k in BOOKING_FIELDS)
+    vals["skip_welcome_email"] = bool(data.get("skip_welcome_email"))
+    cols = ", ".join(BOOKING_FIELDS) + ", skip_welcome_email"
+    ph = ", ".join(f"%({k})s" for k in BOOKING_FIELDS) + ", %(skip_welcome_email)s"
     cur.execute(f"INSERT INTO bookings ({cols}) VALUES ({ph}) RETURNING id", vals)
     return cur.fetchone()["id"]
 

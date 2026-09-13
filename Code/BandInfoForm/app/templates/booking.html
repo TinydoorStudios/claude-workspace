@@ -38,11 +38,20 @@
   <div class="banner ok">
     Booking logged: <strong>{{ saved.artist_name }}</strong>{% if saved.event_name %} — {{ saved.event_name }}{% endif %}{% if saved.venue %} @ {{ saved.venue }}{% endif %}{% if saved.event_date %} ({{ saved.event_date }}){% endif %}.
   </div>
+  {% if fill_link %}
+  <div class="card" style="border-color:rgba(77,163,255,.4)">
+    <p class="hint" style="margin-top:0;color:#e6edf3;font-size:14px">Welcome email skipped — {{ saved.artist_name }} won't be emailed. Fill in their advance yourself here, right now, from what they sent you:</p>
+    <p style="margin:12px 0"><a class="btn" href="{{ fill_link }}" target="_blank" rel="noopener" style="font-size:15px">{{ fill_link }}</a></p>
+    <p class="hint">Venue{% if saved.event_date %} and date{% endif %} are already filled in and locked; everything else is blank for you to type in.</p>
+  </div>
+  {% endif %}
   <div class="card">
-    {% if urgent %}
-    <p class="hint" style="margin-top:0">This show is inside the 21-day window already — running right now, not waiting for the next daily check. Seeding the sheet, building the advance doc, filing it into the venue tree, and drafting the advance email in Gmail. You'll get a notification the moment the draft's ready to send — usually a couple minutes.</p>
+    {% if saved.skip_welcome_email %}
+    <p class="hint" style="margin-top:0">Sheet seed, advance doc, and venue-tree filing are running now — same as any booking. No welcome email will go out for this one.</p>
+    {% elif urgent %}
+    <p class="hint" style="margin-top:0">This show is inside the 21-day window already — running right now, not waiting for the next daily check. Seeding the sheet, building the advance doc, filing it into the venue tree, and sending the advance email via Outlook. Usually a couple minutes.</p>
     {% else %}
-    <p class="hint" style="margin-top:0">This is already running in the background — seeding the sheet, building the advance doc, and filing it into the venue tree. The initial advance email drafts itself in Gmail on the next daily check, ready for you to send at the 21-day mark.</p>
+    <p class="hint" style="margin-top:0">This is already running in the background — seeding the sheet, building the advance doc, and filing it into the venue tree. The initial advance email sends itself via Outlook on the next daily check.</p>
     {% endif %}
     <button type="button" id="runBtn" onclick="runNow()">Run again</button>
     <p class="hint" style="margin-top:10px">Only needed if something looks off and you want to force a re-sync. Safe to click more than once.</p>
@@ -117,6 +126,12 @@
     <div class="req"><label>Contact Name</label><input name="contact_name" value="{{ form.contact_name or '' }}" placeholder="booking contact"></div>
     <div class="req"><label>Contact Email</label><input type="email" name="contact_email" value="{{ form.contact_email or '' }}" placeholder="booking contact"></div>
     <div class="full req"><label>Entered By</label><input name="entered_by" value="{{ form.entered_by or '' }}" placeholder="your name" required></div>
+    <div class="full" style="background:#1c232d;border:1px solid #2a323d;border-radius:8px;padding:12px 14px">
+      <label style="display:flex;align-items:flex-start;gap:9px;text-transform:none;font-weight:400;letter-spacing:normal;color:#e6edf3;font-size:14px;cursor:pointer">
+        <input type="checkbox" name="skip_welcome_email" style="width:auto;margin-top:2px" {% if form.skip_welcome_email %}checked{% endif %}>
+        <span>Band already emailed their info directly — I'll fill in their advance form myself. Don't send them the automated welcome email.</span>
+      </label>
+    </div>
     <div><label>Slot</label>
       <select name="slot" id="slot_select">
         {% for s in slots %}<option value="{{ s }}" {% if form.slot==s %}selected{% endif %}>{{ s.replace('_',' ') }}</option>{% endfor %}

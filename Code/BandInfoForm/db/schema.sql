@@ -282,6 +282,18 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS location TEXT;
 -- app.py and _token() in draft_emails.py. contact_email already existed.
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS contact_name TEXT;
 
+-- Manual-entry bookings (Brian, 2026-09-13): a band that emailed its info
+-- directly instead of using the form. Staff checks this at /booking time so
+-- the automated welcome/initial-advance email never goes out for this show
+-- (pointless — staff is about to fill in the band's own form by hand with
+-- what was emailed) while the rest of the pipeline (sheet seed, docfill,
+-- dashboard) still runs normally. Read by shows_due_for_initial_advance via
+-- its existing bookings LEFT JOIN — permanent for this booking, not a
+-- one-time suppression that could be raced by the immediate on-booking
+-- trigger. See app.py's /booking route and the "Manual band entry" note in
+-- ARCHITECTURE.md.
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS skip_welcome_email BOOLEAN NOT NULL DEFAULT false;
+
 -- Bands on the bill (Brian, 2026-09-08): declared explicitly per booking so a
 -- multi-band bill entered one act at a time (band 1 today, band 2 next week)
 -- still knows it's multi-band on day one, instead of inferring from however

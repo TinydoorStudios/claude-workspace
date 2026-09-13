@@ -211,6 +211,31 @@ sides of the Flask/n8n boundary — all in `n8n/README.md`'s "Live-send
 migration + a real incident" section. Read that before touching any n8n
 workflow file in this project.
 
+## Manual band entry / skip-welcome-email (2026-09-13)
+
+For a band that emails its info directly instead of using the form: check
+"Band already emailed their info directly" on `/booking`. Stamps
+`bookings.skip_welcome_email`, which `shows_due_for_initial_advance` reads
+via its existing bookings LEFT JOIN to permanently exclude that show from
+the automated welcome/initial-advance send (`b.skip_welcome_email IS NOT
+TRUE` — `IS NOT TRUE`, not `= false`, so a show with no matching booking
+row at all, where `b.*` is NULL, still isn't excluded). Permanent, keyed
+off the booking row via the same venue+date+artist-name match every other
+field on that join already uses — not a one-shot race against the
+immediate on-booking trigger. The rest of the pipeline (sheet seed, docfill,
+dashboard) runs exactly as normal; only that one send is suppressed.
+
+The thank-you page then shows a direct link to the band's own full advance
+form (`app.py`'s `_manual_fill_link`) — same signed-token/short-link shape
+as the returning-artist reminder link, just without an artist id (none
+exists yet — the pipeline that creates the `shows`/`artists` rows hasn't
+run). Venue, date, band name, and contact are all seeded and show up
+prefilled; venue/date render locked the same way any other seeded link
+locks them. `/f/<token>`'s prefill seeding was widened to apply band_name/
+contact_name/contact_email from the token's `s` payload unconditionally
+(previously only happened inside the known-artist DB-lookup branch, which
+a link with no artist id never enters).
+
 ## Security
 
 - Public: the form (`/`, `/f/<token>`, `/submit`) — no login, by design.
