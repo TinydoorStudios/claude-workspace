@@ -58,9 +58,10 @@ def regen(venue, date, artist, root=None):
     root = root or fs.real_dropbox_root()
     folder = root / fs.real_venue_folder(ev.get("venue")) / fs.real_month_folder(ev.get("venue"), d)
     folder.mkdir(parents=True, exist_ok=True)
-    # Same stable-name rule as package_run.event_stem: event name, else series,
-    # else the band — never let the filename drift with the act list.
-    stem = fs.advance_stem(ev.get("name") or ev.get("series") or artist, d)
+    # Same naming rule as package_run.event_stem — single source of truth in
+    # fieldspec.event_display_name, so this path and the full-rebuild path
+    # can never name the same show two different ways.
+    stem = fs.advance_stem(fs.event_display_name(ev, acts), d)
 
     # file each act's uploaded stage plot next to the doc (band-named), same as
     # package_run does, so the day-sheet's Stage Plot cell can point at it.

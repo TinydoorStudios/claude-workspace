@@ -24,13 +24,19 @@ SLOTS = ["opener", "direct_support", "headliner"]
 # The finished advance doc + stage plot file into the REAL, human-used venue
 # folder in Brian's actual Dropbox — not the Nyquist working archive:
 #
-#   ~/Dropbox/<Real Venue Folder>/<MM.YYYY Code>/<MMDDYY> <Event Name> Prod Adv.docx
+#   ~/Dropbox/<Real Venue Folder>/<MM.YYYY Code>/<MMDDYY> <Event Name> - <Headliner> Prod Adv.docx
 #   ~/Dropbox/<Real Venue Folder>/<MM.YYYY Code>/<MMDDYY> <Event Name> Stageplot.<ext>
 #
-# e.g. ~/Dropbox/3CDC Fountain Square/09.2026 FSQ/091826 Wishy Prod Adv.docx —
-# matching the convention Brian and the rest of the 3CDC production team have
-# always hand-typed into that folder, so the pipeline's output sits exactly
-# where a human would look for it, named the way a human would name it.
+# e.g. ~/Dropbox/3CDC Fountain Square/09.2026 FSQ/091826 513 Airwaves w Inhaler
+# Radio - RatBoys Prod Adv.docx — matching the convention Brian and the rest
+# of the 3CDC production team have always hand-typed into that folder, so the
+# pipeline's output sits exactly where a human would look for it, named the
+# way a human would name it. The " - <Headliner>" segment was added 2026-09-13
+# (see package_run.py's event_stem/headliner_name) — reversing the 2026-09-11
+# "no band name in the filename" rule below, on purpose: Brian wants to see
+# who's playing without opening the file, and accepts that the filename now
+# changes (old one left orphaned on disk) if the headliner changes before
+# the show — the exact tradeoff 2026-09-11 was written to avoid.
 #
 # Email drafts have no analog in the real, shared folders (they're an internal
 # working artifact, not a finished document) and stay under the Nyquist
@@ -98,6 +104,55 @@ def advance_stem(event_name, d):
     """Filename stem (no extension): '090626 513 Airwaves w Inhaler Radio Prod Adv'
     — matches the real folders' own hand-typed convention (Brian/3CDC staff)."""
     return f"{d.strftime('%m%d%y')} {_clean(event_name)} Prod Adv"
+
+
+def headliner_name(acts):
+    """Top-of-the-bill act's name, for the filename (Brian, 2026-09-13 —
+    reversing the 2026-09-11 "no band name in the filename" rule: he wants to
+    see who's playing without opening the file, and accepts that the
+    filename now changes if the headliner changes before the show). Prefers
+    the act actually slotted "headliner"; falls back to the last act in slot
+    order (event_acts is always queried ORDER BY slot_order, so the last one
+    is the closest guess at "top of the bill") if none is explicitly marked.
+    None if there are no acts with an artist attached yet.
+
+    Single source of truth — package_run.py (the full rebuild) and
+    regen_show.py (the single-show regen used by /submit, added 2026-09-11
+    specifically so a submit doesn't have to touch every file) both call
+    this and event_display_name below, so there's exactly one place that
+    decides what an event's filename looks like, not two copies that can
+    drift apart."""
+    for a in acts:
+        if a.get("slot") == "headliner" and a.get("artist"):
+            return a["artist"]["name"]
+    for a in reversed(acts):
+        if a.get("artist"):
+            return a["artist"]["name"]
+    return None
+
+
+def event_display_name(ev, acts):
+    """The <Event/Series> - <Headliner> name that goes into advance_stem — see
+    headliner_name above for why the headliner is appended and by whom.
+
+    Real-data dry run (2026-09-13, against every currently active event)
+    caught a real duplication bug before this ever shipped: several bookings
+    already have the headliner hand-typed right into the Event Name field
+    itself (e.g. "Blues & Brews - Ricky Nye", "Tailgate w The Closers") —
+    appending the headliner again there would produce "... - Ricky Nye -
+    Ricky Nye". A substring check on the base name skips the append whenever
+    it's already there."""
+    base = ev.get("name") or ev.get("series")
+    headliner = headliner_name(acts)
+    if base and headliner:
+        if headliner.lower() in base.lower():
+            return base
+        return f"{base} - {headliner}"
+    if headliner:
+        return headliner
+    if base:
+        return base
+    return ", ".join(a["artist"]["name"] for a in acts if a.get("artist")) or "Untitled"
 
 
 def stageplot_stem(event_name, d):

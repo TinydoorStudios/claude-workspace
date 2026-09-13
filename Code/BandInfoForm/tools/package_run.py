@@ -81,12 +81,11 @@ def event_drafts_dir(out, ev):
 
 def event_stem(ev, acts):
     d = ev.get("event_date")
-    # Prefer a stable name: the event's own name, else its SERIES — so the
-    # filename doesn't drift (and orphan the old file) every time a band is
-    # added to the bill (Brian, 2026-09-11). Act names are only the last resort.
-    name = (ev.get("name") or ev.get("series")
-            or ", ".join(a["artist"]["name"] for a in acts if a.get("artist"))
-            or "Untitled")
+    # Name + headliner — single source of truth in fieldspec.py, shared with
+    # regen_show.py's single-show path so both never drift apart on what an
+    # event's filename looks like. See fieldspec.event_display_name /
+    # headliner_name for the actual rule.
+    name = fs.event_display_name(ev, acts)
     if d:
         return fs.advance_stem(name, d)
     return f"{safe(name)} Prod Adv"
