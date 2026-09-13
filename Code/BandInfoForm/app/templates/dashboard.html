@@ -49,9 +49,15 @@
   .days-badge{flex-shrink:0;font-size:11px;color:#8b97a6;background:#0d1117;border:1px solid #2a323d;
     border-radius:999px;padding:3px 9px;white-space:nowrap;}
 
-  .acts{display:flex;flex-direction:column;gap:7px;}
-  .act{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-  .band{font-size:13.5px;color:#e6edf3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* Band name gets its own full-width line — a pill plus a Mark Finalized
+     button next to it was squeezing names down to a couple characters
+     (Brian, 2026-09-13: "the status bubbles cut off the band names").
+     Status/action wrap onto their own line below, never fighting the name
+     for width. */
+  .acts{display:flex;flex-direction:column;gap:10px;}
+  .act{display:flex;flex-direction:column;gap:5px;}
+  .band{font-size:13.5px;font-weight:600;color:#e6edf3;}
+  .act-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .pill{flex-shrink:0;font-size:11px;font-weight:600;border-radius:999px;padding:3px 10px;
     white-space:nowrap;}
   .pill.queued{background:#21262d;color:#8b97a6;}
@@ -166,7 +172,7 @@ function render(bills){
         const finalizeBtn = a.state === "responded"
           ? `<button class="finalize-btn" onclick="finalizeShow(${a.artist_id}, ${a.show_id}, this)">Mark Finalized</button>`
           : "";
-        return `<div class="act"><span class="band">${a.band}</span><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}</div>`;
+        return `<div class="act"><span class="band">${a.band}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}</div></div>`;
       }).join("");
       card.innerHTML = `
         <div class="bill-head">
