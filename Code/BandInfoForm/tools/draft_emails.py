@@ -79,6 +79,29 @@ def slug(s):
     return re.sub(r"[^a-z0-9]+", "-", (s or "band").lower()).strip("-")[:40] or "band"
 
 
+def _first_name(s):
+    """'Dali Amador' -> 'Dali' — the initial advance email's greeting uses
+    only the contact's first name plus the band name (Brian, 2026-09-13:
+    'Hello Dali and The Amador Sisters,' not the full contact name). Only
+    the GREETING changes; the prefill token (_token, below) still carries
+    the full contact_name into the band's own form untouched — that's a
+    form field value, not a greeting."""
+    s = (s or "").strip()
+    return s.split()[0] if s else ""
+
+
+def _split_subject(rendered):
+    """A rendered advance*.md.j2's first line is always 'Subject: ...' —
+    split it off from the rest of the body. app.py's automated lifecycle
+    path uses this to send via Outlook directly (live-send migration,
+    2026-09-13); for a manual CSV/xlsx batch run of this file's own CLI,
+    whoever turns a tools/drafts/*.md file into a real Outlook draft treats
+    that first line as the subject (a human/LLM step, not code — see
+    ARCHITECTURE.md's 'Sending' section)."""
+    first, _, rest = rendered.partition("\n")
+    return first, rest.lstrip("\n")
+
+
 def load_batch(path):
     p = Path(path)
     if p.suffix.lower() == ".xlsx":
@@ -159,6 +182,9 @@ def main():
         sys.exit(1)
 
     advance_t = env.get_template("advance.md.j2")
+    # Only rendered for a series in ve.BILINGUAL_SERIES (Salsa On The Square,
+    # 2026-09-12) — every other series never touches this template.
+    advance_es_t = env.get_template("advance_es.md.j2")
 
     # the bill for each event (rows sharing event name + date + venue), in slot order
     SLOT_ORD = {"opener": 1, "direct_support": 2, "headliner": 3}
@@ -179,6 +205,11 @@ def main():
             venue = r.get("venue")
             show_date = parse_date(r.get("show_date"))
             series = r.get("series") or None
+            # Brian, 2026-09-12: Salsa On The Square's advance email goes out
+            # English-then-Spanish in one message with two form links, no
+            # exceptions asked for elsewhere — every other series is
+            # completely unaffected by everything gated on this flag below.
+            is_bilingual = bool(series) and ve.is_bilingual_series(series)
             email = r.get("email") or None
             bill = bills.get((r.get("event_name") or "",
                               r.get("show_date") or "", r.get("venue") or ""), [])
@@ -231,6 +262,9 @@ def main():
             if r.get("set_time"):
                 set_line = f"Set length: {_setlen(r['set_time'])}" + (f" ({slot})" if slot else "")
 
+            def sched(k):
+                return r.get(k) or fs.SCHEDULE_DEFAULTS.get(k, "")
+
             # A series can lock its own schedule (Brian, 2026-09-09: Salsa On
             # The Square runs a fixed 3-set/2-break night that never
             # changes). That wins over whatever a staffer types on the
@@ -241,8 +275,6 @@ def main():
             if custom_schedule:
                 schedule_block = custom_schedule
             else:
-                def sched(k):
-                    return r.get(k) or fs.SCHEDULE_DEFAULTS.get(k, "")
                 schedule_block = "\n".join([
                     f"  {sched('load_in')}    Load-In",
                     f"  {sched('soundcheck')}    Sound Check",
@@ -261,6 +293,43 @@ def main():
                         line += f" — {_setlen(a['set_time'])}"
                     lines.append(line)
                 bill_block = "\n".join(lines)
+
+            # ── Spanish half of a bilingual send (ve.BILINGUAL_SERIES) ──
+            # Same shape as the English block above, Spanish labels around
+            # the same underlying times/names. schedule_block_for(lang="es")
+            # returns None (never falls back to English prose) if the
+            # series file has no "## Schedule (Español)" section, in which
+            # case the generic 5-row Spanish schedule is built instead —
+            # same as the English path's own fallback.
+            set_line_es = bill_block_es = ""
+            schedule_block_es, schedule_locked_es = "", False
+            if is_bilingual:
+                custom_schedule_es = ve.schedule_block_for(venue, series, lang="es")
+                schedule_locked_es = bool(custom_schedule_es)
+                if custom_schedule_es:
+                    schedule_block_es = custom_schedule_es
+                else:
+                    rl = ve.SCHEDULE_ROW_LABELS_ES
+                    schedule_block_es = "\n".join([
+                        f"  {sched('load_in')}    {rl['load_in']}",
+                        f"  {sched('soundcheck')}    {rl['soundcheck']}",
+                        f"  {sched('event_start')}    {rl['event_start']}",
+                        f"  {sched('event_end')}   {rl['event_end']}",
+                        f"  {sched('curfew')}   {rl['curfew']}",
+                    ])
+                if r.get("set_time"):
+                    slot_es = ve.SLOT_LABELS_ES.get((r.get("slot") or "").strip(), slot)
+                    set_line_es = (f"{ve.SET_LENGTH_LABEL_ES}: {_setlen(r['set_time'])}"
+                                   + (f" ({slot_es})" if slot_es else ""))
+                if len(bill) > 1:
+                    lines_es = [ve.BILL_HEADER_ES]
+                    for a in bill:
+                        s_es = ve.SLOT_LABELS_ES.get(a["slot"], a["slot"].replace("_", " "))
+                        line = f"  - {s_es}: {a['name']}"
+                        if a.get("set_time"):
+                            line += f" — {_setlen(a['set_time'])}"
+                        lines_es.append(line)
+                    bill_block_es = "\n".join(lines_es)
 
             # Brian, 2026-09-08: an explicit "bands on the bill" answer (per
             # booking, so band 1 knows it's multi-band on day one even if
@@ -304,10 +373,12 @@ def main():
                                           "rows": recap_rows}
                         print(f"  (recap: live file, {recap_path.name})")
 
+            last_rows = summarize_submission(prior) if returning else []
+            personal_note_en = (r.get("email_note") or "").strip()
             ctx = dict(
-                name=name, contact_name=r.get("contact_name") or "", venue=venue,
+                name=name, contact_name=_first_name(r.get("contact_name")), venue=venue,
                 blocks=ve.blocks_for(venue, series=series, **email_extra), common_requirements=ve.COMMON_REQUIREMENTS,
-                personal_note=(lambda n: f"{n}\n\n" if n else "")((r.get("email_note") or "").strip()),
+                personal_note=(f"{personal_note_en}\n\n" if personal_note_en else ""),
                 event_name=r.get("event_name") or "",
                 series=series or "",
                 show_date=us_date(show_date),
@@ -315,10 +386,38 @@ def main():
                 set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
                 multiband=multiband, schedule_locked=schedule_locked,
                 form_link=f"{PUBLIC_URL}/s/{short_code}", deadline=deadline,
-                returning=returning, last=summarize_submission(prior) if returning else [],
+                returning=returning, last=last_rows,
                 advance_recap=advance_recap,
             )
-            body = advance_t.render(**ctx)
+
+            if is_bilingual:
+                # Same booking, Spanish labels/blocks. personal_note and
+                # advance_recap are left out of this half on purpose — a
+                # staffer's ad hoc note is written in English and would
+                # read oddly repeated verbatim under the Spanish section,
+                # and advance_recap's row labels come from the filed docx's
+                # own English column headers (fieldspec.py's full label
+                # set), not the handful this module translates for `last` —
+                # the English half above already carries both, nothing is
+                # lost by not duplicating them here untranslated.
+                ctx_es = dict(ctx)
+                ctx_es.update(
+                    blocks=ve.blocks_for(venue, series=series, lang="es", **email_extra),
+                    common_requirements=ve.COMMON_REQUIREMENTS_ES,
+                    personal_note="",
+                    set_line=set_line_es, schedule_block=schedule_block_es,
+                    bill_block=bill_block_es, schedule_locked=schedule_locked_es,
+                    form_link=f"{PUBLIC_URL}/s/{short_code}?lang=es",
+                    last=[(ve.SUMMARY_LABELS_ES.get(k, k), v) for k, v in last_rows],
+                    advance_recap=None,
+                )
+                subject_line, body_en = _split_subject(advance_t.render(**ctx))
+                _, body_es = _split_subject(advance_es_t.render(**ctx_es))
+                sep = "─" * 42
+                body = (f"{subject_line}\n\n{body_en}\n\n{sep}\n"
+                        f"ESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}")
+            else:
+                body = advance_t.render(**ctx)
 
             fname = f"{slug(name)}__{show_date.isoformat() if show_date else 'nodate'}__{kind.lower()}.md"
             (DRAFTS / fname).write_text(body)
@@ -338,7 +437,7 @@ def main():
     n_ret = sum(1 for s in summary if s[0] == "RETURNING")
     print(f"\n{len(summary)} drafts written to {DRAFTS}  "
           f"({n_ret} returning, {len(summary)-n_ret} new).")
-    print("Nothing was sent. Review the drafts, then send from Gmail once approved.")
+    print("Nothing was sent. Review the drafts, then send from Outlook once approved.")
 
 
 def _token(artist_id, venue, show_date, series=None, location=None,

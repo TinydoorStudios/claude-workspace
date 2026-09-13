@@ -5,7 +5,18 @@ One form engine, many variants. The public form reads optional ?venue= and
 optional question blocks / intro copy apply. Right now every series shares the
 base question set — add per-series overrides here as they come up, without
 touching the template beyond the {% if cfg... %} hooks already in form.html.
+
+Language (?lang=es) is a separate axis handled by i18n.py/app.py — every
+label, help string, and option on the form comes from there regardless of
+series. The one thing THIS module owns that's language-sensitive is a
+series's `intro` subtitle: get_config's `lang` param picks `intro_es` off a
+series override when present, else falls back to i18n's generic default
+intro for that language. Add `intro_es` next to a series's own `intro` if
+you want a custom Spanish subtitle for it; otherwise the generic one is
+used and is always grammatically correct regardless of what intro a series
+sets in English.
 """
+import i18n
 
 VENUES = [
     "Fountain Square", "Washington Park", "Elm Street Plaza",
@@ -78,6 +89,23 @@ SERIES = {
             "large_vehicle": True,
             "lighting": True,
             "scenic": True,
+            "backline": True,
+        },
+    },
+    # Salsa On The Square (Brian, 2026-09-12): a house band situation, not a
+    # touring act bringing its own rig — no backline-sharing question (there's
+    # no other artist on the bill to share with) and no scenic-elements
+    # question. This is also 3CDC's one BILINGUAL series (see
+    # venue_email.BILINGUAL_SERIES) — draft_emails.py sends its advance email
+    # English-then-Spanish in one message with two form links, and this
+    # series's own email content override
+    # (~/Dropbox/Nyquist/Series Email Templates/Fountain Square/Salsa On The
+    # Square.md) carries matching "(Español)" sections alongside its English
+    # ones for exactly that reason.
+    "Salsa On The Square": {
+        "blocks": {
+            "backline": False,
+            "scenic": False,
         },
     },
     # Example of a leaner variant — a small acoustic series that skips riser/parking:
@@ -90,13 +118,22 @@ SERIES = {
 }
 
 
-def get_config(series_key=None, venue=None, location=None, slot=None):
+def get_config(series_key=None, venue=None, location=None, slot=None, lang="en"):
     base = dict(SERIES["default"])
     cfg = dict(base)
+    cfg["intro"] = i18n.t("intro_default", lang)
     if series_key and series_key in SERIES:
         override = SERIES[series_key]
         cfg["label"] = override.get("label", base["label"])
-        cfg["intro"] = override.get("intro", base["intro"])
+        # A series's own `intro` (English) only applies for lang='en' — an
+        # `intro_es` override on the series wins for Spanish; absent that,
+        # the generic translated default applies rather than showing the
+        # series's English intro untranslated.
+        if lang == "es":
+            if "intro_es" in override:
+                cfg["intro"] = override["intro_es"]
+        elif "intro" in override:
+            cfg["intro"] = override["intro"]
         merged = dict(base["blocks"])
         merged.update(override.get("blocks", {}))
         cfg["blocks"] = merged

@@ -37,6 +37,18 @@ COMMON_REQUIREMENTS = """\
 - Weather: rain or shine. Booking evaluates weather about 3 hours before start; if you don't hear otherwise, assume the show goes on.
 - Payment: all groups are paid after the performance, not before."""
 
+# Spanish translation of COMMON_REQUIREMENTS — draft, 2026-09-12. Kept as a
+# parallel constant rather than folded into VENUE_EMAIL_ES so a future
+# language-aware render_email() (not yet wired — see advance_es.md.j2) can
+# pick requirements + COMMON_REQUIREMENTS_ES the same way the English path
+# picks blocks_for(...) + COMMON_REQUIREMENTS.
+COMMON_REQUIREMENTS_ES = """\
+- Contenido: solo apto para toda la familia — no se permite lenguaje ni gestos obscenos, incluyendo pistas pregrabadas, voces en vivo y la prueba de sonido.
+- Seguridad de los artistas: permanezcan en el escenario. No se permite lanzarse al público, trepar, saltar del escenario ni pisar el equipo de sonido.
+- Seguridad del público: no lancen ni disparen nada hacia el público (confeti, camisetas, botellas, mercancía/CDs, etc.).
+- Clima: el show se realiza con lluvia o con sol. El equipo de producción evalúa las condiciones climáticas aproximadamente 3 horas antes del inicio; si no reciben aviso contrario, asuman que el show continúa.
+- Pago: todos los grupos reciben su pago después de la presentación, no antes."""
+
 # Generic, safe-to-send blocks for a venue we haven't customized yet (no FSQ specifics).
 DEFAULT = {
     "location": None,   # falls back to the venue name in the template
@@ -53,6 +65,26 @@ Hospitality & Site:
 - Merch: if you're selling, you provide the seller, point of sale, and bank; ask your day-of contact about a table.
 - Hospitality: water is provided for all performers and crew.""",
     "requirements": "",   # venue-specific rule lines (optional)
+}
+
+# Spanish translation of DEFAULT — draft, 2026-09-12, so a Spanish-language
+# render for an unconfigured venue still gets grammatical, safe-to-send
+# copy instead of an empty block.
+DEFAULT_ES = {
+    "location": None,
+    "load_in": """\
+Carga y estacionamiento:
+Su contacto del día del evento coordinará la carga y el estacionamiento con ustedes. Llámenlo o envíenle un mensaje de texto cuando estén a unos 5 minutos de llegar, y preséntense en persona en cuanto lleguen. Indiquen en el formulario si necesitan espacio para vehículos grandes.""",
+    "technical": """\
+Técnico:
+- Backline / instrumentación: los artistas proporcionan todos los instrumentos, incluyendo amplificadores y cables de 1/4 de pulgada.
+- Audio: proporcionamos un ingeniero que mezcla el FOH y los monitores. Coordinen con anticipación si van a traer su propio ingeniero.
+- El plano de escenario / lista de entradas, la distribución del escenario, la cantidad de monitores y cualquier elemento escenográfico — todo se indica en el formulario.""",
+    "hospitality": """\
+Hospitalidad y sitio:
+- Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el banco; pregúntenle a su contacto del día del evento sobre una mesa.
+- Hospitalidad: se proporciona agua para todos los artistas y el equipo de trabajo.""",
+    "requirements": "",
 }
 
 VENUE_EMAIL = {
@@ -101,6 +133,36 @@ Hospitality & Site:
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
     # Add Memorial Hall / etc. here as Brian supplies the content.
+}
+
+# Spanish translation of VENUE_EMAIL — draft, 2026-09-12, Fountain Square
+# only (Brian's ask). Same dict shape, same {placeholder} substitution keys
+# (blocks_for applies dynamic kwargs identically regardless of language).
+# Not yet wired into draft_emails.py's render path — see advance_es.md.j2's
+# header note for what full wiring would need (a --lang flag threading
+# through draft_emails.py's Python-built strings: set_line, schedule_block,
+# bill_block, summarize_submission's labels).
+VENUE_EMAIL_ES = {
+    "Fountain Square": {
+        "location": "Fountain Square – Mainstage; 520 Vine St. Cincinnati, OH 45202",
+        "load_in": """\
+Carga y estacionamiento:
+El proceso de carga en Fountain Square ha cambiado — por favor revisen el documento adjunto y confirmen que lo entendieron en el formulario. Llamen o envíen un mensaje de texto a su contacto del día del evento cuando estén a unos 5 minutos de llegar, y preséntense en persona en cuanto lleguen.
+Les enviaremos códigos QR que funcionan como sus validaciones del estacionamiento Fountain Square Garage (incluye 5). Cada vehículo necesita su propio código QR antes de llegar; escaneen en el quiosco al entrar o salir (por favor no paguen). La altura máxima del estacionamiento es de 6'8". ¿Necesitan más validaciones o espacio para vehículos grandes? Indíquenlo en el formulario.""",
+        "technical": """\
+Técnico:
+- Backline / instrumentación: los artistas proporcionan todos sus instrumentos, incluyendo amplificadores y cables de 1/4".
+- Audio: proporcionamos un ingeniero que mezcla el FOH y los monitores desde el FOH. Coordinen con anticipación si van a traer su propio ingeniero. Todos los ingenieros deben mezclar dentro del límite de la ordenanza de 95 dBA-Slow; el ingeniero de Fountain Square puede reducir el volumen de los amplificadores en el escenario si es necesario.
+- Iluminación: proporcionamos un LD (diseñador de iluminación) de la casa.
+- El plano de escenario / lista de entradas, escenario plano o con plataforma para batería, cantidad de monitores y cualquier elemento escenográfico — todo se indica en el formulario.""",
+        "hospitality": """\
+Hospitalidad y sitio:
+- Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el banco; nosotros proporcionamos una carpa junto al escenario con una mesa y sillas.
+- Camerinos: no contamos con camerinos bajo techo; a solicitud podemos proporcionar una carpa de 10×10 con paredes laterales para un espacio privado de la banda.
+- Hospitalidad: se proporcionan boletos de bebida y agua para todos los artistas y el equipo de trabajo.""",
+        "requirements": "- Límite de sonido: estricto 95 dBA-Slow en la posición de FOH, para todos los ingenieros (de la casa o del talento).",
+    },
+    # Add other venues here as Brian asks for them in Spanish.
 }
 
 # Where Brian's per-series email content actually lives — see that folder's
@@ -177,9 +239,21 @@ def norm_header(s):
     return re.sub(r"\s+", " ", s).strip().rstrip(":")
 
 
+# A header ending in "(Español)"/"(Espanol)"/"(ES)" (any case) is that same
+# section's SPANISH translation, not a new section — 2026-09-12, for
+# bilingual series (Salsa On The Square is the first). "## Technical
+# (Español)" parses to the same `technical` key as "## Technical", but
+# lands under `technical_es` — see blocks_for's lang handling. Strip it
+# before the ordinary alias lookup so "Technical" and "Technical (Español)"
+# resolve to the same base section.
+_ES_HEADER_SUFFIX = re.compile(r"\s*\((?:espa[nñ]ol|es)\)\s*$", re.IGNORECASE)
+
+
 def _parse_series_email_file(text, label=""):
-    """A series .md file's text -> {block_key: content}. See
-    SERIES_EMAIL_ROOT's README for the section-header format."""
+    """A series .md file's text -> {block_key: content}, where a block_key
+    ending in `_es` (from a "## <Section> (Español)" header) is that
+    section's Spanish translation. See SERIES_EMAIL_ROOT's README for the
+    section-header format."""
     blocks, current_key, buf = {}, None, []
 
     def commit():
@@ -205,7 +279,10 @@ def _parse_series_email_file(text, label=""):
             continue
         commit()
         buf = []
-        header = norm_header(m.group(1))
+        raw_header = m.group(1)
+        stripped, n_subs = _ES_HEADER_SUFFIX.subn("", raw_header)
+        is_es = n_subs > 0
+        header = norm_header(stripped if is_es else raw_header)
         key = _BLOCK_HEADER_ALIASES.get(header)
         if key is None:
             for alias, block_key in _BLOCK_HEADER_ALIASES.items():
@@ -213,8 +290,10 @@ def _parse_series_email_file(text, label=""):
                     key = block_key
                     break
         if key is None:
-            print(f"[venue_email] {label}: unrecognized section {m.group(1)!r}, skipped",
+            print(f"[venue_email] {label}: unrecognized section {raw_header!r}, skipped",
                   file=sys.stderr)
+        else:
+            key = f"{key}_es" if is_es else key
         current_key = key
     commit()
     return blocks
@@ -259,15 +338,22 @@ def _load_series_block(venue, series, root=None):
     return {}
 
 
-def schedule_block_for(venue, series, root=None):
+def schedule_block_for(venue, series, root=None, lang="en"):
     """The whole 'Day Schedule:' block, verbatim, for this venue + series —
     None if the series file has no Schedule section (or no series/file at
     all), meaning the generic per-show schedule fields apply as usual.
     Callers should let a non-None result WIN over whatever a booking's own
     schedule fields say — that's the point of a series whose schedule never
-    changes (Brian, 2026-09-09: Salsa On The Square is the first)."""
+    changes (Brian, 2026-09-09: Salsa On The Square is the first).
+
+    lang='es' looks for a "## Schedule (Español)" section instead (see
+    _parse_series_email_file) and returns None if the series file doesn't
+    have one — even if the English "## Schedule" does — rather than ever
+    falling back to English prose inside an otherwise-Spanish email. A
+    caller sending a bilingual email should treat that None as "build the
+    generic Spanish schedule instead," not "reuse the English block." """
     blocks = _load_series_block(venue, series, root)
-    return blocks.get("schedule") or None
+    return blocks.get("schedule_es" if lang == "es" else "schedule") or None
 
 
 def crew_schedule_for(venue, series, root=None):
@@ -332,6 +418,45 @@ def locked_schedule_series(root=None):
     return sorted(out)
 
 
+# Series whose advance email goes out English-then-Spanish in ONE message
+# (draft_emails.py), with two form links — Brian, 2026-09-12, Salsa On The
+# Square is the first and so far only one. Every other series is completely
+# unaffected: English-only, exactly as before. Add a series name here (as
+# it's literally typed in the advance-list sheet's `series` column) once
+# its email content override file has "(Español)" sections for every block
+# it customizes — see blocks_for's docstring.
+BILINGUAL_SERIES = {"Salsa On The Square"}
+
+
+def is_bilingual_series(series):
+    return _norm_series(series) in {_norm_series(s) for s in BILINGUAL_SERIES}
+
+
+# Spanish equivalents of the handful of short labels draft_emails.py builds
+# in PYTHON rather than in the template (advance_es.md.j2's header note
+# lists these) — used only when rendering the Spanish half of a bilingual
+# send. Values, not the labels, still come from the booking (times, names,
+# numbers); these are purely the surrounding words.
+SCHEDULE_ROW_LABELS_ES = {
+    "load_in": "Carga", "soundcheck": "Prueba de sonido",
+    "event_start": "Inicio del evento", "event_end": "Fin del evento",
+    "curfew": "Hora límite",
+}
+SET_LENGTH_LABEL_ES = "Duración del set"
+BILL_HEADER_ES = "Cartelera:"
+SLOT_LABELS_ES = {"opener": "apertura", "direct_support": "soporte directo",
+                   "headliner": "cierre"}
+# summarize_submission's labels (draft_emails.py), for a returning artist's
+# "here's what we have on file" block in the Spanish half.
+SUMMARY_LABELS_ES = {
+    "Last show": "Último show", "Performers + crew": "Artistas y equipo de trabajo",
+    "Monitors": "Monitores", "Own IEMs": "IEM propios", "Stage": "Escenario",
+    "Own engineer": "Ingeniero propio", "Merch": "Mercancía",
+    "Band tent": "Carpa de la banda", "Large vehicle": "Vehículo grande",
+    "Backline": "Backline",
+}
+
+
 class _SafeDict(dict):
     """str.format_map backing that renders an unsupplied placeholder as '' rather
     than raising — so one missing key can't turn a whole block into literal braces."""
@@ -339,13 +464,33 @@ class _SafeDict(dict):
         return ""
 
 
-def blocks_for(venue, series=None, **dynamic):
-    v = VENUE_EMAIL.get((venue or "").strip(), {})
-    out = dict(DEFAULT)
+def blocks_for(venue, series=None, lang="en", **dynamic):
+    """lang='es' swaps in VENUE_EMAIL_ES/DEFAULT_ES (draft, 2026-09-12,
+    Fountain Square only so far — other venues fall back to DEFAULT_ES's
+    generic Spanish copy, same as the English path falls back to DEFAULT).
+
+    A series override file (Series Email Templates/<Venue>/<Series>.md) is
+    language-aware per BLOCK, not per file: for lang='es' this applies only
+    that file's `<key>_es` sections (from a "## <Section> (Español)"
+    header) on top of the Spanish venue defaults — an English-only section
+    in that same file (no "(Español)" counterpart) is skipped rather than
+    dropping untranslated English prose into an otherwise-Spanish email.
+    Write a "(Español)" counterpart for every section a bilingual series
+    overrides — see Salsa On The Square's file for the pattern."""
+    table = VENUE_EMAIL_ES if lang == "es" else VENUE_EMAIL
+    default = DEFAULT_ES if lang == "es" else DEFAULT
+    v = table.get((venue or "").strip(), {})
+    out = dict(default)
     out.update({k: val for k, val in v.items() if val is not None})
     if series:
         override = _load_series_block(venue, series)
-        out.update({k: val for k, val in override.items() if val is not None})
+        if lang == "es":
+            es_override = {k[:-3]: val for k, val in override.items()
+                            if k.endswith("_es") and val is not None}
+            out.update(es_override)
+        else:
+            out.update({k: val for k, val in override.items()
+                        if val is not None and not k.endswith("_es")})
     if dynamic:
         safe = _SafeDict(dynamic)
         for k, text in out.items():

@@ -149,6 +149,44 @@ then the drafts are created as Gmail drafts (via the Gmail connector) for you to
 and send — approve-each, not auto. No throwaway Gmail-OAuth sender is built, since the
 plan is to swap to Outlook; the interim path is drafts-you-approve.
 
+## Spanish-language form (draft, 2026-09-12)
+
+`?lang=es` on any form route (`/`, `/f/<token>`, `/s/<code>`) serves the form
+in Spanish — `app/i18n.py` holds every label/help/option in both languages
+(`form.html`/`thanks.html` call `t('key')` instead of carrying literal copy),
+and a "Español"/"English" toggle link switches without losing whatever's
+already filled in. Field `name=`s and every select/radio's stored `value=`
+stay English on both language variants, so the DB/docfill/daysheet pipeline
+never has to know which language a band used — only the open textareas
+(`changed_notes`, `stage_plot_desc`, `backline`, `scenic`, `lighting`,
+`additional`) carry actual Spanish content through.
+
+Those textareas get machine-translated to English on submit, in place,
+before disk JSON / Postgres / the notify email / the filed advance doc ever
+see them — `app/es_translate.py`, one Groq call (free tier, `openai/gpt-
+oss-120b` — same JSON-mode pattern as Code/GearTickets' own triage call,
+different model since GearTickets' `llama-3.3-70b-versatile` was retired
+from Groq's lineup by 2026-09-12) per Spanish submission, translating
+every non-empty free-text field together
+for consistent terminology. The original Spanish is kept alongside under
+`<field>_es_original` in the same JSON, never dropped. Needs
+`GROQ_API_KEY` in `advance.env` — a key of its own, not the one
+GearTickets uses (that one lives inside n8n's encrypted credential store,
+not a plain env var this app could read). Without it set, a Spanish
+submission still works fine, it just stays in Spanish everywhere
+downstream — the form itself never depends on translation succeeding.
+
+The Fountain Square advance email also has a Spanish draft —
+`tools/venue_email.py`'s `VENUE_EMAIL_ES`/`COMMON_REQUIREMENTS_ES` +
+`tools/email_templates/advance_es.md.j2` — but it is NOT wired into
+`draft_emails.py`'s render path yet. That needs a `--lang` flag (or a
+per-show language field) threading through the handful of strings
+`draft_emails.py` builds in Python rather than in the template (set_line,
+the 5-row schedule labels, bill_block's header, a returning artist's
+"here's what we have on file" labels) — see the header comment in
+`advance_es.md.j2` for the exact list. Draft it once Brian wants a specific
+show's email actually sent in Spanish.
+
 ## Security
 
 - Public: the form (`/`, `/f/<token>`, `/submit`) — no login, by design.

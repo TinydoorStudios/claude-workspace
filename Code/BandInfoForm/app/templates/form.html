@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>3CDC Band Advance</title>
+<title>{{ t('page_title') }}</title>
 <style>
   :root{
     color-scheme: dark;
@@ -20,6 +20,8 @@
   header .wrap{padding-bottom:0;}
   header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.2px;}
   header p{margin:6px 0 0;font-size:14px;color:#c7d6e6;}
+  .langtoggle{margin-top:10px;}
+  .langtoggle a{color:#dbe8f4;font-size:13px;font-weight:600;text-decoration:underline;}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
     padding:28px 26px;box-shadow:0 1px 2px rgba(16,24,40,.04);}
   .returning{max-width:680px;margin:0 auto 18px;padding:0 16px;}
@@ -65,290 +67,293 @@
 </head>
 <body>
 {% macro v(name) %}{{ prefill.get(name, '') }}{% endmacro %}
+{% set other_lang = 'en' if lang == 'es' else 'es' %}
 <header><div class="wrap">
-  <h1>Band Advance / Show Details</h1>
+  <h1>{{ t('header_h1') }}</h1>
   <p>{{ cfg.intro }}</p>
   <p id="techpack" class="hidden" style="margin-top:8px;font-size:13px;">
     <a id="techpacklink" href="#" target="_blank" rel="noopener"
-       style="color:#dbe8f4;font-weight:600;text-decoration:underline;">See what 3CDC provides at this venue →</a>
+       style="color:#dbe8f4;font-weight:600;text-decoration:underline;">{{ t('techpack_link') }}</a>
   </p>
+  <p class="langtoggle"><a href="{{ lang_url(other_lang) }}">{{ t('lang_toggle') }}</a></p>
 </div></header>
 
 {% if returning %}
 <div class="returning"><div class="box">
-  Welcome back{% if artist_name %}, {{ artist_name }}{% endif %}. We've pre-filled your
-  last submission below — update anything that has changed and re-acknowledge the items
-  at the bottom. Fields marked "locked to your booking" are set from our records; email
-  us if one of those is wrong.
+  {{ t('returning_banner', artist_clause=(t('returning_artist_clause', name=artist_name) if artist_name else '')) }}
 </div></div>
 {% endif %}
 
 <div class="wrap">
 <form class="card" id="bandform" action="{{ url_for('submit') }}" method="post" enctype="multipart/form-data">
   <input type="hidden" name="show_series" value="{{ cfg.series_key }}">
+  <input type="hidden" name="form_lang" value="{{ lang }}">
   {% if cfg.location %}<input type="hidden" name="location" value="{{ cfg.location }}">{% endif %}
 
   {% if returning %}
   <div class="field conditional">
-    <label class="q">Anything changed since your last show with us?</label>
-    <textarea name="changed_notes" placeholder="e.g. added a keyboard player, different monitor mix, new stage plot">{{ v('changed_notes') }}</textarea>
-    <p class="help">If your setup is the same as last time, leave this blank. Otherwise tell us what's different — lineup, gear, monitors, stage plot.</p>
+    <label class="q">{{ t('changed_notes_label') }}</label>
+    <textarea name="changed_notes" placeholder="{{ t('changed_notes_placeholder') }}">{{ v('changed_notes') }}</textarea>
+    <p class="help">{{ t('changed_notes_help') }}</p>
   </div>
   {% endif %}
 
-  <div class="section"><h2>Show Basics</h2></div>
+  <div class="section"><h2>{{ t('section_basics') }}</h2></div>
 
   <div class="field">
-    <label class="q">Band / Group Name<span class="req">*</span></label>
+    <label class="q">{{ t('band_name_label') }}<span class="req">*</span></label>
     <input type="text" name="band_name" required value="{{ v('band_name') }}">
     {% if known_artist_id %}
     <input type="hidden" name="artist_id" value="{{ known_artist_id }}">
-    <p class="help">Prefilled from your booking — update it if this has changed.</p>
+    <p class="help">{{ t('band_name_prefill_help') }}</p>
     {% endif %}
   </div>
 
   <div class="field">
-    <label class="q">Venue<span class="req">*</span></label>
+    <label class="q">{{ t('venue_label') }}<span class="req">*</span></label>
     {% set pv = prefill.get('venue') or cfg.venue_preselect %}
     {% if locked_venue %}
     <select id="venue_select" class="locked" disabled>
-      <option value="" disabled {{ 'selected' if not pv else '' }}>Select a venue…</option>
+      <option value="" disabled {{ 'selected' if not pv else '' }}>{{ t('select_venue_placeholder') }}</option>
       {% for vn in venues %}<option {{ 'selected' if pv==vn else '' }}>{{ vn }}</option>{% endfor %}
     </select>
     <input type="hidden" name="venue" value="{{ pv }}">
-    <p class="lockhint">🔒 Locked to your booking — email us if this needs to change.</p>
+    <p class="lockhint">{{ t('lockhint') }}</p>
     {% else %}
     <select name="venue" id="venue_select" required>
-      <option value="" disabled {{ 'selected' if not pv else '' }}>Select a venue…</option>
+      <option value="" disabled {{ 'selected' if not pv else '' }}>{{ t('select_venue_placeholder') }}</option>
       {% for vn in venues %}<option {{ 'selected' if pv==vn else '' }}>{{ vn }}</option>{% endfor %}
     </select>
     {% endif %}
   </div>
 
   <div class="field">
-    <label class="q">Show Date<span class="req">*</span></label>
+    <label class="q">{{ t('show_date_label') }}<span class="req">*</span></label>
     {% if locked_date %}
     <input type="date" class="locked" value="{{ v('show_date') }}" readonly>
     <input type="hidden" name="show_date" value="{{ v('show_date') }}">
-    <p class="lockhint">🔒 Locked to your booking — email us if this needs to change.</p>
+    <p class="lockhint">{{ t('lockhint') }}</p>
     {% else %}
     <input type="date" name="show_date" required value="{{ v('show_date') }}">
     {% endif %}
   </div>
 
   <div class="field">
-    <label class="q">Primary Contact — name<span class="req">*</span></label>
+    <label class="q">{{ t('contact_name_label') }}<span class="req">*</span></label>
     <input type="text" name="contact_name" required value="{{ v('contact_name') }}">
-    <p class="help">Who we should reach for anything about this show.</p>
+    <p class="help">{{ t('contact_name_help') }}</p>
   </div>
 
   <div class="field">
-    <label class="q">Primary Contact — email<span class="req">*</span></label>
+    <label class="q">{{ t('contact_email_label') }}<span class="req">*</span></label>
     <input type="email" name="contact_email" required value="{{ v('contact_email') }}">
   </div>
 
   <div class="field">
-    <label class="q">Primary Contact — best day-of cell phone<span class="req">*</span></label>
+    <label class="q">{{ t('contact_phone_label') }}<span class="req">*</span></label>
     <input type="tel" name="contact_phone" required value="{{ v('contact_phone') }}">
-    <p class="help">Best point of contact from the group on show day — our on-site techs use this number to reach you if you're running late or need to be located.</p>
+    <p class="help">{{ t('contact_phone_help') }}</p>
   </div>
 
-  <div class="section"><h2>Stage &amp; Technical</h2></div>
+  <div class="section"><h2>{{ t('section_technical') }}</h2></div>
 
   <div class="field">
-    <label class="q">Stage Plot / Input List — upload<span class="req">*</span></label>
+    <label class="q">{{ t('stage_plot_upload_label') }}<span class="req">*</span></label>
     <input type="file" name="stage_plot_file" id="stage_plot_file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx">
-    <p class="help">Please provide a current stage plot / input list — this upload or the description below, at least one is required.{% if returning and prefill.get('stage_plot_file') %} We have one on file from last time — only upload if it has changed.{% endif %}</p>
+    <p class="help">{{ t('stage_plot_upload_help') }}{% if returning and prefill.get('stage_plot_file') %}{{ t('stage_plot_upload_existing') }}{% endif %}</p>
   </div>
 
   <div class="field">
-    <label class="q">Stage Plot / Input List — description or link<span class="req">*</span></label>
+    <label class="q">{{ t('stage_plot_desc_label') }}<span class="req">*</span></label>
     <textarea name="stage_plot_desc" id="stage_plot_desc">{{ v('stage_plot_desc') }}</textarea>
-    <p class="help">Describe your input list / stage layout, or paste a link — required only if you didn't upload a file above.</p>
+    <p class="help">{{ t('stage_plot_desc_help') }}</p>
   </div>
 
   {% if cfg.drum_riser_available %}
   <div class="field">
-    <label class="q">Would you prefer a flat stage or a drum riser?<span class="req">*</span></label>
+    <label class="q">{{ t('stage_type_label') }}<span class="req">*</span></label>
     {% set st = prefill.get('stage_type') %}
     <select name="stage_type" required>
-      <option value="" disabled {{ 'selected' if not st else '' }}>Select…</option>
-      <option {{ 'selected' if st=='Flat stage' else '' }}>Flat stage</option>
-      <option {{ 'selected' if st=='Drum riser' else '' }}>Drum riser</option>
+      <option value="" disabled {{ 'selected' if not st else '' }}>{{ t('select_placeholder') }}</option>
+      <option value="Flat stage" {{ 'selected' if st=='Flat stage' else '' }}>{{ t('stage_type_flat') }}</option>
+      <option value="Drum riser" {{ 'selected' if st=='Drum riser' else '' }}>{{ t('stage_type_riser') }}</option>
     </select>
   </div>
   {% endif %}
 
   <div class="field">
-    <label class="q">How many monitors do you need?<span class="req">*</span></label>
+    <label class="q">{{ t('monitors_label') }}<span class="req">*</span></label>
     <input type="number" name="monitors" min="0" step="1" required value="{{ v('monitors') }}"
            {% if cfg.monitor_cap %}max="{{ cfg.monitor_cap }}"{% endif %}>
     {% if cfg.monitor_cap %}
-    <p class="help">This location ({{ cfg.location }}) is limited to {{ cfg.monitor_cap }} monitor{{ 's' if cfg.monitor_cap != 1 }}.</p>
+    {% set monitor_plural = '' if cfg.monitor_cap == 1 else ('es' if lang == 'es' else 's') %}
+    <p class="help">{{ t('monitors_cap_help', location=cfg.location, cap=cfg.monitor_cap, plural=monitor_plural) }}</p>
     {% endif %}
   </div>
 
   <div class="field">
-    <label class="q">Do you use in-ear monitors?<span class="req">*</span></label>
+    <label class="q">{{ t('uses_iems_label') }}<span class="req">*</span></label>
     {% set ui = prefill.get('uses_iems') %}
     <select name="uses_iems" id="uses_iems" required>
-      <option value="" disabled {{ 'selected' if not ui else '' }}>Select…</option>
-      <option {{ 'selected' if ui=='Yes' else '' }}>Yes</option>
-      <option {{ 'selected' if ui=='No' else '' }}>No</option>
+      <option value="" disabled {{ 'selected' if not ui else '' }}>{{ t('select_placeholder') }}</option>
+      <option value="Yes" {{ 'selected' if ui=='Yes' else '' }}>{{ t('yes') }}</option>
+      <option value="No" {{ 'selected' if ui=='No' else '' }}>{{ t('no') }}</option>
     </select>
   </div>
 
   <div class="field conditional hidden" id="iem_count_field">
-    <label class="q">How many in-ear systems do you need?<span class="req">*</span></label>
+    <label class="q">{{ t('iem_count_label') }}<span class="req">*</span></label>
     <input type="number" name="iem_count" id="iem_count" min="1" step="1" value="{{ v('iem_count') }}">
   </div>
 
   <div class="field conditional hidden" id="own_iems_field">
-    <label class="q">Are you bringing your own in-ear system?<span class="req">*</span></label>
+    <label class="q">{{ t('own_iems_label') }}<span class="req">*</span></label>
     {% set ie = prefill.get('own_iems') %}
     <select name="own_iems" id="own_iems">
-      <option value="" disabled {{ 'selected' if not ie else '' }}>Select…</option>
-      <option {{ 'selected' if ie=='No' else '' }}>No</option>
-      <option {{ 'selected' if ie=='Yes' else '' }}>Yes</option>
+      <option value="" disabled {{ 'selected' if not ie else '' }}>{{ t('select_placeholder') }}</option>
+      <option value="No" {{ 'selected' if ie=='No' else '' }}>{{ t('no') }}</option>
+      <option value="Yes" {{ 'selected' if ie=='Yes' else '' }}>{{ t('yes') }}</option>
     </select>
   </div>
 
   <div class="field conditional hidden" id="split_field">
-    <label class="q">Are you providing a split snake for front of house?<span class="req">*</span></label>
+    <label class="q">{{ t('split_snake_label') }}<span class="req">*</span></label>
     {% set ss = prefill.get('split_snake') %}
     <select name="split_snake" id="split_snake">
-      <option value="" disabled {{ 'selected' if not ss else '' }}>Select…</option>
-      <option {{ 'selected' if ss=='Yes' else '' }}>Yes</option>
-      <option {{ 'selected' if ss=='No' else '' }}>No</option>
+      <option value="" disabled {{ 'selected' if not ss else '' }}>{{ t('select_placeholder') }}</option>
+      <option value="Yes" {{ 'selected' if ss=='Yes' else '' }}>{{ t('yes') }}</option>
+      <option value="No" {{ 'selected' if ss=='No' else '' }}>{{ t('no') }}</option>
     </select>
-    <p class="help">Since you're bringing your own in-ear system, let us know if you're providing the split.</p>
+    <p class="help">{{ t('split_snake_help') }}</p>
   </div>
 
+  {% if cfg.blocks.backline %}
   <div class="field">
-    <label class="q">Backline / Instrumentation — are you sharing with another artist on the event?<span class="req">*</span></label>
+    <label class="q">{{ t('backline_label') }}<span class="req">*</span></label>
     <textarea name="backline" required>{{ v('backline') }}</textarea>
-    <p class="help">Artists provide all instruments, including amps and 1/4-inch cables. If you've coordinated to share backline with another artist on the event, note it here.</p>
+    <p class="help">{{ t('backline_help') }}</p>
   </div>
+  {% endif %}
 
   <div class="field">
-    <label class="q">Are you bringing your own sound engineer?<span class="req">*</span></label>
+    <label class="q">{{ t('own_engineer_label') }}<span class="req">*</span></label>
     {% set oe = prefill.get('own_engineer') %}
     <select name="own_engineer" required>
-      <option value="" disabled {{ 'selected' if not oe else '' }}>Select…</option>
-      <option {{ 'selected' if oe=='No — use house engineers' else '' }}>No — use house engineers</option>
-      <option {{ 'selected' if oe=='Yes — bringing our own (we\'ll coordinate)' else '' }}>Yes — bringing our own (we'll coordinate)</option>
+      <option value="" disabled {{ 'selected' if not oe else '' }}>{{ t('select_placeholder') }}</option>
+      <option value="No — use house engineers" {{ 'selected' if oe=='No — use house engineers' else '' }}>{{ t('own_engineer_no') }}</option>
+      <option value="Yes — bringing our own (we'll coordinate)" {{ 'selected' if oe=="Yes — bringing our own (we'll coordinate)" else '' }}>{{ t('own_engineer_yes') }}</option>
     </select>
-    <p class="help">We provide audio engineers to mix FOH and monitors. If you plan to bring your own, please coordinate in advance. All engineers must mix within the 95 dBA-Slow ordinance; the 3CDC engineer reserves the right to baffle amps to reduce stage volume if necessary.</p>
+    <p class="help">{{ t('own_engineer_help') }}</p>
   </div>
 
   {% if cfg.blocks.scenic %}
   <div class="field">
-    <label class="q">Do you have a backdrop or any scenic elements we should be aware of?<span class="req">*</span></label>
+    <label class="q">{{ t('scenic_label') }}<span class="req">*</span></label>
     <textarea name="scenic" required>{{ v('scenic') }}</textarea>
   </div>
   {% endif %}
 
   {% if cfg.blocks.lighting %}
   <div class="field">
-    <label class="q">Lighting requests<span class="req">*</span></label>
+    <label class="q">{{ t('lighting_label') }}<span class="req">*</span></label>
     <textarea name="lighting" required>{{ v('lighting') }}</textarea>
-    <p class="help">We provide a house LD. Let us know any specific requests and we'll do our best to accommodate.</p>
+    <p class="help">{{ t('lighting_help') }}</p>
   </div>
   {% endif %}
 
-  <div class="section"><h2>Hospitality &amp; Site</h2></div>
+  <div class="section"><h2>{{ t('section_hospitality') }}</h2></div>
 
   {% if cfg.blocks.merch %}
   <div class="field">
-    <label class="q">Are you selling merch?<span class="req">*</span></label>
+    <label class="q">{{ t('merch_label') }}<span class="req">*</span></label>
     {% set mc = prefill.get('merch') %}
     <select name="merch" required>
-      <option value="" disabled {{ 'selected' if not mc else '' }}>Select…</option>
-      <option {{ 'selected' if mc=='Yes' else '' }}>Yes</option>
-      <option {{ 'selected' if mc=='No' else '' }}>No</option>
+      <option value="" disabled {{ 'selected' if not mc else '' }}>{{ t('select_placeholder') }}</option>
+      <option value="Yes" {{ 'selected' if mc=='Yes' else '' }}>{{ t('yes') }}</option>
+      <option value="No" {{ 'selected' if mc=='No' else '' }}>{{ t('no') }}</option>
     </select>
-    <p class="help">If yes, you're responsible for providing a seller, point of sale, and bank. We provide a tent next to the stage with a table and chairs.</p>
+    <p class="help">{{ t('merch_help') }}</p>
   </div>
   {% endif %}
 
   {% if cfg.blocks.band_tent %}
   <div class="field">
-    <label class="q">Do you want a private band tent? (10×10 with sidewalls)<span class="req">*</span></label>
+    <label class="q">{{ t('band_tent_label') }}<span class="req">*</span></label>
     {% set bt = prefill.get('band_tent') %}
     <select name="band_tent" required>
-      <option value="" disabled {{ 'selected' if not bt else '' }}>Select…</option>
-      <option {{ 'selected' if bt=='Yes, please provide the tent' else '' }}>Yes, please provide the tent</option>
-      <option {{ 'selected' if bt=='No, not needed' else '' }}>No, not needed</option>
+      <option value="" disabled {{ 'selected' if not bt else '' }}>{{ t('select_placeholder') }}</option>
+      <option value="Yes, please provide the tent" {{ 'selected' if bt=='Yes, please provide the tent' else '' }}>{{ t('band_tent_yes') }}</option>
+      <option value="No, not needed" {{ 'selected' if bt=='No, not needed' else '' }}>{{ t('band_tent_no') }}</option>
     </select>
-    <p class="help">We do not have indoor dressing rooms. On request we can provide a 10×10 tent with sidewalls for private band space.</p>
+    <p class="help">{{ t('band_tent_help') }}</p>
   </div>
   {% endif %}
 
   <div class="field">
-    <label class="q">Total number of performers and crew<span class="req">*</span></label>
+    <label class="q">{{ t('performers_label') }}<span class="req">*</span></label>
     <input type="number" name="performers" min="1" step="1" required value="{{ v('performers') }}">
-    <p class="help">Drink tickets and water are provided for all performers and crew.</p>
+    <p class="help">{{ t('performers_help') }}</p>
   </div>
 
   {% if cfg.blocks.large_vehicle %}
   <div class="field">
-    <label class="q">Do you need large vehicle parking?<span class="req">*</span></label>
+    <label class="q">{{ t('large_vehicle_label') }}<span class="req">*</span></label>
     {% set lv = prefill.get('large_vehicle') %}
     <select name="large_vehicle" required>
-      <option value="" disabled {{ 'selected' if not lv else '' }}>Select…</option>
-      <option {{ 'selected' if lv=='Yes' else '' }}>Yes</option>
-      <option {{ 'selected' if lv=='No' else '' }}>No</option>
+      <option value="" disabled {{ 'selected' if not lv else '' }}>{{ t('select_placeholder') }}</option>
+      <option value="Yes" {{ 'selected' if lv=='Yes' else '' }}>{{ t('yes') }}</option>
+      <option value="No" {{ 'selected' if lv=='No' else '' }}>{{ t('no') }}</option>
     </select>
-    <p class="help">Includes any vehicle over 6&nbsp;ft&nbsp;8&nbsp;in (the garage clearance), large vans, any vehicle with a trailer, and tour buses.</p>
+    <p class="help">{{ t('large_vehicle_help') }}</p>
   </div>
   {% endif %}
 
-  <div class="section"><h2>Acknowledgments</h2></div>
+  <div class="section"><h2>{{ t('section_ack') }}</h2></div>
 
   <div class="field">
     <div class="ack">
-      The load-in process at 3CDC has changed — please review the document your contact sent. Each vehicle needs its own parking QR validation before arriving; scan at the kiosk on entry or exit (please don't pay).
+      {{ t('ack_loadin_text') }}
       <div class="checkrow">
         <input type="checkbox" id="ack_loadin" name="ack_loadin" value="yes" required>
-        <label for="ack_loadin">I have reviewed the load-in document.<span class="req">*</span></label>
+        <label for="ack_loadin">{{ t('ack_loadin_check') }}<span class="req">*</span></label>
       </div>
     </div>
   </div>
 
   <div class="field">
     <div class="ack">
-      We're required by the city to maintain a strict 95 dBA-Slow limit, measured at the FOH position. All engineers (house or talent) are held to that level.
+      {{ t('ack_95db_text') }}
       <div class="checkrow">
         <input type="checkbox" id="ack_95db" name="ack_95db" value="yes" required>
-        <label for="ack_95db">I understand and acknowledge the 95 dBA-Slow limit.<span class="req">*</span></label>
+        <label for="ack_95db">{{ t('ack_95db_check') }}<span class="req">*</span></label>
       </div>
     </div>
   </div>
 
   <div class="field">
     <div class="ack">
-      Failure to comply with the below may result in a warning or termination of the show, with payment canceled or delayed. Please read and acknowledge:
+      {{ t('ack_reqs_intro') }}
       <ul>
-        <li><b>Content:</b> Family-friendly only — no foul language or gestures. Applies to prerecorded tracks, live vocals, and sound check.</li>
-        <li><b>Sound limit:</b> Strict 95 dBA-Slow at FOH for all engineers, house or talent.</li>
-        <li><b>Performer safety:</b> Stay on the stage. No crowd surfing, climbing, jumping off stage, or stepping on sound equipment.</li>
-        <li><b>Audience safety:</b> Do not throw or shoot anything into the crowd (confetti, t-shirts, bottles, merch/CDs, etc.).</li>
-        <li><b>Weather:</b> Rain or shine. Booking evaluates weather about 3 hours before start. If you don't hear otherwise, assume the show goes on.</li>
-        <li><b>Payment:</b> All groups are paid after the performance, not before.</li>
+        <li>{{ t('ack_reqs_content')|safe }}</li>
+        <li>{{ t('ack_reqs_sound')|safe }}</li>
+        <li>{{ t('ack_reqs_performer')|safe }}</li>
+        <li>{{ t('ack_reqs_audience')|safe }}</li>
+        <li>{{ t('ack_reqs_weather')|safe }}</li>
+        <li>{{ t('ack_reqs_payment')|safe }}</li>
       </ul>
       <div class="checkrow">
         <input type="checkbox" id="ack_reqs" name="ack_reqs" value="yes" required>
-        <label for="ack_reqs">I have read and acknowledge all performance requirements.<span class="req">*</span></label>
+        <label for="ack_reqs">{{ t('ack_reqs_check') }}<span class="req">*</span></label>
       </div>
     </div>
   </div>
 
   <div class="field">
-    <label class="q">Additional questions or concerns?</label>
+    <label class="q">{{ t('additional_label') }}</label>
     <textarea name="additional">{{ v('additional') }}</textarea>
   </div>
 
-  <button type="submit">Submit show details</button>
+  <button type="submit">{{ t('submit_button') }}</button>
 </form>
 </div>
 
