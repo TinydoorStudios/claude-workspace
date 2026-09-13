@@ -231,7 +231,12 @@ BAND_FIELDS = [
                                         "No, not needed"], "dressing room tent"),
     ("Performers",    "performers",    None, "number of performers"),
     ("Vehicle Count", "vehicle_count", None, "parking"),
+    # large_vehicle (Yes/No) replaced by a count (Brian, 2026-09-13) — kept
+    # here so old submissions' answers still surface in the sheet/exports;
+    # nothing new ever writes it. Large Vehicle Count is what the form
+    # actually asks now.
     ("Large Vehicle", "large_vehicle", ["Yes", "No"], "parking"),
+    ("Large Vehicle Count", "large_vehicle_count", None, "parking"),
 ]
 
 # column label -> key, for every column in the sheet, in order

@@ -303,14 +303,9 @@
   </div>
 
   <div class="field">
-    <label class="q">{{ t('large_vehicle_label') }}<span class="req">*</span></label>
-    {% set lv = prefill.get('large_vehicle') %}
-    <select name="large_vehicle" required>
-      <option value="" disabled {{ 'selected' if not lv else '' }}>{{ t('select_placeholder') }}</option>
-      <option value="Yes" {{ 'selected' if lv=='Yes' else '' }}>{{ t('yes') }}</option>
-      <option value="No" {{ 'selected' if lv=='No' else '' }}>{{ t('no') }}</option>
-    </select>
-    <p class="help">{{ t('large_vehicle_help') }}</p>
+    <label class="q">{{ t('large_vehicle_count_label') }}<span class="req">*</span></label>
+    <input type="number" name="large_vehicle_count" min="0" step="1" required value="{{ v('large_vehicle_count') }}">
+    <p class="help">{{ t('large_vehicle_count_help') }}</p>
   </div>
   {% endif %}
 

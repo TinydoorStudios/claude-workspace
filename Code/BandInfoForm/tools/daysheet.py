@@ -195,17 +195,40 @@ def act_row_values(f):
 
     if f.get("merch"):
         out["merch"] = f["merch"]
-    vc, lv = f.get("vehicle_count"), f.get("large_vehicle")
-    if vc not in (None, "") or lv:
-        # Vehicle count (Brian, 2026-09-13) — paired with the existing large-
-        # vehicle yes/no so this cell tells him how many parking garage
-        # validations to prep per band, not just whether one of them is big.
-        bits = []
-        if vc not in (None, ""):
-            bits.append(f"{vc} vehicle" + ("" if str(vc) == "1" else "s"))
-        if lv:
-            bits.append("Large vehicle" if str(lv).lower() == "yes" else "Standard")
-        out["parking"] = " — ".join(bits)
+    vc, lvc, lv = f.get("vehicle_count"), f.get("large_vehicle_count"), f.get("large_vehicle")
+    if vc not in (None, "") or lvc not in (None, "") or lv:
+        # Vehicle count (Brian, 2026-09-13) tells him how many parking garage
+        # validations to prep per band. Its own follow-up started as a plain
+        # large-vehicle Yes/No, then became a count the same day — a bill's
+        # vehicles aren't all-or-nothing (e.g. 1 large + 1 standard), which a
+        # Yes/No can't represent. large_vehicle_count (preferred whenever
+        # present) splits the total into large vs. standard; large_vehicle
+        # (the old boolean) is the fallback for submissions from before that
+        # change; a bare vehicle_count with no breakdown at all falls back
+        # further still to just the total.
+        def plural(n, word):
+            return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+        if lvc not in (None, ""):
+            large_n = int(lvc)
+            standard_n = int(vc) - large_n if vc not in (None, "") else None
+            large_txt = plural(large_n, "large vehicle")
+            # "standard" alone reads fine for one ("1 standard"); pluralized
+            # it needs "vehicles" spelled out ("3 standard vehicles") —
+            # "3 standards" reads like a grading rubric, not a parking count.
+            standard_txt = "1 standard" if standard_n == 1 else f"{standard_n} standard vehicles"
+            if large_n and standard_n:
+                out["parking"] = f"{large_txt} and {standard_txt}"
+            elif large_n:
+                out["parking"] = large_txt
+            elif vc not in (None, ""):
+                out["parking"] = plural(int(vc), "vehicle")
+            else:
+                out["parking"] = "Standard"
+        elif lv:
+            out["parking"] = "Large vehicle" if str(lv).lower() == "yes" else "Standard"
+        elif vc not in (None, ""):
+            out["parking"] = plural(int(vc), "vehicle")
     if f.get("performers") not in (None, ""):
         out["number of performers"] = str(f["performers"])
         # Drink Tix = 2x band/crew headcount (Brian, 2026-09-13) — computed,

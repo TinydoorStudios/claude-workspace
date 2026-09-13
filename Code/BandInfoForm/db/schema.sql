@@ -362,3 +362,9 @@ ALTER TABLE shows ADD COLUMN IF NOT EXISTS unresponded_alert_sent_at TIMESTAMPTZ
 -- free-text note. See form.html's large_vehicle block, fieldspec.BAND_FIELDS,
 -- and daysheet.act_row_values' "parking" row.
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS vehicle_count INTEGER;
+
+-- large_vehicle (boolean) replaced by a count, same day (Brian, 2026-09-13):
+-- a bill's vehicles aren't all-or-nothing — 1 large + 1 standard is a real
+-- case a Yes/No can't represent. large_vehicle stays on old submissions for
+-- history; nothing new writes it going forward, only large_vehicle_count.
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS large_vehicle_count INTEGER;

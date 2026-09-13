@@ -538,8 +538,8 @@ def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
             artist_id, show_id, contact_name, contact_email, contact_phone,
             venue, show_date, performers, monitors, own_iems, split_snake,
             stage_type, own_engineer, merch, band_tent, large_vehicle,
-            vehicle_count, data, source
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            vehicle_count, large_vehicle_count, data, source
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         RETURNING id
         """,
         (
@@ -550,7 +550,11 @@ def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
             to_bool(data.get("own_iems")), data.get("split_snake"),
             data.get("stage_type"), data.get("own_engineer"),
             to_bool(data.get("merch")), data.get("band_tent"),
+            # large_vehicle (boolean) is retired going forward (2026-09-13) —
+            # the form now asks large_vehicle_count instead; this stays None
+            # for every new submission and only ever has a value on old rows.
             to_bool(data.get("large_vehicle")), to_int(data.get("vehicle_count")),
+            to_int(data.get("large_vehicle_count")),
             json.dumps(data), source,
         ),
     )

@@ -187,6 +187,11 @@ STRINGS = {
                                   "garage validations we prepare for you.",
                             "es": "Total de vehículos de todo su grupo — así sabemos cuántas "
                                   "validaciones de estacionamiento preparar para ustedes."},
+    # Replaced by the count-based question below (Brian, 2026-09-13) — a
+    # band's vehicles aren't all-or-nothing; a bill can be 1 large + 1
+    # standard, which a plain Yes/No can't represent. Kept only because old
+    # submissions' stored answers still reference these keys if ever shown
+    # standalone — nothing new writes large_vehicle anymore.
     "large_vehicle_label": {"en": "Do you need large vehicle parking?",
                              "es": "¿Necesitan estacionamiento para vehículo grande?"},
     "large_vehicle_help": {"en": "Includes any vehicle over 6 ft 8 in (the garage "
@@ -194,6 +199,17 @@ STRINGS = {
                             "es": "Incluye cualquier vehículo de más de 6 pies 8 pulgadas (la "
                                   "altura máxima del estacionamiento), camionetas grandes, cualquier "
                                   "vehículo con remolque y autobuses de gira."},
+    "large_vehicle_count_label": {"en": "How many of those need large vehicle parking?",
+                                   "es": "¿Cuántos de esos necesitan estacionamiento para "
+                                         "vehículo grande?"},
+    "large_vehicle_count_help": {"en": "Out of the total vehicles above. Includes any vehicle "
+                                        "over 6 ft 8 in (the garage clearance), large vans, any "
+                                        "vehicle with a trailer, and tour buses. Enter 0 if none.",
+                                  "es": "Del total de vehículos indicado arriba. Incluye "
+                                        "cualquier vehículo de más de 6 pies 8 pulgadas (la "
+                                        "altura máxima del estacionamiento), camionetas grandes, "
+                                        "cualquier vehículo con remolque y autobuses de gira. "
+                                        "Escriban 0 si ninguno."},
 
     # ── acknowledgments ──────────────────────────────────────────────────
     "ack_loadin_text":   {"en": "The load-in process at 3CDC has changed — please review the "
