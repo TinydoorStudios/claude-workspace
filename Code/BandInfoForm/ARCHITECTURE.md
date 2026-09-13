@@ -178,14 +178,38 @@ downstream — the form itself never depends on translation succeeding.
 
 The Fountain Square advance email also has a Spanish draft —
 `tools/venue_email.py`'s `VENUE_EMAIL_ES`/`COMMON_REQUIREMENTS_ES` +
-`tools/email_templates/advance_es.md.j2` — but it is NOT wired into
-`draft_emails.py`'s render path yet. That needs a `--lang` flag (or a
-per-show language field) threading through the handful of strings
-`draft_emails.py` builds in Python rather than in the template (set_line,
-the 5-row schedule labels, bill_block's header, a returning artist's
-"here's what we have on file" labels) — see the header comment in
-`advance_es.md.j2` for the exact list. Draft it once Brian wants a specific
-show's email actually sent in Spanish.
+`tools/email_templates/advance_es.md.j2`. Wired into `draft_emails.py`'s
+render path for any series in `venue_email.BILINGUAL_SERIES` (Salsa On The
+Square is the only one so far, added 2026-09-12 same day as this section
+was written but after this paragraph — it went out English-then-Spanish in
+one message; see that section of this doc). Every other series stays
+English-only through this same template, unaffected.
+
+## Live-send migration (2026-09-13)
+
+The initial advance and every follow-up now SEND for real via Outlook
+(`internal-send-outlook`) the moment they're due — no more draft-and-review
+step. Cadence trimmed to 7/3/1 days out (was 7/3/2/1). A reminder tier
+already on or before the day a show was booked (same day as the welcome
+counts as already-passed too) is permanently pre-skipped for that show
+instead of firing a backdated reminder later —
+`advance_db.mark_stale_followup_tiers_skipped`, checked right after the
+welcome sends, in `app.py`'s `advance_lifecycle`. The old 21-day "your
+draft is ready to send" nudge is retired. A separate, independent alert
+(`shows_due_for_unresponded_alert`) still fires one real email to
+`blloyd@3cdc.org` the first time a show crosses 3 days out with no
+submission — a manual-follow-up flag, unaffected by any of the above.
+
+**A real incident happened during this migration** — an n8n workflow edit
+that looked fully successful (correct SQL, workflow showed active, every
+test call returned 200/202) silently never took effect, because this n8n
+instance versions workflows separately from the row that looks like the
+live definition. Two real bands got a welcome email with an empty body
+before it was caught. Full root cause, the correct way to edit an n8n
+workflow in this project, and the empty-body guard now in place on both
+sides of the Flask/n8n boundary — all in `n8n/README.md`'s "Live-send
+migration + a real incident" section. Read that before touching any n8n
+workflow file in this project.
 
 ## Security
 

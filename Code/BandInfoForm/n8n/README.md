@@ -312,10 +312,14 @@ thank-you page).
   `ADVANCE_NOTIFY_URL`/`ADVANCE_LIFECYCLE_NOW_URL` (Cloudflare's bot
   protection blocks the public tunnel for server-to-server calls). Empty/unset
   just skips this step, same as the other optional notify URLs.
-- **"Scheduled" emails**: this whole pipeline is drafts-only, nothing is ever
-  auto-sent or scheduled for later send (see "No auto-send" throughout this
-  file), so there's no separate Outbox/scheduled-send case to handle — Drafts
-  is the only folder that can ever hold something stale for a band.
+- **"Scheduled" emails**: at the time this was written the whole pipeline was
+  drafts-only, nothing auto-sent, so there was no separate Outbox/scheduled-
+  send case to handle. STALE as of the 2026-09-13 live-send migration below
+  — the initial advance and every follow-up tier now send for real, no draft
+  step at all. This cleanup workflow still matters for whatever's left in
+  Drafts from before that migration, and for `internal-create-outlook-draft`
+  itself (unused by this app since the migration, left active/dormant rather
+  than deleted — see the live-send section below).
 - Deploy: `./deploy_n8n_workflows.command internal_delete_outlook_drafts.json`
   (resolves both placeholders + restarts n8n, same as every workflow here),
   then `./deploy_app.command` for the Flask side. Verified 2026-09-12:
@@ -323,3 +327,103 @@ thank-you page).
   real `toRecipients` data), zero matches against a test email that shouldn't
   match anything (didn't test an actual delete against real production
   drafts, on purpose).
+
+# n8n — Live-send migration + a real incident (2026-09-13)
+
+The initial advance and every follow-up (7/3/1 days out, see
+ARCHITECTURE.md/advance_db.FOLLOWUP_TIERS) now send for real via
+`internal-send-outlook` — no more draft-and-review step, no more
+`internal-create-outlook-draft` calls from this app (that workflow is left
+active but dormant; nothing calls it anymore). Details of the cadence/skip
+logic are in ARCHITECTURE.md and the code itself
+(app.py's `advance_lifecycle`, `advance_db.mark_stale_followup_tiers_skipped`).
+Two things belong here specifically because they're n8n operational gotchas,
+not app logic:
+
+## n8n workflows are VERSIONED — editing `workflow_entity.nodes` directly does nothing
+
+**A real band got a welcome email with an empty body because of this.** Root
+cause, in order:
+
+1. `workflow_entity` has `nodes`/`connections` columns that LOOK like the
+   live definition — but an active workflow's actual execution reads from a
+   separate `workflow_history` row, the one whose `versionId` matches
+   `workflow_entity.activeVersionId`. Editing `workflow_entity.nodes`
+   directly via SQL updates what the editor UI would show, and nothing else.
+2. `n8n publish:workflow --id=<id>` is supposed to promote the current
+   `workflow_entity` content to a new active version — but it explicitly
+   prints "Note: Changes will not take effect if n8n is running. Please
+   restart n8n" — and even after restarting, if the underlying
+   `workflow_entity.nodes` was itself only patched via raw SQL (not through
+   n8n's own save path), `publish:workflow` has nothing new to promote —
+   the stale `workflow_history` row never gets updated at all.
+3. Result: an edit that looks completely successful (SQL runs, `n8n
+   list:workflow` shows the workflow active, `publish:workflow` reports
+   success, n8n restarts clean, every test call returns HTTP 200/202) can
+   still be running the OLD logic, indefinitely, with zero errors anywhere.
+   HTTP status proves the webhook route works. It proves nothing about
+   which version of the workflow's nodes actually ran.
+
+**What actually happened:** `internal_send_outlook.json`'s Send via Graph
+node was extended to support plain-text bodies and attachments (it only did
+`content: b.html` before). That edit was applied via raw `UPDATE
+workflow_entity SET nodes = ...`. It never took effect — the stale
+Sept-11 `workflow_history` version kept running, silently dropping every
+plain-text body (which is every band-facing email; none of them use
+`html`). Two real bands' welcome emails went out before this was caught by
+actually reading a test email's body via Gmail instead of trusting the
+HTTP response.
+
+**The fix, and the only way to safely edit an n8n workflow in this project
+from now on:**
+
+```bash
+./deploy_n8n_workflows.command <workflow>.json [more.json ...]
+```
+
+This script (already existed, wasn't used for the edit above — that's the
+actual mistake) does it correctly: `n8n import:workflow` +
+`n8n publish:workflow` + a full `docker compose restart n8n`, against the
+checked-in JSON file, which becomes both the new `workflow_entity` content
+AND a fresh `workflow_history` version in one step. **Never** `UPDATE
+workflow_entity` (or `workflow_history`) directly via `psql` — if you
+already did, the fix isn't another raw UPDATE, it's re-running this script
+against the correct committed JSON so the whole pipeline (import → publish
+→ history → restart) runs the way it's supposed to.
+
+**And after ANY change to a workflow that sends or drafts real email:**
+don't trust the HTTP status code. Send a real test through the actual
+webhook, then read the actual message back (Gmail search/get_message if the
+test recipient is a Gmail address you can check, or the Graph response body
+for a draft-creation call) and confirm the content is what you expect. A
+202/200 only proves Graph accepted the request — it says nothing about
+whether the request contained what you think it did.
+
+## Empty-body guard (2026-09-13, belt and suspenders)
+
+Two independent copies of the same check, so a bug on either side of the
+Flask/n8n boundary gets caught:
+
+- **n8n side** (`internal_send_outlook.json`'s Send via Graph node) — this is
+  the one that would have caught the actual incident, since the corruption
+  happened entirely inside n8n's stale node, after Flask had already sent a
+  perfectly good body. If the resolved content (`html` or `body`) is
+  blank/whitespace-only, the send is redirected to `blloyd@3cdc.org` with a
+  "BLOCKED empty-body send — was: <original subject>" explanation instead of
+  going to the real recipient with nothing in it. The real recipient never
+  receives anything in this case — that's the whole point.
+- **Flask side** (`app.py`'s `_send_outlook_email`) — catches a bug that
+  originates before the webhook call at all (a bad render, a missing
+  template, an empty string somewhere upstream). Same behavior: refuses to
+  call the webhook with the real recipient, fires an alert to Brian instead,
+  returns `False` so the caller's summary/bookkeeping reflects that nothing
+  actually went out.
+
+Verified 2026-09-13 by sending real test messages through the live
+`internal-send-outlook` webhook and reading the results back via Gmail:
+a normal non-empty body arrived correctly; an empty body and a
+whitespace-only body were both redirected away from the test recipient
+entirely (confirmed by searching the test inbox and finding zero matches
+for either blocked subject); a full real welcome (with attachment) sent
+immediately afterward still arrived correctly, confirming the guard doesn't
+false-positive on legitimate content.

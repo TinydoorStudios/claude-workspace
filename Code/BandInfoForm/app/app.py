@@ -443,7 +443,8 @@ def _notify_email(event_type, fields):
         _log_db_error("notify_email", e)
 
 
-def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=15):
+def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=15,
+                          _is_alert=False):
     """Fire an ACTUAL send (never a draft) via n8n's 'Internal Send —
     Outlook' webhook — used for BOTH Brian's own internal alerts and, as
     of the 2026-09-13 live-send migration, band-facing advance/follow-up
@@ -456,8 +457,36 @@ def _send_outlook_email(to, subject, body=None, html=None, attachment=None, time
     raises, returns True/False so the caller can decide whether to stamp
     a 'sent' flag. Never blocks the request it's called from beyond the
     timeout (band-facing sends get a longer one than internal alerts —
-    Graph attachment uploads can be slow)."""
+    Graph attachment uploads can be slow).
+
+    Empty-body guard (Brian, 2026-09-13 — "this cannot happen" after a
+    band got a welcome email with nothing in it, root cause: an n8n
+    workflow edit that silently never took effect due to n8n's own
+    versioned-publish model, see ARCHITECTURE.md / n8n/README.md). If the
+    content to send is blank/whitespace-only, this refuses to send it to
+    `to` at all — sends an alert to Brian instead, naming what was
+    blocked, and returns False. A second, independent copy of this same
+    guard lives in n8n's own Send via Graph node (internal_send_outlook.
+    json) — that one is the one that actually would have caught the real
+    incident, since Flask's own `body`/`html` here were NOT empty that
+    day; the corruption happened entirely inside n8n's stale cached node.
+    Keeping both: this one still catches a future bug that DOES originate
+    on the Flask side (a bad render, a missing template, etc.)."""
     if not INTERNAL_SEND_URL:
+        return False
+    content = html if html else (body or "")
+    if not _is_alert and not str(content).strip():
+        _log_db_error("send_outlook_email", RuntimeError(
+            f"BLOCKED empty-body send to {to!r} subject={subject!r} — not sent"))
+        _send_outlook_email(
+            UNRESPONDED_ALERT_TO,
+            f"BLOCKED empty-body send — was: {subject}",
+            html=(f"<p>An attempt to send “{subject}” to <b>{to}</b> was "
+                  f"blocked because the message body was empty. Nothing went to the "
+                  f"recipient. Check whatever built this email (a lifecycle run, a "
+                  f"template render) for a bug.</p>"),
+            _is_alert=True,
+        )
         return False
     try:
         import urllib.request
