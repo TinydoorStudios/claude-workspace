@@ -61,7 +61,7 @@ VENUE_EMAIL = {
         "load_in": """\
 Load-In & Parking:
 The load-in process at Fountain Square has changed — please review the attached document and acknowledge understanding on the form. Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
-Attached are QR codes that serve as your Fountain Square Garage validations (5 included). Each vehicle needs its own QR code before arriving; scan at the kiosk on entry or exit (please don't pay). Garage clearance is 6'8". Need more validations or large-vehicle parking? Note it on the form.""",
+We will follow up with QR codes that serve as your Fountain Square Garage validations (5 included). Each vehicle needs its own QR code before arriving; scan at the kiosk on entry or exit (please don't pay). Garage clearance is 6'8". Need more validations or large-vehicle parking? Note it on the form.""",
         "technical": """\
 Technical:
 - Backline / instrumentation: artists provide all instruments, including amps and 1/4" cables.
@@ -108,6 +108,37 @@ Hospitality & Site:
 # / Hospitality / Requirements sections, only fill in what you want to
 # override). One subfolder per venue, one .md file per series within it.
 SERIES_EMAIL_ROOT = Path.home() / "Dropbox" / "Nyquist" / "Series Email Templates"
+
+
+def venue_attachment(venue, root=None):
+    """(filename, content_type, base64 content) for this venue's standing
+    email attachment, or None if there isn't one (Brian, 2026-09-12 — the FSQ
+    load-in doc, no code deploy needed to add/change/remove it). Drop exactly
+    one file named "_attachment.<anything>" in the venue's own Series Email
+    Templates folder — same place the per-series .md overrides already live,
+    e.g. ~/Dropbox/Nyquist/Series Email Templates/Fountain Square/
+    _attachment.pdf — and it's attached to every advance/follow-up email
+    drafted for that venue from then on. Delete the file to stop attaching
+    it. Venue-wide, not per-series — there's no per-series override for this,
+    matching Brian's ask ("any of the fsq emails"), not one series' worth."""
+    if not venue:
+        return None
+    vdir = (Path(root) if root else SERIES_EMAIL_ROOT) / venue.strip()
+    if not vdir.is_dir():
+        return None
+    hits = sorted(p for p in vdir.glob("_attachment.*") if p.is_file())
+    if not hits:
+        return None
+    path = hits[0]
+    try:
+        data = path.read_bytes()
+    except Exception as e:  # noqa: BLE001 — a bad/locked file just means no attachment this run
+        print(f"[venue_email] couldn't read attachment {path}: {e!r}", file=sys.stderr)
+        return None
+    import base64
+    import mimetypes
+    ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+    return path.name, ctype, base64.b64encode(data).decode("ascii")
 
 # Section-header aliases a series file's "## Heading" can use, matched after
 # lowercasing and folding "&", "/", "-" to spaces — e.g. "Load-In & Parking"

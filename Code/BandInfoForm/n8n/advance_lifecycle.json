@@ -85,7 +85,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ subject: $json.subject, body: $json.body, to: $json.to }) }}",
+        "jsonBody": "={{ JSON.stringify({ subject: $json.subject, body: $json.body, to: $json.to, attachment_name: $json.attachment_name, attachment_type: $json.attachment_type, attachment_content: $json.attachment_content }) }}",
         "options": {}
       },
       "alwaysOutputData": true

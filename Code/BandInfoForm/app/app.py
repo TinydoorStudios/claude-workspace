@@ -800,6 +800,8 @@ def advance_lifecycle():
         return {"error": "db-unavailable"}, 503
 
     initial, followup, send_reminders = [], [], []
+    sys.path.insert(0, str(TOOLS_DIR))
+    import venue_email as ve
     try:
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             due_initial = advance_db.shows_due_for_initial_advance(cur)
@@ -839,7 +841,6 @@ def advance_lifecycle():
             finally:
                 batch_file.unlink(missing_ok=True)
 
-            sys.path.insert(0, str(TOOLS_DIR))
             from draft_emails import slug as _dslug
             drafts_dir = TOOLS_DIR / "drafts"
             with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -860,8 +861,12 @@ def advance_lifecycle():
                     # extra day to be told what's already true.
                     ready_now = bool(r["show_date"]
                                       and r["show_date"] <= dt.date.today() + dt.timedelta(days=21))
-                    initial.append({"to": r["email"], "subject": subject,
-                                    "body": body.lstrip("\n"), "ready_now": ready_now})
+                    item = {"to": r["email"], "subject": subject,
+                            "body": body.lstrip("\n"), "ready_now": ready_now}
+                    att = ve.venue_attachment(r["venue"])
+                    if att:
+                        item["attachment_name"], item["attachment_type"], item["attachment_content"] = att
+                    initial.append(item)
                     advance_db.mark_advance_drafted(cur, r["show_id"])
                     if ready_now:
                         advance_db.mark_send_reminder_sent(cur, r["show_id"])
@@ -897,7 +902,11 @@ def advance_lifecycle():
                         "If you've already sent this over, disregard. Thanks,\n"
                         "3CDC Events / Production"
                     )
-                    followup.append({"to": r["email"], "subject": subject, "body": body})
+                    item = {"to": r["email"], "subject": subject, "body": body}
+                    att = ve.venue_attachment(r["venue"])
+                    if att:
+                        item["attachment_name"], item["attachment_type"], item["attachment_content"] = att
+                    followup.append(item)
                     advance_db.mark_followup_drafted(cur, r["show_id"], tier)
                 conn.commit()
 
