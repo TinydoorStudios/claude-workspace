@@ -945,6 +945,35 @@ def artist_detail(artist_id):
                            state_labels=DASHBOARD_STATE_LABELS)
 
 
+def _send_finalize_thankyou(artist_name, email, venue, show_date, series):
+    """Best-effort, background (Brian, 2026-09-13 — reversed same-day from
+    "no thank-you emails, permanently" once he decided to bring it back for
+    every finalize going forward). Reads the filed advance doc, not the
+    database — tools/finalize_thankyou.py's module docstring covers why
+    (a same-day hand-edit Brian makes directly in the doc has to reach the
+    band, which only reading the doc itself can do). Fails closed: a doc or
+    column that can't be resolved just means nothing sends, logged here —
+    finalize_show() below has already committed the sign-off by the time
+    this even runs, so a failure here can never undo or block that."""
+    try:
+        sys.path.insert(0, str(TOOLS_DIR))
+        import finalize_thankyou as ft
+        import venue_email as ve
+        result = ft.build_recap(venue, show_date, artist_name)
+        if result is None:
+            _log_db_error("finalize_thankyou", RuntimeError(
+                f"no filed doc/column for {artist_name!r} @ {venue} {show_date} "
+                "— thank-you not sent"))
+            return
+        schedule_lines, recap_lines = result
+        bilingual = bool(series) and ve.is_bilingual_series(series)
+        subject, body = ft.build_email(artist_name, venue, show_date,
+                                        schedule_lines, recap_lines, bilingual=bilingual)
+        _send_outlook_email(email, subject, body=body)
+    except Exception as e:
+        _log_db_error("finalize_thankyou", e)
+
+
 @app.post("/artist/<int:artist_id>/finalize/<int:show_id>")
 def finalize_show(artist_id, show_id):
     """Human sign-off that a show's advance is fully complete (Brian,
@@ -956,11 +985,12 @@ def finalize_show(artist_id, show_id):
     show with nothing on file). advance_db.finalize_show's own `WHERE
     finalized_at IS NULL` makes the actual stamp atomically idempotent — a
     double-click or two staff acting at once can never double-fire whatever
-    happens next.
+    happens next, including the thank-you send below.
 
-    Thank-you email: decided against, permanently (Brian, 2026-09-13, after
-    trying a sample draft) — finalizing a show never sends anything to the
-    band. Not a pending TODO; don't wire one back in without him asking."""
+    Thank-you email (back on, 2026-09-13 — see _send_finalize_thankyou):
+    fires only on a genuine first-time transition (`result` non-None) with
+    an email on file, in a background thread so this request's redirect is
+    never held up by a doc read + network call."""
     if not DB_OK:
         abort(503)
     with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -970,8 +1000,17 @@ def finalize_show(artist_id, show_id):
         st = advance_db.show_state(cur, show_id)
         if st not in ("responded", "finalized"):
             abort(400, "This show has no response on file yet — nothing to finalize.")
-        advance_db.finalize_show(cur, show_id)
+        result = advance_db.finalize_show(cur, show_id)
+        artist = advance_db.get_artist(cur, artist_id)
         conn.commit()
+    if (result and artist and artist.get("last_email")
+            and show.get("venue") and show.get("show_date")):
+        threading.Thread(
+            target=_send_finalize_thankyou,
+            args=(artist["name"], artist["last_email"], show["venue"],
+                  show["show_date"], show.get("show_series")),
+            daemon=True,
+        ).start()
     return redirect(url_for("artist_detail", artist_id=artist_id))
 
 
