@@ -725,6 +725,10 @@ def dashboard_data():
         bills[key]["acts"].append({
             "band": r["band"], "state": r["state"],
             "state_label": label, "state_css": css,
+            # carried so the dashboard can offer Mark Finalized inline
+            # (Brian, 2026-09-13: "I don't want to go searching for bands")
+            # without a second round-trip to look them up.
+            "artist_id": r["artist_id"], "show_id": r["show_id"],
         })
     return {"bills": [bills[k] for k in order], "generated_at": dt.datetime.now().isoformat()}
 

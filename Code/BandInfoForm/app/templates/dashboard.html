@@ -62,6 +62,11 @@
   .pill.responded{background:rgba(163,113,247,.16);color:#a371f7;}
   .pill.finalized{background:rgba(63,185,80,.16);color:#3fb950;}
 
+  .finalize-btn{flex-shrink:0;background:#1A3A5C;color:#fff;border:0;border-radius:999px;
+    padding:3px 11px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .finalize-btn:hover{background:#234b70;}
+  .finalize-btn:disabled{opacity:.5;cursor:default;}
+
   .empty{text-align:center;color:#8b97a6;padding:80px 20px;font-size:14px;}
   .empty .big{font-size:32px;margin-bottom:10px;}
 
@@ -150,9 +155,19 @@ function render(bills){
     dayBills.forEach(b => {
       const card = document.createElement("div");
       card.className = "bill";
-      const actsHtml = b.acts.map(a =>
-        `<div class="act"><span class="band">${a.band}</span><span class="pill ${a.state_css}">${a.state_label}</span></div>`
-      ).join("");
+      const actsHtml = b.acts.map(a => {
+        // Mark Finalized right here (Brian, 2026-09-13: "I don't want to go
+        // searching for bands") — only offered once a response is on file
+        // (state "responded" — everything before that has nothing to sign
+        // off on yet); a show already "finalized" just shows its pill, no
+        // button. Posts to the exact same /artist/<id>/finalize/<show_id>
+        // endpoint the artist page uses — same server-side checks, same
+        // idempotent guard, nothing dashboard-specific to get wrong twice.
+        const finalizeBtn = a.state === "responded"
+          ? `<button class="finalize-btn" onclick="finalizeShow(${a.artist_id}, ${a.show_id}, this)">Mark Finalized</button>`
+          : "";
+        return `<div class="act"><span class="band">${a.band}</span><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}</div>`;
+      }).join("");
       card.innerHTML = `
         <div class="bill-head">
           <div><div class="venue">${b.venue}</div>${b.series ? `<div class="series">${b.series}</div>` : ""}</div>
@@ -164,6 +179,24 @@ function render(bills){
     day.appendChild(grid);
     main.appendChild(day);
   });
+}
+
+async function finalizeShow(artistId, showId, btn){
+  if (!confirm("Mark this show's advance fully finalized? This can't be undone.")) return;
+  btn.disabled = true;
+  btn.textContent = "…";
+  try{
+    // The endpoint redirects to the artist page on success (it's the same
+    // route the artist page's own form posts to) — fetch just follows that
+    // transparently; only a real error status (400/404/503) fails `ok`.
+    const res = await fetch(`/artist/${artistId}/finalize/${showId}`, {method: "POST"});
+    if (!res.ok) throw new Error("request failed: " + res.status);
+    await refresh();
+  }catch(e){
+    btn.disabled = false;
+    btn.textContent = "Mark Finalized";
+    alert("Couldn't finalize — try again.");
+  }
 }
 
 async function refresh(){
