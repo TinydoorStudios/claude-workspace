@@ -656,13 +656,26 @@ def staff():
 # static HTML/JS that polls /dashboard/data on an interval, so nothing here
 # ever needs a hard reload to stay current.
 
+# "awaiting" and "ready_to_send" both used to mean "a Gmail/Outlook draft is
+# sitting there, waiting on either the 21-day mark or you to press send" —
+# accurate before the live-send migration. Since that migration (2026-09-13),
+# advance_draft_created_at means the welcome was already SENT for real the
+# moment shows_due_for_initial_advance picked the show up (now gated at 21
+# days out — see that function's docstring for the incident this closes), so
+# both states now mean the exact same real-world thing: sent, no response
+# yet. Caught 2026-09-13 when Brian saw Dixie Karas labeled "Awaiting
+# Window" on the live dashboard after her welcome had already gone out —
+# same underlying drift status_log.py's Excel legend already called out for
+# the Show Status Log, just never carried over to this page. Same label for
+# both states on purpose (days-out is already shown on the bill card itself
+# via days-badge, so nothing is lost by not distinguishing them here).
 DASHBOARD_STATE_LABELS = {
-    "queued":           ("Queued",          "queued"),
-    "awaiting":         ("Awaiting Window", "awaiting"),
-    "ready_to_send":    ("Ready to Send",   "ready"),
-    "followup_due":     ("Follow-up Due",   "due"),
-    "followup_drafted": ("Follow-up Sent",  "followup"),
-    "responded":        ("Advanced",        "responded"),
+    "queued":           ("Queued",                 "queued"),
+    "awaiting":         ("Sent — Awaiting Reply",   "awaiting"),
+    "ready_to_send":    ("Sent — Awaiting Reply",   "ready"),
+    "followup_due":     ("Follow-up Due",           "due"),
+    "followup_drafted": ("Follow-up Sent",          "followup"),
+    "responded":        ("Advanced",                "responded"),
 }
 
 
