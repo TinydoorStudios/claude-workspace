@@ -172,7 +172,9 @@ def sync(rows, dry=False):
                 dest = os.path.join(folder, f"{artist} - Input List (band){ext}")
             else:
                 continue
-            made.append(f"{os.path.basename(dest)}: {fetch(f['stored_name'], dest, dry)}")
+            res = fetch(f['stored_name'], dest, dry)
+            if res != "kept":
+                made.append(f"{os.path.basename(dest)}: {res}")
         # brief skeleton
         brief = os.path.join(folder, f"{artist}.brief.json")
         if not os.path.exists(brief):
