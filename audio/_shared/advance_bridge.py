@@ -22,7 +22,7 @@ audio/<Venue>/<date> <Show>/. This script is the bridge, and it runs HERE
                       Status Log's Packet / .ses / Wiki columns. Runs after --sync
                       automatically.
   --from-json FILE    use a saved query result instead of SSH (tests, offline).
-  --days N            window: today-3 .. today+N (default 60).
+  --days N            window: today .. today+N (default 60). Past shows are never scaffolded.
   --dry-run           show what would be created, touch nothing.
 
 Canonical show key (R43): <venue-abbr>-<YYYY-MM-DD>-<slug(artist)>, e.g.
@@ -87,7 +87,7 @@ SELECT json_agg(row_to_json(t)) FROM (
          (SELECT to_jsonb(b)->>'event_start' FROM bookings b
             WHERE b.venue = s.venue AND b.event_date = s.show_date LIMIT 1) AS event_start
   FROM shows s JOIN artists a ON a.id = s.artist_id
-  WHERE s.show_date BETWEEN current_date - 3 AND current_date + %d
+  WHERE s.show_date BETWEEN current_date AND current_date + %d
   ORDER BY s.show_date
 ) t
 """
