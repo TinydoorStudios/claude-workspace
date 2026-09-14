@@ -61,7 +61,9 @@ def check(cond, msg):
 
 
 # ── http helpers ─────────────────────────────────────────────────────────────
-jar = http.cookiejar.CookieJar()
+# the app marks its session cookie Secure (it lives behind the Cloudflare
+# tunnel); staging is plain http on localhost, so let the jar send it anyway
+jar = http.cookiejar.CookieJar(policy=http.cookiejar.DefaultCookiePolicy(secure_protocols=("http", "https")))
 opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
 
@@ -187,7 +189,7 @@ def wait_run_now(timeout=600):
 @test("healthz")
 def t_health():
     st, body = get("/healthz")
-    check(st == 200 and '"db": "ok"' in body.replace("'", '"'), f"healthz {st} {body.strip()}")
+    check(st == 200 and json.loads(body).get("db") == "ok", f"healthz {st} {body.strip()}")
 
 
 @test("mailer: stub contract (token, fail, nostatus, empty)")

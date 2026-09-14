@@ -509,10 +509,11 @@ def _notify_email(event_type, fields):
         _log_db_error("notify_email", e)
 
 
-def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=30):
+def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=30, attachments=None):
     """(ok, error) — thin wrapper over mailer.send, the single send path
     (audit #3: a send only counts when n8n confirms Graph accepted it)."""
-    return mailer.send(to, subject, body=body, html=html, attachment=attachment, timeout=timeout)
+    return mailer.send(to, subject, body=body, html=html, attachment=attachment, timeout=timeout,
+                       attachments=attachments)
 
 
 def _send_internal_email(subject, html, to=None):
@@ -1242,6 +1243,7 @@ def advance_lifecycle():
     lock_conn = advance_db.get_conn()
     lock_conn.autocommit = True
     initial, followup, failures, dayahead = [], [], 0, []
+    drafts_dir = None
     try:
         lock_conn.execute("SELECT pg_advisory_lock(%s)", (LIFECYCLE_LOCK_KEY,))
         with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -1440,6 +1442,9 @@ def advance_lifecycle():
         except Exception:
             pass
         lock_conn.close()
+        if drafts_dir:
+            import shutil as _shutil
+            _shutil.rmtree(drafts_dir, ignore_errors=True)
 
     return {"initial": initial, "followup": followup, "dayahead": dayahead,
             "unresponded_alert_sent": unresponded_sent, "failures": failures}

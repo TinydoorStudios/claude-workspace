@@ -66,11 +66,11 @@ class H(BaseHTTPRequestHandler):
 
 
 def main():
+    global LOG
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8199)
     ap.add_argument("--log", default=LOG)
     a = ap.parse_args()
-    global LOG
     LOG = a.log
     print(f"mailstub on 127.0.0.1:{a.port}, logging to {LOG}", flush=True)
     HTTPServer(("127.0.0.1", a.port), H).serve_forever()
