@@ -53,6 +53,7 @@ def due_shows(cur):
               AND s.dayahead_sent_at IS NULL
               AND (s.responded_at IS NOT NULL
                    OR EXISTS (SELECT 1 FROM submissions x WHERE x.show_id = s.id))
+              AND NOT """ + db.THIRD_PARTY_SILENT_SQL + r"""
             ORDER BY s.id, b.id DESC NULLS LAST""")
     return cur.fetchall()
 

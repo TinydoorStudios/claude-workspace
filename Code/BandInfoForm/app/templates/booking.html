@@ -41,13 +41,13 @@
   </div>
   {% if fill_link %}
   <div class="card" style="border-color:rgba(77,163,255,.4)">
-    <p class="hint" style="margin-top:0;color:#e6edf3;font-size:14px">Welcome email skipped — {{ saved.artist_name }} won't be emailed. Fill in their advance yourself here, right now, from what they sent you:</p>
+    <p class="hint" style="margin-top:0;color:#e6edf3;font-size:14px">{% if silent_third %}3rd-party event — {{ saved.artist_name }} won't be emailed. Fill in the advance yourself here:{% else %}Welcome email skipped — {{ saved.artist_name }} won't be emailed. Fill in their advance yourself here, right now, from what they sent you:{% endif %}</p>
     <p style="margin:12px 0"><a class="btn" href="{{ fill_link }}" target="_blank" rel="noopener" style="font-size:15px">{{ fill_link }}</a></p>
     <p class="hint">Venue{% if saved.event_date %} and date{% endif %} are already filled in and locked; everything else is blank for you to type in.</p>
   </div>
   {% endif %}
   <div class="card">
-    {% if saved.skip_welcome_email %}
+    {% if saved.skip_welcome_email or silent_third %}
     <p class="hint" style="margin-top:0">Sheet seed, advance doc, and venue-tree filing are running now — same as any booking. No welcome email will go out for this one.</p>
     {% elif urgent %}
     <p class="hint" style="margin-top:0">This show is inside the 21-day window already — running right now, not waiting for the next daily check. Seeding the sheet, building the advance doc, filing it into the venue tree, and sending the advance email via Outlook. Usually a couple minutes.</p>
@@ -137,6 +137,13 @@
         <option value="">Select…</option>
         {% for loc in wp_locations %}<option {% if form.location==loc %}selected{% endif %}>{{ loc }}</option>{% endfor %}
       </select>
+    </div>
+    <div class="full" id="band_emails_field" style="display:none">
+      <label style="display:flex;align-items:flex-start;gap:9px;text-transform:none;font-weight:400;letter-spacing:normal;color:#e6edf3;font-size:14px;cursor:pointer">
+        <input type="checkbox" name="band_emails" id="band_emails" style="width:auto;margin-top:2px" {% if form.band_emails %}checked{% endif %}>
+        <span>Send band emails</span>
+      </label>
+      <p class="hint" style="margin:6px 0 0 25px">Off by default for 3rd Party: no welcome, reminders, day-before or thank-you. Tick it to run the normal band email workflow for this one (needs a contact email).</p>
     </div>
     <div class="req" id="artist_field"><label>Artist / Band</label><input name="artist_name" id="artist_name_input" value="{{ form.artist_name or '' }}" placeholder="Band name (exactly)" required></div>
     <div class="req" id="contact_name_field"><label>Contact Name</label><input name="contact_name" id="contact_name_input" value="{{ form.contact_name or '' }}" placeholder="booking contact"></div>
@@ -291,6 +298,7 @@
       document.getElementById(id).classList.toggle('req', !third);
     });
     document.getElementById('contact_email_field').classList.toggle('req', !(manual || third));
+    document.getElementById('band_emails_field').style.display = third ? '' : 'none';
     // 3rd Party: Event Name is mandatory (it names the event and its doc).
     document.getElementById('event_name_input').required = third;
     document.getElementById('event_name_field').classList.toggle('req', third);

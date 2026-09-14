@@ -49,6 +49,37 @@ def is_third_party(series):
     return normalize(series) == "3rd party"
 
 
+# Brian, 2026-09-14: a 3rd-party show sends the band nothing automated
+# (welcome, reminders, day-before, thank-you) and raises no "no response"
+# nags, unless staff ticked "Send band emails" on its booking. SQL fragment
+# for queries that alias shows `s` and artists `a`.
+THIRD_PARTY_SILENT_SQL = r"""(lower(btrim(COALESCE(s.show_series,''))) = '3rd party'
+      AND NOT EXISTS (SELECT 1 FROM bookings bx
+                      WHERE bx.venue = s.venue AND bx.event_date = s.show_date
+                        AND lower(btrim(regexp_replace(bx.artist_name, '\s+', ' ', 'g'))) = a.match_key
+                        AND bx.band_emails))"""
+
+
+def band_emails_on(cur, show_id):
+    """False for a 3rd-party show whose booking hasn't opted in to band
+    emails; True for every other show."""
+    cur.execute("SELECT NOT " + THIRD_PARTY_SILENT_SQL + """ AS on_
+                 FROM shows s JOIN artists a ON a.id = s.artist_id WHERE s.id = %s""", (show_id,))
+    row = cur.fetchone()
+    return bool(row and row["on_"])
+
+
+def set_band_emails(cur, show_id, on):
+    """Flip the opt-in on the booking row(s) behind this show. False if the
+    show has no booking row (a sheet-only show) — nothing to flip."""
+    cur.execute(r"""UPDATE bookings b SET band_emails = %s
+                    FROM shows s JOIN artists a ON a.id = s.artist_id
+                    WHERE s.id = %s AND b.venue = s.venue AND b.event_date = s.show_date
+                      AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
+                    RETURNING b.id""", (bool(on), show_id))
+    return bool(cur.fetchall())
+
+
 def to_date(v):
     if not v:
         return None
@@ -247,6 +278,7 @@ def shows_due_for_initial_advance(cur):
              AND s.show_date >= CURRENT_DATE
              AND s.show_date <= CURRENT_DATE + 21
              AND b.skip_welcome_email IS NOT TRUE
+             AND NOT """ + THIRD_PARTY_SILENT_SQL + """
            ORDER BY s.id, b.id DESC NULLS LAST"""
     )
     return sorted(cur.fetchall(), key=lambda r: (r["show_date"], r["show_id"]))
@@ -316,6 +348,7 @@ def shows_due_for_followup(cur, days_before=7):
                              WHERE r.show_id = s.id AND r.days_before = %s)
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
+             AND NOT """ + THIRD_PARTY_SILENT_SQL + """
            ORDER BY s.id, b.id DESC NULLS LAST""",
         (days_before, days_before),
     )
@@ -416,6 +449,7 @@ def shows_due_for_unresponded_alert(cur, days_before=3):
              AND s.unresponded_alert_sent_at IS NULL
              AND s.cancelled_at IS NULL AND s.held_at IS NULL
              AND NOT (lower(btrim(COALESCE(s.show_series,''))) = '3rd party' AND COALESCE(a.last_email,'') = '')
+             AND NOT """ + THIRD_PARTY_SILENT_SQL + r"""
              AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
@@ -1000,8 +1034,9 @@ def insert_booking(cur, data: dict):
         except ValueError:
             vals["event_date"] = None
     vals["skip_welcome_email"] = bool(data.get("skip_welcome_email"))
-    cols = ", ".join(BOOKING_FIELDS) + ", skip_welcome_email"
-    ph = ", ".join(f"%({k})s" for k in BOOKING_FIELDS) + ", %(skip_welcome_email)s"
+    vals["band_emails"] = bool(data.get("band_emails"))
+    cols = ", ".join(BOOKING_FIELDS) + ", skip_welcome_email, band_emails"
+    ph = ", ".join(f"%({k})s" for k in BOOKING_FIELDS) + ", %(skip_welcome_email)s, %(band_emails)s"
     # Review 2026-09-14 (H1): one booking row per band/venue/date. A double
     # submit, a refresh that re-POSTs, or a re-entry updates the existing row
     # instead of creating a twin that would make the lifecycle send twice.
@@ -1012,7 +1047,8 @@ def insert_booking(cur, data: dict):
     cur.execute(
         f"""INSERT INTO bookings ({cols}) VALUES ({ph})
             ON CONFLICT (venue, event_date, (lower(btrim(regexp_replace(artist_name, '\\s+', ' ', 'g')))))
-            DO UPDATE SET {upd}, skip_welcome_email = EXCLUDED.skip_welcome_email
+            DO UPDATE SET {upd}, skip_welcome_email = EXCLUDED.skip_welcome_email,
+                          band_emails = EXCLUDED.band_emails
             RETURNING id""", vals)
     return cur.fetchone()["id"]
 
@@ -1313,6 +1349,7 @@ def needs_attention(cur):
                      AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 3
                      AND NOT EXISTS (SELECT 1 FROM submissions x WHERE x.show_id = s.id)
                      AND NOT (lower(btrim(COALESCE(s.show_series,''))) = '3rd party' AND COALESCE(a.last_email,'') = '')
+                     AND NOT """ + THIRD_PARTY_SILENT_SQL + """
                    ORDER BY s.show_date""")
     for r in cur.fetchall():
         out.append({"kind": "unresponded", "label": "No form, show within 3 days",

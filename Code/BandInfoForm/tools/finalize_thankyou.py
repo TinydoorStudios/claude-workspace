@@ -271,10 +271,12 @@ def send_for_show(show_id):
         print("already sent")
         return
     # Brian, 2026-09-14: no thank-you for a 3rd-party event — we rarely talk
-    # to those artists at all. Nothing recorded, so it never shows up as a
-    # "Thank-you not sent" item either.
-    if db.is_third_party(s.get("show_series")):
-        print("skipped: 3rd-party event")
+    # to those artists at all — unless its booking opted in to band emails.
+    # Nothing recorded, so it never shows up as "Thank-you not sent" either.
+    with db.get_conn() as conn, conn.cursor() as cur:
+        emails_on = db.band_emails_on(cur, show_id)
+    if not emails_on:
+        print("skipped: 3rd-party event, band emails off")
         return
     if s.get("cancelled_at"):
         record(False, "skipped: show cancelled")

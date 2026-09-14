@@ -89,6 +89,13 @@
           <button class="minor-btn" type="submit" title="Creates an Outlook draft to the band, addressed, with their answers pasted below">Email band ✉</button>
         </form>
         {% endif %}
+        {% if s.band_emails is defined and s.state not in ('cancelled', 'finalized') %}
+        <form method="post" action="{{ url_for('show_band_emails', show_id=s.show_id) }}"
+              title="3rd Party: automated band emails (welcome, reminders, day-before, thank-you) are off unless turned on">
+          <input type="hidden" name="on" value="{{ '0' if s.band_emails else '1' }}">
+          <button class="minor-btn" type="submit">{{ 'Band emails on — turn off' if s.band_emails else 'Band emails off — turn on' }}</button>
+        </form>
+        {% endif %}
         {% if s.state == 'cancelled' %}
         <form method="post" action="{{ url_for('show_uncancel', show_id=s.show_id) }}"
               onsubmit="return confirm('Restore this cancelled show? Emails can resume for it.');">

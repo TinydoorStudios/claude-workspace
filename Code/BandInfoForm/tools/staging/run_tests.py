@@ -681,6 +681,30 @@ def t_third_party_optional():
     check(not sends_since(n0), f"no email sent for the 3rd-party show ({len(sends_since(n0))})")
 
 
+@test("3rd-party band emails: off by default, opt-in restores the workflow (2026-09-14)")
+def t_third_party_band_emails():
+    login()
+    d = TODAY + dt.timedelta(days=12)
+    st, _ = make_booking("Quiet Corp Band", "Fountain Square", d, series="3rd Party",
+                         event_name="Quiet Corp Gala", email="quiet@example.test")
+    check(st == 200, f"booking with an email, emails off ({st})")
+    check(wait_run_now(), "run finished")
+    n0 = mail_count()
+    post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
+    s = q("""SELECT s.id, s.advance_draft_created_at FROM shows s JOIN artists a ON a.id=s.artist_id
+             WHERE a.match_key='quiet corp band' AND s.show_date=%s""", (d,), one=True)
+    quiet = [m for m in sends_since(n0) if "quiet@example.test" in json.dumps(m)]
+    check(s and not s["advance_draft_created_at"] and not quiet, f"no welcome sent while off ({len(quiet)})")
+    st, html = get(f"/artist/{q('SELECT id FROM artists WHERE match_key=%s', ('quiet corp band',), one=True)['id']}")
+    check("Band emails off — turn on" in html, "artist page shows the toggle")
+    post(f"/show/{s['id']}/band-emails", {"on": "1"})
+    n1 = mail_count()
+    post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
+    s2 = q("SELECT advance_draft_created_at FROM shows WHERE id=%s", (s["id"],), one=True)
+    loud = [m for m in sends_since(n1) if "quiet@example.test" in json.dumps(m)]
+    check(s2["advance_draft_created_at"] and loud, f"welcome sent once turned on ({len(loud)})")
+
+
 @test("nothing left the box")
 def t_isolation():
     bad = [m for m in mails() if not m["path"].startswith("/webhook/")]

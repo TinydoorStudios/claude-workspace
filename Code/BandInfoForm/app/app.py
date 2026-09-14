@@ -941,6 +941,9 @@ def booking():
         f = request.form
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
         data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
+        # 3rd Party: the band gets no automated email unless this is ticked
+        # (Brian, 2026-09-14). Meaningless for other series — always stored off.
+        data["band_emails"] = f.get("band_emails") == "on" and advance_db.is_third_party(data["series"])
         if not data["entered_by"]:
             return _booking_form("Who's entering this is required.", f, 400)
         if not data["venue"] or not advance_db.to_date(data["event_date"]):
@@ -995,10 +998,13 @@ def booking():
             threading.Thread(target=_run_pipeline_then_trigger_now, args=(scope,), daemon=True).start()
         else:
             _run_pipeline_background(scope)
-        fill_link = _manual_fill_link(data) if data["skip_welcome_email"] else None
+        # staff fill the form themselves for a manual advance, and for a
+        # 3rd-party booking the band isn't emailed about
+        silent_third = advance_db.is_third_party(data["series"]) and not data["band_emails"]
+        fill_link = _manual_fill_link(data) if (data["skip_welcome_email"] or silent_third) else None
         return render_template("booking.html", venues=forms_config.VENUES,
                                slots=BOOKING_SLOTS, saved=data, urgent=urgent,
-                               fill_link=fill_link)
+                               fill_link=fill_link, silent_third=silent_third)
     return _booking_form(form={})[0]
 
 
@@ -1075,7 +1081,10 @@ def artist_detail(artist_id):
         artist = advance_db.get_artist(cur, artist_id)
         if not artist:
             abort(404)
-        shows = advance_db.artist_shows(cur, artist_id)
+        shows = [dict(s) for s in advance_db.artist_shows(cur, artist_id)]
+        for s in shows:
+            if advance_db.is_third_party(s.get("show_series")):
+                s["band_emails"] = advance_db.band_emails_on(cur, s["show_id"])
         subs = advance_db.artist_submissions(cur, artist_id)
         files_by_sub = {s["id"]: advance_db.submission_files(cur, s["id"]) for s in subs}
     return render_template("artist.html", artist=artist, shows=shows,
@@ -1230,6 +1239,22 @@ def show_cancel(show_id):
         advance_db.cancel_show(cur, show_id)
         if s.get("hold_reason") == "missing from the advance sheet":
             advance_db.release_candidate_holds(cur, show_id)
+        conn.commit()
+    return _back(url_for("artist_detail", artist_id=s["artist_id"]))
+
+
+@app.post("/show/<int:show_id>/band-emails")
+def show_band_emails(show_id):
+    """3rd-party opt-in toggle on the artist page (Brian, 2026-09-14): turns
+    the normal automated band emails on or off for this show's booking."""
+    if not DB_OK:
+        abort(503)
+    on = request.form.get("on") == "1"
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.get_show(cur, show_id)
+        if not s:
+            abort(404)
+        advance_db.set_band_emails(cur, show_id, on)
         conn.commit()
     return _back(url_for("artist_detail", artist_id=s["artist_id"]))
 
