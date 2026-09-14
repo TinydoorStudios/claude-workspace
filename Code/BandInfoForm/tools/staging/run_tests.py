@@ -621,6 +621,25 @@ def t_additional():
     check(rows and "wheelchair" in (rows.get("Additional Info") or ""), f"Additional Info row filled ('{rows and rows.get('Additional Info')}')")
 
 
+@test("3rd-party booking needs no contact (2026-09-14)")
+def t_third_party_contact():
+    login()
+    d = TODAY + dt.timedelta(days=5)
+    data = {"artist_name": "No Contact Corp Event", "venue": "Washington Park", "location": "Main Stage",
+            "event_date": d.isoformat(), "series": "3rd Party", "contact_name": "", "contact_email": "",
+            "entered_by": "tests", "band_count": "1", "slot": "headliner", "event_name": "Widget Co Picnic"}
+    st, body = post("/booking", data)
+    check(st == 200 and "Contact email is required" not in body, f"3rd-party booking accepted without a contact ({st})")
+    check(wait_run_now(), "run finished")
+    n0 = mail_count()
+    st, body = post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
+    fails = q("SELECT f.* FROM send_failures f JOIN shows s ON s.id=f.show_id JOIN artists a ON a.id=s.artist_id WHERE a.match_key='no contact corp event'")
+    check(st == 200 and not fails, f"no send-failure nag for a contact-less 3rd-party show ({len(fails)})")
+    with db.get_conn() as conn, conn.cursor() as cur:
+        needs = [n for n in db.needs_attention(cur) if "No Contact Corp" in n["detail"]]
+    check(not needs, f"needs-you panel stays quiet about it ({[n['label'] for n in needs]})")
+
+
 @test("nothing left the box")
 def t_isolation():
     bad = [m for m in mails() if not m["path"].startswith("/webhook/")]

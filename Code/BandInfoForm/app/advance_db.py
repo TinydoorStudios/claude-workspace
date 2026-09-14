@@ -415,6 +415,7 @@ def shows_due_for_unresponded_alert(cur, days_before=3):
            WHERE s.responded_at IS NULL
              AND s.unresponded_alert_sent_at IS NULL
              AND s.cancelled_at IS NULL AND s.held_at IS NULL
+             AND NOT (lower(btrim(COALESCE(s.show_series,''))) = '3rd party' AND COALESCE(a.last_email,'') = '')
              AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
@@ -1292,7 +1293,8 @@ def needs_attention(cur):
                    JOIN artists a ON a.id=s.artist_id
                    WHERE s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 21
                      AND s.cancelled_at IS NULL AND s.held_at IS NULL AND s.responded_at IS NULL
-                     AND COALESCE(a.last_email, '') = '' ORDER BY s.show_date""")
+                     AND COALESCE(a.last_email, '') = ''
+                     AND lower(btrim(COALESCE(s.show_series,''))) <> '3rd party' ORDER BY s.show_date""")
     for r in cur.fetchall():
         out.append({"kind": "noemail", "label": "No contact email",
                     "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}",
@@ -1310,6 +1312,7 @@ def needs_attention(cur):
                    WHERE s.responded_at IS NULL AND s.cancelled_at IS NULL AND s.held_at IS NULL
                      AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 3
                      AND NOT EXISTS (SELECT 1 FROM submissions x WHERE x.show_id = s.id)
+                     AND NOT (lower(btrim(COALESCE(s.show_series,''))) = '3rd party' AND COALESCE(a.last_email,'') = '')
                    ORDER BY s.show_date""")
     for r in cur.fetchall():
         out.append({"kind": "unresponded", "label": "No form, show within 3 days",

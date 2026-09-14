@@ -897,7 +897,11 @@ def booking():
             return _booking_form("Venue and a valid event date are required.", f, 400)
         if not data["series"] or data["series"].lower() == "default":
             return _booking_form("Pick a series — or Stand-Alone Internal / 3rd Party.", f, 400)
-        if not data["skip_welcome_email"] and "@" not in data["contact_email"]:
+        # Brian, 2026-09-14: a 3rd-party event usually comes with no band
+        # contact at all — name, email and phone are optional for it. No
+        # email simply means no welcome / reminders / day-before for that show.
+        if (not data["skip_welcome_email"] and "@" not in data["contact_email"]
+                and not advance_db.is_third_party(data["series"])):
             return _booking_form("Contact email is required (or check Manual band advance).", f, 400)
         if data["band_count"] not in ("", "1") and not data["slot"]:
             return _booking_form("Pick a slot — this night has more than one band.", f, 400)
@@ -1401,7 +1405,8 @@ def advance_lifecycle():
                     continue
                 seen_shows.add(r["show_id"])
                 if not r["email"]:
-                    fail(r["show_id"], "welcome", "no contact email on file")
+                    if not advance_db.is_third_party(r["series"]):
+                        fail(r["show_id"], "welcome", "no contact email on file")
                     continue
                 hits = sorted(drafts_dir.glob(f"{_dslug(r['artist_name'])}__{r['show_date'].isoformat()}__*.md"),
                               key=lambda p: p.stat().st_mtime, reverse=True)
@@ -1437,7 +1442,8 @@ def advance_lifecycle():
             tier, r = tiers[0]
             older = [t for t, _ in tiers[1:]]
             if not r["email"]:
-                fail(show_id, f"followup_{tier}", "no contact email on file")
+                if not advance_db.is_third_party(r["series"]):
+                    fail(show_id, f"followup_{tier}", "no contact email on file")
                 continue
             with advance_db.get_conn() as conn, conn.cursor() as cur:
                 token = _signer.dumps({"a": r["artist_id"],

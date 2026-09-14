@@ -1,0 +1,232 @@
+{
+  "id": "internal-outlook-drafts-admin",
+  "name": "Internal Outlook Drafts Admin — list / delete by id (Production@3cdc.org)",
+  "active": true,
+  "nodes": [
+    {
+      "id": "webhook-1",
+      "name": "Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "internal-outlook-drafts-admin",
+      "parameters": {
+        "path": "internal-outlook-drafts-admin",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-1",
+      "name": "Check Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const EXPECTED_TOKEN = 'REPLACE_WITH_ADVANCE_INTERNAL_TOKEN';\nconst item = $input.first();\nconst headers = item.json.headers || {};\nif (headers['x-advance-token'] !== EXPECTED_TOKEN) { throw new Error('internal-outlook-drafts-admin: bad X-Advance-Token'); }\nconst b = item.json.body || item.json;\nreturn [{ json: { op: b.op || 'list', ids: Array.isArray(b.ids) ? b.ids : [] } }];"
+      }
+    },
+    {
+      "id": "http-list",
+      "name": "List Drafts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "url": "https://graph.microsoft.com/v1.0/users/production@3cdc.org/mailFolders/drafts/messages",
+        "method": "GET",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "$top",
+              "value": "200"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "id": "REPLACE_WITH_GRAPH_CREDENTIAL_ID",
+          "name": "Microsoft Graph - Production@3cdc.org (App-only)"
+        }
+      }
+    },
+    {
+      "id": "code-match",
+      "name": "Select",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const crit = $('Check Token').first().json;\nconst resp = $input.first().json; const body = resp.body || resp; const drafts = body.value || [];\nif (crit.op === 'list') {\n  return [{ json: { drafts: drafts.map(d => ({ id: d.id, subject: d.subject, to: (d.toRecipients||[]).map(r => (r.emailAddress||{}).address), created: d.createdDateTime, modified: d.lastModifiedDateTime })) } }];\n}\nconst want = new Set(crit.ids);\nreturn drafts.filter(d => want.has(d.id)).map(d => ({ json: { id: d.id, subject: d.subject } }));"
+      }
+    },
+    {
+      "id": "http-delete",
+      "name": "Delete Draft",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        300
+      ],
+      "parameters": {
+        "url": "=https://graph.microsoft.com/v1.0/users/production@3cdc.org/messages/{{$json.id}}",
+        "method": "DELETE",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "id": "REPLACE_WITH_GRAPH_CREDENTIAL_ID",
+          "name": "Microsoft Graph - Production@3cdc.org (App-only)"
+        }
+      }
+    },
+    {
+      "id": "switch-1",
+      "name": "Op",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-id",
+              "leftValue": "={{ $json.id || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ret-1",
+      "name": "Return List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        450
+      ],
+      "parameters": {
+        "jsCode": "return $input.all();"
+      }
+    }
+  ],
+  "connections": {
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Token": {
+      "main": [
+        [
+          {
+            "node": "List Drafts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Drafts": {
+      "main": [
+        [
+          {
+            "node": "Select",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select": {
+      "main": [
+        [
+          {
+            "node": "Op",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Op": {
+      "main": [
+        [
+          {
+            "node": "Delete Draft",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

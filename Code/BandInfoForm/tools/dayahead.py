@@ -181,7 +181,7 @@ def send_due(fail=None):
     for r in rows:
         email = (r.get("email") or "").strip()
         if not email:
-            if fail:
+            if fail and not db.is_third_party(r.get("series")):
                 fail(r["show_id"], "dayahead", "no contact email on file")
             continue
         try:

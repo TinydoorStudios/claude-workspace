@@ -248,8 +248,9 @@
       }
     }
     updateScheduleLock();
+    onManualChange();
   }
-  document.getElementById('seriesCustom').addEventListener('input', updateScheduleLock);
+  document.getElementById('seriesCustom').addEventListener('input', function(){ updateScheduleLock(); onManualChange(); });
   updateScheduleLock();
   function onVenueChange() {
     var venue = document.getElementById('venue_select');
@@ -271,9 +272,15 @@
   }
   onBandCountChange();
   function onManualChange() {
-    // Contact email is required unless this is a manual band advance (audit #3).
+    // Contact email is required unless this is a manual band advance (audit #3)
+    // or a 3rd-party event (Brian, 2026-09-14: we usually don't get a contact).
     var manual = document.getElementById('skip_welcome_email').checked;
-    document.getElementById('contact_email_input').required = !manual;
+    var sel = document.getElementById('seriesPick');
+    var custom = document.getElementById('seriesCustom');
+    var series = sel.value === '__custom__' ? custom.value : sel.value;
+    var third = normSeries(series) === '3rd party';
+    document.getElementById('contact_email_input').required = !(manual || third);
+    document.getElementById('contact_email_input').placeholder = third ? 'optional for a 3rd-party event' : 'booking contact';
   }
   onManualChange();
   </script>
