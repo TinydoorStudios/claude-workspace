@@ -121,7 +121,7 @@ def wait_regen(timeout=120):
     t0 = time.time()
     time.sleep(1.5)
     while time.time() - t0 < timeout:
-        p = subprocess.run(["pgrep", "-f", "advtest/code/tools/regen_show.py"], capture_output=True)
+        p = subprocess.run(["pgrep", "-f", "regen_show.py"], capture_output=True)
         if p.returncode != 0:
             return True
         time.sleep(1)
@@ -177,7 +177,7 @@ def wait_run_now(timeout=600):
     t0 = time.time()
     time.sleep(2)
     while time.time() - t0 < timeout:
-        p = subprocess.run(["pgrep", "-f", "advtest/code/tools/run_now.py"], capture_output=True)
+        p = subprocess.run(["pgrep", "-f", "run_now.py|package_run.py|run_again.py"], capture_output=True)
         if p.returncode != 0:
             return True
         time.sleep(2)
@@ -351,8 +351,8 @@ def t_provenance():
     venue, d, band = "Fountain Square", TODAY + dt.timedelta(days=20), "Provenance Test Band"
     make_booking(band, venue, d, series="Jazz on the Square")
     check(wait_run_now(), "booking run finished")
-    rows, path = doc_rows(venue, d, band)
-    check(path is not None, f"doc created for the booking ({path and path.name})")
+    reg0 = q("SELECT path FROM filed_docs WHERE venue=%s AND event_date=%s", (venue, d), one=True)
+    check(reg0 is not None and (DROP / reg0["path"]).exists(), f"doc created + registered for the booking ({reg0 and Path(reg0['path']).name})")
     # 1) first submission fills the blank Monitors cell
     st, _ = submit_form(band, venue, d, monitors="4")
     check(wait_regen(), "regen after submission 1 finished")

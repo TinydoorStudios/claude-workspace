@@ -44,6 +44,24 @@ def find_event(cur, venue, date, artist):
 
 
 def regen(venue, date, artist, send_mail=True):
+    # Review 2026-09-14: a submission landing while a package run is mid-way
+    # (events/event_acts TRUNCATEd and being rebuilt) used to find "no event"
+    # and skip the doc. Take the same lock the package run holds — wait for
+    # it, then file against the rebuilt model.
+    from run_now import acquire_lock
+    lock = acquire_lock()
+    try:
+        return _regen(venue, date, artist, send_mail=send_mail)
+    finally:
+        try:
+            import fcntl
+            fcntl.flock(lock, fcntl.LOCK_UN)
+            lock.close()
+        except OSError:
+            pass
+
+
+def _regen(venue, date, artist, send_mail=True):
     with db.get_conn() as conn, conn.cursor() as cur:
         eid = find_event(cur, venue, date, artist)
         if not eid:
