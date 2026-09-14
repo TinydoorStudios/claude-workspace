@@ -194,7 +194,11 @@ def main():
     ap.add_argument("--months", type=int, default=6, help="returning-artist lookback")
     ap.add_argument("--mark-sent", action="store_true",
                     help="stamp email_sent_at (generate.command uses this — sending = the send step)")
+    ap.add_argument("--out", type=Path, default=None,
+                    help="write drafts here instead of tools/drafts/ (the lifecycle's private run folder)")
     args = ap.parse_args()
+    out_dir = args.out or DRAFTS
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     rows = load_batch(args.batch)
     if not rows:
@@ -289,8 +293,11 @@ def main():
             if r.get("set_time"):
                 set_line = f"Set length: {_setlen(r['set_time'])}" + (f" ({slot})" if slot else "")
 
-            def sched(k):
-                return r.get(k) or fs.SCHEDULE_DEFAULTS.get(k, "")
+            # Review 2026-09-14 (M3): a blank schedule field is TBD, not the
+            # Fountain Square default — a WP/Court/ESP booking with no times
+            # used to email the band FSQ's day as fact.
+            def sched(k, lang="en"):
+                return r.get(k) or (fs.SCHEDULE_TBD_ES if lang == "es" else fs.SCHEDULE_TBD)
 
             # A series can lock its own schedule (Brian, 2026-09-09: Salsa On
             # The Square runs a fixed 3-set/2-break night that never
@@ -338,11 +345,11 @@ def main():
                 else:
                     rl = ve.SCHEDULE_ROW_LABELS_ES
                     schedule_block_es = "\n".join([
-                        f"  {sched('load_in')}    {rl['load_in']}",
-                        f"  {sched('soundcheck')}    {rl['soundcheck']}",
-                        f"  {sched('event_start')}    {rl['event_start']}",
-                        f"  {sched('event_end')}   {rl['event_end']}",
-                        f"  {sched('curfew')}   {rl['curfew']}",
+                        f"  {sched('load_in', 'es')}    {rl['load_in']}",
+                        f"  {sched('soundcheck', 'es')}    {rl['soundcheck']}",
+                        f"  {sched('event_start', 'es')}    {rl['event_start']}",
+                        f"  {sched('event_end', 'es')}   {rl['event_end']}",
+                        f"  {sched('curfew', 'es')}   {rl['curfew']}",
                     ])
                 if r.get("set_time"):
                     slot_es = ve.SLOT_LABELS_ES.get((r.get("slot") or "").strip(), slot)
@@ -454,7 +461,7 @@ def main():
                 body = advance_t.render(**ctx)
 
             fname = f"{slug(name)}__{show_date.isoformat() if show_date else 'nodate'}__{kind.lower()}.md"
-            (DRAFTS / fname).write_text(body)
+            (out_dir / fname).write_text(body)
             summary.append((kind, name, venue,
                             show_date.isoformat() if show_date else "?",
                             email or "(no email)", fname))
@@ -469,7 +476,7 @@ def main():
     for row in summary:
         print("  ".join(str(row[i]).ljust(w[i]) for i in range(6)))
     n_ret = sum(1 for s in summary if s[0] == "RETURNING")
-    print(f"\n{len(summary)} drafts written to {DRAFTS}  "
+    print(f"\n{len(summary)} drafts written to {out_dir}  "
           f"({n_ret} returning, {len(summary)-n_ret} new).")
     print("Nothing was sent. Review the drafts, then send from Outlook once approved.")
 

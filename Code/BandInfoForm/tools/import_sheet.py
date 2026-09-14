@@ -68,12 +68,12 @@ def _report_clashes(clashes):
                    f"<b>{mailer.esc(k)}</b> are both <i>{mailer.esc(sl.replace('_', ' '))}</i>. "
                    f"Only {mailer.esc(k)} is in the advance doc.</li>"
                    for _n, v, d, e, sl, k, sk in new)
-    ok, _ = mailer.alert(f"Advance sheet slot clash — {len(new)} to fix",
-                         f"<p>Fix the Slot column in advance-list.xlsx:</p><ul>{rows}</ul>")
-    if ok:
-        with db.get_conn() as conn, conn.cursor() as cur:
-            db.mark_doc_notices_notified(cur, [n[0] for n in new])
-            conn.commit()
+    # review 2026-09-14 (E1): rides the digest, not its own email
+    with db.get_conn() as conn, conn.cursor() as cur:
+        db.queue_digest_item(cur, "slot_clash", f"Advance sheet slot clash — {len(new)} to fix",
+                             f"<p>Fix the Slot column in advance-list.xlsx:</p><ul>{rows}</ul>")
+        db.mark_doc_notices_notified(cur, [n[0] for n in new])
+        conn.commit()
 
 
 def main():

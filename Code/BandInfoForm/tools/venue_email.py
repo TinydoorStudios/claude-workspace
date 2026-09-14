@@ -173,6 +173,30 @@ import os as _os
 SERIES_EMAIL_ROOT = Path(_os.environ.get("ADVANCE_DROPBOX_ROOT") or (Path.home() / "Dropbox")) / "Nyquist" / "Series Email Templates"
 
 
+def venue_attachments(venue, root=None):
+    """Every standing attachment for this venue — all files named
+    `_attachment*` in its Series Email Templates folder, in name order
+    (review 2026-09-14, E4: `_attachment.pdf` = load-in doc,
+    `_attachment-2 tech pack.pdf` = tech pack, and so on). [] if none."""
+    if not venue:
+        return []
+    vdir = (Path(root) if root else SERIES_EMAIL_ROOT) / venue.strip()
+    if not vdir.is_dir():
+        return []
+    import base64
+    import mimetypes
+    out = []
+    for path in sorted(p for p in vdir.glob("_attachment*") if p.is_file()):
+        try:
+            data = path.read_bytes()
+        except Exception as e:  # noqa: BLE001
+            print(f"[venue_email] couldn't read attachment {path}: {e!r}", file=sys.stderr)
+            continue
+        ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        out.append((path.name, ctype, base64.b64encode(data).decode("ascii")))
+    return out
+
+
 def venue_attachment(venue, root=None):
     """(filename, content_type, base64 content) for this venue's standing
     email attachment, or None if there isn't one (Brian, 2026-09-12 — the FSQ

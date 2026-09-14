@@ -19,9 +19,14 @@ lines, the EVENT INFORMATION header's Date/Event/Venue/Location lines) are
 compared paragraph by paragraph when their shape still matches the
 template, so filling the Mon line never touches a hand-typed FOH line.
 
-Every write is recorded in `filed_docs` with the file's sha256. If the file
-changed since (someone edited it), it is still only ever filled in blank
-cells — never overwritten — and the notice email says it was hand-edited.
+Per-cell provenance (review 2026-09-14, H2 — Brian's call): `filed_docs.cells`
+records what the pipeline last wrote into each cell. A cell that still reads
+exactly what the pipeline wrote is the pipeline's to update (a returning
+band's prior-show pre-fill, a corrected monitor count, a cancelled act);
+a cell that reads anything else was typed by a person and is never touched —
+a differing value becomes a notice instead. "Blank" cells (still the
+template) are filled as before. Whole-file sha256 is still recorded so a
+hand-edited doc is flagged in the notice.
 A doc that Word/Dropbox shows as open (a "~$" owner file beside it) is not
 touched at all that run; the next run picks it up. Writes are atomic
 (temp file + os.replace) and re-check the hash right before replacing, so a
@@ -116,12 +121,16 @@ def word_lock_present(path):
 
 class _Ctx:
     """Everything one merge pass needs: the three documents, a running max
-    content-control id for the filed doc, and the notice list."""
+    content-control id for the filed doc, the notice list, and the per-cell
+    provenance map in (`prov`, what the pipeline last wrote) and out
+    (`newprov`, what the pipeline owns after this pass)."""
 
-    def __init__(self, T, F, E):
+    def __init__(self, T, F, E, prov=None):
         self.T, self.F, self.E = T, F, E
         self.changed = 0
         self.notices = []
+        self.prov = dict(prov or {})
+        self.newprov = {}
         ids = [int(el.get(qn("w:val"))) for el in E.element.body.iter(qn("w:id"))
                if el.getparent() is not None and el.getparent().tag == qn("w:sdtPr")
                and (el.get(qn("w:val")) or "").lstrip("-").isdigit()]
@@ -160,33 +169,58 @@ def _replace_tc_content(ctx, e_tc, f_tc):
             e_tc.append(ctx.prepare_copy(child))
 
 
+def _tokens(s):
+    return set(re.findall(r"[a-z0-9]+", _t(s).lower()))
+
+
 def _differs_meaningfully(e_text, f_text):
-    """A diff worth emailing: the new value isn't already contained in what
-    the doc says (a hand edit that extends the pipeline's value is not a
-    conflict)."""
-    return _t(f_text).lower() not in _t(e_text).lower()
+    """A diff worth reporting: every word/number of the new value is NOT
+    already present in what the doc says (a hand edit that extends the
+    pipeline's value — '5 wedges (2 for drums)' vs '5 wedges' — is not a
+    conflict; '3 wedges' vs '5 wedges' is). Whole tokens, not substrings
+    (review 2026-09-14, judgment call 6: '5' inside '15' used to hide a diff)."""
+    tf = _tokens(f_text)
+    return bool(tf) and not tf <= _tokens(e_text)
 
 
 def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column):
+    key = f"{section}|{column or ''}"
     tT, tF, tE = _t(_tc_text(t_tc)), _t(_tc_text(f_tc)), _t(_tc_text(e_tc))
-    if tF == tT or tE == tF:
+    if tF == tT:
+        # the pipeline has nothing for this cell; keep ownership only if the
+        # doc still reads what we last wrote
+        if key in ctx.prov and ctx.prov[key] == tE:
+            ctx.newprov[key] = tE
         return
+    if tE == tF:
+        ctx.newprov[key] = tF
+        return
+    cell_owned = tE == tT or ctx.prov.get(key) == tE
     pT, pF, pE = _tc_paras(t_tc), _tc_paras(f_tc), _tc_paras(e_tc)
     if (not any(_has_table(x) for x in (t_tc, f_tc, e_tc))
             and len(pT) == len(pF) == len(pE) and len(pT) > 1):
-        for a, b, c in zip(pT, pF, pE):
+        owned_paras = []
+        for i, (a, b, c) in enumerate(zip(pT, pF, pE)):
             ta, tb, tc_ = _t(_p_text(a)), _t(_p_text(b)), _t(_p_text(c))
-            if tb == ta or tc_ == tb:
+            pk = f"{key}|{i}"
+            if tb == ta:
+                if pk in ctx.prov and ctx.prov[pk] == tc_:
+                    ctx.newprov[pk] = tc_
                 continue
-            if tc_ == ta:
+            if tc_ == tb:
+                ctx.newprov[pk] = tb
+                continue
+            if tc_ == ta or cell_owned or ctx.prov.get(pk) == tc_:
                 c.addprevious(ctx.prepare_copy(b))
                 c.getparent().remove(c)
+                ctx.newprov[pk] = tb
                 ctx.changed += 1
             elif _differs_meaningfully(tc_, tb):
                 ctx.notice(section, column, _p_text(c).strip(), _p_text(b).strip())
         return
-    if tE == tT:
+    if cell_owned:
         _replace_tc_content(ctx, e_tc, f_tc)
+        ctx.newprov[key] = tF
         ctx.changed += 1
     elif _differs_meaningfully(tE, tF):
         ctx.notice(section, column, _tc_text(e_tc).strip(), _tc_text(f_tc).strip())
@@ -223,10 +257,12 @@ def _act_names(E_grid):
     return names
 
 
-def merge(T, F, E):
-    """Fill blank cells of E (filed doc) from F (fresh build), never
-    overwriting. Returns (changes_made, notices)."""
-    ctx = _Ctx(T, F, E)
+def merge(T, F, E, prov=None):
+    """Update E (filed doc) from F (fresh build): blank cells and cells the
+    pipeline itself last wrote (per `prov`) take the fresh value; anything a
+    person typed is left alone and reported. Returns
+    (changes_made, notices, new_provenance)."""
+    ctx = _Ctx(T, F, E, prov=prov)
 
     gT, gF, gE = daysheet.find_grid(T), daysheet.find_grid(F), daysheet.find_grid(E)
     if gT is not None and gF is not None and gE is not None:
@@ -263,22 +299,48 @@ def merge(T, F, E):
                     return False
             return True
 
-        if LF != LT and LE == LT and all_times_blank_like_template(sE):
+        def times_owned(tbl_e):
+            for i, re_ in enumerate(tbl_e.rows):
+                v = _t(_tc_text(re_._tr.tc_lst[0]))
+                if v and ctx.prov.get(f"Schedule|row{i}") != v:
+                    return False
+            return True
+
+        if LF != LT and LE == LT and (all_times_blank_like_template(sE) or times_owned(sE)):
             # a locked series schedule replaces the template rows wholesale
             tbl_el = sE._tbl
             for r in list(sE.rows):
                 tbl_el.remove(r._tr)
-            for r in sF.rows:
+            for i, r in enumerate(sF.rows):
                 tbl_el.append(ctx.prepare_copy(r._tr))
+                ctx.newprov[f"Schedule|row{i}"] = _t(_tc_text(r._tr.tc_lst[0]))
             ctx.changed += 1
         elif LE == LF:
             base = sT if LF == LT else sF
-            for rb, rf, re_ in zip(base.rows, sF.rows, sE.rows):
+            for i, (rb, rf, re_) in enumerate(zip(base.rows, sF.rows, sE.rows)):
                 label = _t(_tc_text(rf._tr.tc_lst[-1]))
                 t_tc = rb._tr.tc_lst[0] if LF == LT else _blank_like(rf._tr.tc_lst[0])
                 _compare_cell(ctx, t_tc, rf._tr.tc_lst[0], re_._tr.tc_lst[0],
                               f"Schedule: {label}", None)
-    return ctx.changed, ctx.notices
+                v = _t(_tc_text(re_._tr.tc_lst[0]))
+                if v and ctx.prov.get(f"Schedule|row{i}") == v:
+                    ctx.newprov[f"Schedule|row{i}"] = v
+    return ctx.changed, ctx.notices, ctx.newprov
+
+
+def all_acts_cancelled(ev, acts):
+    """Every act on this bill has its show cancelled (review 2026-09-14, M4)
+    -> the filed doc is renamed with a CANCELLED marker. One cancelled band
+    on a multi-band bill only blanks its own column (daysheet.build)."""
+    ids = [a.get("artist_id") for a in acts if a.get("artist_id")]
+    if not ids or not ev.get("event_date"):
+        return False
+    with db.get_conn() as conn, conn.cursor() as cur:
+        cur.execute("""SELECT artist_id FROM shows WHERE venue=%s AND show_date=%s
+                       AND cancelled_at IS NOT NULL AND artist_id = ANY(%s)""",
+                    (ev.get("venue"), ev.get("event_date"), ids))
+        cancelled = {r["artist_id"] for r in cur.fetchall()}
+    return all(i in cancelled for i in ids)
 
 
 def _blank_like(tc):
@@ -396,8 +458,14 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
         if not _atomic_save(fresh, desired):
             res["action"] = "locked"
             return res
+        # provenance of a freshly created doc: every cell that differs from
+        # the template is the pipeline's (merge of the fresh doc against
+        # itself records exactly those)
+        _c, _n, prov = merge(T := Document(str(daysheet.UNIVERSAL_TEMPLATE)),
+                             Document(str(desired)), Document(str(desired)))
         with db.get_conn() as conn, conn.cursor() as cur:
-            db.upsert_filed_doc(cur, venue, d, key, _rel_to_root(desired), sha256_file(desired))
+            db.upsert_filed_doc(cur, venue, d, key, _rel_to_root(desired), sha256_file(desired),
+                                cells=prov)
             conn.commit()
         res["path"] = str(desired)
         return res
@@ -410,7 +478,7 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
     res["hand_edited"] = bool(reg and reg.get("sha256") and reg["sha256"] != before_sha)
     E = Document(str(existing))
     T = Document(str(daysheet.UNIVERSAL_TEMPLATE))
-    changed, notices = merge(T, fresh, E)
+    changed, notices, newprov = merge(T, fresh, E, prov=(reg or {}).get("cells") or {})
     res["notices"] = notices
     res["filled"] = changed
     res["action"] = "merged" if changed else "unchanged"
@@ -435,10 +503,11 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
         # refresh it when the pipeline itself wrote (or first registers)
         if changed or not reg:
             db.upsert_filed_doc(cur, venue, d, key, _rel_to_root(target), new_sha,
-                                seeded=not reg and not changed, reg_id=(reg or {}).get("id"))
+                                seeded=not reg and not changed, reg_id=(reg or {}).get("id"),
+                                cells=newprov)
         else:
             db.upsert_filed_doc(cur, venue, d, key, _rel_to_root(target), reg.get("sha256"),
-                                reg_id=reg.get("id"), keep_written_at=True)
+                                reg_id=reg.get("id"), keep_written_at=True, cells=newprov)
         conn.commit()
     return res
 
@@ -470,8 +539,9 @@ def file_stage_plot(src, folder, fname, dry_run=False):
 
 def record_and_email_notices(results, send_mail=True):
     """results: [(ev, res)]. Stores each notice once (doc_notices), then
-    emails Brian ONE message with only the notices not emailed before.
-    Returns the number of new notices."""
+    queues ONE digest item with the notices not reported before (review
+    2026-09-14, E1: these ride the 7am digest and the dashboard's "Needs
+    you" panel, not their own email). Returns the number of new notices."""
     import mailer
     inserted = 0
     with db.get_conn() as conn, conn.cursor() as cur:
@@ -505,9 +575,8 @@ def record_and_email_notices(results, send_mail=True):
             "<table style='border-collapse:collapse' border='1' cellspacing='0'>"
             "<tr><th>Show / doc</th><th>Field</th><th>Doc says</th><th>New info</th></tr>"
             + "".join(rows) + "</table></div>")
-    ok, _err = mailer.alert(f"Advance doc changes to review — {len(new)} field(s)", html)
-    if ok:
-        with db.get_conn() as conn, conn.cursor() as cur:
-            db.mark_doc_notices_notified(cur, [n["id"] for n in new])
-            conn.commit()
+    with db.get_conn() as conn, conn.cursor() as cur:
+        db.queue_digest_item(cur, "doc", f"Advance doc changes to review — {len(new)} field(s)", html)
+        db.mark_doc_notices_notified(cur, [n["id"] for n in new])
+        conn.commit()
     return inserted

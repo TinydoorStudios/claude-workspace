@@ -511,3 +511,34 @@ SELECT
     a.last_email    AS contact_email
 FROM shows s
 JOIN artists a ON a.id = s.artist_id;
+
+-- ═════════════════════════════════════════════════════════════════════════
+-- 2026-09-14 review pass (Handoffs/band-advance-review-2026-09-13.md)
+-- ═════════════════════════════════════════════════════════════════════════
+
+-- H1: one booking row per band/venue/date (a twin row made the lifecycle send twice)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_bookings_ident
+    ON bookings (venue, event_date, (lower(btrim(regexp_replace(artist_name, '\s+', ' ', 'g')))));
+
+-- H2: per-cell provenance — what the pipeline last wrote into each doc cell.
+-- A cell still equal to this is the pipeline's to update; anything else is a
+-- hand edit and is never touched.
+ALTER TABLE filed_docs ADD COLUMN IF NOT EXISTS cells JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+-- M6: a failure already emailed in the last 7 days is suppressed, not re-sent daily
+ALTER TABLE send_failures ADD COLUMN IF NOT EXISTS suppressed BOOLEAN NOT NULL DEFAULT false;
+
+-- E5: automatic day-before confirmation to every responded show
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS dayahead_sent_at TIMESTAMPTZ;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS dayahead_error   TEXT;
+
+-- E1: things for Brian that ride the 7am digest instead of their own email
+CREATE TABLE IF NOT EXISTS digest_items (
+    id           SERIAL PRIMARY KEY,
+    kind         TEXT NOT NULL,
+    subject      TEXT NOT NULL,
+    html         TEXT NOT NULL,
+    link         TEXT,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    delivered_at TIMESTAMPTZ
+);

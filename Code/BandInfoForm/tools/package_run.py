@@ -78,13 +78,18 @@ def event_drafts_dir(out, ev):
     return base / fs.EMAIL_DRAFTS_DIR
 
 
-def event_stem(ev, acts):
+def event_stem(ev, acts, cancelled=False):
     d = ev.get("event_date")
     # Name + headliner — single source of truth in fieldspec.py, shared with
     # regen_show.py's single-show path so both never drift apart on what an
     # event's filename looks like. See fieldspec.event_display_name /
-    # headliner_name for the actual rule.
+    # headliner_name for the actual rule. `cancelled` (review 2026-09-14,
+    # M4): every act on the bill is cancelled -> the same file is renamed in
+    # place with a CANCELLED marker after the date stamp; undo-cancel renames
+    # it back on the next run.
     name = fs.event_display_name(ev, acts)
+    if cancelled:
+        name = f"CANCELLED - {name}"
     if d:
         return fs.advance_stem(name, d)
     return f"{safe(name)} Prod Adv"
@@ -130,13 +135,12 @@ def main():
     run("import_sheet.py", args.sheet)
 
     # 2. regenerate the flat draft artifacts into their working dirs
-    for d in (DRAFTS, FOLLOWUPS, daysheet.FILLED):
+    for d in (DRAFTS, daysheet.FILLED):
         if d.exists():
             for f in d.glob("*"):
                 if f.is_file():
                     f.unlink()
     run("draft_emails.py", args.sheet)
-    run("dump_followups.py")
     run("status_sheet.py", "--json", str(out / "status.json"))
 
     # 3. file each event's advance doc IN PLACE in the real venue folder —
@@ -161,7 +165,7 @@ def main():
         venue = ev.get("venue")
         in_scope = (not scope) or ((venue, d.isoformat() if d else "") in scope)
         folder = event_dir(ev)
-        stem = event_stem(ev, acts)
+        stem = event_stem(ev, acts, cancelled=docmerge.all_acts_cancelled(ev, acts))
         future = bool(d) and d >= today
 
         stageplot_names = {}
@@ -222,11 +226,6 @@ def main():
                 drafts_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copy(draft, drafts_dir / f"{stem} email - {safe(name)}.md")
                 n_emails += 1
-            fu = find_one(FOLLOWUPS, f"{sg}__followup.md")
-            if fu:
-                drafts_dir.mkdir(parents=True, exist_ok=True)
-                shutil.copy(fu, drafts_dir / f"{stem} followup - {safe(name)}.md")
-                n_followups += 1
 
     if results and not args.dry_run_docs:
         new_notices = docmerge.record_and_email_notices(results, send_mail=not args.no_mail)

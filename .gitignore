@@ -61,3 +61,6 @@ _ARCHIVE/2026-06-wiki-setup/wiki-complete-setup.sh
 # _inbox is a drop folder: version the README, ignore whatever gets dropped in
 _inbox/*
 !_inbox/README.md
+
+# git worktrees (advance-system lives in .worktrees/advance-system — review 2026-09-14 H6)
+.worktrees/

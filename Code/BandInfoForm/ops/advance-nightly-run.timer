@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly Band Advance full run (06:30, before the 7am digest and 9am lifecycle)
+
+[Timer]
+OnCalendar=*-*-* 06:30:00
+Persistent=true
+RandomizedDelaySec=60
+
+[Install]
+WantedBy=timers.target

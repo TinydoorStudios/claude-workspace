@@ -297,10 +297,14 @@ def send_for_show(show_id):
                 return
             error = err or "send failed"
     record(False, error)
-    mailer.alert(f"Thank-you email NOT sent — {s['artist_name']}",
-                 f"<p>{mailer.esc(s['artist_name'])} @ {mailer.esc(s['venue'])} "
-                 f"{s['show_date'].strftime('%m/%d/%Y')} was marked Finalized, but the thank-you "
-                 f"didn't go out: <b>{mailer.esc(error)}</b>.</p>")
+    # review 2026-09-14 (E1): rides the digest + dashboard panel, not its own email
+    with db.get_conn() as conn, conn.cursor() as cur:
+        db.queue_digest_item(
+            cur, "thankyou", f"Thank-you email NOT sent — {s['artist_name']}",
+            f"<p>{mailer.esc(s['artist_name'])} @ {mailer.esc(s['venue'])} "
+            f"{s['show_date'].strftime('%m/%d/%Y')} was marked Finalized, but the thank-you "
+            f"didn't go out: <b>{mailer.esc(error)}</b>.</p>")
+        conn.commit()
     print(f"failed: {error}")
 
 

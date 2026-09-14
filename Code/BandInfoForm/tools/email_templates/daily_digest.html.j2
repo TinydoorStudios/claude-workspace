@@ -18,6 +18,35 @@
     </div>
   </td></tr>
   {% endif %}
+
+  <!-- Section 0: Needs you — open decisions + everything that used to be its own alert (review 2026-09-14, E1) -->
+  {% if needs or queued %}
+  <tr><td style="padding:24px 28px 8px;">
+    <div style="font-size:15px;font-weight:700;color:#7C2D12;border-bottom:2px solid #B45309;padding-bottom:6px;">
+      Needs you {% if needs %}({{ needs|length }}){% endif %}
+    </div>
+  </td></tr>
+  <tr><td style="padding:8px 28px 20px;">
+    {% if needs %}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      {% for it in needs %}
+      <tr><td style="padding:6px 0;{% if not loop.last %}border-bottom:1px solid #F0F2F5;{% endif %}font-size:13px;color:#111827;">
+        <span style="display:inline-block;min-width:150px;font-weight:700;color:#B45309;">{{ it.label }}</span>
+        {{ it.detail }}{% if it.link %} &nbsp;<a href="{{ it.link }}" style="color:#2E6DA4;">open →</a>{% endif %}
+      </td></tr>
+      {% endfor %}
+    </table>
+    <div style="font-size:12px;color:#6B7280;margin-top:8px;">Same list, live: <a href="{{ dashboard_url }}" style="color:#2E6DA4;">the dashboard</a>.</div>
+    {% endif %}
+    {% for q in queued %}
+    <div style="margin-top:14px;padding:10px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;">
+      <div style="font-size:12.5px;font-weight:700;color:#7C2D12;margin-bottom:6px;">{{ q.subject }}</div>
+      <div style="font-size:12.5px;color:#374151;">{{ q.html|safe }}</div>
+    </div>
+    {% endfor %}
+  </td></tr>
+  {% endif %}
+
   <!-- Section 1: Today's Shows -->
   <tr><td style="padding:24px 28px 8px;">
     <div style="font-size:15px;font-weight:700;color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:6px;">
@@ -169,7 +198,7 @@
   </td></tr>
 
   <tr><td style="background:#F9FAFB;padding:14px 28px;border-top:1px solid #E5E7EB;">
-    <div style="font-size:11px;color:#9CA3AF;">Auto-generated from the band advance pipeline. Not Started → Drafted → Ready to Send → Follow-up Due → Follow-up Sent → Completed.</div>
+    <div style="font-size:11px;color:#9CA3AF;">Auto-generated from the band advance pipeline. Queued → Sent, Awaiting Reply → Follow-up Due → Follow-up Sent → Advancing In Progress → Finalized.</div>
   </td></tr>
 
 </table>

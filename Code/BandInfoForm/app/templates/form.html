@@ -105,6 +105,10 @@
     <input type="text" name="band_name" required value="{{ v('band_name') }}">
     {% if known_artist_id %}
     <input type="hidden" name="artist_token" value="{{ artist_tok }}">
+    <!-- honeypot (review 2026-09-14): humans never see it; a bot that fills it gets the thank-you page and nothing is saved -->
+    <div style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+      <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+    </div>
     <p class="help">{{ t('band_name_prefill_help') }}</p>
     {% endif %}
   </div>

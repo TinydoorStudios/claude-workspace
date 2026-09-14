@@ -831,11 +831,15 @@ def build(event_id, template=None, stageplot_names=None):
             print(f"No event {event_id}", file=sys.stderr); sys.exit(1)
         acts = db.event_acts(cur, event_id)
         declared_n = db.band_count_for_event(cur, event.get("venue"), event.get("event_date"))
-        # a cancelled band's info never goes into the doc (audit #4)
+        # a cancelled band's info never goes into the doc (audit #4); its
+        # column header reads "CANCELLED — <band>" so the doc says so
+        # (review 2026-09-14, M4) — the act stays in `acts` for column
+        # layout, its cells are left blank/template.
         cur.execute("SELECT artist_id FROM shows WHERE venue=%s AND show_date=%s AND cancelled_at IS NOT NULL",
                     (event.get("venue"), event.get("event_date")))
         cancelled = {r["artist_id"] for r in cur.fetchall()}
-        acts = [a for a in acts if a.get("artist_id") not in cancelled]
+        for a in acts:
+            a["_cancelled"] = a.get("artist_id") in cancelled
 
     # a declared "bands on the bill" (Brian, 2026-09-08 — set per booking, so
     # it's known even before every act has its own event_acts row yet) wins
@@ -897,13 +901,18 @@ def build(event_id, template=None, stageplot_names=None):
                     continue
                 ci = _col(a)
                 if ci < len(r.cells) and len(r.cells[ci].paragraphs) >= 2:
-                    set_para_text(r.cells[ci].paragraphs[1], a["artist"]["name"])
+                    label = a["artist"]["name"]
+                    if a.get("_cancelled"):
+                        label = f"CANCELLED — {label}"
+                    set_para_text(r.cells[ci].paragraphs[1], label)
             break
 
     rows_by_label = act_columns(grid, n)
     filled_acts = 0
     no_riser_series = _series_without_riser(event.get("series"))
     for a in acts:
+        if a.get("_cancelled"):
+            continue
         mf = merged_fields(a)
         if no_riser_series and not mf.get("stage_type"):
             mf["stage_type"] = "Flat stage"  # audit #15: no risers for this series

@@ -131,6 +131,17 @@ def build_digest(days_ahead=14, hours_back=24):
         if missed_yesterday:
             cur.execute("SELECT 1 FROM job_runs WHERE job='advance-lifecycle' AND source='cron' LIMIT 1")
             missed_yesterday = cur.fetchone() is not None  # only once cron tagging exists
+        # review 2026-09-14 (E1): open decisions + everything that used to be
+        # its own alert email (doc notices, submission matches, slot clashes,
+        # the 3-day unresponded list, thank-you / day-before failures)
+        needs = db.needs_attention(cur)
+        queued = db.undelivered_digest_items(cur)
+        db.mark_digest_items_delivered(cur, [q["id"] for q in queued])
+        conn.commit()
+
+    public_url = __import__("os").environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
+    for it in needs:
+        it["link"] = (public_url + it["link_path"]) if it.get("link_path") else None
 
     for row in upcoming:
         row["style"] = STATE_STYLE.get(row["state"], (row["state"] or "—", "#E5E7EB", "#374151"))
@@ -142,9 +153,12 @@ def build_digest(days_ahead=14, hours_back=24):
         today=today.strftime("%A, %B ") + str(today.day) + today.strftime(", %Y"),
         today_shows=today_shows, today_crew=today_crew,
         drafted=drafted, responded=responded, upcoming=upcoming,
-        missed_yesterday=missed_yesterday,
+        missed_yesterday=missed_yesterday, needs=needs, queued=queued,
+        dashboard_url=public_url + "/dashboard",
     )
     subject = f"Advance Digest — {today.strftime('%a %m/%d')}"
+    if needs:
+        subject += f" — {len(needs)} need{'s' if len(needs) == 1 else ''} you"
     if today_shows:
         subject += f" — {len(today_shows)} show{'s' if len(today_shows) != 1 else ''} today"
     return subject, html

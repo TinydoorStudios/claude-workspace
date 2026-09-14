@@ -31,11 +31,8 @@ NAVY = "1A3A5C"
 # "finalized" added (Brian, 2026-09-13) — human sign-off after the band
 # responds; "responded" ("Advancing In Progress" elsewhere in the pipeline)
 # keeps its own tint since it's now a distinct, earlier stage.
-STATE_FILL = {
-    "queued": "E5E7EB", "awaiting": "FEF3C7", "ready_to_send": "C7D2FE",
-    "followup_due": "FFE4B5", "followup_drafted": "DBEAFE", "responded": "E9D8FD",
-    "finalized": "DCFCE7",
-}
+# one shared label/color table (audit #17; wired here 2026-09-14)
+STATE_FILL = {k: v[2] for k, v in SL.STATE.items()}
 
 
 def yn(v):

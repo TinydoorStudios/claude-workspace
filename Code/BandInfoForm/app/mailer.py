@@ -44,8 +44,11 @@ def _log(line):
         pass
 
 
-def send(to, subject, body=None, html=None, attachment=None, timeout=30):
-    """(ok, error). ok=True only on a confirmed send. Never raises."""
+def send(to, subject, body=None, html=None, attachment=None, timeout=30, attachments=None):
+    """(ok, error). ok=True only on a confirmed send. Never raises.
+    `attachment` is one (name, type, base64) tuple; `attachments` a list of
+    them (review 2026-09-14, E4: a venue can attach a load-in doc AND a tech
+    pack). Both are accepted and combined."""
     if os.environ.get("ADVANCE_MAIL_DISABLED") == "1":
         _log(f"SUPPRESSED (kill switch) to={to!r} subject={subject!r}")
         return False, "mail disabled"
@@ -62,8 +65,11 @@ def send(to, subject, body=None, html=None, attachment=None, timeout=30):
         payload["html"] = html
     else:
         payload["body"] = body or ""
-    if attachment:
-        payload["attachment_name"], payload["attachment_type"], payload["attachment_content"] = attachment
+    all_att = ([attachment] if attachment else []) + list(attachments or [])
+    if all_att:
+        payload["attachment_name"], payload["attachment_type"], payload["attachment_content"] = all_att[0]
+        if len(all_att) > 1:
+            payload["attachments"] = [{"name": n, "type": t, "content": c} for n, t, c in all_att[1:]]
     req = urllib.request.Request(
         url, data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json",

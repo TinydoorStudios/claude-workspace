@@ -46,7 +46,6 @@ INTERNAL_TOKEN = os.environ.get("ADVANCE_INTERNAL_TOKEN", "")
 PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
 NOTIFY_URL = os.environ.get("ADVANCE_NOTIFY_URL", "")
 LIFECYCLE_NOW_URL = os.environ.get("ADVANCE_LIFECYCLE_NOW_URL", "")
-CLEANUP_DRAFTS_URL = os.environ.get("ADVANCE_CLEANUP_DRAFTS_URL", "")
 # n8n's real-send webhook, called directly (Brian, 2026-09-13) for the
 # unresponded-at-3-days alert — an actual SEND, never a draft, so it skips
 # the "Advance Notify" formatting workflow NOTIFY_URL points at (that one's
@@ -283,6 +282,12 @@ def prefilled_form(token):
 @app.post("/submit")
 def submit():
     f = request.form
+    # Review 2026-09-14 (H5): a filled honeypot field is a bot. Show the
+    # thank-you page and save nothing — no artist, no show, no notify.
+    if (f.get("website") or "").strip():
+        lang = "es" if (f.get("form_lang") or "").strip().lower() == "es" else "en"
+        return render_template("thanks.html", band=f.get("band_name"),
+                               lang=lang, t=i18n.translator(lang))
     if not f.get("band_name"):
         abort(400, "Band name is required.")
 
@@ -422,10 +427,12 @@ def _email_submission_match(result, rec):
                 f"there isn't exactly one unanswered booking that night (candidates: {names}). "
                 "It was saved under the name they typed.</p>"
                 f"<p><a href='{link}'>Pick the booking it belongs to →</a></p>")
-    ok, _ = mailer.alert(subject, body)
-    if ok and DB_OK:
+    # Review 2026-09-14 (E1): rides the 7am digest and the dashboard's
+    # "Needs you" panel instead of its own email.
+    if DB_OK:
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
+                advance_db.queue_digest_item(cur, "match", subject, body, link)
                 cur.execute("UPDATE submission_matches SET notified_at=now() WHERE id=%s", (m["id"],))
                 conn.commit()
         except Exception as e:
@@ -744,6 +751,23 @@ def dashboard_data():
             "artist_id": r["artist_id"], "show_id": r["show_id"],
         })
     return {"bills": [bills[k] for k in order], "generated_at": dt.datetime.now().isoformat()}
+
+
+@app.get("/dashboard/needs")
+def dashboard_needs():
+    """Open decisions and problems for the dashboard's "Needs you" panel
+    (review 2026-09-14, E1) — the same feed the 7am digest prints."""
+    if not DB_OK:
+        return {"items": [], "error": "db-unavailable"}, 503
+    try:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            items = advance_db.needs_attention(cur)
+    except Exception as e:
+        _log_db_error("dashboard_needs", e)
+        return {"items": [], "error": "query-failed"}, 500
+    for it in items:
+        it["since"] = it["since"].isoformat() if it.get("since") else None
+    return {"items": items, "generated_at": dt.datetime.now().isoformat()}
 
 
 BOOKING_SLOTS = ["headliner", "direct_support", "opener"]
@@ -1217,7 +1241,7 @@ def advance_lifecycle():
 
     lock_conn = advance_db.get_conn()
     lock_conn.autocommit = True
-    initial, followup, failures = [], [], 0
+    initial, followup, failures, dayahead = [], [], 0, []
     try:
         lock_conn.execute("SELECT pg_advisory_lock(%s)", (LIFECYCLE_LOCK_KEY,))
         with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -1251,9 +1275,16 @@ def advance_lifecycle():
             } for r in due_initial]
             batch_file = TOOLS_DIR / f".lifecycle_initial_batch_{os.getpid()}.json"
             batch_file.write_text(json.dumps(batch))
+            # Review 2026-09-14 (M5): render into this run's own folder, not
+            # the shared tools/drafts/ that every package run wipes — a
+            # booking landing mid-run used to delete a draft between render
+            # and read, and the mtime glob could pick up a stale file.
+            import tempfile
+            drafts_dir = Path(tempfile.mkdtemp(prefix="lifecycle-drafts-", dir=str(TOOLS_DIR)))
             rendered = True
             try:
-                subprocess.run([sys.executable, "draft_emails.py", str(batch_file)],
+                subprocess.run([sys.executable, "draft_emails.py", str(batch_file),
+                                "--out", str(drafts_dir)],
                                cwd=TOOLS_DIR, capture_output=True, text=True,
                                timeout=180, check=True)
             except Exception as e:
@@ -1263,8 +1294,11 @@ def advance_lifecycle():
                 batch_file.unlink(missing_ok=True)
 
             from draft_emails import slug as _dslug
-            drafts_dir = TOOLS_DIR / "drafts"
+            seen_shows = set()
             for r in due_initial:
+                if r["show_id"] in seen_shows:      # H1 belt-and-braces
+                    continue
+                seen_shows.add(r["show_id"])
                 if not r["email"]:
                     fail(r["show_id"], "welcome", "no contact email on file")
                     continue
@@ -1277,7 +1311,7 @@ def advance_lifecycle():
                 subj_line, _, body = text.partition("\n")
                 subject = subj_line.removeprefix("Subject:").strip()
                 ok, err = _send_outlook_email(r["email"], subject, body=body.lstrip("\n"),
-                                              attachment=ve.venue_attachment(r["venue"]))
+                                              attachments=ve.venue_attachments(r["venue"]))
                 if not ok:
                     fail(r["show_id"], "welcome", err)
                     continue
@@ -1288,6 +1322,8 @@ def advance_lifecycle():
                     conn.commit()
                 initial.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
                                 "show_date": us_date(r["show_date"])})
+            import shutil as _shutil
+            _shutil.rmtree(drafts_dir, ignore_errors=True)
 
         # ── follow-ups: closest open tier only, per show (#21) ──
         with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -1327,8 +1363,26 @@ def advance_lifecycle():
                 "If you've already sent this over, disregard. Thanks,\n"
                 "3CDC Events / Production"
             )
+            # Review 2026-09-14 (M2): a bilingual series (Salsa) gets the
+            # Spanish half under the English one, same shape as its welcome.
+            if r["series"] and ve.is_bilingual_series(r["series"]):
+                greeting_es = (f"Hola {r['contact_name']} y {r['artist_name']}"
+                               if r["contact_name"] else f"Hola {r['artist_name']}")
+                when_es = f" el {us_date(r['show_date'])}" if r["show_date"] else ""
+                body_es = (
+                    f"{greeting_es},\n\n"
+                    f"Les escribimos de nuevo sobre los detalles de su presentación en "
+                    f"{r['venue']}{when_es} — todavía los necesitamos para que el show salga bien: "
+                    "plano de escenario, monitores, hospitalidad y un par de detalles logísticos. "
+                    "Toma unos cinco minutos:\n\n"
+                    f"{link}?lang=es\n\n"
+                    "Si ya nos enviaron esta información, ignoren este mensaje. Gracias,\n"
+                    "3CDC Eventos / Producción"
+                )
+                sep = "─" * 42
+                body = f"{body}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
             ok, err = _send_outlook_email(r["email"], subject, body=body,
-                                          attachment=ve.venue_attachment(r["venue"]))
+                                          attachments=ve.venue_attachments(r["venue"]))
             if not ok:
                 fail(show_id, f"followup_{tier}", err)
                 continue
@@ -1359,13 +1413,22 @@ def advance_lifecycle():
                     f"<p>These bands are now inside the 3-day mark with no advance form on file — "
                     f"worth a manual follow-up:</p><table>{tr}</table>"
                     f"<p style=\"margin-top:14px\"><a href=\"{PUBLIC_URL}/dashboard\">Open the dashboard →</a></p></div>")
-            ok, _err = _send_internal_email(subject, html)
-            if ok:
-                with advance_db.get_conn() as conn, conn.cursor() as cur:
-                    for r in due_unresponded:
-                        advance_db.mark_unresponded_alert_sent(cur, r["show_id"])
-                    conn.commit()
-                unresponded_sent = len(due_unresponded)
+            # Review 2026-09-14 (E1): queued for the digest + the dashboard
+            # panel (which lists these live anyway) instead of its own email.
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                advance_db.queue_digest_item(cur, "unresponded", subject, html, f"{PUBLIC_URL}/dashboard")
+                for r in due_unresponded:
+                    advance_db.mark_unresponded_alert_sent(cur, r["show_id"])
+                conn.commit()
+            unresponded_sent = len(due_unresponded)
+
+        # ── day-before confirmations (review 2026-09-14, E5) ──
+        try:
+            from dayahead import send_due as _dayahead_send_due
+            dayahead = _dayahead_send_due(fail)
+        except Exception as e:  # noqa: BLE001 — never blocks the rest of the run
+            _log_db_error("dayahead", e)
+            dayahead = []
 
         _email_send_failures()
     except Exception as e:
@@ -1378,8 +1441,8 @@ def advance_lifecycle():
             pass
         lock_conn.close()
 
-    return {"initial": initial, "followup": followup, "unresponded_alert_sent": unresponded_sent,
-            "failures": failures}
+    return {"initial": initial, "followup": followup, "dayahead": dayahead,
+            "unresponded_alert_sent": unresponded_sent, "failures": failures}
 
 
 def _email_send_failures():

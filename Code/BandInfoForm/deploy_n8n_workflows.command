@@ -17,6 +17,13 @@ LOG="$HERE/deploy_n8n_log.txt"
 VM="brian@192.168.200.84"
 KEY="$HOME/.ssh/proxmox_tds"
 SSH="ssh -J tds -i $KEY $VM"
+# Review 2026-09-14 (H6): refuse unless the deployed branch is checked out here.
+WANT="${ADVANCE_DEPLOY_BRANCH:-advance-system}"
+CUR="$(git -C "$HERE" branch --show-current 2>/dev/null)"
+if [ "$CUR" != "$WANT" ]; then
+  echo "REFUSING to deploy: $HERE is on branch '$CUR', expected '$WANT' (set ADVANCE_DEPLOY_BRANCH to override)."
+  exit 1
+fi
 
 if [ "$1" = "--all" ]; then
   FILES=("$HERE"/n8n/*.json)

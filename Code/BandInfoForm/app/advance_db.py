@@ -208,8 +208,12 @@ def shows_due_for_initial_advance(cur):
     booking row exists at all (a submission-only show), so
     `IS NOT TRUE` — not `= false` — is required: it reads NULL as "no flag
     set, don't exclude" instead of silently dropping every such show."""
+    # DISTINCT ON (audit review 2026-09-14, H1): a duplicate booking row for
+    # the same band/venue/date used to return the show twice, and the welcome
+    # loop sent it twice in one run. One row per show, newest booking wins.
     cur.execute(
-        """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+        """SELECT DISTINCT ON (s.id)
+                  s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
                   b.location AS location, b.event_name AS event_name,
                   b.lead_name AS lead_name, b.lead_phone AS lead_phone,
@@ -229,9 +233,9 @@ def shows_due_for_initial_advance(cur):
              AND s.show_date >= CURRENT_DATE
              AND s.show_date <= CURRENT_DATE + 21
              AND b.skip_welcome_email IS NOT TRUE
-           ORDER BY s.show_date"""
+           ORDER BY s.id, b.id DESC NULLS LAST"""
     )
-    return cur.fetchall()
+    return sorted(cur.fetchall(), key=lambda r: (r["show_date"], r["show_id"]))
 
 
 def shows_due_for_send_reminder(cur, days_out=21):
@@ -282,7 +286,8 @@ def shows_due_for_followup(cur, days_before=7):
     first; mark_stale_followup_tiers_skipped in that same pass then decides
     which tiers (if any) are even still eligible to show up here later."""
     cur.execute(
-        """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+        """SELECT DISTINCT ON (s.id)
+                  s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
                   b.location AS location,
                   b.contact_name AS contact_name, b.contact_email AS booking_contact_email
@@ -297,10 +302,10 @@ def shows_due_for_followup(cur, days_before=7):
                              WHERE r.show_id = s.id AND r.days_before = %s)
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
-           ORDER BY s.show_date""",
+           ORDER BY s.id, b.id DESC NULLS LAST""",
         (days_before, days_before),
     )
-    return cur.fetchall()
+    return sorted(cur.fetchall(), key=lambda r: (r["show_date"], r["show_id"]))
 
 
 def mark_advance_drafted(cur, show_id):
@@ -350,8 +355,13 @@ def mark_stale_followup_tiers_skipped(cur, show_id, days_out):
     as their own date arrives. No-ops if days_out is None (no show_date)."""
     if days_out is None:
         return
+    # Review 2026-09-14 (M1): a band booked 4 days out used to get the
+    # welcome, the 3-day reminder the next morning and the 1-day reminder two
+    # days later. No band-facing reminder fires within 48 hours of the
+    # welcome: a tier is skipped when its day is less than 2 days after
+    # today, i.e. tier > days_out - 2.
     for tier in FOLLOWUP_TIERS:
-        if tier >= days_out:
+        if tier > days_out - 2:
             cur.execute(
                 "INSERT INTO advance_reminders (show_id, days_before, sent) "
                 "VALUES (%s, %s, false) ON CONFLICT (show_id, days_before) DO NOTHING",
@@ -381,7 +391,8 @@ def shows_due_for_unresponded_alert(cur, days_before=3):
             after its own welcome went out.
       #4  — cancelled and on-hold shows never alert."""
     cur.execute(
-        r"""SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+        r"""SELECT DISTINCT ON (s.id)
+                  s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                   a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
                   COALESCE(b.skip_welcome_email, false) AS manual
            FROM shows s JOIN artists a ON a.id = s.artist_id
@@ -399,10 +410,10 @@ def shows_due_for_unresponded_alert(cur, days_before=3):
                OR (b.skip_welcome_email IS TRUE AND s.advance_draft_created_at IS NULL
                    AND COALESCE(b.created_at, s.created_at) <= now() - interval '24 hours')
              )
-           ORDER BY s.show_date""",
+           ORDER BY s.id, b.id DESC NULLS LAST""",
         (days_before,),
     )
-    return cur.fetchall()
+    return sorted(cur.fetchall(), key=lambda r: (r["show_date"], r["show_id"]))
 
 
 def mark_unresponded_alert_sent(cur, show_id):
@@ -646,7 +657,7 @@ def record_submission(form: dict, file_info=None, source="form", resolve_booking
                     artist_id = by_name["id"]
                 else:
                     cands = unresponded_shows_at(cur, venue, show_date)
-                    if len(cands) == 1:
+                    if len(cands) == 1 and names_plausible(name, cands[0]["artist_name"]):
                         artist_id, show_id = cands[0]["artist_id"], cands[0]["show_id"]
                         cur.execute("""UPDATE artists SET last_email = COALESCE(%s, last_email),
                                        last_phone = COALESCE(%s, last_phone) WHERE id=%s""",
@@ -715,6 +726,32 @@ def record_submission(form: dict, file_info=None, source="form", resolve_booking
 def find_artist_by_name(cur, name):
     cur.execute("SELECT * FROM artists WHERE match_key = %s", (normalize(name),))
     return cur.fetchone()
+
+
+_NAME_STOPWORDS = {"the", "and", "&", "band", "feat", "feat.", "ft", "ft.", "featuring",
+                   "trio", "quartet", "quintet", "duo", "group", "orchestra", "dj", "with", "w/"}
+
+
+def _name_tokens(name):
+    return {t for t in re.split(r"[^a-z0-9]+", normalize(name)) if t and t not in _NAME_STOPWORDS}
+
+
+def names_plausible(typed, booked):
+    """Review 2026-09-14 (H5): is `typed` plausibly the same act as `booked`?
+    True when one normalized name contains the other, or at least half of
+    the meaningful words overlap. Gate on auto-attaching a submission to the
+    one unanswered booking — before this, ANY typed name attached to whoever
+    hadn't answered yet."""
+    a, b = normalize(typed), normalize(booked)
+    if not a or not b:
+        return False
+    if a == b or a in b or b in a:
+        return True
+    ta, tb = _name_tokens(a), _name_tokens(b)
+    if not ta or not tb:
+        return False
+    overlap = len(ta & tb)
+    return overlap / min(len(ta), len(tb)) >= 0.5
 
 
 def get_artist(cur, artist_id):
@@ -951,7 +988,18 @@ def insert_booking(cur, data: dict):
     vals["skip_welcome_email"] = bool(data.get("skip_welcome_email"))
     cols = ", ".join(BOOKING_FIELDS) + ", skip_welcome_email"
     ph = ", ".join(f"%({k})s" for k in BOOKING_FIELDS) + ", %(skip_welcome_email)s"
-    cur.execute(f"INSERT INTO bookings ({cols}) VALUES ({ph}) RETURNING id", vals)
+    # Review 2026-09-14 (H1): one booking row per band/venue/date. A double
+    # submit, a refresh that re-POSTs, or a re-entry updates the existing row
+    # instead of creating a twin that would make the lifecycle send twice.
+    # seeded_at is kept so an already-seeded row isn't appended to the sheet
+    # again.
+    upd = ", ".join(f"{k} = EXCLUDED.{k}" for k in BOOKING_FIELDS
+                    if k not in ("venue", "event_date", "artist_name"))
+    cur.execute(
+        f"""INSERT INTO bookings ({cols}) VALUES ({ph})
+            ON CONFLICT (venue, event_date, (lower(btrim(regexp_replace(artist_name, '\\s+', ' ', 'g')))))
+            DO UPDATE SET {upd}, skip_welcome_email = EXCLUDED.skip_welcome_email
+            RETURNING id""", vals)
     return cur.fetchone()["id"]
 
 
@@ -1083,21 +1131,28 @@ def filed_docs_for(cur, venue, event_date):
 
 
 def upsert_filed_doc(cur, venue, event_date, event_key, path, sha256, seeded=False,
-                     reg_id=None, keep_written_at=False):
+                     reg_id=None, keep_written_at=False, cells=None):
+    """`cells` (review 2026-09-14, H2): the per-cell provenance map — what
+    the pipeline last wrote, keyed by section|column[|paragraph]. None
+    leaves the stored map alone."""
+    import json
+    cells_json = json.dumps(cells) if cells is not None else None
     if reg_id:
         cur.execute(
             """UPDATE filed_docs SET event_key=%s, path=%s, sha256=%s,
-                   written_at = CASE WHEN %s THEN written_at ELSE now() END
+                   written_at = CASE WHEN %s THEN written_at ELSE now() END,
+                   cells = COALESCE(%s::jsonb, cells)
                WHERE id=%s""",
-            (event_key, path, sha256, keep_written_at, reg_id))
+            (event_key, path, sha256, keep_written_at, cells_json, reg_id))
         return reg_id
     cur.execute(
-        """INSERT INTO filed_docs (venue, event_date, event_key, path, sha256, seeded)
-           VALUES (%s,%s,%s,%s,%s,%s)
+        """INSERT INTO filed_docs (venue, event_date, event_key, path, sha256, seeded, cells)
+           VALUES (%s,%s,%s,%s,%s,%s,COALESCE(%s::jsonb, '{}'::jsonb))
            ON CONFLICT (venue, event_date, event_key) DO UPDATE SET
-               path=EXCLUDED.path, sha256=EXCLUDED.sha256, written_at=now()
+               path=EXCLUDED.path, sha256=EXCLUDED.sha256, written_at=now(),
+               cells = COALESCE(%s::jsonb, filed_docs.cells)
            RETURNING id""",
-        (venue, event_date, event_key, path, sha256, seeded))
+        (venue, event_date, event_key, path, sha256, seeded, cells_json, cells_json))
     return cur.fetchone()["id"]
 
 
@@ -1140,6 +1195,19 @@ def record_send_failure(cur, show_id, kind, error):
 
 
 def unnotified_send_failures(cur):
+    """Failures to email Brian about now. Review 2026-09-14 (M6): the same
+    show / kind / error that was already emailed in the last 7 days is
+    suppressed (marked notified + suppressed, no email) so a standing data
+    gap nags once a week, not every morning. A new error text for the same
+    show is still reported right away."""
+    cur.execute(
+        """UPDATE send_failures f SET notified_at = now(), suppressed = true
+           WHERE f.notified_at IS NULL
+             AND EXISTS (SELECT 1 FROM send_failures p
+                         WHERE p.show_id = f.show_id AND p.kind = f.kind
+                           AND p.error IS NOT DISTINCT FROM f.error
+                           AND p.notified_at IS NOT NULL AND NOT p.suppressed
+                           AND p.notified_at > now() - interval '7 days')""")
     cur.execute(
         """SELECT f.*, a.name AS artist_name, s.venue, s.show_date
            FROM send_failures f JOIN shows s ON s.id = f.show_id
@@ -1151,6 +1219,90 @@ def unnotified_send_failures(cur):
 def mark_send_failures_notified(cur, ids):
     if ids:
         cur.execute("UPDATE send_failures SET notified_at=now() WHERE id = ANY(%s)", (list(ids),))
+
+
+# ── digest queue + "needs you" feed (review 2026-09-14, E1) ─────────────────
+
+def queue_digest_item(cur, kind, subject, html, link=None):
+    """Something Brian should see, folded into the next 7am digest instead
+    of its own email (doc notices, submission matches, slot clashes, the
+    3-day unresponded list, thank-you / day-before failures)."""
+    cur.execute("INSERT INTO digest_items (kind, subject, html, link) VALUES (%s,%s,%s,%s) RETURNING id",
+                (kind, subject, html, link))
+    return cur.fetchone()["id"]
+
+
+def undelivered_digest_items(cur):
+    cur.execute("SELECT * FROM digest_items WHERE delivered_at IS NULL ORDER BY id")
+    return cur.fetchall()
+
+
+def mark_digest_items_delivered(cur, ids):
+    if ids:
+        cur.execute("UPDATE digest_items SET delivered_at = now() WHERE id = ANY(%s)", (list(ids),))
+
+
+def needs_attention(cur):
+    """Open decisions and problems, live, for the dashboard panel and the
+    digest. Each entry: {kind, label, detail, link_path, since}."""
+    out = []
+    cur.execute("""SELECT m.id, m.typed_name, m.venue, m.show_date, m.status, m.created_at
+                   FROM submission_matches m WHERE m.resolved_at IS NULL ORDER BY m.id""")
+    for m in cur.fetchall():
+        out.append({"kind": "match", "label": "Submission needs a booking",
+                    "detail": f"“{m['typed_name']}” — {m['venue']} {m['show_date']:%m/%d} "
+                              + ("(auto-attached, confirm or detach)" if m["status"] == "attached_auto" else "(pick the booking)"),
+                    "link_path": f"/submission-match/{m['id']}", "since": m["created_at"]})
+    cur.execute("""SELECT s.id, a.name, s.venue, s.show_date, s.hold_reason, s.held_at
+                   FROM shows s JOIN artists a ON a.id=s.artist_id
+                   WHERE s.held_at IS NOT NULL AND s.cancelled_at IS NULL ORDER BY s.show_date""")
+    for h in cur.fetchall():
+        out.append({"kind": "hold", "label": "Show on hold",
+                    "detail": f"{h['name']} — {h['venue']} {h['show_date']:%m/%d}: {h['hold_reason']}",
+                    "link_path": f"/show/{h['id']}/hold", "since": h["held_at"]})
+    cur.execute("""SELECT n.* FROM doc_notices n
+                   WHERE n.kind = 'diff' AND (n.event_date IS NULL OR n.event_date >= CURRENT_DATE)
+                     AND n.created_at > now() - interval '14 days' ORDER BY n.event_date, n.id""")
+    for n in cur.fetchall():
+        out.append({"kind": "doc", "label": "Doc differs from new info",
+                    "detail": f"{n['venue']} {n['event_date']:%m/%d} · {n['field']}: doc says “{(n['doc_value'] or '')[:60]}”, new “{(n['new_value'] or '')[:60]}”",
+                    "link_path": None, "since": n["created_at"]})
+    cur.execute("""SELECT f.*, a.name, s.venue, s.show_date FROM send_failures f
+                   JOIN shows s ON s.id=f.show_id JOIN artists a ON a.id=s.artist_id
+                   WHERE f.created_at > now() - interval '3 days' AND s.show_date >= CURRENT_DATE
+                   ORDER BY f.id DESC""")
+    for f in cur.fetchall():
+        out.append({"kind": "send", "label": f"Email not sent ({f['kind']})",
+                    "detail": f"{f['name']} — {f['venue']} {f['show_date']:%m/%d}: {f['error']}",
+                    "link_path": None, "since": f["created_at"]})
+    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date FROM shows s
+                   JOIN artists a ON a.id=s.artist_id
+                   WHERE s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 21
+                     AND s.cancelled_at IS NULL AND s.held_at IS NULL AND s.responded_at IS NULL
+                     AND COALESCE(a.last_email, '') = '' ORDER BY s.show_date""")
+    for r in cur.fetchall():
+        out.append({"kind": "noemail", "label": "No contact email",
+                    "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}",
+                    "link_path": f"/artist/{r['artist_id']}", "since": None})
+    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date, s.thankyou_error
+                   FROM shows s JOIN artists a ON a.id=s.artist_id
+                   WHERE s.thankyou_error IS NOT NULL AND s.thankyou_sent_at IS NULL
+                     AND s.show_date >= CURRENT_DATE ORDER BY s.show_date""")
+    for r in cur.fetchall():
+        out.append({"kind": "thankyou", "label": "Thank-you not sent",
+                    "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: {r['thankyou_error']}",
+                    "link_path": f"/artist/{r['artist_id']}", "since": None})
+    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date
+                   FROM shows s JOIN artists a ON a.id=s.artist_id
+                   WHERE s.responded_at IS NULL AND s.cancelled_at IS NULL AND s.held_at IS NULL
+                     AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 3
+                     AND NOT EXISTS (SELECT 1 FROM submissions x WHERE x.show_id = s.id)
+                   ORDER BY s.show_date""")
+    for r in cur.fetchall():
+        out.append({"kind": "unresponded", "label": "No form, show within 3 days",
+                    "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}",
+                    "link_path": f"/artist/{r['artist_id']}", "since": None})
+    return out
 
 
 # ── job runs (audit #21) ─────────────────────────────────────────────────────

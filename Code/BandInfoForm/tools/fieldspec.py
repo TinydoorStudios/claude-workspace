@@ -205,11 +205,11 @@ VENUE_LOCATION = {
     "Fountain Square": "Fountain Square – Mainstage; 520 Vine St. Cincinnati, OH 45202",
     # add the other venues' location lines as they're confirmed
 }
-# fallback day schedule when the sheet leaves a field blank (FSQ standard)
-SCHEDULE_DEFAULTS = {
-    "load_in": "6:00p", "soundcheck": "6:30p", "event_start": "7:00p",
-    "event_end": "10:00p", "curfew": "11:00p",
-}
+# Review 2026-09-14 (M3): a blank schedule field in the email says so. The
+# old FSQ-standard SCHEDULE_DEFAULTS (6:00p/6:30p/7:00p/10:00p/11:00p) were
+# being sent as fact at every venue; they're gone.
+SCHEDULE_TBD = "TBD — your day-of contact will confirm"
+SCHEDULE_TBD_ES = "Por confirmar — su contacto del día del evento lo confirmará"
 
 ACT_FIELDS = [
     ("Slot",          "slot",         SLOTS),

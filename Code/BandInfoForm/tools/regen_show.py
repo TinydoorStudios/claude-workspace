@@ -58,7 +58,10 @@ def regen(venue, date, artist, send_mail=True):
 
     d = ev.get("event_date")
     folder = fs.real_dropbox_root() / fs.real_venue_folder(ev.get("venue")) / fs.real_month_folder(ev.get("venue"), d)
-    stem = fs.advance_stem(fs.event_display_name(ev, acts), d)
+    name = fs.event_display_name(ev, acts)
+    if docmerge.all_acts_cancelled(ev, acts):
+        name = f"CANCELLED - {name}"
+    stem = fs.advance_stem(name, d)
 
     stageplot_names, plot_notices = {}, []
     for act in acts:
