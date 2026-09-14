@@ -1,0 +1,14 @@
+{
+  "show": "Zumba Latin Band",
+  "venue": "Fountain Square",
+  "date": "2026-10-01",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:52",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    }
+  },
+  "show_key": "fsq-2026-10-01-zumba-latin-band",
+  "advance_show_id": 149,
+  "advance_event": "Salsa On The Square"
+}

@@ -1,0 +1,14 @@
+{
+  "show": "The Latin Beat Project",
+  "venue": "Fountain Square",
+  "date": "2026-09-24",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:51",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    }
+  },
+  "show_key": "fsq-2026-09-24-the-latin-beat-project",
+  "advance_show_id": 785,
+  "advance_event": null
+}

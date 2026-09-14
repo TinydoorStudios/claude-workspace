@@ -1,0 +1,14 @@
+{
+  "show": "2ndWind",
+  "venue": "Fountain Square",
+  "date": "2026-09-19",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:51",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    }
+  },
+  "show_key": "fsq-2026-09-19-2ndwind",
+  "advance_show_id": 640,
+  "advance_event": null
+}

@@ -1,0 +1,14 @@
+{
+  "show": "Wishy",
+  "venue": "Fountain Square",
+  "date": "2026-09-18",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:50",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    }
+  },
+  "show_key": "fsq-2026-09-18-wishy",
+  "advance_show_id": 459,
+  "advance_event": null
+}

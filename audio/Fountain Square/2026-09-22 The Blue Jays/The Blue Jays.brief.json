@@ -1,0 +1,18 @@
+{
+  "show_name": "The Blue Jays",
+  "artist": "The Blue Jays",
+  "venue": "fsq",
+  "venue_label": "Fountain Square (outdoor)",
+  "console_label": "DiGiCo Quantum 225",
+  "show_date": "2026-09-22",
+  "show_time": "5:00pm",
+  "foh_engineer": "Brian Lloyd",
+  "mon_engineer": "",
+  "rev": "Rev 0 — advance skeleton",
+  "show_key": "fsq-2026-09-22-the-blue-jays",
+  "advance_show_id": 918,
+  "event_name": "",
+  "series": "Jazz on the Square",
+  "show_notes": "Monitors: 6 | Stage type: Flat stage | Performers: 7 | Backline: no | Scenic: no | Own engineer: Yes — bringing our own (we'll coordinate)",
+  "channels": []
+}

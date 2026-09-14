@@ -1,0 +1,14 @@
+{
+  "show": "RatBoys",
+  "venue": "Fountain Square",
+  "date": "2026-09-18",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:51",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    }
+  },
+  "show_key": "fsq-2026-09-18-ratboys",
+  "advance_show_id": 475,
+  "advance_event": null
+}

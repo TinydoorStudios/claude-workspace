@@ -1,0 +1,14 @@
+{
+  "show": "Jazz Retro Nouveau, feat. Jack Garrett",
+  "venue": "Washington Park",
+  "date": "2026-09-14",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:49",
+      "note": "venue=wp console=Midas M32"
+    }
+  },
+  "show_key": "wp-2026-09-14-jazz-retro-nouveau-feat-jack-garrett",
+  "advance_show_id": 241,
+  "advance_event": null
+}

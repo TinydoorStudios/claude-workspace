@@ -1,0 +1,14 @@
+{
+  "show": "The Amador Sisters",
+  "venue": "Fountain Square",
+  "date": "2026-09-17",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:50",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    }
+  },
+  "show_key": "fsq-2026-09-17-the-amador-sisters",
+  "advance_show_id": 703,
+  "advance_event": null
+}

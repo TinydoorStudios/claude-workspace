@@ -1,0 +1,14 @@
+{
+  "show": "Al West Jr.",
+  "venue": "Washington Park",
+  "date": "2026-09-28",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:51",
+      "note": "venue=wp console=Midas M32"
+    }
+  },
+  "show_key": "wp-2026-09-28-al-west-jr",
+  "advance_show_id": 680,
+  "advance_event": null
+}

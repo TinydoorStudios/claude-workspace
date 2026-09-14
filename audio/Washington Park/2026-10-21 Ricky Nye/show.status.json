@@ -1,0 +1,14 @@
+{
+  "show": "Ricky Nye",
+  "venue": "Washington Park",
+  "date": "2026-10-21",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:52",
+      "note": "venue=wp console=Midas M32"
+    }
+  },
+  "show_key": "wp-2026-10-21-ricky-nye",
+  "advance_show_id": 398,
+  "advance_event": "Blues & Brews - Ricky Nye"
+}

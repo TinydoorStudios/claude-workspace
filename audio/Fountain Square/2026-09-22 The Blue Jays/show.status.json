@@ -1,0 +1,14 @@
+{
+  "show": "The Blue Jays",
+  "venue": "Fountain Square",
+  "date": "2026-09-22",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-14T10:24:51",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    }
+  },
+  "show_key": "fsq-2026-09-22-the-blue-jays",
+  "advance_show_id": 918,
+  "advance_event": null
+}
