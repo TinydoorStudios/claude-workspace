@@ -85,6 +85,11 @@ def one_pass(sheet, nyquist, scope, summary):
     for sc in scope or []:
         cmd += ["--scope", sc]
     built = run(*cmd)
+    # per-doc actions and warnings into the run log (stderr, so the summary
+    # JSON stays the last stdout line run_again.py parses)
+    for line in (built.stdout or "").splitlines() + (built.stderr or "").splitlines():
+        if line.lstrip().startswith(("doc ", "!")):
+            print(line, file=sys.stderr)
     m = re.search(r"(\d+) event\(s\) filed .+? (\d+) email\(s\) .+? (\d+) follow-up\(s\) .+? "
                   r"(\d+) stage plot\(s\) .+? (\d+) day-sheet failure", built.stdout)
     if m:

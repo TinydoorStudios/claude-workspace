@@ -535,7 +535,8 @@ def _run_pipeline_background(scope=None):
         log_path = BASE / "data" / "run_now_background.log"
         log_path.parent.mkdir(parents=True, exist_ok=True)
         with open(log_path, "a") as logf:
-            logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')} ---\n")
+            logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')}"
+                       f"{' (' + scope + ')' if scope else ''} ---\n")
             logf.flush()
             cmd = [sys.executable, "run_now.py"] + (["--scope", scope] if scope else [])
             subprocess.Popen(
@@ -571,11 +572,25 @@ def _run_pipeline_then_trigger_now(scope=None):
     show is actually seeded in the database before triggering the immediate
     draft + notify — then fires it. Runs in a background thread (not the
     request thread) so /booking's response is never held up by it."""
+    # Output goes to the same log as the background run (2026-09-14): it used
+    # to be captured and dropped, so a failed late-booking run left no trace.
     try:
-        subprocess.run([sys.executable, "run_now.py"] + (["--scope", scope] if scope else []),
-                        cwd=TOOLS_DIR, capture_output=True, text=True, timeout=1200)
+        log_path = BASE / "data" / "run_now_background.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "a") as logf:
+            logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')} "
+                       f"(late booking{', ' + scope if scope else ''}) ---\n")
+            logf.flush()
+            proc = subprocess.run([sys.executable, "run_now.py"] + (["--scope", scope] if scope else []),
+                                  cwd=TOOLS_DIR, stdout=logf, stderr=subprocess.STDOUT, timeout=1200)
+            if proc.returncode != 0:
+                logf.write(f"exit {proc.returncode}\n")
     except Exception as e:
         _log_db_error("late_booking_pipeline", e)
+        return
+    if proc.returncode != 0:
+        _log_db_error("late_booking_pipeline", RuntimeError(
+            f"run_now.py exit {proc.returncode} ({scope}) — see run_now_background.log"))
         return
     _trigger_immediate_advance()
 
