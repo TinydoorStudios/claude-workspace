@@ -1,5 +1,5 @@
 # Buffalo Wabs and the Price Hill Hustle — FOH Channel Processing
-## Fountain Square (outdoor) · DiGiCo Quantum 225 · 2026-08-28 · Rev 1.0 Deep Think
+## Fountain Square (outdoor) · DiGiCo Quantum 225 · 2026-08-28 · Rev 2.1 Deep Think
 *Deep-research pass. Active channels only. Band order: B4 (high) -> B3 -> B2 -> B1 (low).*
 
 ## Ch 1 | Kick In | Shure Beta 91A
@@ -58,42 +58,35 @@ B3: -4 | 800 | 2 | BELL
 B2: -6 | 250 | 2 | BELL
 B1: FLAT
 
-## Ch 13 | Mandolin | XLR (pickup DI)
+## Ch 13 | Aco Mando | XLR (pickup DI)
 HPF: 120 | LPF: OFF
 B4: -3 | 7000 | 2 | BELL
 B3: -6 | 2500 | 3 | BELL
 B2: -5 | 400 | 2 | BELL
 B1: FLAT
 
-## Ch 14 | Elec Mando | XLR (DI)
-HPF: 100 | LPF: OFF
-B4: FLAT
-B3: -4 | 2500 | 2.5 | BELL
-B2: -4 | 400 | 2 | BELL
-B1: FLAT
-
-## Ch 15 | Resonator | XLR (pickup DI)
+## Ch 14 | Resonator | XLR (pickup DI)
 HPF: 90 | LPF: OFF
 B4: -3 | 8000 | 2 | BELL
 B3: -5 | 3500 | 2 | BELL
 B2: -6 | 250 | 2 | BELL
 B1: FLAT
 
-## Ch 16 | Banjo | XLR (pickup DI)
-HPF: 120 | LPF: OFF
-B4: -3 | 5000 | 2 | BELL
-B3: -4 | 1500 | 2 | BELL
-B2: -5 | 250 | 2 | BELL
+## Ch 15 | Elec Mnd/Gtr | XLR (cab-sim direct)
+HPF: 95 | LPF: 11000
+B4: -3 | 3500 | 2.5 | BELL
+B3: -2 | 1500 | 2 | BELL
+B2: -4 | 350 | 2 | BELL
 B1: FLAT
 
-## Ch 17 | Acoustic Gtr | XLR (pickup DI)
+## Ch 16 | Acoustic Gtr | XLR (pickup DI)
 HPF: 90 | LPF: OFF
 B4: -3 | 7000 | 2 | BELL
 B3: -6 | 2800 | 3 | BELL
 B2: -5 | 400 | 2 | BELL
 B1: FLAT
 
-## Ch 18 | Mando/Bjo/Gtr | XLR (pickup DI)
+## Ch 17 | Mando/Bjo/Gtr | XLR (pickup DI)
 HPF: 100 | LPF: OFF
 B4: -3 | 7000 | 2 | BELL
 B3: -5 | 2500 | 2.5 | BELL
