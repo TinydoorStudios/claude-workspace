@@ -152,30 +152,9 @@ Read this at the start of every session. No need to confirm you've read it — j
 
 ---
 
-## Core EQ Rules (Apply to ALL EQ Docs)
+## Core EQ Rules + the Deep Think pipeline
 
-- Whole dB values only — never half-dB, round up
-- No high shelf band unless explicitly requested
-- No compression unless explicitly requested
-- Band order (locked 2026-05-30, B1 = console LOW band): HPF → LPF → Band 4 (HF) → Band 3 → Band 2 → Band 1 (LF)
-- DiGiCo Dynamic EQ documented inline within the EQ band row
-- Subtractive first — find and cut problems before boosting
-
-**Genre philosophy:**
-
-| Genre | Approach |
-|---|---|
-| Classical | Minimal. Spots blend. Nothing aggressive. |
-| Acoustic / Folk | Conservative. Piezo quack at 1.5–2kHz is the primary target. |
-| Celtic | 5ms+ gate attack. Never gate sustained notes. |
-| All other genres | Aggressive by default: cuts −4 to −7dB tight Q, boosts +3 to +6dB. |
-| FSQ / outdoor | Cuts one step DEEPER than indoor: −6 to −9 dB typical, up to −10 on mud. Clarity first (2026-07-08). |
-
----
-
-## EQ Starting Points
-
-Removed from this file 2026-07-01 — the tables had drifted from the locked console band convention and duplicated the KB. **Canonical source: `audio/Live Sound KB/Wiki/eq-starting-points.md`** (instrument × mic × venue tables, genre modifiers, Memo crowd-mic EQ). Show EQ is never copied from tables anyway: every channel runs through the Deep Think flow — the **show-deep-build** skill (one skill since 2026-07-09; its Part II EQ method is the former eq-advisor) — per the pipeline specs — the KB is the floor, the research is the point. Locked 2026-07-05 (equipment + genre gate + TRACE added 2026-07-19): per-input order of importance and process is **instrument (+its notated equipment) → mic → genre → venue** (artist profile refines and outranks the generic genre read; venue applied last as constraint filter); the genre itself is verified with named evidence before any research runs (split evidence = ask immediately); notated equipment (amp/cab model, drum sizes, strings, pickups) carries the same research floor as a mic; each unit's research_summary closes with a five-layer TRACE line (base · equip · genre · artist · venue, value or "no change" per layer); research runs fresh every show (no cross-show cache, within-show dedupe only); every mic'd input gets the locker FORK against `mic-library.md` (upgraded 2026-07-26 from an FYI suggestion to a decision Brian makes: one owned, unassigned alternative max, a three-sentence why — the win with a number · what it changes · the honest cost — never TOUR gear or the fixed Memo crowd rig, and **DI / XLR line-feed inputs are exempt**); all questions + locker forks batch into one up-front round before any EQ commits, forks first, and an unanswered fork blocks the build.
+All hard rules for show work — console format, EQ philosophy, research discipline, mics/faders, process gates — are numbered in **`audio/_system/RULES.md`** (R1–R47). Read it at the start of any show or EQ task; nothing here restates it (2026-09-14). Every new show runs the **show-deep-build** skill; the .ses build is **send-it**; publishing is **show-wiki-push**; the chain is `audio/_system/PIPELINE.md`. Canonical EQ starting points: `audio/Live Sound KB/Wiki/eq-starting-points.md` (the floor, never the answer — R23).
 
 ---
 

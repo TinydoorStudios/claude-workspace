@@ -61,17 +61,8 @@ Knowledge lives in one place: `Live Sound KB/Wiki/`. This file routes; the KB ho
 ## Global rules (apply to every venue)
 
 - **Show folder name:** `YYYY-MM-DD ShowName` inside the venue folder (date first so folders sort chronologically). Create the venue folder if it's a new venue.
-- **Show state lives in `show.status.json`** (2026-07-19, `_shared/show_status.py`) — scaffolded / packet_built / ses_built / verified / published. The scaffold creates it, builds stamp it automatically, and later stages read it instead of guessing from folder recency. `verified` is optional/informational — publishing gates on Brian's explicit go, never on a console check (shows are one-offs). Pre-2026-07-19 shows don't have one; stamp retroactively when touching them.
-- **Default deliverable: PDF.** `build_packet.py` renders the FOH `.md`, Input List xlsx, Show Packet PDF, EQ Rationale PDF and MASTER PDF from `spec.json` (all reportlab; no HTML stage).
-- **Pipeline is five stages** — scaffold → deep build → .ses → console (not a gate) → publish. See `_system/PIPELINE.md`.
-- **At packet completion:** generate the master reference PDF (input list summary, EQ decisions, patching, mic choices, stage plot reference, file index), update `active-projects.md` + `CHANGELOG.md`, and log anything learned to `_system/IMPROVEMENTS.md`.
-- **EQ:** aggressive by default, whole-dB only, subtractive first — except classical (minimal), acoustic/folk (conservative, watch 1.5–2kHz piezo quack), Celtic (5ms+ attack, never gate sustained notes). Full tables in KB `eq-starting-points`.
-- **Memo crowd-mic rig** is always patched for Memo shows (CH numbers left blank). OM1 / Deity S2 / CM4 — EQ in KB `eq-starting-points`.
-- **Reverb:** always use real Seventh Heaven Pro / Liquidsonics preset names from the KB — never generic descriptions, never invented names.
-- **Broadcast shows** use *underheads / underhat*, not overheads.
-- **Ribbon mics** (R-121, R88): flag NO 48V in red, every time.
-
----
+- **Show state lives in `show.status.json`** (`_shared/show_status.py`): scaffolded / packet_built / ses_built / verified / published / harvested, plus `rev` and file hashes. Read it; never infer state from folder recency.
+- **Everything else** — EQ philosophy, mic rules, faders, gates, format — is numbered in `_system/RULES.md`. This file routes; it does not restate rules (2026-09-14).
 
 ## Self-improvement loop
 

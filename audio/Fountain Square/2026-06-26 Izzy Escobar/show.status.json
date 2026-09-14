@@ -1,0 +1,23 @@
+{
+  "show": "Izzy Escobar",
+  "venue": "Fountain Square",
+  "date": "2026-06-26",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-06-25T00:00:00",
+      "note": "folder (backfilled 2026-09-14 from file mtime)"
+    },
+    "packet_built": {
+      "at": "2026-06-25T09:40:45",
+      "note": "paperwork (backfilled 2026-09-14 from file mtime)"
+    },
+    "ses_built": {
+      "at": "2026-06-25T09:40:45",
+      "note": "Izzy Escobar.ses (backfilled 2026-09-14 from file mtime)"
+    },
+    "published": {
+      "at": "2026-06-25T09:42:49",
+      "note": "kb.tinydoorstudios.com/show-fsq-2026-06-26-izzy-escobar (backfilled 2026-09-14 from file mtime)"
+    }
+  }
+}

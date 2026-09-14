@@ -865,10 +865,12 @@ def main_cli(cal, argv=None):
     # in scan mode the blocks are found by the template names.
     bounds = {ch: block_bounds(cal, src, ch) for ch in processed}
 
+    name_fail = False
     for ch in processed:                 # 3. patch
         v = work[ch]
         n = write_name(cal, data, ch, v['name'], bounds[ch])
         if n < 5:
+            name_fail = True
             print(f"    !! fader {ch}: only {n} name fields written "
                   f"(expected ~20) — output not trustworthy")
         write_channel(cal, data, ch, v['bands'], hpf=v['hpf'], lpf=v['lpf'],
@@ -892,15 +894,27 @@ def main_cli(cal, argv=None):
 
     ok = verify(cal, src, out_bytes, processed, bounds)    # 4. verify
     ok &= readback(cal, out_bytes, work)                   # 5. readback
+    if name_fail:
+        print("  name fields: FAIL (a fader wrote fewer than 5 name copies)")
+        ok = False
     if ok:
         try:
             import show_status
         except ImportError:
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
             import show_status
+        extra = {"ses_md5": show_status.file_md5(a.dest)}
+        if a.md:
+            extra["md_md5"] = show_status.file_md5(a.md)
         show_status.stamp(os.path.dirname(os.path.abspath(a.dest)), "ses_built",
                           note=f"{cal['venue']} · {len(processed)} channels · "
-                               f"{os.path.basename(a.dest)}")
+                               f"{os.path.basename(a.dest)}", extra=extra)
+    else:
+        try:
+            os.remove(a.dest)
+            print(f"  removed {a.dest} — a failed build is never left on disk")
+        except OSError:
+            pass
     print(f"\nWritten -> {a.dest}")
     print("\nNEXT: publish on Brian's go (show-wiki-push). The .ses is recalled at the show; console verification is not a gate.")
     return 0 if ok else 1

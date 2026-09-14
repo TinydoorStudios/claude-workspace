@@ -1,0 +1,23 @@
+{
+  "show": "The Hot Magnolias",
+  "venue": "Fountain Square",
+  "date": "2026-07-11",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-07-08T00:00:00",
+      "note": "folder (backfilled 2026-09-14 from file mtime)"
+    },
+    "packet_built": {
+      "at": "2026-07-08T21:28:16",
+      "note": "paperwork (backfilled 2026-09-14 from file mtime)"
+    },
+    "ses_built": {
+      "at": "2026-07-08T21:28:35",
+      "note": "The Hot Magnolias.ses (backfilled 2026-09-14 from file mtime)"
+    },
+    "published": {
+      "at": "2026-07-13T09:31:22",
+      "note": "kb.tinydoorstudios.com/show-fsq-2026-07-11-the-hot-magnolias (backfilled 2026-09-14 from file mtime)"
+    }
+  }
+}

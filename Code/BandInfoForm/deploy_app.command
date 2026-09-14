@@ -13,7 +13,7 @@ KEY="$HOME/.ssh/proxmox_tds"
 # Review 2026-09-14 (H6): this tree is shared by several Claude sessions and
 # a `git checkout` by any of them changes what this script would ship.
 # Refuse unless the deployed branch is checked out here.
-WANT="${ADVANCE_DEPLOY_BRANCH:-advance-system}"
+WANT="${ADVANCE_DEPLOY_BRANCH:-main}"
 CUR="$(git -C "$HERE" branch --show-current 2>/dev/null)"
 if [ "$CUR" != "$WANT" ]; then
   echo "REFUSING to deploy: $HERE is on branch '$CUR', expected '$WANT' (set ADVANCE_DEPLOY_BRANCH to override)."

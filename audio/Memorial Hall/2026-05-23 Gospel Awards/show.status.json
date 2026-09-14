@@ -1,0 +1,19 @@
+{
+  "show": "Gospel Awards",
+  "venue": "Memorial Hall",
+  "date": "2026-05-23",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-05-22T00:00:00",
+      "note": "folder (backfilled 2026-09-14 from file mtime)"
+    },
+    "packet_built": {
+      "at": "2026-05-22T18:35:21",
+      "note": "paperwork (backfilled 2026-09-14 from file mtime)"
+    },
+    "ses_built": {
+      "at": "2026-05-22T09:01:25",
+      "note": "Gospel_Awards_2026_v12.ses (backfilled 2026-09-14 from file mtime)"
+    }
+  }
+}

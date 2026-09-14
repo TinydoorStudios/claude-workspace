@@ -71,6 +71,10 @@ COLS = [
     ("Advance Drafted", 12, "live"),
     ("Follow-up Drafted", 12, "live"), ("Responded", 12, "live"),
     ("Contact Email", 22, "live"), ("Files", 6, "live"),
+    # FOH paperwork state, from the show pipeline on Brian's Mac via Dropbox
+    # (audio/_shared/advance_bridge.py --push-status writes
+    # Nyquist/show-packet-status.json; keyed by fieldspec.show_key). 2026-09-14.
+    ("Packet", 11, "live"), (".ses", 11, "live"), ("Wiki", 11, "live"),
     ("Feedback Survey Sent?", 11, "manual"), ("Notes", 28, "manual"),
 ]
 MANUAL_LABELS = {lbl for lbl, _w, kind in COLS if kind == "manual"}
@@ -109,6 +113,16 @@ class UnreadableLog(Exception):
     pass
 
 
+def packet_status():
+    """{show_key: {...}} from the Mac-side show pipeline, or {} if not synced yet."""
+    import json
+    p = NYQUIST_DEFAULT / "show-packet-status.json"
+    try:
+        return json.loads(p.read_text()).get("shows", {})
+    except (OSError, ValueError):
+        return {}
+
+
 def read_manual(path):
     """{show_id: {label: value}} preserved from the existing file. Raises
     UnreadableLog when the file exists but can't be read safely (open in
@@ -125,10 +139,11 @@ def read_manual(path):
     if "Show Status" not in wb.sheetnames:
         raise UnreadableLog("no 'Show Status' tab")
     ws = wb["Show Status"]
-    label_col = {ws.cell(4, c).value: c for c in range(1, len(COLS) + 1)}
+    label_col = {ws.cell(4, c).value: c for c in range(1, ws.max_column + 1)}
+    id_col = label_col.get("Show ID", ID_COL)   # by header, so adding columns can't orphan the id
     out = {}
     for r in range(5, ws.max_row + 1):
-        sid = ws.cell(r, ID_COL).value
+        sid = ws.cell(r, id_col).value
         if sid is None:
             continue
         row = {}
@@ -185,10 +200,15 @@ def build(rows, manual_by_id):
     ws.cell(hrow, ID_COL, "Show ID")
     ws.column_dimensions[id_letter].hidden = True
 
+    pk = packet_status()
     r = hrow + 1
     for row in rows:
         label, fg, txt = STATE_STYLE.get(row["state"], (row["state"] or "—", "E5E7EB", "374151"))
         preserved = manual_by_id.get(row["show_id"], {})
+        ps = pk.get(fs.show_key(row["venue"], row["show_date"], row["band"]), {}) if row["show_date"] else {}
+        def _pd(k):
+            v = ps.get(k)
+            return v[:10] if v else "—"
         live = {
             "Event Name": row["event_name"] or "—",
             "Band": row["band"],
@@ -205,6 +225,7 @@ def build(rows, manual_by_id):
             "Responded": fdate(row["responded_at"]) or "",
             "Contact Email": row["contact_email"] or "—",
             "Files": row["file_count"] or 0,
+            "Packet": _pd("packet_built"), ".ses": _pd("ses_built"), "Wiki": _pd("published"),
         }
         for i, (clabel, _w, kind) in enumerate(COLS, start=1):
             value = live.get(clabel, preserved.get(clabel, "")) if kind == "live" else preserved.get(clabel, "")

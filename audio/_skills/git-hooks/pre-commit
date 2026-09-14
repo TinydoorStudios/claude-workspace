@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# Keep the Cowork .skill packages in lockstep with their source on every commit.
-# Tracked in-repo and wired via core.hooksPath, so it survives a re-clone. If hooks
-# ever stop firing after a fresh clone, re-enable with one command:
+# Show-pipeline regression guard (pipeline-fix, 2026-09-14). Runs the selftest
+# only when a staged file touches the code or templates the .ses/packet build
+# depends on, so ordinary commits stay fast. Tracked in-repo, wired via
+# core.hooksPath; if it ever stops firing after a re-clone:
 #   git config core.hooksPath audio/_skills/git-hooks
-set -euo pipefail
+set -uo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
-BUILDER="$ROOT/audio/_skills/build-packages.sh"
-[ -x "$BUILDER" ] && "$BUILDER" --staged
+if git diff --cached --name-only | grep -qE '^audio/(_shared/|_skills/show-deep-build/scripts/|show-packet-builder-template\.py|[^/]+/Q225 SES Patcher SOP/|[^/]+/_TEMPLATE/[^/]+\.ses$)'; then
+  echo "pre-commit: pipeline code/template staged — running selftest"
+  python3 "$ROOT/audio/_shared/selftest.py" --quick || { echo "pre-commit: selftest FAILED — commit blocked"; exit 1; }
+fi
 exit 0

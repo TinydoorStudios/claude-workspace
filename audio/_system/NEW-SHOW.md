@@ -56,34 +56,5 @@ that's the trigger to harvest it into the KB so the next conversation inherits i
 ---
 
 ## Don't-forget rules
-- Genre is VERIFIED first with named evidence before any research (2026-07-19); split/hybrid
-  evidence = ask Brian immediately, the one exception to the batched round. Notated equipment
-  (amp/cab, drum sizes, strings, pickups) rides the instrument layer with the mic-grade research
-  floor, and every unit's research_summary closes with the five-layer TRACE line
-  (base · equip · genre · artist · venue).
-- THE KB IS FOR LONGEVITY, NOT RESEARCH (Brian, 2026-07-08). No model may source an EQ value from
-  the KB — every instrument × mic unit gets a fresh web pass with a named external source and a
-  quantitative capsule fact, no familiar-mic exemption. The KB's only build-time job is the
-  cross-check (disagreement = stop-and-ask); its other job is receiving the post-show harvest.
-- Capsule-voicing gate: never boost into a baked peak; trim it. Two-mic sources get full-spectrum
-  lane ownership (no stacked boosts top or bottom).
-- Sections (horns, BVs, twin guitars) are slotted in the band values, with each channel's lane
-  named — a stated principle must be traceable in the numbers.
-- Outdoor weather is FETCHED for the show window and quoted with numbers — seasonal assumptions
-  are banned. Humid ≠ dry: hot+dry = protect presence from air loss; hot+humid = HF carries
-  slightly better, don't over-boost it.
-- Reverb settings anchor to factory values ("(factory)" / "(from X factory)"); presets picked for
-  this band's material. Switchable hardware (contour, pads, caps) gets an assumed state + fallback.
-- The question round consumes carried flags — a FLAG that survives two revs unasked is a failure.
-- Memo: crowd-mic rig (OM1 / Deity S2 / CM4) always patched, CH numbers blank, fixed EQ.
-- Classical = conservative, cuts-only. Acoustic/folk = watch the 1.5–2kHz piezo quack. Celtic =
-  5ms+ attack, never gate sustained notes. Everything else = aggressive, whole-dB only.
-- **Reverb suggestions required every show — FSQ included** (2026-07-08): Seventh Heaven Pro,
-  3 complementary vocal + 1–2 instrument + 1 general when warranted, settings + in-plugin EQ +
-  why + a pairing note. Preset names verbatim from the KB — never invented.
-- FSQ / outdoor: cuts DEEPER than indoor — −6 to −9 dB typical, up to −10 on mud. Clarity first.
-- Stage plots are band-provided — never generate one. FSQ ch 10 = SNARE PL8 return; OH stereo on 9.
-- Broadcast = underheads/underhat, not overheads. Ribbon mics = NO 48V, flagged red.
-- Vocals: cuts only, every genre. No high-shelf band unless asked.
-- Every show ships the EQ Rationale PDF and the MASTER PDF. Default output is PDF; warm, direct
-  writing (`about-me/writing-rules.md`).
+
+The hard rules are numbered in `_system/RULES.md` — read it, don't rely on memory. This file no longer restates them (2026-09-14). The ones that bite most often: R9 vocals cuts-only · R12 outdoor cuts deeper · R23 the KB is for longevity, not research · R32 locker fork · R33 wireless faders · R34 FSQ ch 10 reserved · R39 one question at a time · R42 console verification is not a gate.

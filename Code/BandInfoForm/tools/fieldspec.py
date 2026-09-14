@@ -95,6 +95,20 @@ def real_month_folder(v, d):
     return f"{d.month:02d}.{d.year} {code}"
 
 
+def show_key(venue, show_date, artist):
+    """Canonical show key shared with the show pipeline on Brian's Mac
+    (audio/_shared/advance_bridge.py — keep slug() identical there):
+    <venue code>-<YYYY-MM-DD>-<slug(artist)>, e.g. fsq-2026-08-28-buffalo-wabs."""
+    import re as _re
+    codes = {"Fountain Square": "fsq", "Memorial Hall": "memo", "Washington Park": "wp",
+             "Elm Street Plaza": "esp", "Court Street Plaza": "csp", "Zeigler Park": "zp",
+             "Imagination Alley": "ia"}
+    sl = _re.sub(r"[^a-z0-9]+", "-", str(artist or "").lower()).strip("-")
+    sl = _re.sub(r"-{2,}", "-", sl)
+    d = show_date.isoformat() if hasattr(show_date, "isoformat") else str(show_date or "")
+    return f"{codes.get((venue or '').strip(), 'x')}-{d}-{sl}"
+
+
 def venue_abbr(v):
     return VENUE_ABBR.get((v or "").strip(), (v or "Venue TBD").strip())
 

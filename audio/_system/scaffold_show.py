@@ -9,14 +9,15 @@ Usage:
 
 Creates:
     <Venue folder>/YYYY-MM-DD Show Name/
-        apply_<short>.py                      (memo/fsq only — venue patcher copy)
         Show Name - FOH Channel Processing.md (skeleton, deep-build fills it)
+        show.status.json                      (per-show state file)
 
-It does NOT invent any EQ — the MD skeleton is a stub. EQ comes from the
-show-deep-build ("Deep Think") flow driving eq-advisor, per the pipeline
-specs. The scaffold just removes the folder/patcher/file-naming setup.
+It does NOT invent any EQ — the MD skeleton is a stub; the show-deep-build
+skill fills it. It no longer copies the venue patcher into the show folder
+(2026-09-14): copies went stale on every template recalibration. Run the
+venue patcher in place — the printed NEXT line has the exact command.
 """
-import argparse, datetime, os, shutil, sys
+import argparse, datetime, os, sys
 
 AUDIO = os.path.expanduser("~/Documents/Claude/audio")
 
@@ -74,7 +75,6 @@ def main(argv=None):
     ap.add_argument('--venue', required=True, choices=sorted(VENUES))
     ap.add_argument('--date', required=True, help="YYYY-MM-DD")
     ap.add_argument('--name', required=True, help="show name")
-    ap.add_argument('--short', help="short lowercase name for apply_<short>.py")
     a = ap.parse_args(argv)
 
     try:
@@ -91,11 +91,6 @@ def main(argv=None):
     os.makedirs(show_dir)
     made = [show_dir]
 
-    if patcher_rel:
-        short = a.short or ''.join(c for c in a.name.lower() if c.isalnum())[:12]
-        dst = os.path.join(show_dir, f"apply_{short}.py")
-        shutil.copy(os.path.join(AUDIO, patcher_rel), dst)
-        made.append(dst)
 
     console = ("DiGiCo Quantum 225" if a.venue in ('memo', 'fsq')
                else "Behringer Wing" if a.venue == 'greaves'
@@ -121,9 +116,17 @@ def main(argv=None):
     print("Created:")
     for p in made:
         print(f"  {p}")
-    print("\nNext: run the deep build (show-deep-build / eq-advisor) to fill "
-          "the MD,\nthen 'send it {}' to build the .ses.".format(
-              a.venue if a.venue in ('memo', 'fsq') else '<no .ses pipeline>'))
+    print("\nNext: the show-deep-build skill fills the MD (spec.json -> build_packet.py).")
+    if patcher_rel:
+        tmpl = ("Memorial Hall/_TEMPLATE/brian memo june 2026.ses" if a.venue == 'memo'
+                else "Fountain Square/_TEMPLATE/brian fsq start.ses")
+        print("Then the .ses, running the venue patcher IN PLACE (never copy it):\n"
+              f'  python3 "{os.path.join(AUDIO, patcher_rel)}" \\\n'
+              f'    --src "{os.path.join(AUDIO, tmpl)}" \\\n'
+              f'    --dest "{show_dir}/{a.name}.ses" \\\n'
+              f'    --md "{md}"')
+    else:
+        print("(no .ses pipeline for this venue — paperwork only)")
     return 0
 
 

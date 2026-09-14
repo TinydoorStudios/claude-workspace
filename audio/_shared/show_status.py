@@ -4,9 +4,12 @@ show.status.json — per-show pipeline state.
 
 One small JSON file in every show folder tracking where the show sits in the
 five-stage chain (PIPELINE.md): scaffolded → packet_built → ses_built →
-verified → published. Written by scaffold_show.py, stamped automatically by
+verified → published → harvested. Written by scaffold_show.py, stamped automatically by
 build_packet.py and the .ses engine; "published" is stamped by the wiki push
-skill. "verified" is OPTIONAL/informational (rule 2026-07-19: shows are
+skill. Since 2026-09-14 the file also carries `rev`, `spec_md5`, `md_md5` and
+`ses_md5` (stamped by build_packet.py / the .ses engine) so a hand-edited .md or
+a stale spec is detectable — build_packet.py reconciles instead of overwriting.
+"verified" is OPTIONAL/informational (rule 2026-07-19: shows are
 one-offs — publishing gates on Brian's explicit go, never on a console check;
 stamp verified only if he volunteers that the file ran on the desk).
 
@@ -25,13 +28,26 @@ break a build.
 """
 import argparse
 import datetime
+import hashlib
 import json
 import os
 import re
 import sys
 
 FILENAME = "show.status.json"
-STAGES = ("scaffolded", "packet_built", "ses_built", "verified", "published")
+STAGES = ("scaffolded", "packet_built", "ses_built", "verified", "published", "harvested")
+
+
+def file_md5(path):
+    """md5 of a file, or None if it does not exist."""
+    try:
+        h = hashlib.md5()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                h.update(chunk)
+        return h.hexdigest()
+    except OSError:
+        return None
 
 
 def _path(folder):
@@ -87,11 +103,17 @@ def stamp(folder, stage, note=None, extra=None, strict=False):
 def render(st):
     if not st:
         return "no show.status.json"
-    lines = [f"{st.get('show')} — {st.get('venue')} {st.get('date') or ''}".rstrip()]
+    head = f"{st.get('show')} — {st.get('venue')} {st.get('date') or ''}".rstrip()
+    if st.get("rev"):
+        head += f"  [{st['rev']}]"
+    lines = [head]
     for s in STAGES:
         e = (st.get("stages") or {}).get(s)
         mark = f"✓ {e['at']}" + (f"  ({e['note']})" if e.get("note") else "") if e else "—"
         lines.append(f"  {s:<13s} {mark}")
+    for k in ("spec_md5", "md_md5", "ses_md5"):
+        if st.get(k):
+            lines.append(f"  {k:<13s} {st[k]}")
     return "\n".join(lines)
 
 

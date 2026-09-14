@@ -1,0 +1,19 @@
+{
+  "show": "The Verve Pipe",
+  "venue": "Fountain Square",
+  "date": "2026-05-29",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-05-29T00:00:00",
+      "note": "folder (backfilled 2026-09-14 from file mtime)"
+    },
+    "packet_built": {
+      "at": "2026-05-29T09:25:10",
+      "note": "paperwork (backfilled 2026-09-14 from file mtime)"
+    },
+    "ses_built": {
+      "at": "2026-05-29T10:00:23",
+      "note": "The Verve Pipe.ses (backfilled 2026-09-14 from file mtime)"
+    }
+  }
+}

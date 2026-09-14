@@ -47,7 +47,7 @@ Deps: openpyxl + reportlab (pip3 install --user; both present on the Mac as of 2
 Spec schema: see references/spec-schema.md. Channels list only ACTIVE bands; any band 1-4 not
 present is treated as FLAT. Band numbering is Brian's console convention: b1=low .. b4=high.
 """
-import argparse, json, os, re, sys, importlib.util
+import argparse, datetime, json, os, re, shutil, sys, importlib.util
 
 VENUE_LABELS = {"fsq": "Fountain Square", "memo": "Memorial Hall", "wp": "Washington Park",
                 "esp": "Elm Street Plaza", "csp": "Court Street Plaza", "zp": "Zeigler Park",
@@ -338,8 +338,10 @@ def validate_spec(spec):
                                 "packet/rationale section bars will repeat; group the channels")
             seen_secs.add(sec)
             last_sec = sec
-        hpf = ch.get("hpf", 20)
-        if not (20 <= float(hpf) <= 20000):
+        hpf = ch.get("hpf")
+        if hpf is None:
+            errors.append(f"{tag}: no HPF — every channel states its HPF (never silently 20 Hz)")
+        elif not (20 <= float(hpf) <= 20000):
             errors.append(f"{tag}: HPF {hpf} outside 20..20000")
         lpf = ch.get("lpf")
         if lpf is not None and not (20 <= float(lpf) <= 20000):
@@ -360,8 +362,8 @@ def validate_spec(spec):
             if f is None or not (20 <= float(f) <= 20000):
                 errors.append(f"{tag} B{n}: freq {f!r} outside 20..20000")
             q = b.get("q")
-            if q is None or not (0.3 <= float(q) <= 20):
-                warnings.append(f"{tag} B{n}: Q {q!r} outside 0.3..20")
+            if q is None or not (0.3 <= float(q) <= 10):
+                errors.append(f"{tag} B{n}: Q {q!r} outside the console's 0.3..10")
             if sec == "VOCALS" and g > 0 and not b.get("approved"):
                 errors.append(f"{tag} B{n}: +{g} dB boost on a VOCAL — vocals are cuts-only, "
                               "every genre (feedback control). If Brian explicitly approved it, "
@@ -396,7 +398,7 @@ def write_md(spec, folder):
     for ch in spec["channels"]:
         L.append(f"## Ch {ch['ch']} | {ch['name']} | {ch['mic']}")
         lpf = ch.get("lpf")
-        L.append(f"HPF: {ch.get('hpf',20):g} | LPF: {'OFF' if not lpf else f'{lpf:g}'}")
+        L.append(f"HPF: {ch['hpf']:g} | LPF: {'OFF' if not lpf else f'{lpf:g}'}")
         bb = bands_by_num(ch)
         for n in (4, 3, 2, 1):
             b = bb[n]
@@ -1114,14 +1116,149 @@ def build_master_pdf(spec, folder, parts):
     return out
 
 # ---------------------------------------------------------------- main
+# ---------------------------------------------------------------- reconcile (R5)
+BAND_FOR_BIDX = {3: 1, 2: 2, 1: 3, 0: 4}   # engine bidx -> console band number
+
+def _shared_dir():
+    return os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         "..", "..", "..", "_shared"))
+
+def md_channels(md_path):
+    """Parse the on-disk FOH .md with the SAME parser the .ses engine uses."""
+    sys.path.insert(0, _shared_dir())
+    import q225_ses_engine as eng
+    work = eng.read_md(md_path)
+    out = {}
+    for ch, v in work.items():
+        bands = {}
+        for bidx, (g, f, q, ty) in v["bands"].items():
+            n = BAND_FOR_BIDX[bidx]
+            d = v["deq"].get(bidx)
+            bands[n] = {"b": n, "gain": g, "freq": f, "q": q,
+                        "type": "SHELF" if ty == eng.SHELF else "BELL",
+                        "deq": ({"thr": d[0], "atk_ms": round(d[1] * 1000, 3),
+                                 "rel_ms": round(d[2] * 1000, 3)} if d else None)}
+        out[ch] = {"name": v["name"], "mic": v["mic"], "hpf": v["hpf"],
+                   "lpf": (None if (v["lpf"] is None or v["lpf"] >= 20000) else v["lpf"]),
+                   "bands": bands}
+    return out
+
+def _band_sig(b):
+    if not b or b.get("gain") is None or str(b.get("type", "")).upper() == "FLAT":
+        return "FLAT"
+    d = b.get("deq")
+    return (f"{float(b['gain']):+g} | {float(b['freq']):g} | {float(b['q']):g} | "
+            f"{'SHELF' if str(b['type']).upper() == 'SHELF' else 'BELL'}"
+            + (f" | DEQ thr={d['thr']:g} atk={d['atk_ms']:g}ms rel={d['rel_ms']:g}ms" if d else ""))
+
+def reconcile(spec, md_path):
+    """Return {ch: {field: {"spec": ..., "md": ...}}} for every disagreement."""
+    md = md_channels(md_path)
+    sp = {int(c["ch"]): c for c in spec["channels"]}
+    conflicts = {}
+    for ch in sorted(set(md) | set(sp)):
+        if ch not in sp:
+            conflicts[ch] = {"channel": {"spec": None, "md": f"{md[ch]['name']} | {md[ch]['mic']}"}}
+            continue
+        if ch not in md:
+            conflicts[ch] = {"channel": {"spec": f"{sp[ch]['name']} | {sp[ch]['mic']}", "md": None}}
+            continue
+        a, b, diff = sp[ch], md[ch], {}
+        for k in ("name", "mic"):
+            if str(a.get(k, "")).strip() != str(b[k]).strip():
+                diff[k] = {"spec": a.get(k), "md": b[k]}
+        if float(a.get("hpf") or 0) != float(b["hpf"] or 0):
+            diff["hpf"] = {"spec": a.get("hpf"), "md": b["hpf"]}
+        if (a.get("lpf") or None) != (b["lpf"] or None):
+            diff["lpf"] = {"spec": a.get("lpf"), "md": b["lpf"]}
+        ab = bands_by_num(a)
+        for n in (4, 3, 2, 1):
+            sa, sb = _band_sig(ab[n]), _band_sig(b["bands"].get(n))
+            if sa != sb:
+                diff[f"B{n}"] = {"spec": sa, "md": sb}
+        if diff:
+            conflicts[ch] = diff
+    return conflicts
+
+def apply_resolution(spec, md_path, choices):
+    """choices: {ch: "md" | "spec"}. Pull the .md side into the spec where chosen."""
+    md = md_channels(md_path)
+    by_ch = {int(c["ch"]): c for c in spec["channels"]}
+    for ch, pick in choices.items():
+        ch = int(ch)
+        if pick != "md":
+            continue
+        if ch not in md:                       # channel dropped in the .md
+            spec["channels"] = [c for c in spec["channels"] if int(c["ch"]) != ch]
+            continue
+        m = md[ch]
+        c = by_ch.get(ch)
+        if c is None:                          # channel added in the .md
+            c = {"ch": ch, "instrument": m["name"], "section": "RHYTHM", "phantom": False,
+                 "ribbon": False, "tour": False, "stand": "—",
+                 "mic_notes": "ADDED FROM THE .md DURING RECONCILE — write the reasoning.",
+                 "eq_summary": "ADDED FROM THE .md DURING RECONCILE — write the reasoning."}
+            spec["channels"].append(c)
+            spec["channels"].sort(key=lambda x: int(x["ch"]))
+        c["name"], c["mic"], c["hpf"], c["lpf"] = m["name"], m["mic"], m["hpf"], m["lpf"]
+        c["bands"] = [m["bands"][n] for n in (4, 3, 2, 1) if n in m["bands"]]
+    return spec
+
+def print_conflicts(conflicts):
+    print("\nRECONCILE — the FOH .md was edited after the last build. Per channel:")
+    for ch, diff in conflicts.items():
+        print(f"  Ch {ch}:")
+        for k, v in diff.items():
+            print(f"    {k:<8s} spec: {v['spec']!s:<48s} md: {v['md']!s}")
+    print('\nResolve: ask Brian per channel, write {"<ch>": "md"|"spec", ...} to a JSON file '
+          "and re-run with --resolve <file>; or --take md / --take spec for all.")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--spec", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--packet-builder",
                     default=os.path.expanduser("~/Documents/Claude/audio/show-packet-builder-template.py"))
+    ap.add_argument("--take", choices=("spec", "md"),
+                    help="on a reconcile: take one side for every conflicting channel")
+    ap.add_argument("--resolve", help="JSON file {ch: 'md'|'spec'} — per-channel answers from Brian")
     a = ap.parse_args()
     spec = load_spec(a.spec)
+
+    # R5: never overwrite a hand-edited .md silently. If the .md on disk differs
+    # from the one the last build stamped, reconcile with Brian first.
+    sys.path.insert(0, _shared_dir())
+    import show_status
+    st = show_status.load(a.out) or {}
+    md_path = os.path.join(a.out, f"{spec['show_name']} - FOH Channel Processing.md")
+    stamped = st.get("md_md5")
+    if os.path.exists(md_path) and stamped and show_status.file_md5(md_path) != stamped:
+        conflicts = reconcile(spec, md_path)
+        if not conflicts:
+            print("note: the .md changed on disk but carries no channel differences — proceeding")
+        else:
+            choices = None
+            if a.resolve:
+                choices = {str(k): v for k, v in json.load(open(a.resolve)).items()}
+            elif a.take:
+                choices = {str(ch): a.take for ch in conflicts}
+            if choices is None:
+                print_conflicts(conflicts)
+                cpath = os.path.join(a.out, f"{spec['show_name']}.conflicts.json")
+                json.dump(conflicts, open(cpath, "w"), indent=2)
+                print(f"wrote {cpath}")
+                raise SystemExit(3)
+            missing = [ch for ch in conflicts if str(ch) not in choices]
+            if missing:
+                raise SystemExit(f"--resolve is missing channels {missing}; nothing written")
+            spec = apply_resolution(spec, md_path, choices)
+            bak = a.spec + f".pre-reconcile-{datetime.datetime.now():%Y%m%d-%H%M%S}"
+            shutil.copy2(a.spec, bak)
+            json.dump(spec, open(a.spec, "w"), indent=2, ensure_ascii=False)
+            taken = sum(1 for v in choices.values() if v == "md")
+            print(f"reconciled: {taken} channel(s) taken from the .md, spec rewritten "
+                  f"(backup {os.path.basename(bak)}). Bump 'rev' if this is a new revision.")
     errors, warnings = validate_spec(spec)
     for w in warnings:
         print("  spec warn:", w)
@@ -1144,7 +1281,10 @@ def main():
         sys.path.insert(0, os.path.expanduser("~/Documents/Claude/audio/_shared"))
         import show_status
         show_status.stamp(a.out, "packet_built",
-                          note=f"{len(spec['channels'])} channels, full packet")
+                          note=f"{len(spec['channels'])} channels, full packet",
+                          extra={"rev": spec.get("rev"),
+                                 "spec_md5": show_status.file_md5(a.spec),
+                                 "md_md5": show_status.file_md5(md)})
     except ImportError:
         pass  # status stamp is best-effort — never blocks a build
     print("\nNEXT: run the venue .ses patcher on the .md; publish on Brian's go (show-wiki-push). Console verification is not a gate.")

@@ -10,6 +10,10 @@ One command replaces the manual setup every show starts with. Runs
 
 ## Procedure
 
+0. Run `python3 ~/Documents/Claude/audio/_shared/advance_bridge.py` first — if the show is in
+   the band advance database it scaffolds the folder itself (with the band's stage plot and a
+   brief skeleton), and you only report what landed.
+
 1. Get the three facts (ask only for what's missing, one round): **venue**
    (memo / fsq / wp / esp / csp / zp / ia / greaves), **date** (YYYY-MM-DD),
    **show name**.

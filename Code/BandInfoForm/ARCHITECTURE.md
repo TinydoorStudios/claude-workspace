@@ -53,6 +53,22 @@ to Outlook. Before 2026-09-12 this filed into a Nyquist-only `<VenueAbbr>/<Year>
 archive; that history was migrated into the real folders on that date (see
 `Nyquist/MIGRATION-LOG-2026-09-12.md`).
 
+## Bridge to the show pipeline (2026-09-14, pipeline-fix Phase D)
+
+The FOH paperwork pipeline (deep build → packet → `.ses` → wiki) lives on Brian's Mac under
+`~/Documents/Claude/audio/<Venue>/<date> <Artist>/`, and the VM cannot create Mac folders, so the
+bridge runs on the Mac: `audio/_shared/advance_bridge.py`. `--sync` queries this database over
+SSH (`docker exec advance-db psql`, read-only) for shows in a ±window, scaffolds any missing show
+folder, stamps the canonical **show key** (`fieldspec.show_key()` — `<venue code>-<date>-<slug>`,
+identical on both sides) into the folder's `show.status.json`, scps the band's `stage_plot` /
+`input_list` uploads from `data/uploads/` into the folder under the packet's own names, and writes
+a facts-only `<Show>.brief.json` whose `show_notes` carries the band's monitor / IEM / backline /
+input answers for the deep build to mine. It never overwrites anything. `--push-status` (run
+automatically after a sync) writes `Nyquist/show-packet-status.json`; Dropbox carries it here and
+`tools/status_log.py` folds it into three live columns on the Show Status Log — Packet, .ses,
+Wiki — so one sheet answers both "has the band advanced" and "is the FOH paperwork built".
+Nothing in the database changed for this; the key is computed, not stored.
+
 ## The shape
 
 A **front half Nyquist drives** (batch intake → draft emails → you send) and a
@@ -373,7 +389,4 @@ Built, staging-tested (70/70, `tools/staging/`) and deployed the same night. Wha
   attached (load-in doc + tech pack); `mailer.send(attachments=[...])`.
 - **Regen serializes with package runs** (`regen_show` takes the `run_now` lock) — a submit
   during a run used to find "no event" and skip the doc.
-- **Deploy guards**: both deploy scripts refuse unless `advance-system` is checked out;
-  the branch lives in its own worktree (`.worktrees/advance-system`) because the main
-  checkout is shared by several Claude sessions. `deploy_app.command` now also ships
-  `ops/` + `db/migrations/` and applies migrations idempotently.
+- **Deploy guards**: both deploy scripts refuse unless `main` is checked out (`ADVANCE_DEPLOY_BRANCH` overrides). The `advance-system` branch and its `.worktrees/advance-system` checkout were merged into `main` and deleted 2026-09-14 (pipeline-fix) — the workspace is single-branch now.

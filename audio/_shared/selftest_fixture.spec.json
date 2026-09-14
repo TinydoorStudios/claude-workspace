@@ -1,0 +1,54 @@
+{
+  "venue": "fsq",
+  "venue_label": "Fountain Square (outdoor)",
+  "console_label": "DiGiCo Quantum 225",
+  "show_name": "Selftest",
+  "artist": "Selftest Band",
+  "genre": "Rock",
+  "show_date": "2026-01-01",
+  "foh_engineer": "Brian Lloyd",
+  "mon_engineer": "—",
+  "show_time": "8:00pm",
+  "rev": "Rev 0.1 selftest",
+  "app_version": "selftest",
+  "artist_profile": "Synthetic three-piece used by _shared/selftest.py to prove build_packet.py still renders a full packet. Nothing here is a real show.",
+  "room_context": "FSQ outdoor — no room gain, cuts at outdoor depth.",
+  "research": {
+    "genre_verified": "Rock — synthetic fixture, no evidence needed.",
+    "gig": "Selftest.",
+    "conditions": "n/a (fixture).",
+    "units": [
+      {"ch": "1", "source": "Kick", "mic": "Audix D6", "finding": "D6 bakes a −17 dB scoop at 700–750 Hz and +17 dB at 10–12 kHz (Audix spec).", "sources": "Audix D6 spec sheet", "verdict": "AGREE",
+       "trace": {"base": "D6 pre-scooped — light desk cut", "equip": "no change", "genre": "rock — keep attack", "artist": "no change", "venue": "FSQ — HPF 40"}},
+      {"ch": "11", "source": "Bass DI", "mic": "Radial J48", "finding": "J48 is flat 20 Hz–20 kHz ±0.5 dB (Radial spec).", "sources": "Radial J48 spec", "verdict": "AGREE",
+       "trace": {"base": "flat DI — full shaping", "equip": "no change", "genre": "rock — 800 Hz definition", "artist": "no change", "venue": "FSQ — 250 cut −7"}},
+      {"ch": "25", "source": "Lead Vocal", "mic": "Shure Beta 58A", "finding": "Beta 58A presence rise +4 dB at 4 kHz and +6 dB at 10 kHz (Shure curve).", "sources": "Shure Beta 58A user guide", "verdict": "AGREE",
+       "trace": {"base": "58A presence baked — cuts only", "equip": "no change", "genre": "rock — 300 mud cut", "artist": "no change", "venue": "FSQ — cuts one step deeper"}}
+    ],
+    "reconciliation": ["no web/KB disagreements (fixture)"],
+    "kb_writeback": []
+  },
+  "changes": ["fixture — none"],
+  "decisions": ["fixture — none"],
+  "reverbs": [
+    {"role": "vocal", "preset": "Plates 1 / #06 Vocal Plate", "settings": "Decay 1.4s (factory) · PreDelay 20ms (factory) · VLF −12 (factory) · Late −6 (from Equal factory)", "plugin_eq": "LC 200 Hz", "why": "fixture"},
+    {"role": "vocal", "preset": "Chambers 1 / #10 Vocal Chamber", "settings": "Decay 1.0s (factory)", "plugin_eq": "LC 200 Hz", "why": "fixture"},
+    {"role": "vocal", "preset": "Halls 1 / #11 Gold Hall", "settings": "Decay 2.2s (factory)", "plugin_eq": "LC 250 Hz", "why": "fixture"},
+    {"role": "instrument", "preset": "Chambers 1 / #09 Snare Chamber", "settings": "Decay 0.8s (factory)", "plugin_eq": "LC 300 Hz", "why": "fixture"}
+  ],
+  "reverb_pairing": "fixture — plate leads, chamber for body, hall for ballads; snare chamber under them.",
+  "channels": [
+    {"ch": 1, "name": "Kick", "instrument": "Kick", "mic": "Audix D6", "section": "DRUMS", "phantom": false, "ribbon": false, "tour": false, "stand": "Short", "patch": "Local 1",
+     "hpf": 40, "lpf": null,
+     "bands": [{"b": 4, "gain": -3, "freq": 10000, "q": 2.0, "type": "BELL", "deq": null}, {"b": 2, "gain": -6, "freq": 400, "q": 2.0, "type": "BELL", "deq": null}],
+     "mic_notes": "D6 pre-scooped at 700–750; the 400 box cut sits below it.", "eq_summary": "fixture"},
+    {"ch": 11, "name": "Bass DI", "instrument": "Bass", "mic": "Radial J48", "section": "RHYTHM", "phantom": true, "ribbon": false, "tour": false, "stand": "DI", "patch": "Local 11",
+     "hpf": 40, "lpf": null,
+     "bands": [{"b": 3, "gain": 3, "freq": 800, "q": 1.5, "type": "BELL", "deq": null}, {"b": 2, "gain": -7, "freq": 250, "q": 2.0, "type": "BELL", "deq": {"thr": -18, "atk_ms": 10, "rel_ms": 120}}],
+     "mic_notes": "Flat DI, nothing baked.", "eq_summary": "fixture"},
+    {"ch": 25, "name": "Lead Vox", "instrument": "Lead Vocal", "mic": "Shure Beta 58A", "section": "VOCALS", "phantom": false, "ribbon": false, "tour": false, "stand": "Tall", "patch": "Local 25",
+     "hpf": 110, "lpf": 16000,
+     "bands": [{"b": 4, "gain": -3, "freq": 4000, "q": 2.0, "type": "BELL", "deq": null}, {"b": 2, "gain": -6, "freq": 300, "q": 2.0, "type": "BELL", "deq": null}],
+     "mic_notes": "58A presence baked at 4k — trim, never boost.", "eq_summary": "fixture"}
+  ]
+}

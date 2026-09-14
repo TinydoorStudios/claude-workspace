@@ -1,5 +1,7 @@
 # IMPROVEMENTS — self-improvement log
 
+> **FROZEN 2026-09-14 (pipeline-fix, Brian's call).** No new entries. Workflow and structural changes are recorded in git commit messages (`git log -- audio/_system audio/_skills audio/_shared`) and, where they change a rule, in `_system/RULES.md`. Kept as the history of the pipeline through 2026-08.
+
 *Append-only. Dated entries describing structural/workflow changes to the audio project and why. Newest at the bottom.*
 
 ---

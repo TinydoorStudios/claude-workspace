@@ -5,6 +5,14 @@ description: Executes the 2026-09-13 show-pipeline audit as one run. Trigger whe
 
 # Pipeline Fix — the audit, executed
 
+> **Run log.** Phases A, B and C were executed 2026-09-14 (decisions: fast-forward + keep
+> advance-system alive while its session finishes · pop stashes 2 and 1, drop 0 · spec is the
+> source of truth with .md conflicts asked per channel · publish the four shows · retire
+> IMPROVEMENTS/generate CHANGELOG · retire ShowBuilder + stop tracking .ses). If this skill is
+> invoked again, do NOT redo A–C: check `git log --grep pipeline-fix`, then offer Phase D only,
+> plus the two leftovers — merge and delete `advance-system` once its band-advance session has
+> landed, and decommission the ShowBuilder VM instance / landing tile.
+
 Source of truth for what to do: `audio/_system/PIPELINE-AUDIT-2026-09-13.md`. Read it in full
 first. This skill is the runbook; the audit holds the reasoning.
 

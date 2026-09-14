@@ -26,7 +26,7 @@ ERRORS (abort the build — the file is wrong or pre-2026-05-30):
   - malformed band line (can't parse gain|freq|Q|type)
   - band order backwards: a LOWER band number carrying a HIGHER frequency
     than a higher band number (the old backwards numbering — do not patch)
-  - freq outside 20..20000, gain outside ±18 (console limits)
+  - freq outside 20..20000, gain outside ±18, Q outside 0.3..10 (console limits)
   - "DEQ" present on a band line but the clause doesn't parse (it would be
     silently dropped by the patcher otherwise)
   - duplicate band line for the same band in one channel
@@ -34,7 +34,6 @@ ERRORS (abort the build — the file is wrong or pre-2026-05-30):
 WARNINGS (printed, don't abort):
   - console name longer than 12 characters (fader legibility)
   - fractional-dB gain (house rule is whole dB)
-  - Q outside 0.3..20
   - HPF above 2000 Hz / LPF below 1000 Hz (suspicious)
   - unrecognized non-blank line inside a channel block (typo catcher)
 """
@@ -111,8 +110,8 @@ def lint(path, max_ch=None):
             if g != int(g):
                 warnings.append(f"Ch {cur} B{bnum}: fractional gain {g:g} dB "
                                 "(house rule: whole dB)")
-            if not (0.3 <= q <= 20):
-                warnings.append(f"Ch {cur} B{bnum}: Q {q:g} outside 0.3..20")
+            if not (0.3 <= q <= 10):
+                errors.append(f"Ch {cur} B{bnum}: Q {q:g} outside the console's 0.3..10")
             if 'DEQ' in body.upper() and not _DEQ.search(body):
                 errors.append(f"Ch {cur} B{bnum}: DEQ clause doesn't parse — "
                               "it would be silently dropped. Format: "

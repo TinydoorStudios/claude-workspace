@@ -1,0 +1,19 @@
+{
+  "show": "Seals and Crofts 2",
+  "venue": "Memorial Hall",
+  "date": "2026-05-27",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-05-23T00:00:00",
+      "note": "folder (backfilled 2026-09-14 from file mtime)"
+    },
+    "packet_built": {
+      "at": "2026-05-23T23:17:05",
+      "note": "paperwork (backfilled 2026-09-14 from file mtime)"
+    },
+    "ses_built": {
+      "at": "2026-05-23T23:20:48",
+      "note": "Seals_and_Crofts_2.ses (backfilled 2026-09-14 from file mtime)"
+    }
+  }
+}

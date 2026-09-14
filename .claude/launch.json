@@ -2,12 +2,6 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "showbuilder",
-      "runtimeExecutable": "Code/ShowBuilder/run.sh",
-      "runtimeArgs": [],
-      "port": 8095
-    },
-    {
       "name": "patchbay",
       "runtimeExecutable": "Code/Patchbay/run.sh",
       "runtimeArgs": [],
@@ -16,31 +10,51 @@
     {
       "name": "spl-green",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "cd Code/SPL-Monitor && SPL_SOURCE=simulator SPL_SIM_SCENE=green ./.venv/bin/python -m backend.app"],
+      "runtimeArgs": [
+        "-c",
+        "cd Code/SPL-Monitor && SPL_SOURCE=simulator SPL_SIM_SCENE=green ./.venv/bin/python -m backend.app"
+      ],
       "port": 8080
     },
     {
       "name": "landing-mockup",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8099", "--directory", "Code/landing-redesign"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8099",
+        "--directory",
+        "Code/landing-redesign"
+      ],
       "port": 8099
     },
     {
       "name": "tempest-preview",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4321", "--directory", "Code/tempest-dashboard/public"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4321",
+        "--directory",
+        "Code/tempest-dashboard/public"
+      ],
       "port": 4321
     },
     {
       "name": "spl-hot",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "cd Code/SPL-Monitor && SPL_SOURCE=simulator SPL_SIM_SCENE=hot ./.venv/bin/python -m backend.app"],
+      "runtimeArgs": [
+        "-c",
+        "cd Code/SPL-Monitor && SPL_SOURCE=simulator SPL_SIM_SCENE=hot ./.venv/bin/python -m backend.app"
+      ],
       "port": 8080
     },
     {
       "name": "band-advance-preview",
       "runtimeExecutable": "/private/tmp/claude-501/-Users-brianlloyd-Documents-Claude/a1c629f4-3a17-4fb4-9c3b-ba73e1821425/scratchpad/preview-venv/bin/python3",
-      "runtimeArgs": ["Code/BandInfoForm/app/app.py"],
+      "runtimeArgs": [
+        "Code/BandInfoForm/app/app.py"
+      ],
       "port": 8097
     }
   ]

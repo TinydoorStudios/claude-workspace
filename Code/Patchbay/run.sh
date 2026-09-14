@@ -3,5 +3,5 @@
 set -e
 cd "$(dirname "$0")"
 PY=./.venv/bin/python
-[ -x "$PY" ] || PY=../ShowBuilder/.venv/bin/python
+[ -x "$PY" ] || { echo "no .venv — run: python3 -m venv .venv && .venv/bin/pip install aiohttp openpyxl"; exit 1; }
 exec "$PY" -m backend.app
