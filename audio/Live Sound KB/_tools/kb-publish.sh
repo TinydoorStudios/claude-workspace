@@ -70,30 +70,30 @@ else
   warn "no assets/ dir — skipping asset sync"
 fi
 
-# ---- 4. force Wiki.js to git-sync now (skip the 5-min timer) ----
-# NOTE (2026-06-23): this git-storage sync mutation returns "Forbidden" because
-# Wiki.js git storage is DISABLED in this install — content is published via the
-# pages API (kb-publish-pages.py / the launchd watcher), not a git pull. This step
-# is left as-is pending a rewrite to call the pages-API publisher. Until then it is
-# expected to warn; the watcher is what actually puts content live.
-log "Force Wiki.js git sync"
-SYNC_Q='{"query":"mutation{storage{executeAction(handler:\"git\",targetKey:\"sync\"){responseResult{succeeded message}}}}"}'
+# ---- 4. publish pages to Wiki.js now (skip waiting on the launchd watcher) ----
+# Wiki.js git storage is permanently DISABLED in this install (confirmed 2026-09-08:
+# the storage{executeAction} mutation returns "Invalid or Inactive Storage Target"
+# regardless of host/network path) — content only ever reaches the live site via
+# kb-publish-pages.py hitting the Wiki.js pages API. That's what the launchd watcher
+# runs every 5 min; call it here too so a manual publish doesn't have to wait on it.
+log "Publish pages to Wiki.js"
 if [ -n "$WIKI_API_KEY" ]; then
-  curl -s -X POST "http://$WIKI_LAN/graphql" \
-    -H "Authorization: Bearer $WIKI_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d "$SYNC_Q" | grep -q '"succeeded":true' \
-    && ok "sync triggered" || warn "sync trigger failed (Wiki.js will still pull within 5 min)"
+  KB_WIKI_API_KEY="$WIKI_API_KEY" python3 "$HOME/.claude/scripts/kb-publish-pages.py" \
+    && ok "pages published" || warn "page publish failed — check KB_WIKI_API_KEY / kb.tinydoorstudios.com reachability"
 else
-  warn "sync not forced — set KB_WIKI_API_KEY in secrets (Wiki.js will still pull within 5 min)"
+  warn "publish skipped — set KB_WIKI_API_KEY in secrets (the launchd watcher will still catch it within 5 min)"
 fi
 
 # ---- 5. (optional) rebuild the left-nav sidebar ----
+# Uses the public HTTPS endpoint, not the LAN address — the LAN path to CT101
+# (192.168.200.126) isn't reliably reachable from the Mac depending on network
+# (confirmed 2026-09-08: ARP silently fails even on the same subnet), while the
+# public endpoint (same one kb-publish-pages.py uses) works from anywhere.
 if [ -n "$WIKI_API_KEY" ] && [ -f "$NAV_JSON" ]; then
   log "Rebuilding Wiki.js navigation sidebar from $(basename "$NAV_JSON")"
   TREE=$(python3 "$SCRIPT_DIR/kb-nav-build.py" "$NAV_JSON") || warn "nav build failed"
   if [ -n "${TREE:-}" ]; then
-    curl -s -X POST "http://$WIKI_LAN/graphql" \
+    curl -s -X POST "$PUBLIC_URL/graphql" \
       -H "Authorization: Bearer $WIKI_API_KEY" \
       -H "Content-Type: application/json" \
       -d "$TREE" >/dev/null \

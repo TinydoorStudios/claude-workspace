@@ -1,0 +1,70 @@
+{#
+  Spanish half of a bilingual advance email — draft_emails.py renders this
+  for the Spanish content of any series in venue_email.BILINGUAL_SERIES
+  (Salsa On The Square, 2026-09-12; every other series never touches this
+  file, English-only via advance.md.j2 exactly as before). Mirrors that
+  template's structure and variable names exactly (blocks.*,
+  common_requirements, schedule_block, bill_block, set_line, last,
+  advance_recap) — draft_emails.py fills every one of those with the
+  Spanish equivalent (venue_email.py's *_ES constants/lang="es" calls)
+  before rendering this template, then strips this render's own Subject:
+  line and appends the rest under the English half in one message. See
+  draft_emails.py's `is_bilingual` branch for exactly how each variable is
+  built. `advance_recap` is always None here on purpose (its row labels
+  come from a filed docx's own English column headers — not translated;
+  the English half above already shows it).
+#}
+{% set show_label = series or event_name %}
+Subject: Bienvenidos a {% if show_label %}{{ show_label }}{% else %}su show de 3CDC{% endif %} en {{ venue }}{% if show_date %} — {{ show_date }}{% endif +%}
+
+Hola{% if contact_name %} {{ contact_name }} y{% endif %}{% if name %} {{ name }}{% endif %},
+
+{% if returning %}Qué bueno tenerlos de vuelta{% if show_label %} para {{ show_label }}{% endif %} en {{ venue }}{% if show_date %} el {{ show_date }}{% endif %}. Por favor revisen los detalles a continuación y luego completen su formulario de avance en el siguiente enlace — ya lo completamos con los datos de su show anterior, así que solo confirmen o actualicen lo que haya cambiado.{% else %}Bienvenidos a {% if show_label %}{{ show_label }}{% else %}su show de 3CDC{% endif %} en {{ venue }}{% if show_date %} el {{ show_date }}{% endif %}. Por favor revisen los detalles a continuación y luego completen el formulario de avance de su show en el siguiente enlace. Este formulario reemplaza las preguntas que antes hacíamos en este correo — información de contacto, plano de escenario, monitores, venta de mercancía, número de personas y las confirmaciones — y toma unos cinco minutos. La información de su show ya está completada.{% endif %}
+
+
+
+{{ personal_note }}Al completar el formulario confirman que recibieron este correo, revisaron las políticas y respondieron todo lo que necesitamos:
+
+{{ form_link }}
+
+{% if deadline %}Por favor complétenlo antes del {{ deadline }}.{% else %}Por favor complétenlo lo antes posible.{% endif %}
+
+────────────────────────────────
+
+Lugar / Ubicación: {% if blocks.location %}{{ blocks.location }}{% else %}{{ venue }}{% endif +%}
+Contacto de avance: {{ advancing_contact }}
+{% if day_of_contact %}Contacto del día del evento: {{ day_of_contact }}
+{% if engineer_contact %}  Por favor no coordinen el avance con ellos ni los llamen antes del día del show, ya que son personal de medio tiempo.
+{% endif %}{% else %}Contacto del día del evento: les enviaremos su contacto del día del evento la semana del show.
+{% endif %}{% if set_line %}{{ set_line }}
+{% endif %}{% if bill_block %}{{ bill_block }}
+
+{% endif %}Horario del día:
+{{ schedule_block }}
+{% if not schedule_locked %}{% if not multiband %}  *Tomen los descansos entre sets según sea necesario. Por favor no lleguen antes de su hora de carga sin coordinarlo con anticipación.
+{% else %}  *Por favor no lleguen antes de su hora de carga sin coordinarlo con anticipación.
+{% endif %}{% endif %}
+
+{{ blocks.load_in }}
+
+{{ blocks.technical }}
+
+{{ blocks.hospitality }}
+
+Requisitos de la presentación (el incumplimiento puede resultar en una advertencia o en la cancelación del show, con el pago suspendido o retrasado):
+{% if blocks.requirements %}{{ blocks.requirements }}
+{% endif %}{{ common_requirements }}
+
+{% if returning %}Esto es lo que tenemos registrado de su show anterior:
+
+{% for k, val in last %}  - {{ k }}: {{ val }}
+{% endfor %}
+{% endif %}{% if advance_recap %}
+Como referencia, esto es lo que indicó su formulario de avance de {{ advance_recap.venue }} del {{ advance_recap.show_date }}:
+
+{% for k, val in advance_recap.rows %}  - {{ k }}: {{ val }}
+{% endfor %}
+{% endif %}Al completar el formulario, confirman todo lo anterior. Avísenme si tienen alguna pregunta o inquietud.
+
+Gracias,
+3CDC Eventos / Producción

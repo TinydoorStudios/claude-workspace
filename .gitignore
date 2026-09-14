@@ -20,6 +20,13 @@ Code/spotify-downloader/
 # transient deploy logs
 Code/tempest-dashboard/deploy.out
 
+# band advance — the Advancing/ folder holds live booking data + the filed venue
+# tree (real contacts). Track only the scaffold; ignore everything generated/local.
+Advancing/*
+!Advancing/generate.command
+!Advancing/README.md
+!Advancing/_template/
+
 # bulk static reference media — not workable content
 Kims Stuff/
 audio/SOP Stuff/
@@ -55,5 +62,5 @@ _ARCHIVE/2026-06-wiki-setup/wiki-complete-setup.sh
 _inbox/*
 !_inbox/README.md
 
-# per-session worktrees (desktop app)
+# git worktrees (advance-system lives in .worktrees/advance-system — review 2026-09-14 H6)
 .worktrees/

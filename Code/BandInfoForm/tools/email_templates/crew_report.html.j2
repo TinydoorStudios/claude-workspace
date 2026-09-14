@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f1f3f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f3f6;padding:24px 0;">
+<tr><td align="center">
+<table role="presentation" width="760" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+
+  <tr><td style="background:#1A3A5C;padding:24px 28px;">
+    <div style="color:#ffffff;font-size:20px;font-weight:700;">3CDC Crew Report</div>
+    <div style="color:#a9c0d8;font-size:13px;margin-top:4px;">{{ start }} – {{ end }} · Mix / Tech / Stagehand / Stage Support / Other, every venue</div>
+  </td></tr>
+
+  <tr><td style="padding:20px 28px 26px;">
+    {% for day in days %}
+      {% if day.rows %}
+      <div style="margin-bottom:22px;">
+        <div style="font-size:13px;font-weight:700;color:#1A3A5C;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid #1A3A5C;padding-bottom:5px;margin-bottom:10px;">
+          {{ day.label }}
+        </div>
+        {% for r in day.rows %}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:{{ '4' if loop.last else '14' }}px;">
+          <tr>
+            <td style="width:6px;background:{{ r.color }};border-radius:4px;"></td>
+            <td style="padding:8px 0 8px 12px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="font-size:14px;font-weight:700;color:#111827;">{{ r.event }}</td>
+                  <td align="right" style="font-size:11px;font-weight:700;color:#ffffff;background:{{ r.color }};border-radius:10px;padding:2px 10px;white-space:nowrap;">{{ r.venue }}</td>
+                </tr>
+              </table>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:5px;">
+                <tr valign="top">
+                  {% set slots = [
+                    ('Mix', (r.mix.foh and [r.mix.foh] or []) + (r.mix.mon and ['(Mon) ' + r.mix.mon] or [])),
+                    ('Tech', r.tech), ('Stagehand', r.stagehand),
+                    ('Stage Support', r.stage_support), ('Other', r.other)
+                  ] %}
+                  {% for label, names in slots %}
+                    {% if names %}
+                    <td style="padding:0 16px 0 0;">
+                      <div style="font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.03em;">{{ label }}</div>
+                      <div style="font-size:12.5px;color:#374151;">{{ names|join(', ') }}</div>
+                    </td>
+                    {% endif %}
+                  {% endfor %}
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endfor %}
+    {% if not days|selectattr('rows')|list %}
+    <div style="font-size:13px;color:#8b97a6;font-style:italic;">Nothing staffed in this window.</div>
+    {% endif %}
+  </td></tr>
+
+  <tr><td style="background:#F9FAFB;padding:14px 28px;border-top:1px solid #E5E7EB;">
+    <div style="font-size:11px;color:#9CA3AF;">Straight from the public 3CDC staffing sheet — days with nothing staffed are omitted. A role with no one listed just means no one's assigned yet.</div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

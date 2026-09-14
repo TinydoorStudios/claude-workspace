@@ -1,0 +1,68 @@
+{
+  "id": "XUNicTtAu6GhT6Ca",
+  "name": "Advance Follow-up Check",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 9,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "0d0cd155-bdc8-49f7-b9ec-87c376445b96",
+      "name": "Daily 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.200.84:8097/internal/run-followups",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Advance-Token",
+              "value": "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "68b15bad-c40d-475a-8188-898d638fc701",
+      "name": "Queue follow-up drafts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Daily 9am": {
+      "main": [
+        [
+          {
+            "node": "Queue follow-up drafts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

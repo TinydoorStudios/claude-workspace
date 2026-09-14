@@ -1,0 +1,31 @@
+# secrets — never commit
+**/.env
+app/advance.env
+db/.env
+
+# runtime data / generated artifacts
+app/data/
+tools/drafts/
+tools/filled/
+tools/followups/
+tools/_package/
+tools/doc_templates/advance_sheet*.docx   # generated stand-in; real templates ARE tracked
+tools/doc_templates/._*
+deploy_log.txt
+deploy_recap_log.txt
+deploy_n8n_log.txt
+
+# python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# generated deliverables (day-sheets + drafts; may hold real contacts)
+output/
+deploy_digest_merge_log.txt
+send_internal_email_log.txt
+
+# backup kit run logs
+backup/install_log.txt
+backup/restore_log.txt

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ artist.name }} — Advance</title>
+<style>
+  :root{color-scheme:dark;}
+  body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;}
+  header{background:#1A3A5C;color:#fff;padding:20px 0;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px 60px;}
+  header .wrap{padding-bottom:0;}
+  header h1{margin:0;font-size:20px;}
+  header p{margin:6px 0 0;font-size:13px;color:#c7d6e6;}
+  a.back{color:#c7d6e6;font-size:13px;text-decoration:none;}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#4da3ff;margin:28px 0 10px;border-bottom:2px solid #1A3A5C;padding-bottom:6px;}
+  table{width:100%;border-collapse:collapse;background:#161b22;border:1px solid #2a323d;border-radius:10px;overflow:hidden;}
+  th,td{text-align:left;padding:10px 13px;border-bottom:1px solid #2a323d;font-size:14px;vertical-align:top;}
+  th{background:#1c232d;color:#4da3ff;font-size:12px;text-transform:uppercase;letter-spacing:.05em;}
+  tr:last-child td{border-bottom:0;}
+  .card{background:#161b22;border:1px solid #2a323d;border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+  .card h3{margin:0 0 10px;font-size:15px;color:#4da3ff;}
+  .kv{display:grid;grid-template-columns:180px 1fr;gap:4px 14px;font-size:14px;}
+  .kv .k{color:#8b97a6;}
+  .badge{display:inline-block;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.35);color:#86efac;border-radius:999px;padding:1px 9px;font-size:12px;}
+  a{color:#4da3ff;}
+  .muted{color:#8b97a6;}
+  /* same state colors as the dashboard's .pill classes — one consistent look */
+  .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap;}
+  .pill.queued{background:rgba(139,151,166,.12);border:1px solid rgba(139,151,166,.35);color:#8b97a6;}
+  .pill.awaiting{background:rgba(169,180,192,.12);border:1px solid rgba(169,180,192,.35);color:#a9b4c0;}
+  .pill.ready{background:rgba(77,163,255,.12);border:1px solid rgba(77,163,255,.35);color:#4da3ff;}
+  .pill.due{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.35);color:#f85149;}
+  .pill.followup{background:rgba(210,153,34,.12);border:1px solid rgba(210,153,34,.35);color:#d29922;}
+  .pill.responded{background:rgba(163,113,247,.12);border:1px solid rgba(163,113,247,.35);color:#a371f7;}
+  .pill.finalized{background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.35);color:#3fb950;}
+  .finalize-btn{background:#1A3A5C;color:#fff;border:0;border-radius:7px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .finalize-btn:hover{background:#234b70;}
+  .finalized-note{color:#3fb950;font-size:12.5px;}
+  .pill.held{background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:#fbbf24;}
+  .pill.cancelled{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.35);color:#f85149;text-decoration:line-through;}
+  .minor-btn{background:transparent;color:#8b97a6;border:1px solid #2a323d;border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;margin-top:6px;}
+  .minor-btn:hover{color:#f85149;border-color:#f85149;}
+  .note{color:#8b97a6;font-size:12px;margin-top:4px;}
+  .note.bad{color:#f85149;}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="back" href="{{ url_for('search') }}">← Search</a>
+  <h1>{{ artist.name }}</h1>
+  <p>{{ artist.last_email or 'no email on file' }} · {{ artist.last_phone or 'no phone on file' }}</p>
+</div></header>
+
+<div class="wrap">
+  <h2>Bookings</h2>
+  {% if shows %}
+  <table>
+    <tr><th>Date</th><th>Venue</th><th>Series</th><th>Status</th><th></th></tr>
+    {% for s in shows %}
+    {% set label, css = state_labels.get(s.state, (s.state, 'queued')) %}
+    <tr>
+      <td>{{ s.show_date.strftime('%Y-%m-%d') if s.show_date else '—' }}</td>
+      <td>{{ s.venue or '—' }}</td>
+      <td class="muted">{{ s.show_series or '—' }}</td>
+      <td><span class="pill {{ css }}">{{ label }}</span></td>
+      <td>
+        {% if s.state == 'held' %}
+        <a href="{{ url_for('show_hold', show_id=s.show_id) }}">On hold — decide →</a>
+        {% elif s.state == 'responded' %}
+        <form method="post" action="{{ url_for('finalize_show', artist_id=artist.id, show_id=s.show_id) }}"
+              onsubmit="return confirm('Mark this show\'s advance fully finalized? This can\'t be undone.');">
+          <button class="finalize-btn" type="submit">Mark Finalized</button>
+        </form>
+        {% elif s.state == 'finalized' %}
+        <span class="finalized-note">✓ Finalized {{ s.finalized_at.strftime('%Y-%m-%d') if s.finalized_at else '' }}</span>
+        {% if s.thankyou_sent_at %}<div class="note">Thank-you sent {{ s.thankyou_sent_at.strftime('%m/%d') }}</div>
+        {% elif s.thankyou_error %}<div class="note bad">Thank-you not sent: {{ s.thankyou_error }}</div>{% endif %}
+        {% endif %}
+        {% if s.state == 'cancelled' %}
+        <form method="post" action="{{ url_for('show_uncancel', show_id=s.show_id) }}"
+              onsubmit="return confirm('Restore this cancelled show? Emails can resume for it.');">
+          <button class="minor-btn" type="submit">Undo cancel</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('show_cancel', show_id=s.show_id) }}"
+              onsubmit="return confirm('Cancel this show? Nothing more will be emailed for it. It stays on record as Cancelled.');">
+          <button class="minor-btn" type="submit">Cancel show</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">No bookings recorded.</p>{% endif %}
+
+  <h2>Submissions</h2>
+  {% if subs %}
+    {% for sub in subs %}
+    <div class="card">
+      <h3>{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }} · {{ sub.venue or '—' }}{% if sub.show_date %} · show {{ sub.show_date }}{% endif %}</h3>
+      <div class="kv">
+        <div class="k">Contact phone</div><div>{{ sub.contact_phone or '—' }}</div>
+        <div class="k">Performers + crew</div><div>{{ sub.performers if sub.performers is not none else '—' }}</div>
+        <div class="k">Monitors</div><div>{{ sub.monitors if sub.monitors is not none else '—' }}</div>
+        <div class="k">Own IEMs</div><div>{{ 'Yes' if sub.own_iems else ('No' if sub.own_iems is false else '—') }}{% if sub.split_snake %} · split: {{ sub.split_snake }}{% endif %}</div>
+        <div class="k">Stage</div><div>{{ sub.stage_type or '—' }}</div>
+        <div class="k">Own engineer</div><div>{{ sub.own_engineer or '—' }}</div>
+        <div class="k">Merch</div><div>{{ 'Yes' if sub.merch else ('No' if sub.merch is false else '—') }}</div>
+        <div class="k">Band tent</div><div>{{ sub.band_tent or '—' }}</div>
+        {% if sub.vehicle_count is not none or sub.large_vehicle_count is not none %}
+        <div class="k">Vehicles</div><div>{{ sub.vehicle_count if sub.vehicle_count is not none else '—' }} total{% if sub.large_vehicle_count is not none %} · {{ sub.large_vehicle_count }} large{% endif %}</div>
+        {% else %}
+        <div class="k">Large vehicle</div><div>{{ 'Yes' if sub.large_vehicle else ('No' if sub.large_vehicle is false else '—') }}</div>
+        {% endif %}
+        {% if sub.data.get('stage_escort_name') %}<div class="k">Stage escort</div><div>{{ sub.data.get('stage_escort_name') }}{% if sub.data.get('stage_escort_cell') %} · {{ sub.data.get('stage_escort_cell') }}{% endif %}</div>{% endif %}
+        {% if sub.data.get('stage_plot_carried_from') %}<div class="k">Stage plot</div><div>carried from {{ sub.data.get('stage_plot_carried_from') }}</div>{% endif %}
+        {% if sub.data.get('changed_notes') %}<div class="k" style="color:#fbbf24">Changed since last</div><div style="color:#fbbf24">{{ sub.data.get('changed_notes') }}</div>{% endif %}
+        {% if sub.data.get('backline') %}<div class="k">Backline</div><div>{{ sub.data.get('backline') }}</div>{% endif %}
+        {% if sub.data.get('stage_plot_desc') %}<div class="k">Stage plot notes</div><div>{{ sub.data.get('stage_plot_desc') }}</div>{% endif %}
+        {% if sub.data.get('lighting') %}<div class="k">Lighting</div><div>{{ sub.data.get('lighting') }}</div>{% endif %}
+        {% if sub.data.get('scenic') %}<div class="k">Scenic</div><div>{{ sub.data.get('scenic') }}</div>{% endif %}
+        {% if sub.data.get('additional') %}<div class="k">Additional</div><div>{{ sub.data.get('additional') }}</div>{% endif %}
+        {% set fs = files_by_sub.get(sub.id) %}
+        {% if fs %}<div class="k">Files</div><div>{% for f in fs %}<a href="{{ url_for('download_file', file_id=f.id) }}">{{ f.filename or f.stored_name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}<p class="muted">No submissions yet.</p>{% endif %}
+</div>
+</body>
+</html>

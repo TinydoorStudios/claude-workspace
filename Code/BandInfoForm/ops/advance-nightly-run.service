@@ -1,0 +1,13 @@
+[Unit]
+Description=Band Advance — nightly full run (sheet seed, docs, holds, status) — review 2026-09-14 H4
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=brian
+WorkingDirectory=/opt/band-advance/tools
+EnvironmentFile=/opt/band-advance/advance.env
+ExecStart=/bin/bash -c 'echo "--- $(date -Iseconds) (nightly) ---" >> /opt/band-advance/data/run_now_background.log; exec /opt/band-advance/venv/bin/python /opt/band-advance/tools/run_now.py >> /opt/band-advance/data/run_now_background.log 2>&1'
+TimeoutStartSec=1800
+Nice=10

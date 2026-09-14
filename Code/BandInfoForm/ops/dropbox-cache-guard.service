@@ -1,0 +1,10 @@
+[Unit]
+Description=Clear Dropbox's local .dropbox.cache if disk usage crosses threshold
+After=network.target
+
+[Service]
+Type=oneshot
+User=brian
+ExecStart=/home/brian/dropbox_cache_guard.sh
+StandardOutput=append:/home/brian/dropbox_cache_guard.log
+StandardError=append:/home/brian/dropbox_cache_guard.log

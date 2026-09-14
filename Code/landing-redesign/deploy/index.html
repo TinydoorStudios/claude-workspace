@@ -115,22 +115,39 @@ a.station:hover{border-color:var(--cy-dim);background:#0b1119}
 .ltg-det{font-size:9px;color:var(--dim);letter-spacing:1px;margin-top:4px}
 .radar svg{display:block}
 
-/* ── services manifest ── */
-.svc{display:grid;grid-template-columns:1fr 1fr;gap:2px 26px}
-@media(max-width:760px){.svc{grid-template-columns:1fr}}
-a.row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:2px;
-  text-decoration:none;color:var(--ink);font-size:12px;border-left:2px solid transparent}
+/* ── services manifest ──────────────────────────────────────────────────
+   One table, not a 2-up card grid (Brian, 2026-09-12: "chaotic... every-
+   thing should line up, all of the similar information should be lined
+   up"). #svcList sets --cols ONCE; every row in every section reuses the
+   exact same grid-template-columns, so name/description/ping/tag all fall
+   into the same vertical columns from the first section to the last. */
+#svcList{--cols:26px 150px minmax(0,1fr) 66px 84px;}
+.svc-group{margin-bottom:4px}
+.svc-head{font-size:9px;font-weight:700;letter-spacing:2.5px;color:var(--dim);
+  text-transform:uppercase;margin:16px 0 4px;padding:0 10px 6px;border-bottom:1px solid var(--edge)}
+.svc-group:first-child .svc-head{margin-top:0}
+.svc{display:flex;flex-direction:column}
+a.row{display:grid;grid-template-columns:var(--cols);align-items:center;gap:10px;
+  padding:7px 10px;border-radius:2px;text-decoration:none;color:var(--ink);
+  font-size:12px;border-left:2px solid transparent;min-width:0}
 a.row:hover{background:rgba(55,200,255,.06);border-left-color:var(--cy)}
-.row .idx{color:var(--dim);font-size:10px;width:22px;flex:none}
-.row .nm{font-weight:700;letter-spacing:.5px;flex:none;color:#fff}
-.row .ds{color:var(--mut);font-size:10px;letter-spacing:.5px;flex:1;
+.row .idx{color:var(--dim);font-size:10px}
+.row .nm{font-weight:700;letter-spacing:.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .ds{color:var(--mut);font-size:10px;letter-spacing:.5px;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ping{font-size:9px;letter-spacing:1px;color:var(--dim);flex:none;width:74px;text-align:right}
+.ping{font-size:9px;letter-spacing:1px;color:var(--dim);text-align:right}
 .ping.up{color:var(--ok)} .ping.dn{color:var(--bad)}
-.tag{font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:2px;flex:none;border:1px solid}
+.tag{font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:2px;
+  border:1px solid;justify-self:start;white-space:nowrap}
 .lock{color:var(--warn);border-color:rgba(255,210,77,.4)}
 .login{color:#c792ea;border-color:rgba(199,146,234,.4)}
 .lan{color:var(--cy);border-color:rgba(55,200,255,.4)}
+/* narrow screens: drop the idx + ping columns rather than let the fixed
+   columns force a horizontal scroll again */
+@media(max-width:640px){
+  #svcList{--cols:150px minmax(0,1fr) 78px;}
+  .row .idx, .row .ping{display:none}
+}
 .foot{color:var(--dim);font-size:10px;letter-spacing:2px;margin-top:26px;text-align:center;text-transform:uppercase}
 </style>
 </head>
@@ -392,28 +409,44 @@ function connectTempest(){
 }
 connectTempest();
 
-// ══ SERVICES + live reachability probes ══
-const SERVICES = [
-  { nm:'LIVE SOUND KB', ds:'wiki — articles + shows', href:'https://kb.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://kb.tinydoorstudios.com' },
-  { nm:'DIGICO Q225 WIKI', ds:'console how-to + manuals — staff reference', href:'https://digico.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://digico.tinydoorstudios.com' },
-  { nm:'N8N', ds:'automation workflows', href:'https://n8n.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://n8n.tinydoorstudios.com/healthz' },
-  { nm:'SHOWBUILDER', ds:'Q225 paperwork + .ses package', href:'https://showbuilder.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://showbuilder.tinydoorstudios.com' },
-  { nm:'UPLOADS', ds:'guest file drop — AFX (Cold Storage)', href:'https://uploads.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://uploads.tinydoorstudios.com' },
-  { nm:'GROW TENTS', ds:'AC Infinity monitor + control', href:'https://grow.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://grow.tinydoorstudios.com' },
-  { nm:'SPL — FSQ', ds:'Fountain Square FOH SPL — live during shows', href:'https://spl.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://spl.tinydoorstudios.com' },
-  { nm:'SPL — MEMO', ds:'Memorial Hall FOH SPL — live during shows', href:'https://memo-spl.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://memo-spl.tinydoorstudios.com' },
-  { nm:'TEMPEST', ds:'3-station weather net', href:'https://tempest.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://tempest.tinydoorstudios.com' },
-  { nm:'CAMERAS', ds:'reboot 3× JVC PTZ (Memo)', href:'/cameras/', tag:['login','LOGIN'], probe:'same-origin:/cameras/' },
-  { nm:'VM RACK', ds:'infra dashboard — host, VMs, services', href:'/rack/', tag:['lock','PASSCODE'], probe:null },
-  { nm:'PROXMOX', ds:'TDS host management', href:'https://tds.tail9c92b.ts.net:8006', tag:['lan','TAILNET'], probe:null },
-  { nm:'IDRAC', ds:'Dell out-of-band mgmt', href:'https://192.168.0.7', tag:['lan','LAN'], probe:null },
+// ══ SERVICES + live reachability probes — grouped by function (Brian, 2026-09-12) ══
+const SERVICE_GROUPS = [
+  { group:'BAND ADVANCE', items:[
+    { nm:'BAND ADVANCING', ds:'new booking + artist directory (beta)', href:'https://advance.tinydoorstudios.com/staff', tag:['lock','PASSCODE'], probe:'https://advance.tinydoorstudios.com' },
+    { nm:'ADVANCING STATUS', ds:'sites, bands, advance status — today forward', href:'https://advance.tinydoorstudios.com/dashboard', tag:['lock','PASSCODE'], probe:'https://advance.tinydoorstudios.com' },
+  ]},
+  { group:'SHOW TOOLS', items:[
+    { nm:'LIVE SOUND KB', ds:'wiki — articles + shows', href:'https://kb.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://kb.tinydoorstudios.com' },
+    { nm:'DIGICO Q225 WIKI', ds:'console how-to + manuals — staff reference', href:'https://digico.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://digico.tinydoorstudios.com' },
+    { nm:'SHOWBUILDER', ds:'Q225 paperwork + .ses package', href:'https://showbuilder.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://showbuilder.tinydoorstudios.com' },
+    { nm:'SPL — FSQ', ds:'Fountain Square FOH SPL — live during shows', href:'https://spl.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://spl.tinydoorstudios.com' },
+    { nm:'SPL — MEMO', ds:'Memorial Hall FOH SPL — live during shows', href:'https://memo-spl.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://memo-spl.tinydoorstudios.com' },
+    { nm:'TEMPEST', ds:'3-station weather net', href:'https://tempest.tinydoorstudios.com', tag:['lan','OPEN'], probe:'https://tempest.tinydoorstudios.com' },
+    { nm:'CAMERAS', ds:'reboot 3× JVC PTZ (Memo)', href:'/cameras/', tag:['login','LOGIN'], probe:'same-origin:/cameras/' },
+  ]},
+  { group:'INFRASTRUCTURE', items:[
+    { nm:'N8N', ds:'automation workflows', href:'https://n8n.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://n8n.tinydoorstudios.com/healthz' },
+    { nm:'VM RACK', ds:'infra dashboard — host, VMs, services', href:'/rack/', tag:['lock','PASSCODE'], probe:null },
+    { nm:'PROXMOX', ds:'TDS host management', href:'https://tds.tail9c92b.ts.net:8006', tag:['lan','TAILNET'], probe:null },
+    { nm:'IDRAC', ds:'Dell out-of-band mgmt', href:'https://192.168.0.7', tag:['lan','LAN'], probe:null },
+  ]},
+  { group:'OTHER', items:[
+    { nm:'UPLOADS', ds:'guest file drop — AFX (Cold Storage)', href:'https://uploads.tinydoorstudios.com', tag:['login','LOGIN'], probe:'https://uploads.tinydoorstudios.com' },
+    { nm:'GROW TENTS', ds:'AC Infinity monitor + control', href:'https://grow.tinydoorstudios.com', tag:['lock','PASSCODE'], probe:'https://grow.tinydoorstudios.com' },
+  ]},
 ];
+const SERVICES = SERVICE_GROUPS.flatMap(g => g.items);  // flat, for the probe loop's indexing
 function renderServices(){
-  document.getElementById('svcList').innerHTML = SERVICES.map((s,i) =>
-    '<a class="row" href="'+s.href+'"><span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
-    '<span class="nm">'+s.nm+'</span><span class="ds">'+s.ds+'</span>'+
-    '<span class="ping" id="ping'+i+'">'+(s.probe ? '· · ·' : '—')+'</span>'+
-    '<span class="tag '+s.tag[0]+'">'+s.tag[1]+'</span></a>').join('');
+  let i = -1;
+  document.getElementById('svcList').innerHTML = SERVICE_GROUPS.map(g =>
+    '<div class="svc-group"><div class="svc-head">'+g.group+'</div><div class="svc">'+
+    g.items.map(s => { i++;
+      return '<a class="row" href="'+s.href+'"><span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
+        '<span class="nm">'+s.nm+'</span><span class="ds">'+s.ds+'</span>'+
+        '<span class="ping" id="ping'+i+'">'+(s.probe ? '· · ·' : '—')+'</span>'+
+        '<span class="tag '+s.tag[0]+'">'+s.tag[1]+'</span></a>';
+    }).join('') +
+    '</div></div>').join('');
 }
 renderServices();
 async function probeAll(){

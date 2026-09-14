@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly Band Advance backup (Sundays 03:15)
+
+[Timer]
+OnCalendar=Sun *-*-* 03:15:00
+# Catch up if the VM was down at the scheduled time — a missed weekly backup
+# is the whole failure mode this system exists to prevent.
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

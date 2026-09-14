@@ -1,0 +1,55 @@
+{% set show_label = series or event_name %}
+Subject: Welcome to {% if show_label %}{{ show_label }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} — {{ show_date }}{% endif +%}
+
+Hello{% if contact_name %} {{ contact_name }} and{% endif %}{% if name %} {{ name }}{% endif %},
+
+{% if returning %}Good to have you back{% if show_label %} for {{ show_label }}{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your advance at the link — we've pre-filled your last submission, so just confirm or update anything that's changed.{% else %}Welcome to {% if show_label %}{{ show_label }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your show advance at the link. It replaces the questions we used to ask in this email — contact info, stage plot, monitors, merch, headcount, and the acknowledgments — and takes about five minutes. Your show info is already filled in.{% endif %}
+
+
+
+{{ personal_note }}Completing the form confirms you've received this, reviewed the policies, and answered everything we need:
+
+{{ form_link }}
+
+{% if deadline %}Please complete it by {{ deadline }}.{% else %}Please complete it as soon as you can.{% endif %}
+
+────────────────────────────────
+
+Venue / Location: {% if blocks.location %}{{ blocks.location }}{% else %}{{ venue }}{% endif +%}
+Advancing Contact: {{ advancing_contact }}
+{% if day_of_contact %}Day-of Contact: {{ day_of_contact }}
+{% if engineer_contact %}  Please do not advance with them or call them prior to show day, as they are part-time staff.
+{% endif %}{% else %}Day-of Contact: we'll send your day-of contact the week of the show.
+{% endif %}{% if set_line %}{{ set_line }}
+{% endif %}
+{% if bill_block %}{{ bill_block }}
+
+{% endif %}Day Schedule:
+{{ schedule_block }}
+{% if not schedule_locked %}{% if not multiband %}  *Please take set breaks as needed. Please do not arrive before your load-in time without advance coordination.
+{% else %}  *Please do not arrive before your load-in time without advance coordination.
+{% endif %}{% endif %}
+
+{{ blocks.load_in }}
+
+{{ blocks.technical }}
+
+{{ blocks.hospitality }}
+
+Performance Requirements (failure to comply may result in a warning or termination of the show, with payment canceled or delayed):
+{% if blocks.requirements %}{{ blocks.requirements }}
+{% endif %}{{ common_requirements }}
+
+{% if returning %}Here's what we have on file from your last show:
+
+{% for k, val in last %}  - {{ k }}: {{ val }}
+{% endfor %}
+{% endif %}{% if advance_recap %}
+For reference, here's what was on your advance from {{ advance_recap.venue }} on {{ advance_recap.show_date }}:
+
+{% for k, val in advance_recap.rows %}  - {{ k }}: {{ val }}
+{% endfor %}
+{% endif %}You acknowledge all of the above by completing the form. Let me know if you have any questions or concerns.
+
+Thanks,
+3CDC Events / Production

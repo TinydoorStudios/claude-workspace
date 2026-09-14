@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Submission match — {{ m.typed_name }}</title>
+<style>
+  :root{color-scheme:dark;}
+  body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;}
+  header{background:#1A3A5C;color:#fff;padding:20px 0;}
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px 60px;} header .wrap{padding-bottom:0;}
+  h1{margin:0;font-size:20px;} header p{margin:6px 0 0;font-size:13px;color:#c7d6e6;}
+  .card{background:#161b22;border:1px solid #2a323d;border-radius:10px;padding:16px 18px;margin:18px 0;}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#4da3ff;margin:0 0 10px;}
+  .muted{color:#8b97a6;font-size:13px;}
+  button{border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;font-size:14px;}
+  .primary{background:#1A3A5C;color:#fff;} .danger{background:#5a1d1d;color:#fff;}
+  form{display:inline;} .row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #2a323d;}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a href="{{ url_for('staff') }}" style="color:#c7d6e6;font-size:13px;text-decoration:none">← Staff</a>
+  <h1>Submitted as “{{ m.typed_name }}” — {{ m.venue }} {{ m.show_date.strftime('%m/%d/%Y') if m.show_date else '' }}</h1>
+  <p>Status: {{ m.status.replace('_', ' ') }}{% if m.resolved_at %} · resolved {{ m.resolved_at.strftime('%m/%d %H:%M') }}{% endif %}</p>
+</div></header>
+<div class="wrap">
+  <div class="card">
+    <h2>Currently attached to</h2>
+    {% if current %}<p>{{ current.artist_name }} — {{ current.venue }} {{ current.show_date.strftime('%m/%d/%Y') if current.show_date else '' }}
+      · <a style="color:#4da3ff" href="{{ url_for('artist_detail', artist_id=current.artist_id) }}">open</a></p>{% else %}<p class="muted">—</p>{% endif %}
+    {% if m.status == 'attached_auto' %}
+    <div class="row">
+      <div>That's the right band.</div>
+      <form method="post" action="{{ url_for('submission_match_confirm', match_id=m.id) }}"><button class="primary">Confirm</button></form>
+    </div>
+    <div class="row">
+      <div>Wrong band — give “{{ m.typed_name }}” its own record; the booking goes back to unanswered.</div>
+      <form method="post" action="{{ url_for('submission_match_detach', match_id=m.id) }}"
+            onsubmit="return confirm('Detach this submission from {{ current.artist_name|e if current else '' }}?');"><button class="danger">Wrong band, detach</button></form>
+    </div>
+    {% endif %}
+  </div>
+  {% if m.status in ('pending_pick', 'attached_auto') and options %}
+  <div class="card">
+    <h2>Attach to a different booking</h2>
+    <p class="muted">Unanswered bookings at {{ m.venue }} within 30 days of the submitted date.</p>
+    {% for o in options %}
+    <div class="row">
+      <div>{{ o.artist_name }} — {{ o.show_date.strftime('%m/%d/%Y') if o.show_date else '' }}</div>
+      <form method="post" action="{{ url_for('submission_match_attach', match_id=m.id, show_id=o.show_id) }}"
+            onsubmit="return confirm('Attach this submission to {{ o.artist_name|e }}?');"><button class="primary">Attach here</button></form>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>
