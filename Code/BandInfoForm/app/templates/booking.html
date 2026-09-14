@@ -121,8 +121,8 @@
              style="margin-top:8px{% if not series_is_custom %};display:none{% endif %}"
              value="{{ form.series if series_is_custom else '' }}">
     </div>
-    <div class="full"><label>Event Name</label><input name="event_name" value="{{ form.event_name or '' }}" placeholder="e.g. 513 Airwaves w/ Inhaler Radio">
-      <p class="hint" style="margin:6px 0 0">Optional.</p>
+    <div class="full" id="event_name_field"><label>Event Name</label><input name="event_name" id="event_name_input" value="{{ form.event_name or '' }}" placeholder="e.g. 513 Airwaves w/ Inhaler Radio">
+      <p class="hint" id="event_name_hint" style="margin:6px 0 0">Optional.</p>
     </div>
     <div class="req"><label>Event Date</label><input type="date" name="event_date" value="{{ form.event_date or '' }}" required></div>
     <div class="req"><label>Venue</label>
@@ -291,6 +291,10 @@
       document.getElementById(id).classList.toggle('req', !third);
     });
     document.getElementById('contact_email_field').classList.toggle('req', !(manual || third));
+    // 3rd Party: Event Name is mandatory (it names the event and its doc).
+    document.getElementById('event_name_input').required = third;
+    document.getElementById('event_name_field').classList.toggle('req', third);
+    document.getElementById('event_name_hint').textContent = third ? 'Required for a 3rd-party event.' : 'Optional.';
   }
   onManualChange();
   </script>
