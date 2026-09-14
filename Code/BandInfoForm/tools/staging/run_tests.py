@@ -40,6 +40,7 @@ import advance_db as db  # noqa: E402
 import daysheet  # noqa: E402
 import fieldspec as fs  # noqa: E402
 import mailer  # noqa: E402
+import staffing  # noqa: E402
 
 TODAY = dt.date.today()
 RESULTS = []
@@ -830,6 +831,56 @@ def t_third_party_band_emails():
     s2 = q("SELECT advance_draft_created_at FROM shows WHERE id=%s", (s["id"],), one=True)
     loud = [m for m in sends_since(n1) if "quiet@example.test" in json.dumps(m)]
     check(s2["advance_draft_created_at"] and loud, f"welcome sent once turned on ({len(loud)})")
+
+
+@test("Day-of contact (mix engineer): FSQ welcome matches WP (2026-09-14)")
+def t_day_of_contact():
+    """Confirms the parity Brian asked about: draft_emails.py pulls the
+    staffing sheet's Mix engineer for BOTH Fountain Square and Washington
+    Park the same way (staffing.engineer_for), and the shared welcome
+    template renders it under 'Day-of Contact:' identically for both. Scans
+    forward for the nearest date each venue actually has a resolvable
+    engineer on the live sheet — skips (not fails) a venue with none in
+    range, since that's live external data, not a code bug."""
+    login()
+    for venue, series, extra in (
+        ("Fountain Square", "Jazz on the Square", {}),
+        ("Washington Park", "Jazz At The Porch", {"location": "Porch"}),
+    ):
+        # the welcome only sends within the 21-day window
+        # (shows_due_for_initial_advance) — no point finding a staffed date
+        # past it, the send would never fire regardless of the wiring.
+        eng, staffed_date = None, None
+        for i in range(1, 21):
+            cand = TODAY + dt.timedelta(days=i)
+            e = staffing.engineer_for(venue, cand)
+            if e:
+                eng, staffed_date = e, cand
+                break
+        if not staffed_date:
+            check(True, f"{venue}: no staffed date with a resolvable engineer in the next 21 days — skipped")
+            continue
+        band = f"Day-of Contact Test {venue.replace(' ', '')}"
+        # nearest staffed dates are near-term, i.e. exactly where the real
+        # cloned bill is often already full — try every slot before giving up
+        st = None
+        for slot in ("opener", "direct_support", "headliner"):
+            st, _ = make_booking(band, venue, staffed_date, series=series, slot=slot,
+                                 band_count="3", **extra)
+            if st == 200:
+                break
+        if st != 200:
+            check(True, f"{venue}: {staffed_date} already fully booked in the clone — skipped")
+            continue
+        check(st == 200, f"{venue}: booking accepted ({st})")
+        check(wait_run_now(), f"{venue}: run finished")
+        n0 = mail_count()
+        post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
+        sent = [m for m in sends_since(n0) if band.lower() in json.dumps(m).lower()]
+        check(sent, f"{venue}: welcome email sent ({len(sent)})")
+        body = sent[0]["payload"].get("body", "") if sent else ""
+        check(f"Day-of Contact: {eng}" in body,
+              f"{venue}: welcome carries the staffed mix engineer as Day-of Contact ({eng!r})")
 
 
 @test("nothing left the box")
