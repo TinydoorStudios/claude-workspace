@@ -28,7 +28,7 @@ KEY="$HOME/.ssh/proxmox_tds"
     # never restart mid-run: a restart kills an in-flight pipeline run,
     # doc filing or thank-you send (audit cleanup). Wait up to 10 minutes.
     for i in \$(seq 1 120); do
-      if pgrep -f 'run_now.py|run_again.py|package_run.py|regen_show.py|finalize_thankyou.py|draft_emails.py' >/dev/null; then
+      if pgrep -f '[r]un_now.py|[r]un_again.py|[p]ackage_run.py|[r]egen_show.py|[f]inalize_thankyou.py|[d]raft_emails.py' >/dev/null; then
         [ \$i = 1 ] && echo 'waiting for an in-flight pipeline run to finish...'
         sleep 5
       else
