@@ -138,6 +138,9 @@ def form_fields(sub):
         "stage_plot_file": d.get("stage_plot_file"),
         "stage_escort_name": d.get("stage_escort_name"),
         "stage_escort_cell": d.get("stage_escort_cell"),
+        # "Anything else we should know?" (Brian, 2026-09-14) -> the doc's
+        # Additional Info row, last in the grid
+        "additional": d.get("additional"),
     }
     return {k: v for k, v in out.items() if v not in (None, "")}
 
@@ -253,6 +256,8 @@ def act_row_values(f):
         out["band contact — name"] = name
     if cell:
         out["band contact — cell"] = cell
+    if f.get("additional"):
+        out["additional info"] = f["additional"]
     return out
 
 
@@ -830,7 +835,8 @@ def build(event_id, template=None, stageplot_names=None):
         if not event:
             print(f"No event {event_id}", file=sys.stderr); sys.exit(1)
         acts = db.event_acts(cur, event_id)
-        declared_n = db.band_count_for_event(cur, event.get("venue"), event.get("event_date"))
+        declared_n = db.band_count_for_event(cur, event.get("venue"), event.get("event_date"),
+                                             series=event.get("series"))
         # a cancelled band's info never goes into the doc (audit #4); its
         # column header reads "CANCELLED — <band>" so the doc says so
         # (review 2026-09-14, M4) — the act stays in `acts` for column

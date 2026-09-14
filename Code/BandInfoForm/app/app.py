@@ -54,6 +54,10 @@ LIFECYCLE_NOW_URL = os.environ.get("ADVANCE_LIFECYCLE_NOW_URL", "")
 # required — override only if that ever changes.
 INTERNAL_SEND_URL = os.environ.get("ADVANCE_INTERNAL_SEND_URL",
                                     "http://localhost:5678/webhook/internal-send-outlook")
+# "Email band" button (Brian, 2026-09-14): creates a real Outlook draft in the
+# Production@3cdc.org mailbox via the internal-create-outlook-draft workflow.
+CREATE_DRAFT_URL = os.environ.get("ADVANCE_CREATE_DRAFT_URL",
+                                  "http://localhost:5678/webhook/internal-create-outlook-draft")
 UNRESPONDED_ALERT_TO = os.environ.get("ADVANCE_UNRESPONDED_ALERT_TO", "blloyd@3cdc.org")
 TOOLS_DIR = BASE / "tools"
 
@@ -851,8 +855,11 @@ def _booking_form(error=None, form=None, status=200):
                            error=error, form=form or {}), status
 
 
-def _slot_taken(cur, venue, event_date, slot, artist_name):
-    """Another band already holds this slot on this venue+date (audit #20)."""
+def _slot_taken(cur, venue, event_date, slot, artist_name, series=None):
+    """Another band already holds this slot on this venue+date (audit #20).
+    A 3rd-party event is its own bill (Brian, 2026-09-14): its slots never
+    collide with the internal show's, and vice versa."""
+    third = advance_db.is_third_party(series)
     cur.execute(
         r"""SELECT b.artist_name FROM bookings b
             LEFT JOIN artists a ON a.match_key = lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g')))
@@ -860,8 +867,9 @@ def _slot_taken(cur, venue, event_date, slot, artist_name):
             WHERE b.venue=%s AND b.event_date=%s AND b.slot=%s
               AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) <> %s
               AND s.cancelled_at IS NULL
+              AND (lower(btrim(COALESCE(b.series,''))) = '3rd party') = %s
             LIMIT 1""",
-        (venue, event_date, slot, advance_db.normalize(artist_name)))
+        (venue, event_date, slot, advance_db.normalize(artist_name), third))
     row = cur.fetchone()
     return row["artist_name"] if row else None
 
@@ -901,7 +909,7 @@ def booking():
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
                     taken = _slot_taken(cur, data["venue"], advance_db.to_date(data["event_date"]),
-                                        data["slot"], data["artist_name"])
+                                        data["slot"], data["artist_name"], series=data["series"])
                     if taken:
                         slot_h = data["slot"].replace("_", " ")
                         return _booking_form(
@@ -1040,6 +1048,97 @@ def finalize_show(artist_id, show_id):
         _spawn_tool("finalize_thankyou.py", "--send", "--show-id", str(show_id),
                     log_name="thankyou.log")
     return redirect(url_for("artist_detail", artist_id=artist_id))
+
+
+def _recap_for_draft(sub):
+    """Compact 'what you sent us' block for the reply draft."""
+    if not sub:
+        return ""
+    d = sub.get("data") or {}
+    yn = lambda v: "Yes" if v is True else ("No" if v is False else None)  # noqa: E731
+    rows = [
+        ("Performers + crew", sub.get("performers")),
+        ("Monitors", f"{sub['monitors']} wedges" if sub.get("monitors") is not None else None),
+        ("IEMs", (d.get("uses_iems") or yn(sub.get("own_iems")))
+                 + (f" — own system: {yn(sub.get('own_iems'))}" if str(d.get("uses_iems", "")).lower() == "yes" else "")
+                 if (d.get("uses_iems") or sub.get("own_iems") is not None) else None),
+        ("Split snake", sub.get("split_snake")),
+        ("Stage", sub.get("stage_type")),
+        ("Own engineer", sub.get("own_engineer")),
+        ("Backline", d.get("backline")),
+        ("Merch", yn(sub.get("merch"))),
+        ("Band tent", sub.get("band_tent")),
+        ("Vehicles", (f"{sub['vehicle_count']} total"
+                      + (f", {sub['large_vehicle_count']} large" if sub.get("large_vehicle_count") is not None else ""))
+                     if sub.get("vehicle_count") is not None else None),
+        ("Stage plot", "on file" if d.get("stage_plot_file") else (d.get("stage_plot_desc") or None)),
+        ("Scenic", d.get("scenic")), ("Lighting", d.get("lighting")),
+        ("Stage escort", d.get("stage_escort_name")),
+        ("Anything else", d.get("additional")),
+        ("Changed since last time", d.get("changed_notes")),
+    ]
+    return "\n".join(f"  {k}: {v}" for k, v in rows if v not in (None, "", "None"))
+
+
+def _build_reply_draft(show, artist, sub):
+    first = (sub.get("contact_name") or (sub.get("data") or {}).get("contact_name") or "").strip().split(" ")[0]
+    band = artist["name"]
+    greeting = f"Hello {band}" if (not first or first.lower() in band.lower().split()) else f"Hello {first} and {band}"
+    when = us_date(show["show_date"]) if show.get("show_date") else ""
+    subject = f"Your {show['venue']} advance — {band}" + (f", {when}" if when else "")
+    body = (f"{greeting},\n\n\n\n"
+            "Thanks,\nBrian Lloyd\n3CDC Events / Production\n(315) 404-5648\n\n"
+            "──────────────────────────────\n"
+            f"For reference, what you sent us for {show['venue']}{(' on ' + when) if when else ''}:\n"
+            f"{_recap_for_draft(sub)}\n")
+    return subject, body
+
+
+@app.post("/artist/<int:artist_id>/draft/<int:show_id>")
+def draft_reply(artist_id, show_id):
+    """Create an Outlook draft to the band's contact, addressed and with their
+    answers pasted below, so a question thread starts from a real draft in
+    Production@3cdc.org (Brian, 2026-09-14). Never sends. Answers JSON when
+    asked for it (the dashboard), otherwise bounces back to the artist page."""
+    if not DB_OK:
+        abort(503)
+    wants_json = "application/json" in (request.headers.get("Accept") or "")
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        show = advance_db.get_show(cur, show_id)
+        artist = advance_db.get_artist(cur, artist_id)
+        if not show or not artist or show["artist_id"] != artist_id:
+            abort(404)
+        cur.execute("SELECT * FROM submissions WHERE show_id=%s ORDER BY submitted_at DESC LIMIT 1", (show_id,))
+        sub = cur.fetchone() or advance_db.newest_submission(cur, artist_id)
+    to = ((sub or {}).get("contact_email") or artist.get("last_email") or "").strip()
+    result = {"ok": False, "error": None, "link": None}
+    if not to:
+        result["error"] = "no contact email on file"
+    else:
+        subject, body = _build_reply_draft(show, artist, sub or {})
+        try:
+            import urllib.request
+            req = urllib.request.Request(
+                CREATE_DRAFT_URL, data=json.dumps({"to": to, "subject": subject, "body": body}).encode(),
+                headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                raw = json.loads(resp.read().decode("utf-8", "replace") or "{}")
+            if isinstance(raw, list):
+                raw = raw[0] if raw else {}
+            gbody = raw.get("body") if isinstance(raw, dict) else None
+            status = raw.get("statusCode") if isinstance(raw, dict) else None
+            if status in (200, 201) and isinstance(gbody, dict) and gbody.get("id"):
+                result.update(ok=True, link=gbody.get("webLink"), to=to)
+            else:
+                result["error"] = f"draft not created (HTTP {status}): {str(gbody)[:200]}"
+        except Exception as e:  # noqa: BLE001
+            result["error"] = repr(e)[:200]
+            _log_db_error("draft_reply", e)
+    if wants_json:
+        return result, (200 if result["ok"] else 502)
+    q = ("drafted=1" if result["ok"] else "draft_error=" + quote(result["error"] or "failed"))
+    return redirect(url_for("artist_detail", artist_id=artist_id) + "?" + q
+                    + (f"&draft_link={quote(result['link'])}" if result.get("link") else ""))
 
 
 def _spawn_tool(script, *args, log_name="tools_background.log"):

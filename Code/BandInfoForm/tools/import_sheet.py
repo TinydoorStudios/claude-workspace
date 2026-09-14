@@ -86,10 +86,17 @@ def main():
         print("No data rows found (only examples/blanks?).", file=sys.stderr)
         sys.exit(1)
 
-    # group by (event_name, event_date, venue)
+    # group by (event_name, event_date, venue). Brian, 2026-09-14: every
+    # internal booking at a venue on a date is ONE bill (event name blank or
+    # not); a '3rd Party' booking is its own event on that date, named after
+    # its event (or its band), so it gets its own advance doc.
     groups = {}
     for r in rows:
-        key = (r.get("event_name") or "", r.get("event_date") or "", r.get("venue") or "")
+        if db.is_third_party(r.get("series")):
+            ename = r.get("event_name") or f"3rd Party - {r.get('artist_name')}"
+        else:
+            ename = ""
+        key = (ename, r.get("event_date") or "", r.get("venue") or "")
         groups.setdefault(key, []).append(r)
 
     events_made = acts_made = 0
@@ -103,6 +110,9 @@ def main():
                 v = next((a.get(k) for a in acts if a.get(k) not in (None, "")), None)
                 if v is not None:
                     details[k] = v
+            if not ename:
+                # the internal bill keeps whatever event name staff typed (first non-empty)
+                ename = next((a.get("event_name") for a in acts if a.get("event_name")), None)
             with conn.cursor() as cur:
                 eid = get_or_create_event(cur, ename or None, evenue or None,
                                           to_date(edate), series)

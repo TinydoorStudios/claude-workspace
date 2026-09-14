@@ -50,6 +50,10 @@ class H(BaseHTTPRequestHandler):
         os.makedirs(os.path.dirname(LOG), exist_ok=True)
         with open(LOG, "a") as fh:
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        if self.path.endswith("/internal-create-outlook-draft"):
+            if not rec["token_ok"]:
+                return self._reply(500, {"message": "bad token"})
+            return self._reply(200, {"statusCode": 201, "body": {"id": "AAMk-stub-draft", "webLink": "https://outlook.office365.com/owa/?ItemID=stub"}})
         if self.path.endswith("/internal-send-outlook"):
             if not rec["token_ok"]:
                 return self._reply(500, {"message": "Error in workflow: bad X-Advance-Token"})

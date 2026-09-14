@@ -104,6 +104,21 @@ def event_key(ev):
     return re.sub(r"\s+", " ", (ev.get("name") or ev.get("series") or "").strip()).lower()
 
 
+def ci_existing(folder, name):
+    """The file in `folder` whose name equals `name` ignoring case, or None.
+    The VM's filesystem is case-sensitive; Brian's Mac and Dropbox are not
+    (2026-09-14: 'Stageplot.pdf' filed beside a hand-typed 'stageplot.pdf'
+    produced a Dropbox '(Case Conflict)' copy on every run)."""
+    folder = Path(folder)
+    if not folder.exists():
+        return None
+    low = name.lower()
+    for p in folder.iterdir():
+        if p.name.lower() == low:
+            return p
+    return None
+
+
 def word_lock_present(path):
     """True if Word (on any synced machine) has this doc open — Word drops
     a '~$' owner file beside it, named '~$' + the filename minus its first
@@ -270,6 +285,16 @@ def merge(T, F, E, prov=None):
         names = _act_names(gE)
         for key, t_row in rT.items():
             f_row, e_row = rF.get(key), rE.get(key)
+            if f_row is not None and e_row is None and key[1] == 0:
+                # a row the template gained after this doc was filed (e.g.
+                # Additional Info, 2026-09-14) — append it from the fresh build
+                gE._tbl.append(ctx.prepare_copy(f_row._tr))
+                for i, tc in enumerate(f_row._tr.tc_lst[1:], start=1):
+                    v = _t(_tc_text(tc))
+                    if v:
+                        ctx.newprov[f"{_t(_tc_text(f_row._tr.tc_lst[0])).rstrip(':')}|{names.get(i) or SLOT_COL_NAMES.get(i)}"] = v
+                ctx.changed += 1
+                continue
             if f_row is None or e_row is None:
                 continue
             tT, tF, tE = t_row._tr.tc_lst, f_row._tr.tc_lst, e_row._tr.tc_lst
@@ -439,8 +464,8 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
     existing = None
     if reg and _abs_from_reg(reg["path"]).exists():
         existing = _abs_from_reg(reg["path"])
-    elif desired.exists():
-        existing = desired
+    elif ci_existing(folder, desired.name):
+        existing = ci_existing(folder, desired.name)
     elif reg:
         # registered doc is gone from where we left it — most likely a person
         # renamed or moved it within the month folder. Adopt the one
@@ -490,8 +515,10 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
         if not _atomic_save(E, existing, expect_sha=before_sha):
             res["action"] = "conflict"
             return res
-    # rename in place when the display name changed — never a second copy
-    if existing.name != desired.name and not desired.exists():
+    # rename in place when the display name changed — never a second copy,
+    # and never a case-only rename (Dropbox on the Mac can't tell them apart)
+    if (existing.name != desired.name and existing.name.lower() != desired.name.lower()
+            and not ci_existing(folder, desired.name)):
         folder.mkdir(parents=True, exist_ok=True)
         os.rename(existing, desired)
         res["renamed_from"] = existing.name
@@ -522,6 +549,9 @@ def file_stage_plot(src, folder, fname, dry_run=False):
     if dry_run:
         return fname, None
     folder.mkdir(parents=True, exist_ok=True)
+    existing = ci_existing(folder, fname)
+    if existing is not None:
+        dest, fname = existing, existing.name   # keep whatever case is already there
     if not dest.exists():
         shutil.copy(src, dest)
         return fname, None

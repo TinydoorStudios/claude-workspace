@@ -43,6 +43,12 @@ def to_int(v):
         return None
 
 
+def is_third_party(series):
+    """A booking under the '3rd Party' series is its own event on a date that
+    may also carry the internal bill (Brian, 2026-09-14)."""
+    return normalize(series) == "3rd party"
+
+
 def to_date(v):
     if not v:
         return None
@@ -87,6 +93,14 @@ def upsert_artist(cur, name, email=None, phone=None, known_id=None):
             cur.execute("SELECT name FROM artists WHERE id = %s", (known_id,))
             row = cur.fetchone()
             if row:
+                name = row["name"]
+        else:
+            # a case/spacing-only difference is not a rename (2026-09-14:
+            # "Ratboys" typed for "RatBoys" renamed the filed doc and gave
+            # Dropbox a case-conflict copy) — keep the staff spelling
+            cur.execute("SELECT name FROM artists WHERE id = %s", (known_id,))
+            row = cur.fetchone()
+            if row and normalize(row["name"]) == normalize(name):
                 name = row["name"]
         cur.execute(
             """
@@ -531,15 +545,14 @@ def record_advance_recap(cur, show_id, artist_id, venue, show_date, source_docx,
     )
 
 
-def band_count_for_event(cur, venue, event_date):
+def band_count_for_event(cur, venue, event_date, series=None):
     """The declared band count (max across acts, in case of disagreement) for
-    any booking at this venue+date — lets daysheet.fill() pick the right N-band
-    template even when only some of the bill's acts have real event_acts rows
-    yet (bands entered one at a time). None if nobody declared one."""
+    this bill at venue+date — the internal bill, or (series '3rd Party') the
+    3rd-party event, never mixed (Brian, 2026-09-14). None if nobody declared one."""
     cur.execute(
         "SELECT max(band_count) AS n FROM bookings WHERE venue=%s AND event_date=%s "
-        "AND band_count IS NOT NULL",
-        (venue, event_date),
+        "AND band_count IS NOT NULL AND (lower(btrim(COALESCE(series,''))) = '3rd party') = %s",
+        (venue, event_date, is_third_party(series)),
     )
     row = cur.fetchone()
     return row["n"] if row else None

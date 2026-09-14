@@ -557,6 +557,70 @@ def t_failures():
     check(any(r["show_id"] == sid and r["error"].startswith("HTTP 500") for r in rows3), "day 3: a NEW error is reported")
 
 
+@test("Email band draft (2026-09-14)")
+def t_draft():
+    login()
+    r = q("""SELECT s.id AS show_id, s.artist_id FROM shows s WHERE s.responded_at IS NOT NULL
+             AND s.show_date >= CURRENT_DATE ORDER BY s.show_date LIMIT 1""", one=True)
+    n0 = mail_count()
+    st, body = post(f"/artist/{r['artist_id']}/draft/{r['show_id']}", {}, headers={"Accept": "application/json"})
+    data = json.loads(body)
+    check(st == 200 and data.get("ok") and data.get("link"), f"draft endpoint answers ok with a link ({st})")
+    drafts = [m for m in mails(n0) if m["path"].endswith("/internal-create-outlook-draft")]
+    check(len(drafts) == 1 and "Hello" in drafts[0]["payload"]["body"] and "what you sent us" in drafts[0]["payload"]["body"],
+          "draft payload carries greeting + recap")
+    check(drafts and drafts[0]["payload"]["to"] == data.get("to"), "addressed to the band's contact")
+
+
+@test("3rd-party event on a date with a bill -> its own doc (2026-09-14)")
+def t_third_party():
+    login()
+    d = TODAY + dt.timedelta(days=25)
+    make_booking("Bill Band A", "Fountain Square", d, series="Jazz on the Square", band_count="2", slot="headliner")
+    make_booking("Bill Band B", "Fountain Square", d, series="Jazz on the Square", band_count="2", slot="opener")
+    st, body = make_booking("Corporate Party Band", "Fountain Square", d, series="3rd Party", slot="headliner", event_name="Acme Holiday Party")
+    check(st == 200 and "already the headliner" not in body, "3rd-party headliner not refused by the internal headliner")
+    check(wait_run_now(), "runs finished")
+    evs = q("SELECT id, name, series FROM events WHERE venue='Fountain Square' AND event_date=%s ORDER BY id", (d,))
+    check(len(evs) == 2, f"two events for the date ({[e['name'] for e in evs]})")
+    docs = q("SELECT path FROM filed_docs WHERE venue='Fountain Square' AND event_date=%s ORDER BY id", (d,))
+    names = [Path(x["path"]).name for x in docs]
+    check(len(docs) == 2 and any("Acme Holiday Party" in n for n in names) and any("Bill Band A" in n for n in names),
+          f"two docs filed: {names}")
+    rows_a, _ = doc_rows("Fountain Square", d, "Bill Band A")
+    rows_c, _ = doc_rows("Fountain Square", d, "Corporate Party Band")
+    check(rows_c is None or "Bill Band" not in json.dumps(rows_c), "internal bands never appear in the 3rd-party doc")
+
+
+@test("case-only names never make a second file (2026-09-14)")
+def t_case():
+    import docmerge, fieldspec as fs
+    d = TODAY + dt.timedelta(days=25)
+    folder = DROP / fs.real_venue_folder("Fountain Square") / fs.real_month_folder("Fountain Square", d)
+    folder.mkdir(parents=True, exist_ok=True)
+    src = T / "plot.pdf"; src.write_bytes(b"%PDF-1.4 test")
+    low = folder / "999999 case test stageplot.pdf"; low.write_bytes(b"%PDF-1.4 old")
+    fname, notice = docmerge.file_stage_plot(src, folder, "999999 Case Test Stageplot.pdf")
+    files = [p.name for p in folder.glob("999999 *")]
+    check(len([f for f in files if "conflict" not in f.lower()]) <= 2 and fname == low.name,
+          f"existing lowercase file reused, no second copy ({files})")
+    with db.get_conn() as conn, conn.cursor() as cur:
+        aid = db.upsert_artist(cur, "Case Test Band", email="case@example.test")
+        aid2 = db.upsert_artist(cur, "case test band", known_id=aid)
+        cur.execute("SELECT name FROM artists WHERE id=%s", (aid,)); nm = cur.fetchone()["name"]
+        conn.rollback()
+    check(aid == aid2 and nm == "Case Test Band", f"case-only rename keeps the staff spelling ({nm})")
+
+
+@test("Additional Info lands in the doc (2026-09-14)")
+def t_additional():
+    venue, d, band = "Fountain Square", TODAY + dt.timedelta(days=25), "Bill Band A"
+    submit_form(band, venue, d, extra={"additional": "We need a ramp for a wheelchair"})
+    check(wait_regen(), "regen finished")
+    rows, _ = doc_rows(venue, d, band)
+    check(rows and "wheelchair" in (rows.get("Additional Info") or ""), f"Additional Info row filled ('{rows and rows.get('Additional Info')}')")
+
+
 @test("nothing left the box")
 def t_isolation():
     bad = [m for m in mails() if not m["path"].startswith("/webhook/")]

@@ -53,6 +53,12 @@
 </div></header>
 
 <div class="wrap">
+  {% if request.args.get('drafted') %}
+  <div class="card" style="border-color:rgba(52,211,153,.4)">Draft created in the Production@3cdc.org mailbox, addressed to the band with their answers below.
+    {% if request.args.get('draft_link') %} <a href="{{ request.args.get('draft_link') }}" target="_blank" rel="noopener">Open it in Outlook →</a>{% endif %}</div>
+  {% elif request.args.get('draft_error') %}
+  <div class="card" style="border-color:rgba(248,113,113,.4)">Couldn't create the draft: {{ request.args.get('draft_error') }}</div>
+  {% endif %}
   <h2>Bookings</h2>
   {% if shows %}
   <table>
@@ -76,6 +82,11 @@
         <span class="finalized-note">✓ Finalized {{ s.finalized_at.strftime('%Y-%m-%d') if s.finalized_at else '' }}</span>
         {% if s.thankyou_sent_at %}<div class="note">Thank-you sent {{ s.thankyou_sent_at.strftime('%m/%d') }}</div>
         {% elif s.thankyou_error %}<div class="note bad">Thank-you not sent: {{ s.thankyou_error }}</div>{% endif %}
+        {% endif %}
+        {% if s.state in ('responded', 'finalized') %}
+        <form method="post" action="{{ url_for('draft_reply', artist_id=artist.id, show_id=s.show_id) }}">
+          <button class="minor-btn" type="submit" title="Creates an Outlook draft to the band, addressed, with their answers pasted below">Email band ✉</button>
+        </form>
         {% endif %}
         {% if s.state == 'cancelled' %}
         <form method="post" action="{{ url_for('show_uncancel', show_id=s.show_id) }}"

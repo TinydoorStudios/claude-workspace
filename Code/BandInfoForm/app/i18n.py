@@ -283,8 +283,8 @@ STRINGS = {
     "ack_reqs_check":    {"en": "I have read and acknowledge all performance requirements.",
                            "es": "He leído y acepto todos los requisitos de la presentación."},
 
-    "additional_label":  {"en": "Additional questions or concerns?",
-                           "es": "¿Preguntas o inquietudes adicionales?"},
+    "additional_label":  {"en": "Anything else we should know? (gear, arrival, access needs — anything important to you)",
+                         "es": "¿Hay algo más que debamos saber? (equipo, llegada, necesidades de acceso — cualquier cosa importante para ustedes)"},
     "submit_button":     {"en": "Submit show details", "es": "Enviar detalles del show"},
 
     # ── thanks page ──────────────────────────────────────────────────────

@@ -198,7 +198,11 @@ function render(bills){
           ? `<a class="finalize-btn" style="text-decoration:none" href="/show/${a.show_id}/hold">Decide</a>` : "";
         const cancelBtn = a.state === "cancelled" ? ""
           : `<button class="cancel-btn" onclick="cancelShow(${a.show_id}, this)">Cancel</button>`;
-        return `<div class="act ${a.state === 'cancelled' ? 'cancelled' : ''}"><span class="band">${esc(a.band)}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}${holdLink}${cancelBtn}</div></div>`;
+        // Email band (Brian, 2026-09-14): a real Outlook draft to the band's
+        // contact with their answers pasted below, once they've submitted.
+        const emailBtn = (a.state === "responded" || a.state === "finalized")
+          ? `<button class="cancel-btn" style="color:#4da3ff;border-color:#2E6DA4" onclick="draftEmail(${a.artist_id}, ${a.show_id}, this)">Email band ✉</button>` : "";
+        return `<div class="act ${a.state === 'cancelled' ? 'cancelled' : ''}"><span class="band">${esc(a.band)}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}${holdLink}${emailBtn}${cancelBtn}</div></div>`;
       }).join("");
       card.innerHTML = `
         <div class="bill-head">
@@ -226,6 +230,20 @@ async function cancelShow(showId, btn){
     btn.disabled = false;
     alert("Couldn't cancel — try again.");
   }
+}
+
+async function draftEmail(artistId, showId, btn){
+  btn.disabled = true; const label = btn.textContent; btn.textContent = "…";
+  try{
+    const res = await fetch(`/artist/${artistId}/draft/${showId}`, {method: "POST", headers: {"Accept": "application/json"}});
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || res.status);
+    btn.textContent = "Draft ready";
+    if (data.link) window.open(data.link, "_blank");
+    else alert("Draft created in the Production@3cdc.org mailbox (to " + data.to + ").");
+  }catch(e){
+    btn.textContent = label; alert("Couldn't create the draft: " + e.message);
+  }finally{ btn.disabled = false; }
 }
 
 async function finalizeShow(artistId, showId, btn){

@@ -213,8 +213,15 @@ def main():
     # the bill for each event (rows sharing event name + date + venue), in slot order
     SLOT_ORD = {"opener": 1, "direct_support": 2, "headliner": 3}
     bills = {}
+
+    def _bill_key(r):
+        # same grouping as import_sheet.py: one internal bill per venue+date,
+        # a 3rd-party booking is its own bill (Brian, 2026-09-14)
+        party = ("3p:" + (r.get("event_name") or r.get("name") or "")) if db.is_third_party(r.get("series")) else ""
+        return (party, r.get("show_date") or "", r.get("venue") or "")
+
     for r in rows:
-        key = (r.get("event_name") or "", r.get("show_date") or "", r.get("venue") or "")
+        key = _bill_key(r)
         bills.setdefault(key, []).append({
             "slot": r.get("slot") or "", "name": r.get("name") or "",
             "set_time": r.get("set_time") or "",
@@ -235,8 +242,7 @@ def main():
             # completely unaffected by everything gated on this flag below.
             is_bilingual = bool(series) and ve.is_bilingual_series(series)
             email = r.get("email") or None
-            bill = bills.get((r.get("event_name") or "",
-                              r.get("show_date") or "", r.get("venue") or ""), [])
+            bill = bills.get(_bill_key(r), [])
             deadline = ""
             if show_date:
                 d = show_date - dt.timedelta(days=10)
