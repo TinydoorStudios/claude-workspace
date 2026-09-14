@@ -54,3 +54,6 @@ _ARCHIVE/2026-06-wiki-setup/wiki-complete-setup.sh
 # _inbox is a drop folder: version the README, ignore whatever gets dropped in
 _inbox/*
 !_inbox/README.md
+
+# per-session worktrees (desktop app)
+.worktrees/
