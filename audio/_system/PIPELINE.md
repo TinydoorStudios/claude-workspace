@@ -23,6 +23,6 @@ Overlay: on a non-Fable model, **fable-parity** loads alongside show-deep-build 
 
 Disambiguation that has bitten before: "send it fsq/memo" (with a venue) = stage 3; bare "SEND IT" after a built show = stage 5.
 
-Skill sources live in `audio/_skills/` and are symlinked into `.claude/skills/`, so Claude Code always runs the live copy. **Cowork installs are snapshots** — after editing a skill, re-zip and re-upload in Cowork settings or Cowork sessions keep the old behavior.
+Skill sources — all of them, including `new-show`, `send-it`, `show-wiki-push`, `show-deep-build` and `pipeline-fix` — live in `audio/_skills/` and are symlinked into `.claude/skills/`, so Claude Code runs the live copy. Shows are built in Claude Code, never Cowork (2026-09-14); there are no `.skill` snapshots to re-upload.
 
 Routing (venue → folder/console/template/KB articles): `ROUTING.md`. Conversation flow + don't-forgets: `NEW-SHOW.md`.

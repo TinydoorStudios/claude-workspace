@@ -521,7 +521,7 @@ show; it is only worth mentioning if Brian asks why a curve and a table disagree
   description. Stands and mounts are chosen for the physical mic (an e609 has no clip mount —
   a hat needs a boom; a kick-port or cab mic takes a Short stand).
 - Default delivery PDF. Warm, direct, non-corporate writing (`about-me/writing-rules.md`).
-- Reference build: `Fountain Square/Izzy 2.0 Deep Think/`.
+- Reference build: `_ARCHIVE/2026-09-pipeline-fix/FSQ Izzy 2.0 Deep Think/` (archived 2026-09-14; Buffalo Wabs 2026-08-28 is the current-format example).
 
 ## Self-improvement loop
 After any recommendation — especially a Brian override or a resolved stop-and-ask — capture it:

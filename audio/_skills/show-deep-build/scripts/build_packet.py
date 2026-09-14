@@ -1147,7 +1147,7 @@ def main():
                           note=f"{len(spec['channels'])} channels, full packet")
     except ImportError:
         pass  # status stamp is best-effort — never blocks a build
-    print("\nNEXT: run the venue .ses patcher on the .md, then verify on the console.")
+    print("\nNEXT: run the venue .ses patcher on the .md; publish on Brian's go (show-wiki-push). Console verification is not a gate.")
 
 if __name__ == "__main__":
     main()

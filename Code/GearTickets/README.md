@@ -20,6 +20,7 @@ QR sticker  →  n8n form (crew picks venue)  →  photos staged to disk
                                               AI triage (dedupe, severity)
                                                      ↓
                                 Monday item  +  post to #gear-repair
+                                       +  email copy to Brian
                                                      ↓
                                    7am daily: reconcile against the board
 ```
@@ -39,6 +40,7 @@ exists and still alerts — it just arrives untriaged.
 | Working queue | Monday board `18405931866`, group `group_mm5vwbn1`, view `🎫 Tickets` (273197456) |
 | Log / archive | Google Sheet `Gear Tickets Log` — `1NbUaOk_G190KHEoY2lwdcgo6WqvcZ-W-9RdCuqgEt_A` (owner tinydoorstudios@gmail.com) |
 | Alerts | Slack `#gear-repair` (`C0BMLG10FAQ`) |
+| Email copy | `blloyd@3cdc.org` (changed 2026-09-06, was `tinydoorstudios@gmail.com`), via Gmail node using the existing `3CDCProduction@gmail.com` OAuth2 credential (`nIrgTZKXgA3bJ9oP`) |
 
 `tickets.tinydoorstudios.com` is a fourth vhost inside the existing `landing`
 nginx container, which runs host-network on :8088 alongside tinydoorstudios.com,
@@ -153,7 +155,20 @@ Monday is the interface. Postgres is the truth. That split is what makes the
 nightly reconcile possible — if the board drifts, there's something
 authoritative to correct it against.
 
-## Monday column IDs
+## Email copy to Brian (added 2026-09-06)
+
+`Email Copy to Brian` branches off `Apply Triage` in parallel with `Store
+Triage`, so a Monday or Slack failure never costs the email and vice versa.
+Runs on every submission, sends to `blloyd@3cdc.org` (changed 2026-09-06 from
+`tinydoorstudios@gmail.com`), reuses the
+`3CDCProduction@gmail.com` Gmail OAuth2 credential (`nIrgTZKXgA3bJ9oP`) already
+live on this n8n instance for `BandInfoForm`'s advance-notify workflow — no new
+credential needed. `onError: continueRegularOutput`, matching the rest of the
+workflow's failure style. Body mirrors the Monday full-detail update: venue,
+severity, description, gear, already-tried, reporter, category, ticket id,
+photo links, and the triage note (or the "not triaged" fallback line).
+
+
 
 Hard-coded in both workflows. If a column is renamed the ID stays the same; if a
 column is deleted and remade, update these.

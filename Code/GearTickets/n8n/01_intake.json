@@ -440,6 +440,31 @@
     },
     {
       "parameters": {
+        "sendTo": "blloyd@3cdc.org",
+        "subject": "={{ '🎫 ' + $json.ticket_id + ' — ' + $json.severity + ' — ' + $json.title }}",
+        "message": "={{ (() => {\n  const t = $json;\n  const photos = (t.photo_urls || []).map((u,i) => `<a href=\"${u}\">Photo ${i+1}</a>`).join(' &nbsp;·&nbsp; ') || 'none';\n  return `<b>${t.venue} — ${t.severity}</b><br><br>`\n    + `<b>What happened:</b><br>${t.raw_description}<br><br>`\n    + (t.gear_item ? `<b>Gear:</b> ${t.gear_item}<br>` : '')\n    + (t.troubleshooting ? `<b>Already tried:</b> ${t.troubleshooting}<br>` : '')\n    + `<b>Reported by:</b> ${t.submitter_name || 'unknown'}<br>`\n    + `<b>Category:</b> ${t.category}<br>`\n    + `<b>Ticket:</b> ${t.ticket_id}<br>`\n    + `<b>Photos:</b> ${photos}<br><br>`\n    + (t.triage_notes ? `<i>${t.triage_notes}</i>` : '<i>Not triaged — the model was unreachable. Category and severity came from the submitter.</i>');\n})() }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "gear-email-brian-0001",
+      "name": "Email Copy to Brian",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1200,
+        160
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "nIrgTZKXgA3bJ9oP",
+          "name": "3CDCProduction@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
         "jsCode": "// Photos land here FIRST, straight off the form trigger, because this is the\n// only node in the chain whose *input* still carries binary data.\n// helpers.getBinaryDataBuffer reads from the current node's input, and every\n// other candidate (getBinaryStream, getBinaryPath) is blocked in the Code\n// sandbox. Ticket ID doesn't exist yet, so files go to a staging dir keyed by\n// execution id and get moved into place once the ticket row is written.\n// Staging deliberately sits OUTSIDE /opt/gear-tickets/photos so nginx never\n// serves a half-finished ticket.\n\nconst fs = require('fs');\nconst path = require('path');\n\nconst binary = $input.first().binary || {};\nconst keys = Object.keys(binary);\nconst stageDir = path.join('/opt/gear-tickets/staging', String($execution.id));\nconst staged = [];\n\nif (keys.length) {\n  fs.mkdirSync(stageDir, { recursive: true });\n  let seq = 0;\n  for (const key of keys) {\n    seq += 1;\n    const b = binary[key];\n    const ext = (b.fileExtension || 'jpg').replace(/^\\./, '');\n    const filename = `${seq}.${ext}`;\n    const buf = await this.helpers.getBinaryDataBuffer(0, key);\n    fs.writeFileSync(path.join(stageDir, filename), buf);\n    staged.push({ seq, filename, mime_type: b.mimeType || null, bytes: buf.length });\n  }\n}\n\n// One item out, always - the next node is a Postgres query that must run once.\nreturn [{ json: { stage_dir: stageDir, staged } }];"
@@ -548,6 +573,11 @@
         [
           {
             "node": "Store Triage",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Copy to Brian",
             "type": "main",
             "index": 0
           }

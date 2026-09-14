@@ -902,5 +902,5 @@ def main_cli(cal, argv=None):
                           note=f"{cal['venue']} · {len(processed)} channels · "
                                f"{os.path.basename(a.dest)}")
     print(f"\nWritten -> {a.dest}")
-    print("\nNEXT: load on the Q225 and verify before the file is trusted.")
+    print("\nNEXT: publish on Brian's go (show-wiki-push). The .ses is recalled at the show; console verification is not a gate.")
     return 0 if ok else 1

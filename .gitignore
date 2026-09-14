@@ -64,3 +64,6 @@ _inbox/*
 
 # git worktrees (advance-system lives in .worktrees/advance-system — review 2026-09-14 H6)
 .worktrees/
+
+# Q225 showfiles are regenerated from the FOH .md + venue template — keep history, stop adding new ones (2026-09-14)
+*.ses
