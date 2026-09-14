@@ -18,6 +18,10 @@
     "published": {
       "at": "2026-09-14T09:29:05",
       "note": "kb.tinydoorstudios.com/show-fsq-2026-08-01-repertoire"
+    },
+    "harvested": {
+      "at": "2026-09-14T10:17:42",
+      "note": "harvest queue cleared with Brian 2026-09-14 (pipeline-fix)"
     }
   }
 }

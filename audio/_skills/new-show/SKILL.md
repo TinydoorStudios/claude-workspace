@@ -1,6 +1,6 @@
 ---
 name: new-show
-description: Scaffolds a show folder for any of Brian's venues — creates the dated folder, copies the venue .ses patcher as apply_<show>.py (Memo/FSQ), and drops the FOH Channel Processing .md skeleton. Trigger when Brian says "new show", "scaffold the show", "start a show folder", "set up the show folder", or names a venue + date + show with no paperwork yet. NOT the deep build — this only sets up files; EQ/paperwork is the show-deep-build skill, and building the .ses is send-it.
+description: Scaffolds a show folder for any of Brian's venues — runs the advance bridge first (folders for booked shows scaffold themselves, with the band's stage plot and a brief skeleton), then creates the dated folder, the FOH Channel Processing .md stub and show.status.json for anything the bridge didn't cover. No patcher copy — the venue patcher is run in place. Trigger when Brian says "new show", "scaffold the show", "start a show folder", "set up the show folder", or names a venue + date + show with no paperwork yet. NOT the deep build — this only sets up files; EQ/paperwork is the show-deep-build skill, and building the .ses is send-it.
 ---
 
 # New Show — folder scaffold
@@ -22,16 +22,12 @@ One command replaces the manual setup every show starts with. Runs
    python3 ~/Documents/Claude/audio/_system/scaffold_show.py \
      --venue <venue> --date YYYY-MM-DD --name "Show Name"
    ```
-   Optional `--short showname` controls the `apply_<short>.py` filename
-   (default: show name lowercased/alnum, 12 chars).
 3. Report what was created. The script refuses to touch an existing folder —
    if it errors on that, ask Brian instead of deleting anything.
 
 ## What it creates
 
 - `<Venue folder>/YYYY-MM-DD Show Name/`
-- `apply_<short>.py` — copy of the venue patcher (Memo/FSQ only; other
-  venues have no .ses pipeline)
 - `Show Name - FOH Channel Processing.md` — a STUB with the locked format
   and venue don't-forgets baked in
 

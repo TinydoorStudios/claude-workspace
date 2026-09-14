@@ -14,6 +14,14 @@
     "ses_built": {
       "at": "2026-05-29T10:00:23",
       "note": "The Verve Pipe.ses (backfilled 2026-09-14 from file mtime)"
+    },
+    "published": {
+      "at": "2026-09-14T10:18:00",
+      "note": "closed unpublished 2026-09-14 \u2014 pre-pipeline paperwork (backwards-band-order MDs), never pushed to the wiki by decision; harvest rows already in active-projects"
+    },
+    "harvested": {
+      "at": "2026-09-14T10:18:00",
+      "note": "harvest rows recorded in active-projects Completed Shows (May 2026)"
     }
   }
 }

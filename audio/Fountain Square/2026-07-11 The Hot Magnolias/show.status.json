@@ -18,6 +18,10 @@
     "published": {
       "at": "2026-07-13T09:31:22",
       "note": "kb.tinydoorstudios.com/show-fsq-2026-07-11-the-hot-magnolias (backfilled 2026-09-14 from file mtime)"
+    },
+    "harvested": {
+      "at": "2026-09-14T10:17:42",
+      "note": "harvest queue cleared with Brian 2026-09-14 (pipeline-fix)"
     }
   }
 }

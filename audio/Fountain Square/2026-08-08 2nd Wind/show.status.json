@@ -18,6 +18,10 @@
     "published": {
       "at": "2026-09-14T09:30:12",
       "note": "kb.tinydoorstudios.com/show-fsq-2026-08-08-2nd-wind"
+    },
+    "harvested": {
+      "at": "2026-09-14T10:17:42",
+      "note": "harvest queue cleared with Brian 2026-09-14 (pipeline-fix)"
     }
   }
 }
