@@ -204,6 +204,8 @@ generated stage plot, ever (R7).
 - `references/console-bands.md` — band layouts, Mustard paperwork format.
 - `references/pre-commit-audit.md` — the audit lines, evidence quoted.
 - `references/spec-schema.md`, `references/brief-schema.md` — the spec and the brief.
+- `references/show-reference.md` — mic shorthand library, packet format + palette, patching
+  conventions, soundcheck/bus standards, AxeMount blend, plugin notes (moved from CLAUDE.md 2026-09-14).
 
 On a non-Fable model (check the system prompt's model line) also load **fable-parity**, which
 adds per-unit worksheet files and strict one-unit-at-a-time serialization.
