@@ -145,7 +145,18 @@ class _Ctx:
         self.changed = 0
         self.notices = []
         self.prov = dict(prov or {})
+        # case-insensitive view: legacy keys carried the band's display name
+        # ("Monitors|RatBoys"); a case-only rename must not orphan them
+        self.prov_ci = {k.lower(): v for k, v in self.prov.items()}
         self.newprov = {}
+
+    def owned(self, key, legacy_key=None):
+        """What the pipeline last wrote for this cell, under the current key
+        or a legacy name-based key, or None."""
+        for k in (key, legacy_key):
+            if k and k.lower() in self.prov_ci:
+                return self.prov_ci[k.lower()]
+        return None
         ids = [int(el.get(qn("w:val"))) for el in E.element.body.iter(qn("w:id"))
                if el.getparent() is not None and el.getparent().tag == qn("w:sdtPr")
                and (el.get(qn("w:val")) or "").lstrip("-").isdigit()]
@@ -198,19 +209,24 @@ def _differs_meaningfully(e_text, f_text):
     return bool(tf) and not tf <= _tokens(e_text)
 
 
-def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column):
-    key = f"{section}|{column or ''}"
+def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column, col_idx=None):
+    # Keyed by COLUMN INDEX, not the band's display name (2026-09-14: a
+    # case-only rename of RatBoys changed the header text and orphaned every
+    # "…|RatBoys" key, so the band's real answers were treated as hand edits).
+    # Legacy name keys are still honoured on read.
+    key = f"{section}|col{col_idx}" if col_idx else f"{section}|"
+    legacy = f"{section}|{column}" if column else None
     tT, tF, tE = _t(_tc_text(t_tc)), _t(_tc_text(f_tc)), _t(_tc_text(e_tc))
     if tF == tT:
         # the pipeline has nothing for this cell; keep ownership only if the
         # doc still reads what we last wrote
-        if key in ctx.prov and ctx.prov[key] == tE:
+        if ctx.owned(key, legacy) == tE:
             ctx.newprov[key] = tE
         return
     if tE == tF:
         ctx.newprov[key] = tF
         return
-    cell_owned = tE == tT or ctx.prov.get(key) == tE
+    cell_owned = tE == tT or ctx.owned(key, legacy) == tE
     pT, pF, pE = _tc_paras(t_tc), _tc_paras(f_tc), _tc_paras(e_tc)
     if (not any(_has_table(x) for x in (t_tc, f_tc, e_tc))
             and len(pT) == len(pF) == len(pE) and len(pT) > 1):
@@ -218,14 +234,15 @@ def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column):
         for i, (a, b, c) in enumerate(zip(pT, pF, pE)):
             ta, tb, tc_ = _t(_p_text(a)), _t(_p_text(b)), _t(_p_text(c))
             pk = f"{key}|{i}"
+            plegacy = f"{legacy}|{i}" if legacy else None
             if tb == ta:
-                if pk in ctx.prov and ctx.prov[pk] == tc_:
+                if ctx.owned(pk, plegacy) == tc_:
                     ctx.newprov[pk] = tc_
                 continue
             if tc_ == tb:
                 ctx.newprov[pk] = tb
                 continue
-            if tc_ == ta or cell_owned or ctx.prov.get(pk) == tc_:
+            if tc_ == ta or cell_owned or ctx.owned(pk, plegacy) == tc_:
                 c.addprevious(ctx.prepare_copy(b))
                 c.getparent().remove(c)
                 ctx.newprov[pk] = tb
@@ -292,7 +309,7 @@ def merge(T, F, E, prov=None):
                 for i, tc in enumerate(f_row._tr.tc_lst[1:], start=1):
                     v = _t(_tc_text(tc))
                     if v:
-                        ctx.newprov[f"{_t(_tc_text(f_row._tr.tc_lst[0])).rstrip(':')}|{names.get(i) or SLOT_COL_NAMES.get(i)}"] = v
+                        ctx.newprov[f"{_t(_tc_text(f_row._tr.tc_lst[0])).rstrip(':')}|col{i}"] = v
                 ctx.changed += 1
                 continue
             if f_row is None or e_row is None:
@@ -303,7 +320,8 @@ def merge(T, F, E, prov=None):
             section = _t(_tc_text(tT[0])).rstrip(":") or "Act names"
             for i in range(1, len(tT)):
                 col = None if len(tT) == 2 else (names.get(i) or SLOT_COL_NAMES.get(i))
-                _compare_cell(ctx, tT[i], tF[i], tE[i], section, col)
+                _compare_cell(ctx, tT[i], tF[i], tE[i], section, col,
+                              col_idx=(None if len(tT) == 2 else i))
 
     lT, lF, lE = daysheet.find_lead_table(T), daysheet.find_lead_table(F), daysheet.find_lead_table(E)
     if lT is not None and lF is not None and lE is not None:
