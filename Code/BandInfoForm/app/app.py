@@ -165,6 +165,7 @@ def form():
         location=request.args.get("location"),
         lang=_lang(),
     )
+    cfg["third_party"] = advance_db.is_third_party(request.args.get("series"))
     return render_template(
         "form.html", venues=forms_config.VENUES, cfg=cfg,
         prefill={}, returning=False, artist_name=None,
@@ -212,6 +213,9 @@ def prefilled_form(token):
         series_key=series, venue=seed.get("venue") or request.args.get("venue"),
         location=seed.get("location") or request.args.get("location"), slot=slot,
         lang=_lang())
+    # Brian, 2026-09-14: staff fill in a 3rd-party advance themselves, so no
+    # field on it is required (form renders novalidate; /submit skips checks).
+    cfg["third_party"] = advance_db.is_third_party(series)
     prefill, returning, artist_name = {}, False, None
     # Locked = this specific value came from us (the booking record / matched
     # artist), not from the band typing it — bands can't edit these two.
@@ -292,27 +296,32 @@ def submit():
         lang = "es" if (f.get("form_lang") or "").strip().lower() == "es" else "en"
         return render_template("thanks.html", band=f.get("band_name"),
                                lang=lang, t=i18n.translator(lang))
-    if not f.get("band_name"):
+    # Brian, 2026-09-14: a 3rd-party advance is filled in by staff — nothing
+    # on it is required (band name, stage plot, any of it).
+    third = advance_db.is_third_party(f.get("show_series"))
+    if not f.get("band_name") and not third:
         abort(400, "Band name is required.")
 
     # The band's own link carries a SIGNED artist id (audit #6). A raw
     # artist_id field is ignored — it could be edited to hijack another
     # artist's record.
     verified_artist_id = verify_artist_token(f.get("artist_token"))
+    band_name = (f.get("band_name") or "").strip() or _third_party_band_name(
+        verified_artist_id, f.get("venue"), f.get("show_date"))
 
     # Stage plot: upload OR description is required, not both (Brian,
     # 2026-09-08) — exempt only if this band already has one on file.
     upload = request.files.get("stage_plot_file")
     has_upload = bool(upload and upload.filename)
     has_desc = bool((f.get("stage_plot_desc") or "").strip())
-    if not has_upload and not has_desc:
+    if not has_upload and not has_desc and not third:
         has_existing = False
         if DB_OK:
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
                     artist = advance_db.get_artist(cur, verified_artist_id) if verified_artist_id else None
                     if not artist:
-                        artist = advance_db.find_artist_by_name(cur, f.get("band_name"))
+                        artist = advance_db.find_artist_by_name(cur, band_name)
                     if artist:
                         cur.execute("""SELECT 1 FROM submissions WHERE artist_id=%s
                                        AND COALESCE(data->>'stage_plot_file','') <> '' LIMIT 1""",
@@ -334,8 +343,9 @@ def submit():
             abort(400, f"{f['location']} is limited to {cap} monitors — please enter {cap} or fewer.")
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-    slug = _slug(f.get("band_name"))
+    slug = _slug(band_name)
     rec = {k: v for k, v in f.items() if k not in ("artist_id", "artist_token")}
+    rec["band_name"] = band_name
     if verified_artist_id:
         rec["artist_id"] = str(verified_artist_id)
     if (rec.get("show_series") or "").strip().lower() == "default":
@@ -398,8 +408,33 @@ def submit():
     _regen_submitted_show(regen_rec)
 
     submitted_lang = "es" if (f.get("form_lang") or "").strip().lower() == "es" else "en"
-    return render_template("thanks.html", band=f.get("band_name"),
+    return render_template("thanks.html", band=band_name,
                             lang=submitted_lang, t=i18n.translator(submitted_lang))
+
+
+def _third_party_band_name(artist_id, venue, show_date):
+    """Name for a 3rd-party advance submitted with Band Name blank: the
+    linked artist, else the one 3rd-party booking at that venue+date, else a
+    placeholder. Only reached when the name is blank."""
+    if not DB_OK:
+        return "3rd Party Event"
+    try:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            artist = advance_db.get_artist(cur, artist_id) if artist_id else None
+            if artist:
+                return artist["name"]
+            d = advance_db.to_date(show_date)
+            if venue and d:
+                cur.execute("""SELECT DISTINCT artist_name FROM bookings
+                               WHERE venue=%s AND event_date=%s
+                                 AND lower(btrim(COALESCE(series,''))) = '3rd party'""",
+                            (venue, d))
+                rows = cur.fetchall()
+                if len(rows) == 1:
+                    return rows[0]["artist_name"]
+    except Exception as e:
+        _log_db_error("third_party_band_name", e)
+    return "3rd Party Event"
 
 
 def _alert_db_write_failure(rec, err):

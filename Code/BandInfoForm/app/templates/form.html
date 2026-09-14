@@ -32,6 +32,7 @@
   .field:last-child{margin-bottom:0;}
   label.q{display:block;font-weight:600;font-size:15px;margin-bottom:6px;}
   .req{color:var(--req);margin-left:2px;}
+  form.third-party .req{display:none;}
   .help{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.4;}
 
   input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],select,textarea{
@@ -85,7 +86,7 @@
 {% endif %}
 
 <div class="wrap">
-<form class="card" id="bandform" action="{{ url_for('submit') }}" method="post" enctype="multipart/form-data">
+<form class="card{{ ' third-party' if cfg.third_party else '' }}" id="bandform" action="{{ url_for('submit') }}" method="post" enctype="multipart/form-data"{{ ' novalidate' if cfg.third_party else '' }}>
   <input type="hidden" name="show_series" value="{{ '' if cfg.series_key == 'default' else cfg.series_key }}">
   <input type="hidden" name="form_lang" value="{{ lang }}">
   {% if cfg.location %}<input type="hidden" name="location" value="{{ cfg.location }}">{% endif %}

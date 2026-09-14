@@ -640,6 +640,47 @@ def t_third_party_contact():
     check(not needs, f"needs-you panel stays quiet about it ({[n['label'] for n in needs]})")
 
 
+@test("3rd-party: event name required, nothing else; blank advance; no thank-you (2026-09-14)")
+def t_third_party_optional():
+    login()
+    d = TODAY + dt.timedelta(days=47)
+    base = {"artist_name": "", "venue": "Fountain Square", "event_date": d.isoformat(), "series": "3rd Party",
+            "contact_name": "", "contact_email": "", "entered_by": "tests", "band_count": "1", "slot": "headliner"}
+    st, body = post("/booking", dict(base, event_name=""))
+    check(st == 400 and "Event Name is required" in body, f"3rd-party booking without an event name refused ({st})")
+    st, body = post("/booking", dict(base, event_name="Optional Fields Gala"))
+    check(st == 200, f"3rd-party booking with only an event name accepted ({st})")
+    row = q("SELECT artist_name FROM bookings WHERE venue='Fountain Square' AND event_date=%s AND event_name='Optional Fields Gala'", (d,), one=True)
+    check(row and row["artist_name"] == "Optional Fields Gala", f"blank artist takes the event name ({row and row['artist_name']})")
+    st, body = post("/booking", dict(base, series="Jazz on the Square", event_name="x", artist_name=""))
+    check(st == 400 and "Artist name is required" in body, f"internal booking still needs an artist ({st})")
+    check(wait_run_now(), "run finished")
+
+    st, html = get("/?series=3rd%20Party&venue=Fountain%20Square")
+    check(st == 200 and "novalidate" in html and "third-party" in html, "3rd-party advance form renders novalidate")
+    st, html = get("/?series=Jazz%20on%20the%20Square&venue=Fountain%20Square")
+    check(st == 200 and "novalidate" not in html, "internal advance form still validates")
+
+    n0 = mail_count()
+    st, body = post("/submit", {"band_name": "", "venue": "Fountain Square", "show_date": d.isoformat(),
+                                "show_series": "3rd Party", "form_lang": "en"})
+    check(st == 200, f"blank 3rd-party advance accepted ({st})")
+    check(wait_regen(), "regen finished")
+    st, body = post("/submit", {"band_name": "", "venue": "Fountain Square", "show_date": d.isoformat(),
+                                "show_series": "Jazz on the Square", "form_lang": "en"})
+    check(st == 400, f"blank internal advance still refused ({st})")
+    s = q("""SELECT s.id, s.artist_id, s.responded_at FROM shows s JOIN artists a ON a.id=s.artist_id
+             WHERE a.match_key='optional fields gala' AND s.show_date=%s""", (d,), one=True)
+    check(s and s["responded_at"], f"blank advance landed on the booked show ({s})")
+    if s:
+        post(f"/artist/{s['artist_id']}/finalize/{s['id']}", {})
+        time.sleep(4)
+        t = q("SELECT finalized_at, thankyou_sent_at, thankyou_error FROM shows WHERE id=%s", (s["id"],), one=True)
+        check(t["finalized_at"] and not t["thankyou_sent_at"] and not t["thankyou_error"],
+              f"finalized with no thank-you and nothing flagged ({t})")
+    check(not sends_since(n0), f"no email sent for the 3rd-party show ({len(sends_since(n0))})")
+
+
 @test("nothing left the box")
 def t_isolation():
     bad = [m for m in mails() if not m["path"].startswith("/webhook/")]

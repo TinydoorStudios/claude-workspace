@@ -270,6 +270,12 @@ def send_for_show(show_id):
     if s.get("thankyou_sent_at"):
         print("already sent")
         return
+    # Brian, 2026-09-14: no thank-you for a 3rd-party event — we rarely talk
+    # to those artists at all. Nothing recorded, so it never shows up as a
+    # "Thank-you not sent" item either.
+    if db.is_third_party(s.get("show_series")):
+        print("skipped: 3rd-party event")
+        return
     if s.get("cancelled_at"):
         record(False, "skipped: show cancelled")
         return
