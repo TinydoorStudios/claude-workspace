@@ -1,0 +1,40 @@
+{"q": "how do I patch a mic input to a channel", "expect": "how-to/05-patch-an-input-to-a-channel"}
+{"q": "ripple patch a whole run of inputs at once", "expect": "how-to/05-patch-an-input-to-a-channel"}
+{"q": "how do I load a session", "expect": "how-to/02-load-a-session"}
+{"q": "save the session before I leave", "expect": "how-to/03-save-a-session"}
+{"q": "how do I turn on phantom power", "expect": "how-to/06-gain-phantom-pad-and-line-check"}
+{"q": "route a bus to a physical output on the rack", "expect": "how-to/08-route-a-bus-to-a-physical-output"}
+{"q": "how do I conform the racks", "expect": "how-to/09-conform-the-io-racks"}
+{"q": "rename a channel", "expect": "how-to/10-name-channels-and-sockets"}
+{"q": "put a channel on a fader on the left bank", "expect": "how-to/11-assign-channels-to-faders"}
+{"q": "what is the difference between PFL and AFL", "expect": "how-to/12-solo-pfl-afl-and-headphones"}
+{"q": "how do I set up talkback to the stage", "expect": "how-to/13-talkback"}
+{"q": "how does the dynamic EQ work on a band", "expect": "how-to/14-eq-and-filters"}
+{"q": "set up a gate on the toms", "expect": "how-to/15-dynamics-compressor-gate-de-esser"}
+{"q": "what do the mustard colors mean", "expect": "how-to/16-mustard-processing"}
+{"q": "how do I insert chilli 6 on a channel", "expect": "how-to/17-spice-rack-chilli-6-and-naga-6"}
+{"q": "add a reverb to the vocal", "expect": "how-to/18-insert-an-fx-reverb-or-delay"}
+{"q": "put a graphic EQ on the main LR", "expect": "how-to/19-graphic-eq-on-an-output"}
+{"q": "how do I keep a snapshot from wiping my master bus inserts", "expect": "how-to/20-snapshots"}
+{"q": "fire a snapshot", "expect": "how-to/20-snapshots"}
+{"q": "make a VCA for the drums", "expect": "how-to/21-control-groups-vca"}
+{"q": "how do I gang two channels together", "expect": "how-to/22-gangs"}
+{"q": "mix a monitor wedge from the aux", "expect": "how-to/23-aux-to-faders-mix-a-monitor"}
+{"q": "copy the EQ from one channel to another", "expect": "how-to/24-copy-channels-and-presets"}
+{"q": "make a macro that mutes all the vocal mics", "expect": "how-to/25-macros"}
+{"q": "feed the lobby from the matrix", "expect": "how-to/26-matrix"}
+{"q": "what should the console clock to", "expect": "how-to/27-audio-sync-and-clocking"}
+{"q": "send every channel to the recorder", "expect": "how-to/28-copy-audio-to-a-recorder"}
+{"q": "how do I run the offline software on my laptop", "expect": "how-to/29-offline-software-and-mirroring"}
+{"q": "lock the desk so nobody touches it", "expect": "how-to/30-lock-the-console-security"}
+{"q": "the console has no audio and the rack lights are red", "expect": "how-to/33-troubleshooting"}
+{"q": "how do I make a stereo channel", "expect": "how-to/34-multi-channels"}
+{"q": "connect the ipad to the console", "expect": "how-to/35-ipad-app-and-external-control"}
+{"q": "what DMI cards are in the console", "expect": "hardware/01-io-overview"}
+{"q": "how is the dante card set up", "expect": "hardware/02-dmi-dante-64-96"}
+{"q": "what does the DQ rack menu do", "expect": "hardware/03-dq-rack"}
+{"q": "how does klang connect to the desk", "expect": "hardware/06-dmi-klang"}
+{"q": "what changed in V22", "expect": "docs/v22-release-notes"}
+{"q": "what are the keyboard shortcuts", "expect": "console/3-6-keyboard-shortcuts"}
+{"q": "what vca layout do we use at memo", "expect": "console-digico-q225"}
+{"q": "which channels are the wireless mics on at fountain square", "expect": "venue-fountain-square"}

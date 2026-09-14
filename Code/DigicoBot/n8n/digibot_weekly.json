@@ -1,0 +1,102 @@
+{
+  "id": "digibot_weekly",
+  "name": "DigiBot \u2014 Weekly Gaps Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      },
+      "name": "Monday 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ],
+      "id": "monday-08:00"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://192.168.200.84:8098/gaps/digest",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "name": "Get Digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        300
+      ],
+      "id": "get-digest"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({channel:\"UHSLD08SV\", text:$json.text, unfurl_links:false}) }}"
+      },
+      "name": "DM Brian",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        300
+      ],
+      "id": "dm-brian",
+      "credentials": {
+        "slackApi": {
+          "id": "DigiBotSlack",
+          "name": "DigiBot Slack (bot token + signing secret)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Monday 08:00": {
+      "main": [
+        [
+          {
+            "node": "Get Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Digest": {
+      "main": [
+        [
+          {
+            "node": "DM Brian",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {}
+}

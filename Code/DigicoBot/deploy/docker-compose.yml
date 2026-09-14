@@ -1,0 +1,41 @@
+# DigiBot — /opt/digibot on the n8n VM. Same pattern as advance-db: its own stack, its own Postgres.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: digibot-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: digibot
+      POSTGRES_PASSWORD: ${DIGIBOT_DB_PASSWORD}
+      POSTGRES_DB: digibot
+    volumes:
+      - digibot-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U digibot -d digibot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
+
+  api:
+    build: ./service
+    image: digibot-api:latest
+    container_name: digibot-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DIGIBOT_DB_DSN: postgresql://digibot:${DIGIBOT_DB_PASSWORD}@db:5432/digibot
+      OMP_NUM_THREADS: "2"
+      TOKENIZERS_PARALLELISM: "false"
+    ports:
+      - "8098:8098"
+    volumes:
+      - digibot-models:/models
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 1100m
+
+volumes:
+  digibot-pgdata:
+  digibot-models:

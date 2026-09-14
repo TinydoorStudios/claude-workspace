@@ -1,0 +1,99 @@
+{
+  "id": "digibot_nightly",
+  "name": "DigiBot \u2014 Nightly Reindex",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "40 3 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Every night 03:40",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ],
+      "id": "every-night-03:40"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.200.84:8098/index",
+        "options": {
+          "timeout": 900000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{}"
+      },
+      "name": "Reindex Wikis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        300
+      ],
+      "id": "reindex-wikis",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.200.84:8098/inbox/rebuild",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{}"
+      },
+      "name": "Rebuild Inbox Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        300
+      ],
+      "id": "rebuild-inbox-page",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Every night 03:40": {
+      "main": [
+        [
+          {
+            "node": "Reindex Wikis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reindex Wikis": {
+      "main": [
+        [
+          {
+            "node": "Rebuild Inbox Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {}
+}

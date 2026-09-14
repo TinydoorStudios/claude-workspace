@@ -1,0 +1,508 @@
+{
+  "id": "digibot_slack",
+  "name": "DigiBot \u2014 Slack",
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": [
+          "app_mention",
+          "message",
+          "reaction_added"
+        ],
+        "watchWorkspace": true,
+        "options": {}
+      },
+      "name": "Slack Events",
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "id": "slack-events",
+      "webhookId": "digibot-slack-events",
+      "credentials": {
+        "slackApi": {
+          "id": "DigiBotSlack",
+          "name": "DigiBot Slack (bot token + signing secret)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Slack Trigger emits the raw event. Drop junk here; the service applies the DM / home-channel /\n// mention rules (it knows the bot's user id and the home channel from its own .env).\nconst ev = $input.first().json;\nconst t = ev.type;\nif (t === 'reaction_added') {\n  const ok = ['pushpin','round_pushpin','+1','thumbsup','-1','thumbsdown'].includes(ev.reaction);\n  if (!ok || !ev.item || ev.item.type !== 'message') return [];\n  return [{ json: { kind: 'reaction', reaction: ev.reaction, user: ev.user, channel: ev.item.channel, ts: ev.item.ts, item_user: ev.item_user || '' } }];\n}\nif (t !== 'message' && t !== 'app_mention') return [];\nif (ev.bot_id || (ev.subtype && ev.subtype !== 'file_share')) return [];\nconst text = (ev.text || '').trim();\nif (!text) return [];\nreturn [{ json: { kind: 'question', event_type: t, text, user: ev.user, channel: ev.channel, channel_type: ev.channel_type || '',\n                  ts: ev.ts, thread_ts: ev.thread_ts || ev.ts, is_thread: !!ev.thread_ts } }];\n"
+      },
+      "name": "Route",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "id": "route"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.kind }}",
+              "rightValue": "reaction",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Is Reaction?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        300
+      ],
+      "id": "is-reaction?"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://slack.com/api/conversations.replies",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "channel",
+              "value": "={{ $json.channel }}"
+            },
+            {
+              "name": "ts",
+              "value": "={{ $json.thread_ts }}"
+            },
+            {
+              "name": "limit",
+              "value": "20"
+            }
+          ]
+        }
+      },
+      "name": "Get Thread",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        420
+      ],
+      "id": "get-thread",
+      "credentials": {
+        "slackApi": {
+          "id": "DigiBotSlack",
+          "name": "DigiBot Slack (bot token + signing secret)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Turn the thread replies into history and package the request for the service.\nconst r = $('Route').first().json;\nconst msgs = ($input.first().json.messages || []);\nconst history = [];\nfor (const m of msgs) {\n  if (m.ts === r.ts) continue;                                   // the message we are answering\n  const txt = (m.text || '').replace(/<@[A-Z0-9]+>/g, '').trim();\n  if (!txt) continue;\n  history.push({ role: m.bot_id ? 'assistant' : 'user', text: txt.slice(0, 1200), user: m.user || '' });\n}\nreturn [{ json: { question: r.text, user: r.user, channel: r.channel, channel_type: r.channel_type, event_type: r.event_type, ts: r.ts, history: history.slice(-8) } }];\n"
+      },
+      "name": "Build Question",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        420
+      ],
+      "id": "build-question"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.200.84:8098/answer",
+        "options": {
+          "timeout": 180000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "name": "Ask DigiBot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1220,
+        420
+      ],
+      "id": "ask-digibot"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst a = $input.first().json;\nif (a.skip) return [];\nconst r = $('Route').first().json;\nconst blocks = [{ type: 'section', text: { type: 'mrkdwn', text: (a.text || '').slice(0, 2900) } }];\nfor (const f of (a.figures || []).slice(0, 2)) blocks.push({ type: 'image', image_url: f, alt_text: 'wiki figure' });\nreturn [{ json: { channel: r.channel, thread_ts: r.thread_ts, text: (a.text || '').slice(0, 2900), blocks, unfurl_links: false, unfurl_media: false, qa_id: a.qa_id || null } }];\n"
+      },
+      "name": "Compose Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        420
+      ],
+      "id": "compose-reply"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({channel:$json.channel, thread_ts:$json.thread_ts, text:$json.text, blocks:$json.blocks, unfurl_links:false, unfurl_media:false}) }}"
+      },
+      "name": "Post Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1700,
+        420
+      ],
+      "id": "post-reply",
+      "credentials": {
+        "slackApi": {
+          "id": "DigiBotSlack",
+          "name": "DigiBot Slack (bot token + signing secret)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst posted = $input.first().json;\nconst qa = $('Compose Reply').first().json.qa_id;\nif (!posted.ok || !qa) return [];\nreturn [{ json: { qa_id: qa, reply_ts: posted.ts } }];\n"
+      },
+      "name": "Reply Posted",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1940,
+        420
+      ],
+      "id": "reply-posted"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.200.84:8098/answer/posted",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "name": "Record Reply Ts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2180,
+        420
+      ],
+      "id": "record-reply-ts",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://slack.com/api/conversations.replies",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "channel",
+              "value": "={{ $json.channel }}"
+            },
+            {
+              "name": "ts",
+              "value": "={{ $json.ts }}"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            },
+            {
+              "name": "inclusive",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "name": "Get Reacted Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        160
+      ],
+      "id": "get-reacted-message",
+      "credentials": {
+        "slackApi": {
+          "id": "DigiBotSlack",
+          "name": "DigiBot Slack (bot token + signing secret)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst r = $('Route').first().json;\nconst m = ($input.first().json.messages || [])[0] || {};\nreturn [{ json: { reaction: r.reaction, user: r.user, channel: r.channel, ts: r.ts,\n  message_text: (m.text || '').replace(/<@[A-Z0-9]+>/g, '').trim(), message_user: m.user || '', is_bot_message: !!m.bot_id,\n  thread_root_text: null, slack_link: r.channel + '/' + r.ts } }];\n"
+      },
+      "name": "Build Reaction",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        160
+      ],
+      "id": "build-reaction"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.200.84:8098/reaction",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "name": "Send Reaction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1220,
+        160
+      ],
+      "id": "send-reaction",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst a = $input.first().json;\nif (a.mode !== 'teach' || !a.text) return [];\nconst r = $('Route').first().json;\nreturn [{ json: { channel: r.channel, thread_ts: r.ts, text: a.text } }];\n"
+      },
+      "name": "Teach Ack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        160
+      ],
+      "id": "teach-ack"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({channel:$json.channel, thread_ts:$json.thread_ts, text:$json.text}) }}"
+      },
+      "name": "Post Teach Ack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1700,
+        160
+      ],
+      "id": "post-teach-ack",
+      "credentials": {
+        "slackApi": {
+          "id": "DigiBotSlack",
+          "name": "DigiBot Slack (bot token + signing secret)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Slack Events": {
+      "main": [
+        [
+          {
+            "node": "Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route": {
+      "main": [
+        [
+          {
+            "node": "Is Reaction?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Reaction?": {
+      "main": [
+        [
+          {
+            "node": "Get Reacted Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Thread": {
+      "main": [
+        [
+          {
+            "node": "Build Question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Question": {
+      "main": [
+        [
+          {
+            "node": "Ask DigiBot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask DigiBot": {
+      "main": [
+        [
+          {
+            "node": "Compose Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Reply": {
+      "main": [
+        [
+          {
+            "node": "Post Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Reply": {
+      "main": [
+        [
+          {
+            "node": "Reply Posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply Posted": {
+      "main": [
+        [
+          {
+            "node": "Record Reply Ts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Reacted Message": {
+      "main": [
+        [
+          {
+            "node": "Build Reaction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Reaction": {
+      "main": [
+        [
+          {
+            "node": "Send Reaction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Reaction": {
+      "main": [
+        [
+          {
+            "node": "Teach Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Teach Ack": {
+      "main": [
+        [
+          {
+            "node": "Post Teach Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {}
+}
