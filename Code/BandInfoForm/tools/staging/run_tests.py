@@ -812,7 +812,8 @@ def t_third_party_band_emails():
     login()
     d = TODAY + dt.timedelta(days=12)
     st, _ = make_booking("Quiet Corp Band", "Fountain Square", d, series="3rd Party",
-                         event_name="Quiet Corp Gala", email="quiet@example.test")
+                         event_name="Quiet Corp Gala", email="quiet@example.test",
+                         slot="quietcorpslot")
     check(st == 200, f"booking with an email, emails off ({st})")
     check(wait_run_now(), "run finished")
     n0 = mail_count()
