@@ -41,6 +41,8 @@
   .pill.cancelled{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.35);color:#f85149;text-decoration:line-through;}
   .minor-btn{background:transparent;color:#8b97a6;border:1px solid #2a323d;border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;margin-top:6px;}
   .minor-btn:hover{color:#f85149;border-color:#f85149;}
+  .edit-btn{display:inline-block;background:transparent;color:#c7d6e6;border:1px solid #2E6DA4;border-radius:7px;padding:4px 10px;font-size:12px;margin-top:6px;text-decoration:none;}
+  .edit-btn:hover{color:#fff;background:#1A3A5C;}
   .note{color:#8b97a6;font-size:12px;margin-top:4px;}
   .note.bad{color:#f85149;}
 </style>
@@ -84,6 +86,10 @@
         {% if s.thankyou_sent_at %}<div class="note">Thank-you sent {{ s.thankyou_sent_at.strftime('%m/%d') }}</div>
         {% elif s.thankyou_error %}<div class="note bad">Thank-you not sent: {{ s.thankyou_error }}</div>{% endif %}
         {% endif %}
+        {% if s.state != 'cancelled' %}
+        <div><a class="edit-btn" href="{{ url_for('show_edit', show_id=s.show_id) }}"
+               title="Open this show's advance form with the band's answers filled in">Edit form ✎</a></div>
+        {% endif %}
         {% if s.state in ('responded', 'finalized') %}
         <form method="post" action="{{ url_for('draft_reply', artist_id=artist.id, show_id=s.show_id) }}">
           <button class="minor-btn" type="submit" title="Creates an Outlook draft to the band, addressed, with their answers pasted below">Email band ✉</button>
@@ -117,7 +123,8 @@
   {% if subs %}
     {% for sub in subs %}
     <div class="card">
-      <h3>{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }} · {{ sub.venue or '—' }}{% if sub.show_date %} · show {{ sub.show_date }}{% endif %}</h3>
+      <h3>{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }} · {{ sub.venue or '—' }}{% if sub.show_date %} · show {{ sub.show_date }}{% endif %}{% if sub.source == 'staff' %} <span class="badge">staff edit</span>{% endif %}
+        {% if sub.show_id and sub.show_date and sub.show_date >= today %}<a class="edit-btn" style="float:right;margin-top:0" href="{{ url_for('show_edit', show_id=sub.show_id) }}">Edit form ✎</a>{% endif %}</h3>
       <div class="kv">
         <div class="k">Contact phone</div><div>{{ sub.contact_phone or '—' }}</div>
         <div class="k">Performers + crew</div><div>{{ sub.performers if sub.performers is not none else '—' }}</div>

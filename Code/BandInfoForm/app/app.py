@@ -1108,7 +1108,7 @@ def artist_detail(artist_id):
         files_by_sub = {s["id"]: advance_db.submission_files(cur, s["id"]) for s in subs}
     return render_template("artist.html", artist=artist, shows=shows,
                            subs=subs, files_by_sub=files_by_sub,
-                           state_labels=DASHBOARD_STATE_LABELS)
+                           state_labels=DASHBOARD_STATE_LABELS, today=dt.date.today())
 
 
 def _back(default):
