@@ -891,12 +891,19 @@ def booking():
         f = request.form
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
         data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
-        if not data["artist_name"] or not data["entered_by"]:
-            return _booking_form("Artist name and who's entering this are required.", f, 400)
+        if not data["entered_by"]:
+            return _booking_form("Who's entering this is required.", f, 400)
         if not data["venue"] or not advance_db.to_date(data["event_date"]):
             return _booking_form("Venue and a valid event date are required.", f, 400)
         if not data["series"] or data["series"].lower() == "default":
             return _booking_form("Pick a series — or Stand-Alone Internal / 3rd Party.", f, 400)
+        # Brian, 2026-09-14: on a 3rd-party event the artist/band is optional
+        # too. The booking row still needs a name (it's the upsert key and the
+        # sheet/artist match), so a blank one takes the event name.
+        if not data["artist_name"]:
+            if not advance_db.is_third_party(data["series"]):
+                return _booking_form("Artist name is required.", f, 400)
+            data["artist_name"] = data["event_name"] or "3rd Party Event"
         # Brian, 2026-09-14: a 3rd-party event usually comes with no band
         # contact at all — name, email and phone are optional for it. No
         # email simply means no welcome / reminders / day-before for that show.
