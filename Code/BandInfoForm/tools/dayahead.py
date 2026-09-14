@@ -83,6 +83,36 @@ def _day_of_contact(r):
     return None, False
 
 
+def _greeting(r, es=False):
+    """Same rule as the welcome (draft_emails._greeting_contact_name): first
+    name only, and no contact at all when the band name already contains it
+    ('Hello Patsy Meyer and Patsy Meyer and Groove Latin' was the dry run)."""
+    band = r["artist_name"]
+    contact = (r.get("contact_name") or "").strip()
+    first = contact.split()[0] if contact else ""
+    if not first or contact.lower() in band.lower() or first.lower() in band.lower().split():
+        return f"Hola {band}" if es else f"Hello {band}"
+    return f"Hola {first} y {band}" if es else f"Hello {first} and {band}"
+
+
+_FORM_REFS = {
+    "en": [r"The load-in process at [^.]*has changed — please review the attached document and acknowledge understanding on the form\.\s*",
+           r"\s*Need more validations or large-vehicle parking\? Note it on the form\.", r"\s*Note any large-vehicle needs on the form\."],
+    "es": [r"El proceso de carga en [^.]*ha cambiado — por favor revisen el documento adjunto y confirmen que lo entendieron en el formulario\.\s*",
+           r"\s*¿Necesitan más validaciones o espacio para vehículos grandes\? Indíquenlo en el formulario\.",
+           r"\s*Indiquen en el formulario si necesitan espacio para vehículos grandes\."],
+}
+
+
+def _without_form_refs(text, lang="en"):
+    """The day-before email goes to a band that already advanced — drop the
+    welcome copy's 'do it on the form' sentences."""
+    import re
+    for pat in _FORM_REFS[lang]:
+        text = re.sub(pat, "", text)
+    return text
+
+
 def _recap_lines(r):
     try:
         from finalize_thankyou import build_recap
@@ -106,7 +136,7 @@ def build_email(r):
         blocks = ve.without_text_on_arrival(blocks, lang="en")
     sched = "\n".join(f"  {t}    {label}" for label, t in _schedule_lines(r))
     recap = _recap_lines(r)
-    greeting = f"Hello {r['contact_name']} and {r['artist_name']}" if r.get("contact_name") else f"Hello {r['artist_name']}"
+    greeting = _greeting(r)
     body = (f"{greeting},\n\n"
             f"Quick confirmation for tomorrow, {day}, at {r['venue']}"
             f"{(' — ' + blocks['location']) if blocks.get('location') else ''}.\n\n"
@@ -116,7 +146,7 @@ def build_email(r):
         if is_engineer:
             body += "  Please do not call them before show day; they are part-time staff.\n"
         body += "\n"
-    body += f"{blocks['load_in']}\n\n"
+    body += f"{_without_form_refs(blocks['load_in'])}\n\n"
     if recap:
         body += "What we have on file for you:\n" + "\n".join(f"  {k}: {v}" for k, v in recap) + "\n\n"
     body += ("If anything has changed — headcount, gear, arrival time — reply to this email today "
@@ -126,13 +156,13 @@ def build_email(r):
         if not contact:
             blocks_es = ve.without_text_on_arrival(blocks_es, lang="es")
         sched_es = "\n".join(f"  {t}    {label}" for label, t in _schedule_lines(r, lang="es"))
-        greeting_es = f"Hola {r['contact_name']} y {r['artist_name']}" if r.get("contact_name") else f"Hola {r['artist_name']}"
+        greeting_es = _greeting(r, es=True)
         body_es = (f"{greeting_es},\n\n"
                    f"Confirmación rápida para mañana, {d.strftime('%d/%m/%Y')}, en {r['venue']}.\n\n"
                    f"Horario del día:\n{sched_es}\n\n")
         if contact:
             body_es += f"Contacto del día del evento: {contact}\n\n"
-        body_es += (f"{blocks_es['load_in']}\n\n"
+        body_es += (f"{_without_form_refs(blocks_es['load_in'], 'es')}\n\n"
                     "Si algo cambió — número de personas, equipo, hora de llegada — respondan a este "
                     "correo hoy y lo actualizamos.\n\nNos vemos mañana,\n3CDC Eventos / Producción")
         sep = "─" * 42

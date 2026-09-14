@@ -330,3 +330,50 @@ What changed in how the system behaves:
   `dropbox_exclude.sh` never deletes; gunicorn runs threaded workers with a 120s timeout;
   deploys wait for in-flight pipeline runs; `backfill.py` is dry-run by default and skips
   submissions already loaded; the Groq key never appears on a command line.
+
+## Review pass (2026-09-14)
+
+Report and decisions: `~/Documents/Claude/Handoffs/band-advance-review-2026-09-13.md`.
+Built, staging-tested (70/70, `tools/staging/`) and deployed the same night. What changed:
+
+- **Per-cell doc provenance** (`filed_docs.cells`, `docmerge.merge`). The registry now
+  records what the pipeline wrote into each cell. A cell that still reads exactly that is
+  the pipeline's to update (a returning band's prior-show pre-fill, a corrected monitor
+  count, a cancelled act); anything a person typed is never touched and becomes a notice.
+  Blank cells fill as before. This replaces "only empty cells get filled" (audit #1) with
+  the same intent and none of the "band corrected a number, Brian gets an email" friction.
+  Diffs are judged on whole tokens, so "5" inside "15 wedges" is a real diff.
+- **One booking row per band/venue/date** (`uq_bookings_ident`; `insert_booking` upserts).
+  The three lifecycle queries are `DISTINCT ON (s.id)` and the welcome loop de-dupes by
+  show — a twin booking row used to send the welcome twice in one run.
+- **Bad internal token is a hard 500** in `internal_send_outlook.json` (it used to answer
+  200 with no `sent` key, which the app read as sent).
+- **Auto-attach gate**: a submission attaches to the one unanswered booking only when the
+  typed name plausibly IS that band (`advance_db.names_plausible`); otherwise
+  `pending_pick` with no `responded_at`. The public form has a honeypot field.
+- **Nightly full run** at 06:30 (`ops/advance-nightly-run.timer`) so holds and sheet edits
+  land every day, not only on the next booking.
+- **Reminders**: no band-facing tier fires within 48 hours of the welcome; bilingual series
+  get the Spanish half on reminders too; the lifecycle renders welcomes into a private
+  temp folder (a package run could wipe `tools/drafts/` mid-run).
+- **Content**: blank schedule fields say "TBD — your day-of contact will confirm" (the
+  FSQ-default times are gone); an all-cancelled bill's doc is renamed in place
+  `<MMDDYY> CANCELLED - … Prod Adv.docx` and a cancelled act's column header reads
+  "CANCELLED — <band>".
+- **Day-before confirmation** (`tools/dayahead.py`, run inside the 9am lifecycle): every
+  responded show playing tomorrow gets schedule, day-of contact, load-in/parking text and
+  a recap; `dayahead_sent_at` / `dayahead_error` on the show.
+- **"Needs you"**: `advance_db.needs_attention` feeds a panel at the top of the dashboard
+  (`/dashboard/needs`) and a section at the top of the 7am digest. Doc notices, submission
+  matches, slot clashes, the 3-day unresponded list and thank-you failures are queued in
+  `digest_items` and ride the digest instead of their own email. Send failures, holds, the
+  watchdog and the Status Log alert stay real-time. A send failure already emailed in the
+  last 7 days is suppressed (`send_failures.suppressed`).
+- **Attachments**: every `_attachment*` file in a venue's Series Email Templates folder is
+  attached (load-in doc + tech pack); `mailer.send(attachments=[...])`.
+- **Regen serializes with package runs** (`regen_show` takes the `run_now` lock) — a submit
+  during a run used to find "no event" and skip the doc.
+- **Deploy guards**: both deploy scripts refuse unless `advance-system` is checked out;
+  the branch lives in its own worktree (`.worktrees/advance-system`) because the main
+  checkout is shared by several Claude sessions. `deploy_app.command` now also ships
+  `ops/` + `db/migrations/` and applies migrations idempotently.
