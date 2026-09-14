@@ -78,6 +78,9 @@
     padding:3px 11px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
   .finalize-btn:hover{background:#234b70;}
   .finalize-btn:disabled{opacity:.5;cursor:default;}
+  .review-btn{display:block;margin:0 0 12px;padding:7px 11px;border-radius:8px;font-size:12.5px;font-weight:700;
+    background:rgba(251,191,36,.14);border:1px solid #5a4210;color:#fbbf24;text-decoration:none;}
+  .review-btn:hover{border-color:#fbbf24;}
 
   .empty{text-align:center;color:#8b97a6;padding:80px 20px;font-size:14px;}
   .empty .big{font-size:32px;margin-bottom:10px;}
@@ -201,15 +204,20 @@ function render(bills){
           : `<button class="cancel-btn" onclick="cancelShow(${a.show_id}, this)">Cancel</button>`;
         // Email band (Brian, 2026-09-14): a real Outlook draft to the band's
         // contact with their answers pasted below, once they've submitted.
+        // Edit form (Brian, 2026-09-14): the advance form for this show, pre-filled
+        // with its latest answers; submitting it lands on the doc review.
+        const editBtn = a.state === "cancelled" ? ""
+          : `<a class="cancel-btn" style="text-decoration:none;color:#c7d6e6" href="/show/${a.show_id}/edit" target="_blank">Edit form ✎</a>`;
         const emailBtn = (a.state === "responded" || a.state === "finalized")
           ? `<button class="cancel-btn" style="color:#4da3ff;border-color:#2E6DA4" onclick="draftEmail(${a.artist_id}, ${a.show_id}, this)">Email band ✉</button>` : "";
-        return `<div class="act ${a.state === 'cancelled' ? 'cancelled' : ''}"><span class="band">${esc(a.band)}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}${holdLink}${emailBtn}${cancelBtn}</div></div>`;
+        return `<div class="act ${a.state === 'cancelled' ? 'cancelled' : ''}"><span class="band">${esc(a.band)}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}${holdLink}${editBtn}${emailBtn}${cancelBtn}</div></div>`;
       }).join("");
       card.innerHTML = `
         <div class="bill-head">
           <div><div class="venue">${esc(b.venue)}</div>${b.series ? `<div class="series">${esc(b.series)}</div>` : ""}</div>
           <div class="days-badge">${b.days_until === 0 ? "today" : b.days_until + "d"}</div>
         </div>
+        ${b.reviews ? `<a class="review-btn" href="/doc-review?venue=${encodeURIComponent(b.venue)}&date=${b.date}">Doc changes to decide (${b.reviews}) →</a>` : ""}
         <div class="acts">${actsHtml}</div>`;
       grid.appendChild(card);
     });

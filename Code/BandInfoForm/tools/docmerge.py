@@ -27,6 +27,16 @@ a cell that reads anything else was typed by a person and is never touched —
 a differing value becomes a notice instead. "Blank" cells (still the
 template) are filled as before. Whole-file sha256 is still recorded so a
 hand-edited doc is flagged in the notice.
+
+Resubmission review (Brian, 2026-09-14): once a show has a SECOND
+submission (or a staff edit from the dashboard) newer than the doc's last
+pipeline write, every differing filled cell is held — pipeline-owned or
+hand-typed — and becomes a notice Brian decides on /doc-review (Keep doc /
+Use new). Blank cells still fill. A cell with an open notice is frozen in
+every later pass until he decides. "Use new" re-runs the merge with that
+cell forced (only if the fresh value still matches what he saw); "Keep doc"
+drops the pipeline's ownership of the cell so it's treated as hand-typed
+from then on.
 A doc that Word/Dropbox shows as open (a "~$" owner file beside it) is not
 touched at all that run; the next run picks it up. Writes are atomic
 (temp file + os.replace) and re-check the hash right before replacing, so a
@@ -46,6 +56,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 HERE = Path(__file__).resolve().parent
 for _c in (HERE.parent, HERE.parent / "app"):
@@ -140,10 +151,15 @@ class _Ctx:
     provenance map in (`prov`, what the pipeline last wrote) and out
     (`newprov`, what the pipeline owns after this pass)."""
 
-    def __init__(self, T, F, E, prov=None):
+    def __init__(self, T, F, E, prov=None, review=False, frozen=None, force=None):
         self.T, self.F, self.E = T, F, E
         self.changed = 0
         self.notices = []
+        self.review = review
+        self.frozen = {k.lower() for k in (frozen or ())}
+        self.force = {k.lower(): v for k, v in (force or {}).items()}
+        self.settled = set()   # keys where the doc now reads the fresh value
+        self.forced = set()    # keys written because Brian chose "Use new"
         self.prov = dict(prov or {})
         # case-insensitive view: legacy keys carried the band's display name
         # ("Monitors|RatBoys"); a case-only rename must not orphan them
@@ -181,9 +197,31 @@ class _Ctx:
                 self.next_sdt_id += 1
         return new
 
-    def notice(self, section, column, doc_value, new_value):
+    def notice(self, section, column, doc_value, new_value, key=None):
         self.notices.append({"field": section + (f" — {column}" if column else ""),
-                             "doc_value": doc_value, "new_value": new_value})
+                             "doc_value": doc_value, "new_value": new_value,
+                             "cell_key": key})
+
+    def action(self, key, blank, owned, doc, new, reviewable=False):
+        """A cell/paragraph whose doc text differs from the fresh build:
+        'write' it, raise a 'notice', or 'skip'. `reviewable` = the cell holds
+        a band answer (review mode doesn't hold booking-driven cells like the
+        act-name header or set length — a cancellation still lands)."""
+        k = key.lower()
+        if k in self.force:
+            if _t(self.force[k]) == _t(new):
+                self.forced.add(k)
+                return "write"
+            return "notice"   # the answer changed again since Brian looked
+        if blank:
+            return "write"
+        if k in self.frozen:
+            return "notice"   # waiting on Brian — re-recorded (dedupes; a new value supersedes)
+        if owned and not (self.review and reviewable):
+            return "write"
+        if owned or _differs_meaningfully(doc, new):
+            return "notice"
+        return "skip"
 
 
 def _replace_tc_content(ctx, e_tc, f_tc):
@@ -209,7 +247,11 @@ def _differs_meaningfully(e_text, f_text):
     return bool(tf) and not tf <= _tokens(e_text)
 
 
-def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column, col_idx=None):
+# grid rows filled from the booking, not the band's form — never held for review
+BOOKING_ROWS = {"act names", "set length"}
+
+
+def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column, col_idx=None, reviewable=False):
     # Keyed by COLUMN INDEX, not the band's display name (2026-09-14: a
     # case-only rename of RatBoys changed the header text and orphaned every
     # "…|RatBoys" key, so the band's real answers were treated as hand edits).
@@ -225,6 +267,7 @@ def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column, col_idx=None):
         return
     if tE == tF:
         ctx.newprov[key] = tF
+        ctx.settled.add(key.lower())
         return
     cell_owned = tE == tT or ctx.owned(key, legacy) == tE
     pT, pF, pE = _tc_paras(t_tc), _tc_paras(f_tc), _tc_paras(e_tc)
@@ -241,21 +284,34 @@ def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column, col_idx=None):
                 continue
             if tc_ == tb:
                 ctx.newprov[pk] = tb
+                ctx.settled.add(pk.lower())
                 continue
-            if tc_ == ta or cell_owned or ctx.owned(pk, plegacy) == tc_:
+            p_owned = ctx.owned(pk, plegacy) == tc_
+            act = ctx.action(pk, blank=(tc_ == ta), owned=(cell_owned or p_owned), doc=tc_, new=tb,
+                             reviewable=reviewable)
+            if act == "write":
                 c.addprevious(ctx.prepare_copy(b))
                 c.getparent().remove(c)
                 ctx.newprov[pk] = tb
+                ctx.settled.add(pk.lower())
                 ctx.changed += 1
-            elif _differs_meaningfully(tc_, tb):
-                ctx.notice(section, column, _p_text(c).strip(), _p_text(b).strip())
+                continue
+            if act == "notice":
+                ctx.notice(section, column, _p_text(c).strip(), _p_text(b).strip(), pk)
+            if p_owned:
+                ctx.newprov[pk] = tc_   # held, not given up: still the pipeline's
         return
-    if cell_owned:
+    act = ctx.action(key, blank=(tE == tT), owned=cell_owned, doc=tE, new=tF, reviewable=reviewable)
+    if act == "write":
         _replace_tc_content(ctx, e_tc, f_tc)
         ctx.newprov[key] = tF
+        ctx.settled.add(key.lower())
         ctx.changed += 1
-    elif _differs_meaningfully(tE, tF):
-        ctx.notice(section, column, _tc_text(e_tc).strip(), _tc_text(f_tc).strip())
+        return
+    if act == "notice":
+        ctx.notice(section, column, _tc_text(e_tc).strip(), _tc_text(f_tc).strip(), key)
+    if ctx.owned(key, legacy) == tE:
+        ctx.newprov[key] = tE
 
 
 def _rows_by_key(table, label_fn):
@@ -289,12 +345,14 @@ def _act_names(E_grid):
     return names
 
 
-def merge(T, F, E, prov=None):
+def merge(T, F, E, prov=None, review=False, frozen=None, force=None, info=None):
     """Update E (filed doc) from F (fresh build): blank cells and cells the
     pipeline itself last wrote (per `prov`) take the fresh value; anything a
-    person typed is left alone and reported. Returns
-    (changes_made, notices, new_provenance)."""
-    ctx = _Ctx(T, F, E, prov=prov)
+    person typed is left alone and reported. review=True holds pipeline-owned
+    cells too; `frozen` keys have an open notice; `force` {key: new text} are
+    Brian's "Use new" picks. `info` (a dict) receives the settled/forced key
+    sets. Returns (changes_made, notices, new_provenance)."""
+    ctx = _Ctx(T, F, E, prov=prov, review=review, frozen=frozen, force=force)
 
     gT, gF, gE = daysheet.find_grid(T), daysheet.find_grid(F), daysheet.find_grid(E)
     if gT is not None and gF is not None and gE is not None:
@@ -321,7 +379,8 @@ def merge(T, F, E, prov=None):
             for i in range(1, len(tT)):
                 col = None if len(tT) == 2 else (names.get(i) or SLOT_COL_NAMES.get(i))
                 _compare_cell(ctx, tT[i], tF[i], tE[i], section, col,
-                              col_idx=(None if len(tT) == 2 else i))
+                              col_idx=(None if len(tT) == 2 else i),
+                              reviewable=section.lower() not in BOOKING_ROWS)
 
     lT, lF, lE = daysheet.find_lead_table(T), daysheet.find_lead_table(F), daysheet.find_lead_table(E)
     if lT is not None and lF is not None and lE is not None:
@@ -368,6 +427,8 @@ def merge(T, F, E, prov=None):
                 v = _t(_tc_text(re_._tr.tc_lst[0]))
                 if v and ctx.prov.get(f"Schedule|row{i}") == v:
                     ctx.newprov[f"Schedule|row{i}"] = v
+    if info is not None:
+        info["settled"], info["forced"] = ctx.settled, ctx.forced
     return ctx.changed, ctx.notices, ctx.newprov
 
 
@@ -458,14 +519,15 @@ def _find_moved_doc(folder, d, reg):
 
 
 def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_run=False,
-                   n_events_same_day=1):
+                   n_events_same_day=1, force=None):
     """Create or merge-fill this event's filed doc. Returns a result dict:
     action in created|merged|unchanged|locked|past|conflict|dry-run, path,
-    notices (list), hand_edited (bool), renamed_from (str|None)."""
+    notices (list), hand_edited (bool), renamed_from (str|None), review
+    (bool), applied (keys written from `force`)."""
     today = today or dt.date.today()
     d = ev.get("event_date")
     res = {"action": None, "path": None, "notices": [], "hand_edited": False,
-           "renamed_from": None, "filled": 0}
+           "renamed_from": None, "filled": 0, "review": False, "applied": set()}
     if not d:
         res["action"] = "no-date"
         return res
@@ -479,6 +541,11 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
 
     with db.get_conn() as conn, conn.cursor() as cur:
         reg = locate(cur, venue, d, key, n_events_same_day)
+        open_notices = db.open_doc_notices(cur, venue, d, key) if reg else []
+        review = bool(reg) and db.resubmitted_since(
+            cur, venue, d, [a.get("artist_id") for a in acts if a.get("artist_id")],
+            reg.get("written_at"))
+    res["review"] = review
     existing = None
     if reg and _abs_from_reg(reg["path"]).exists():
         existing = _abs_from_reg(reg["path"])
@@ -521,8 +588,12 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
     res["hand_edited"] = bool(reg and reg.get("sha256") and reg["sha256"] != before_sha)
     E = Document(str(existing))
     T = Document(str(daysheet.UNIVERSAL_TEMPLATE))
-    changed, notices, newprov = merge(T, fresh, E, prov=(reg or {}).get("cells") or {})
+    info = {}
+    changed, notices, newprov = merge(T, fresh, E, prov=(reg or {}).get("cells") or {},
+                                      review=review, force=force, info=info,
+                                      frozen=[n["cell_key"] for n in open_notices if n.get("cell_key")])
     res["notices"] = notices
+    res["applied"] = info["forced"]
     res["filled"] = changed
     res["action"] = "merged" if changed else "unchanged"
     if dry_run:
@@ -553,6 +624,12 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
         else:
             db.upsert_filed_doc(cur, venue, d, key, _rel_to_root(target), reg.get("sha256"),
                                 reg_id=reg.get("id"), keep_written_at=True, cells=newprov)
+        # an open decision whose cell now reads the fresh value is done:
+        # applied if Brian chose it, otherwise moot (the doc and the form agree)
+        for n in open_notices:
+            k = (n.get("cell_key") or "").lower()
+            if k and k in info["settled"]:
+                db.resolve_doc_notice(cur, n["id"], "applied" if k in info["forced"] else "moot")
         conn.commit()
     return res
 
@@ -582,7 +659,7 @@ def file_stage_plot(src, folder, fname, dry_run=False):
     alt = f"{stem} (updated {dt.datetime.now().strftime('%m%d%y-%H%M')}){ext}"
     shutil.copy(src, folder / alt)
     return fname, {"field": "Stage plot file", "doc_value": fname,
-                   "new_value": f"new upload saved as {alt}"}
+                   "new_value": f"new upload saved as {alt}", "cell_key": f"plot:{alt}"}
 
 
 def record_and_email_notices(results, send_mail=True):
@@ -599,7 +676,8 @@ def record_and_email_notices(results, send_mail=True):
                                            event_key(ev), "diff", n["field"],
                                            n.get("new_value") or "", n.get("doc_value") or "",
                                            detail=Path(res.get("path") or "").name
-                                           + (" (hand-edited)" if res.get("hand_edited") else ""))
+                                           + (" (hand-edited)" if res.get("hand_edited") else ""),
+                                           cell_key=n.get("cell_key"))
                 if nid:
                     inserted += 1
         conn.commit()
@@ -617,9 +695,15 @@ def record_and_email_notices(results, send_mail=True):
             f"<td style='padding:6px 10px;vertical-align:top'><b>{mailer.esc(n['field'])}</b></td>"
             f"<td style='padding:6px 10px;vertical-align:top;white-space:pre-wrap'>{mailer.esc(n.get('doc_value'))}</td>"
             f"<td style='padding:6px 10px;vertical-align:top;white-space:pre-wrap'>{mailer.esc(n.get('new_value'))}</td></tr>")
+    public = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
+    shows = {(n["venue"], n["event_date"]) for n in new if n.get("event_date")}
+    links = "".join(
+        f"<li><a href='{public}/doc-review?venue={quote(v)}&date={d.isoformat()}'>"
+        f"{mailer.esc(v)} {d.strftime('%m/%d')}</a></li>" for v, d in sorted(shows, key=lambda x: (x[1], x[0])))
     html = ("<div style='font-family:-apple-system,sans-serif;font-size:13px'>"
             "<p>These filed advance docs were <b>not changed</b> — the doc already has a value, "
-            "and newer info came in that's different. Update the doc by hand if the new value is right.</p>"
+            "and newer info came in that's different. Each one is waiting on your call "
+            "(Keep doc / Use new):</p><ul>" + links + "</ul>"
             "<table style='border-collapse:collapse' border='1' cellspacing='0'>"
             "<tr><th>Show / doc</th><th>Field</th><th>Doc says</th><th>New info</th></tr>"
             + "".join(rows) + "</table></div>")

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doc changes — {{ venue }} {{ d.strftime('%m/%d') }}</title>
+<style>
+  :root{color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;}
+  header{background:#1A3A5C;color:#fff;padding:20px 0;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px 60px;}
+  header .wrap{padding-bottom:0;}
+  h1{margin:0;font-size:20px;} header p{margin:6px 0 0;font-size:13px;color:#c7d6e6;}
+  .card{background:#161b22;border:1px solid #2a323d;border-radius:10px;padding:16px 18px;margin:18px 0;}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#4da3ff;margin:0 0 10px;}
+  .muted{color:#8b97a6;font-size:13px;}
+  .status{font-size:14px;}
+  .status.wait{color:#fbbf24;} .status.ok{color:#3fb950;}
+  .change{border-top:1px solid #2a323d;padding:14px 0;}
+  .change:first-of-type{border-top:0;padding-top:4px;}
+  .field{font-weight:700;font-size:14px;margin-bottom:8px;}
+  .vals{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:620px){.vals{grid-template-columns:1fr;}}
+  .opt{display:block;border:1px solid #2a323d;border-radius:8px;padding:10px 12px;cursor:pointer;background:#0d1117;}
+  .opt:hover{border-color:#3a4453;}
+  .opt input{margin:0 6px 0 0;}
+  .opt .lbl{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#8b97a6;}
+  .opt .val{white-space:pre-wrap;margin-top:6px;font-size:14px;word-break:break-word;}
+  .opt:has(input:checked){border-color:#4da3ff;background:rgba(77,163,255,.08);}
+  .err{color:#f85149;font-size:13px;margin-top:8px;}
+  .pending{color:#fbbf24;font-size:13px;margin-top:8px;}
+  .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px;}
+  button{border:0;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer;font-size:14px;}
+  .primary{background:#1A3A5C;color:#fff;} .plain{background:#2a323d;color:#e6edf3;}
+  a{color:#4da3ff;}
+  table{border-collapse:collapse;width:100%;font-size:13px;}
+  td{border-top:1px solid #2a323d;padding:6px 8px;vertical-align:top;white-space:pre-wrap;}
+</style>
+</head>
+<body>
+{% include '_nav.html' %}
+<header><div class="wrap">
+  <a href="{{ url_for('dashboard') }}" style="color:#c7d6e6;font-size:13px;text-decoration:none">← Dashboard</a>
+  <h1>Advance doc changes — {{ venue }} {{ d.strftime('%m/%d/%Y') }}</h1>
+  <p>{{ bands|join(' · ') }}</p>
+</div></header>
+<div class="wrap">
+
+  {% if sub %}
+  <div class="card">
+    <h2>Your edit</h2>
+    {% if waiting_check %}
+    <p class="status wait">Checking the doc against your edit… this page refreshes on its own. If a pipeline run is in progress it waits for that to finish first.</p>
+    {% else %}
+    <p class="status ok">Checked {{ sub.doc_checked_at.strftime('%-I:%M %p') }} — {{ sub.doc_check }}.
+      {% if notices %}{{ notices|length }} change(s) below need your call.{% else %}Nothing is waiting on you — the doc matches the form.{% endif %}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if notices %}
+  <form method="post" action="{{ url_for('doc_review_decide') }}" class="card">
+    <input type="hidden" name="venue" value="{{ venue }}">
+    <input type="hidden" name="date" value="{{ d.isoformat() }}">
+    <h2>Waiting on you ({{ notices|length }})</h2>
+    <p class="muted">The doc already has a value here and the newest form answer is different. Nothing in the doc changes until you pick.
+      Keep doc leaves the cell as it is, and the pipeline won't touch that cell again. Use new writes the form's answer into the doc.</p>
+    {% for n in notices %}
+    <div class="change">
+      <div class="field">{{ n.field }}</div>
+      <div class="vals">
+        <label class="opt"><span class="lbl"><input type="radio" name="n{{ n.id }}" value="keep"
+          {{ 'disabled' if (n.apply_requested_at and not n.apply_error) else '' }}>Keep doc</span>
+          <div class="val">{{ n.doc_value or '(blank)' }}</div></label>
+        <label class="opt"><span class="lbl"><input type="radio" name="n{{ n.id }}" value="apply"
+          {{ 'disabled' if (not n.cell_key or (n.apply_requested_at and not n.apply_error)) else '' }}>Use new</span>
+          <div class="val">{{ n.new_value or '(blank)' }}</div></label>
+      </div>
+      {% if not n.cell_key %}<div class="muted" style="margin-top:8px">Recorded before decisions existed — fix the doc by hand if the new value is right, then Keep doc.</div>{% endif %}
+      {% if n.apply_requested_at and not n.apply_error %}<div class="pending">Writing it into the doc…</div>{% endif %}
+      {% if n.apply_error %}<div class="err">Couldn't apply: {{ n.apply_error }}</div>{% endif %}
+      <div class="muted" style="margin-top:6px">{{ n.detail or '' }}</div>
+    </div>
+    {% endfor %}
+    <div class="bar">
+      <button class="primary" type="submit">Save decisions</button>
+      <button class="plain" type="button" onclick="pick('keep')">Keep doc for all</button>
+      <button class="plain" type="button" onclick="pick('apply')">Use new for all</button>
+    </div>
+  </form>
+  {% elif not (sub and waiting_check) %}
+  <div class="card"><p class="muted">No doc changes waiting for this show.</p></div>
+  {% endif %}
+
+  {% if recent %}
+  <div class="card">
+    <h2>Decided in the last 2 hours</h2>
+    <table>
+      {% for r in recent %}
+      <tr><td><b>{{ r.field }}</b></td><td>{{ 'Kept doc' if r.resolution == 'kept' else 'Used new' }}</td>
+          <td>{{ r.doc_value if r.resolution == 'kept' else r.new_value }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endif %}
+</div>
+<script>
+{% if waiting %}
+// re-check every 3s while the doc check or an apply is running — but never
+// throw away choices you've already clicked
+setInterval(function(){
+  if (!document.querySelector('input[type=radio]:checked')) location.reload();
+}, 3000);
+{% endif %}
+function pick(v){
+  document.querySelectorAll('input[type=radio][value="' + v + '"]:not(:disabled)').forEach(function(r){ r.checked = true; });
+}
+</script>
+</body>
+</html>

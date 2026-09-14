@@ -64,6 +64,10 @@
   button{background:var(--navy);color:#fff;border:0;border-radius:8px;
     padding:13px 22px;font-size:15px;font-weight:600;cursor:pointer;margin-top:30px;}
   button:hover{background:#234b70;}
+  .staffbar{max-width:680px;margin:0 auto 18px;padding:0 16px;}
+  .staffbar .box{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.4);border-radius:10px;
+    padding:14px 16px;font-size:14px;color:#fcd34d;}
+  .staffbar a{color:#fcd34d;}
 </style>
 </head>
 <body>
@@ -79,19 +83,30 @@
   <p class="langtoggle"><a href="{{ lang_url(other_lang) }}">{{ t('lang_toggle') }}</a></p>
 </div></header>
 
-{% if returning %}
+{% if staff_edit %}
+<div class="staffbar"><div class="box">
+  <b>Staff edit</b> — {{ staff_show.artist_name }}, {{ staff_show.venue }} {{ staff_show.show_date.strftime('%m/%d/%Y') }}.
+  {% if has_answers %}Pre-filled with this show's latest answers.{% else %}No answers on file yet — this fills the form in for the band.{% endif %}
+  Nothing is required. Submitting re-checks the advance doc: blank cells fill in, and anything that would
+  change a cell that already has a value waits for your Keep doc / Use new call. No email goes to the band.
+  <br><a href="{{ url_for('dashboard') }}">← back to the dashboard</a>
+</div></div>
+{% elif returning %}
 <div class="returning"><div class="box">
   {{ t('returning_banner', artist_clause=(t('returning_artist_clause', name=artist_name) if artist_name else '')) }}
 </div></div>
 {% endif %}
 
 <div class="wrap">
-<form class="card{{ ' third-party' if cfg.third_party else '' }}" id="bandform" action="{{ url_for('submit') }}" method="post" enctype="multipart/form-data"{{ ' novalidate' if cfg.third_party else '' }}>
+<form class="card{{ ' third-party' if cfg.third_party else '' }}" id="bandform" action="{{ url_for('submit') }}" method="post" enctype="multipart/form-data"{{ ' novalidate' if (cfg.third_party or staff_edit) else '' }}>
+  {% if staff_edit %}<input type="hidden" name="staff_edit" value="1">{% endif %}
   <input type="hidden" name="show_series" value="{{ '' if cfg.series_key == 'default' else cfg.series_key }}">
   <input type="hidden" name="form_lang" value="{{ lang }}">
   {% if cfg.location %}<input type="hidden" name="location" value="{{ cfg.location }}">{% endif %}
 
-  {% if returning %}
+  {% if staff_edit %}
+  <input type="hidden" name="changed_notes" value="{{ v('changed_notes') }}">
+  {% elif returning %}
   <div class="field conditional">
     <label class="q">{{ t('changed_notes_label') }}</label>
     <textarea name="changed_notes" placeholder="{{ t('changed_notes_placeholder') }}">{{ v('changed_notes') }}</textarea>
@@ -334,7 +349,7 @@
     <div class="ack">
       {{ t('ack_loadin_text') }}
       <div class="checkrow">
-        <input type="checkbox" id="ack_loadin" name="ack_loadin" value="yes" required>
+        <input type="checkbox" id="ack_loadin" name="ack_loadin" value="yes" required{{ ' checked' if staff_edit and prefill.get('ack_loadin') == 'yes' else '' }}>
         <label for="ack_loadin">{{ t('ack_loadin_check') }}<span class="req">*</span></label>
       </div>
     </div>
@@ -343,7 +358,7 @@
     <div class="ack">
       {{ t('ack_loadin_generic_text') }}
       <div class="checkrow">
-        <input type="checkbox" id="ack_loadin_generic" name="ack_loadin" value="yes">
+        <input type="checkbox" id="ack_loadin_generic" name="ack_loadin" value="yes"{{ ' checked' if staff_edit and prefill.get('ack_loadin') == 'yes' else '' }}>
         <label for="ack_loadin_generic">{{ t('ack_loadin_generic_check') }}<span class="req">*</span></label>
       </div>
     </div>
@@ -353,7 +368,7 @@
     <div class="ack">
       {{ t('ack_95db_text') }}
       <div class="checkrow">
-        <input type="checkbox" id="ack_95db" name="ack_95db" value="yes" required>
+        <input type="checkbox" id="ack_95db" name="ack_95db" value="yes" required{{ ' checked' if staff_edit and prefill.get('ack_95db') == 'yes' else '' }}>
         <label for="ack_95db">{{ t('ack_95db_check') }}<span class="req">*</span></label>
       </div>
     </div>
@@ -371,7 +386,7 @@
         <li>{{ t('ack_reqs_payment')|safe }}</li>
       </ul>
       <div class="checkrow">
-        <input type="checkbox" id="ack_reqs" name="ack_reqs" value="yes" required>
+        <input type="checkbox" id="ack_reqs" name="ack_reqs" value="yes" required{{ ' checked' if staff_edit and prefill.get('ack_reqs') == 'yes' else '' }}>
         <label for="ack_reqs">{{ t('ack_reqs_check') }}<span class="req">*</span></label>
       </div>
     </div>
@@ -382,7 +397,7 @@
     <textarea name="additional">{{ v('additional') }}</textarea>
   </div>
 
-  <button type="submit">{{ t('submit_button') }}</button>
+  <button type="submit">{{ 'Save edit and check the doc' if staff_edit else t('submit_button') }}</button>
 </form>
 </div>
 

@@ -1207,18 +1207,92 @@ def upsert_filed_doc(cur, venue, event_date, event_key, path, sha256, seeded=Fal
 
 
 def insert_doc_notice(cur, venue, event_date, event_key, kind, field, new_value,
-                      doc_value=None, detail=None):
-    """Returns the new id, or None if this exact notice was already recorded."""
+                      doc_value=None, detail=None, cell_key=None):
+    """Returns the new id, or None if this exact notice was already recorded
+    (open or already decided — a value Brian kept is not asked about again).
+    A new value for a cell supersedes that cell's older open decision
+    (2026-09-14 doc review)."""
     cur.execute(
         """INSERT INTO doc_notices (venue, event_date, event_key, kind, field, new_value,
-                                    doc_value, detail)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                                    doc_value, detail, cell_key)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
            ON CONFLICT (venue, event_date, event_key, kind, field, new_value) DO NOTHING
            RETURNING id""",
         (venue or "", event_date, event_key or "", kind, field or "", new_value or "",
-         doc_value, detail))
+         doc_value, detail, cell_key))
     row = cur.fetchone()
+    if row and cell_key:
+        cur.execute(
+            """UPDATE doc_notices SET resolved_at=now(), resolution='superseded'
+               WHERE venue=%s AND event_date IS NOT DISTINCT FROM %s AND event_key=%s
+                 AND lower(cell_key)=lower(%s) AND id<>%s AND resolved_at IS NULL""",
+            (venue or "", event_date, event_key or "", cell_key, row["id"]))
     return row["id"] if row else None
+
+
+def open_doc_notices(cur, venue, event_date, event_key=None):
+    """Undecided doc changes for a show (event_key None = every event that
+    venue+date)."""
+    sql = ("SELECT * FROM doc_notices WHERE venue=%s AND event_date=%s AND kind='diff' "
+           "AND resolved_at IS NULL")
+    params = [venue or "", event_date]
+    if event_key is not None:
+        sql += " AND event_key=%s"
+        params.append(event_key)
+    cur.execute(sql + " ORDER BY id", params)
+    return cur.fetchall()
+
+
+def get_doc_notice(cur, notice_id):
+    cur.execute("SELECT * FROM doc_notices WHERE id=%s", (notice_id,))
+    return cur.fetchone()
+
+
+def resolve_doc_notice(cur, notice_id, resolution):
+    cur.execute("""UPDATE doc_notices SET resolved_at=now(), resolution=%s, apply_error=NULL
+                   WHERE id=%s AND resolved_at IS NULL""", (resolution, notice_id))
+
+
+def keep_doc_value(cur, notice):
+    """Brian chose "Keep doc": the decision is closed and the pipeline gives
+    up ownership of that cell, so no later pass writes over what the doc says
+    (it's treated as hand-typed from here on)."""
+    resolve_doc_notice(cur, notice["id"], "kept")
+    key = notice.get("cell_key")
+    if not key or key.startswith("plot:"):
+        return
+    cur.execute("""SELECT id, cells FROM filed_docs WHERE venue=%s AND event_date=%s AND event_key=%s""",
+                (notice["venue"], notice["event_date"], notice["event_key"]))
+    reg = cur.fetchone()
+    if not reg:
+        return
+    cells = {k: v for k, v in (reg["cells"] or {}).items() if k.lower() != key.lower()}
+    import json
+    cur.execute("UPDATE filed_docs SET cells=%s::jsonb WHERE id=%s", (json.dumps(cells), reg["id"]))
+
+
+def resubmitted_since(cur, venue, event_date, artist_ids, since):
+    """True when one of these acts' shows got a submission after the doc's
+    last pipeline write that is a SECOND submission for that show, or a
+    staff edit — the case whose changes wait for Brian (2026-09-14)."""
+    if not artist_ids or not since:
+        return False
+    cur.execute(
+        """SELECT 1 FROM shows s
+           JOIN submissions x ON x.show_id = s.id
+           WHERE s.venue=%s AND s.show_date=%s AND s.artist_id = ANY(%s)
+             AND x.submitted_at > %s
+             AND (x.source = 'staff'
+                  OR EXISTS (SELECT 1 FROM submissions p WHERE p.show_id = s.id
+                             AND p.submitted_at < x.submitted_at))
+           LIMIT 1""",
+        (venue, event_date, list(artist_ids), since))
+    return cur.fetchone() is not None
+
+
+def stamp_doc_check(cur, submission_id, result):
+    cur.execute("UPDATE submissions SET doc_checked_at=now(), doc_check=%s WHERE id=%s",
+                ((result or "")[:500], submission_id))
 
 
 def unnotified_doc_notices(cur):
@@ -1310,13 +1384,17 @@ def needs_attention(cur):
         out.append({"kind": "hold", "label": "Show on hold",
                     "detail": f"{h['name']} — {h['venue']} {h['show_date']:%m/%d}: {h['hold_reason']}",
                     "link_path": f"/show/{h['id']}/hold", "since": h["held_at"]})
-    cur.execute("""SELECT n.* FROM doc_notices n
-                   WHERE n.kind = 'diff' AND (n.event_date IS NULL OR n.event_date >= CURRENT_DATE)
-                     AND n.created_at > now() - interval '14 days' ORDER BY n.event_date, n.id""")
+    cur.execute("""SELECT n.venue, n.event_date, count(*) AS n, min(n.created_at) AS since,
+                          string_agg(n.field, ', ' ORDER BY n.id) AS fields
+                   FROM doc_notices n
+                   WHERE n.kind = 'diff' AND n.resolved_at IS NULL AND n.event_date >= CURRENT_DATE
+                   GROUP BY n.venue, n.event_date ORDER BY n.event_date, n.venue""")
+    from urllib.parse import quote
     for n in cur.fetchall():
-        out.append({"kind": "doc", "label": "Doc differs from new info",
-                    "detail": f"{n['venue']} {n['event_date']:%m/%d} · {n['field']}: doc says “{(n['doc_value'] or '')[:60]}”, new “{(n['new_value'] or '')[:60]}”",
-                    "link_path": None, "since": n["created_at"]})
+        out.append({"kind": "doc", "label": "Doc changes to decide",
+                    "detail": f"{n['venue']} {n['event_date']:%m/%d} · {n['n']} field(s): {n['fields'][:120]}",
+                    "link_path": f"/doc-review?venue={quote(n['venue'])}&date={n['event_date'].isoformat()}",
+                    "since": n["since"]})
     cur.execute("""SELECT f.*, a.name, s.venue, s.show_date FROM send_failures f
                    JOIN shows s ON s.id=f.show_id JOIN artists a ON a.id=s.artist_id
                    WHERE f.created_at > now() - interval '3 days' AND s.show_date >= CURRENT_DATE

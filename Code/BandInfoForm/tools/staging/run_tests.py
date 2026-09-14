@@ -361,14 +361,35 @@ def t_provenance():
     reg = q("SELECT cells FROM filed_docs WHERE venue=%s AND event_date=%s", (venue, d), one=True)
     owned = any(k.startswith("Monitors|") and v == "4 wedges" for k, v in (reg["cells"] or {}).items())
     check(owned, "registry records Monitors as pipeline-written")
-    # 2) a corrected resubmission updates the pipeline-owned cell, no notice
+    # 2) a resubmission's change to a pipeline-owned cell is HELD for Brian
+    #    (2026-09-14 doc review — replaced H2's silent update), then applied
+    #    from /doc-review
     n_notices = q("SELECT count(*) AS n FROM doc_notices", one=True)["n"]
     st, _ = submit_form(band, venue, d, monitors="5")
     check(wait_regen(), "regen after submission 2 finished")
     rows, path = doc_rows(venue, d, band)
-    check(rows and rows.get("Monitors") == "5 wedges", f"submission 2 -> Monitors updated to '{rows and rows.get('Monitors')}' (was blocked before H2)")
+    check(rows and rows.get("Monitors") == "4 wedges", f"submission 2 held -> Monitors still '{rows and rows.get('Monitors')}'")
+    held = q("""SELECT * FROM doc_notices WHERE venue=%s AND event_date=%s AND resolved_at IS NULL
+                AND field LIKE 'Monitors%%'""", (venue, d))
+    check(len(held) == 1 and held[0]["cell_key"] and held[0]["new_value"].strip() == "5 wedges",
+          f"one open decision with a cell key for Monitors ({[(h['cell_key'], h['new_value']) for h in held]})")
+    # a package-style pass while it's open must not write the frozen cell
+    r = run_tool("regen_show.py", "--venue", venue, "--date", d.isoformat(), "--artist", band, "--no-mail")
+    rows, path = doc_rows(venue, d, band)
+    check(rows and rows.get("Monitors") == "4 wedges", f"frozen while undecided ('{rows and rows.get('Monitors')}') {r.stderr[-200:]}")
+    st, body = get(f"/doc-review?venue={urllib.parse.quote(venue)}&date={d.isoformat()}")
+    check(st == 200 and "5 wedges" in body and "Keep doc" in body, f"review page lists the change ({st})")
+    if held:
+        st, _ = post("/doc-review/decide", {"venue": venue, "date": d.isoformat(), f"n{held[0]['id']}": "apply"})
+        t0 = time.time()
+        time.sleep(1.5)
+        while time.time() - t0 < 120 and subprocess.run(["pgrep", "-f", "doc_review.py"], capture_output=True).returncode == 0:
+            time.sleep(1)
+        rows, path = doc_rows(venue, d, band)
+        check(rows and rows.get("Monitors") == "5 wedges", f"Use new -> Monitors '{rows and rows.get('Monitors')}'")
+        res = q("SELECT resolution, apply_error FROM doc_notices WHERE id=%s", (held[0]["id"],), one=True)
+        check(res["resolution"] == "applied", f"decision resolved as applied ({res})")
     n_notices2 = q("SELECT count(*) AS n FROM doc_notices", one=True)["n"]
-    check(n_notices2 == n_notices, f"no notice for a pipeline-owned update ({n_notices2 - n_notices} new)")
     # 3) a hand edit is protected and reported
     from docx import Document
     doc = Document(str(path))
@@ -385,12 +406,51 @@ def t_provenance():
     check(rows and rows.get("Monitors") == "6 wedges (per Brian)", f"hand edit kept ('{rows and rows.get('Monitors')}')")
     n_notices3 = q("SELECT count(*) AS n FROM doc_notices", one=True)["n"]
     check(n_notices3 == n_notices2 + 1, f"exactly one notice for the hand-edited cell ({n_notices3 - n_notices2})")
+    kept = q("""SELECT * FROM doc_notices WHERE venue=%s AND event_date=%s AND resolved_at IS NULL
+                AND field LIKE 'Monitors%%'""", (venue, d))
+    if kept:
+        post("/doc-review/decide", {"venue": venue, "date": d.isoformat(), f"n{kept[0]['id']}": "keep"})
+        res = q("SELECT resolution FROM doc_notices WHERE id=%s", (kept[0]["id"],), one=True)
+        check(res["resolution"] == "kept", f"Keep doc resolves the decision ({res})")
+        run_tool("regen_show.py", "--venue", venue, "--date", d.isoformat(), "--artist", band, "--no-mail")
+        rows, path = doc_rows(venue, d, band)
+        again = q("""SELECT count(*) AS n FROM doc_notices WHERE venue=%s AND event_date=%s
+                     AND resolved_at IS NULL""", (venue, d), one=True)["n"]
+        check(rows.get("Monitors") == "6 wedges (per Brian)" and again == 0,
+              f"kept value survives another pass, not re-asked ('{rows.get('Monitors')}', {again} open)")
     item = q("SELECT 1 FROM digest_items WHERE kind='doc' AND delivered_at IS NULL", one=True)
     check(item is not None, "doc notice queued for the digest, not emailed")
     # token-level diff: '5' inside '15' is a real diff, an extension is not
     import docmerge
     check(docmerge._differs_meaningfully("15 wedges", "5 wedges"), "'5 wedges' vs '15 wedges' is a diff")
     check(not docmerge._differs_meaningfully("5 wedges (2 for drums)", "5 wedges"), "extension is not a diff")
+
+
+@test("staff edit: dashboard Edit form -> doc check -> review page")
+def t_staff_edit():
+    login()
+    venue, d, band = "Fountain Square", TODAY + dt.timedelta(days=20), "Provenance Test Band"
+    sid = q("SELECT s.id FROM shows s JOIN artists a ON a.id=s.artist_id WHERE a.match_key='provenance test band' AND s.show_date=%s", (d,), one=True)["id"]
+    st, body = get(f"/show/{sid}/edit")
+    check(st == 200 and "Staff edit" in body and 'name="staff_edit"' in body and "novalidate" in body,
+          f"edit page renders in staff mode ({st})")
+    tok = re.search(r'name="artist_token" value="([^"]+)"', body)
+    check(tok is not None, "edit page carries the signed artist token")
+    n_mail = mail_count()
+    st, body = submit_form(band, venue, d, monitors="9", artist_tok=tok.group(1) if tok else "",
+                           extra={"staff_edit": "1", "ack_95db": "", "ack_reqs": ""})
+    check(st == 200 and "Advance doc changes" in body, f"staff edit lands on the doc review ({st})")
+    sub = q("SELECT * FROM submissions WHERE show_id=%s ORDER BY id DESC LIMIT 1", (sid,), one=True)
+    check(sub["source"] == "staff", f"submission recorded as staff ({sub['source']})")
+    check(wait_regen(), "doc check finished")
+    sub = q("SELECT doc_checked_at, doc_check FROM submissions WHERE id=%s", (sub["id"],), one=True)
+    check(sub["doc_checked_at"] is not None, f"doc check stamped ({sub['doc_check']})")
+    check(not [m for m in mails(n_mail) if "notify" in m.get("path", "")], "no 'form received' notify for a staff edit")
+    # anonymous /submit with staff_edit=1 is NOT treated as staff
+    jar.clear()
+    st, _ = post("/submit", {"band_name": "", "staff_edit": "1", "venue": venue, "show_date": d.isoformat()})
+    check(st == 400, f"staff_edit without a session still requires the band name ({st})")
+    login()
 
 
 @test("multi-band doc: band 2 fills its column, band 1 untouched (test gap #1)")
@@ -409,7 +469,13 @@ def t_multiband():
     check(wait_regen(), f"regen after {b2} submitted")
     after1, _ = doc_rows(ev["venue"], ev["event_date"], b1)
     after2, _ = doc_rows(ev["venue"], ev["event_date"], b2)
-    check(after2 and after2.get("Monitors") == "9 wedges", f"{b2} column filled ('{after2 and after2.get('Monitors')}')")
+    # a band that already had a submission for this show is a resubmission:
+    # a filled Monitors cell waits for Brian instead (2026-09-14 doc review)
+    held = q("""SELECT 1 FROM doc_notices WHERE venue=%s AND event_date=%s AND resolved_at IS NULL
+                AND field LIKE 'Monitors%%' AND new_value LIKE '9 wedges%%'""",
+             (ev["venue"], ev["event_date"]), one=True)
+    check(after2 and (after2.get("Monitors") == "9 wedges" or held),
+          f"{b2} column filled or held for review ('{after2 and after2.get('Monitors')}', held={bool(held)})")
     check(before1 == after1, f"{b1} column unchanged")
 
 

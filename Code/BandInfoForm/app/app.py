@@ -297,8 +297,10 @@ def submit():
         return render_template("thanks.html", band=f.get("band_name"),
                                lang=lang, t=i18n.translator(lang))
     # Brian, 2026-09-14: a 3rd-party advance is filled in by staff — nothing
-    # on it is required (band name, stage plot, any of it).
-    third = advance_db.is_third_party(f.get("show_series"))
+    # on it is required (band name, stage plot, any of it). Same for a staff
+    # edit from the dashboard's Edit form button (signed-in staff only).
+    staff_edit = bool(f.get("staff_edit")) and bool(session.get("auth"))
+    third = advance_db.is_third_party(f.get("show_series")) or staff_edit
     if not f.get("band_name") and not third:
         abort(400, "Band name is required.")
 
@@ -344,13 +346,15 @@ def submit():
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     slug = _slug(band_name)
-    rec = {k: v for k, v in f.items() if k not in ("artist_id", "artist_token")}
+    rec = {k: v for k, v in f.items() if k not in ("artist_id", "artist_token", "staff_edit")}
     rec["band_name"] = band_name
     if verified_artist_id:
         rec["artist_id"] = str(verified_artist_id)
     if (rec.get("show_series") or "").strip().lower() == "default":
         rec["show_series"] = ""
     rec["_submitted_at"] = dt.datetime.now().isoformat(timespec="seconds")
+    if staff_edit:
+        rec["_staff_edit"] = True
 
     file_info = None
     if has_upload:
@@ -382,7 +386,8 @@ def submit():
     result = None
     if DB_OK:
         try:
-            result = advance_db.record_submission(rec, file_info=file_info, source="form")
+            result = advance_db.record_submission(rec, file_info=file_info,
+                                                  source="staff" if staff_edit else "form")
             rec["_db"] = {"artist_id": result["artist_id"], "show_id": result["show_id"],
                           "submission_id": result["submission_id"]}
         except Exception as e:
@@ -393,9 +398,11 @@ def submit():
     except OSError as e:
         _log_db_error("disk_rewrite", e)
 
-    # 4) Notify, best-effort
-    _notify_submission(rec)
-    _notify_email("submission", rec)
+    # 4) Notify, best-effort — not for a staff edit (nobody needs a "form
+    #    received" ping for their own correction)
+    if not staff_edit:
+        _notify_submission(rec)
+        _notify_email("submission", rec)
     if result and result.get("match"):
         _email_submission_match(result, rec)
 
@@ -405,7 +412,13 @@ def submit():
     regen_rec = dict(rec)
     if result:
         regen_rec["band_name"] = result["artist_name"]
-    _regen_submitted_show(regen_rec)
+    _regen_submitted_show(regen_rec, submission_id=(result or {}).get("submission_id"))
+
+    # a staff edit lands on the doc review for this show, which waits for
+    # the doc check above and then lists anything waiting on a decision
+    if staff_edit and result:
+        return redirect(url_for("doc_review", venue=rec.get("venue"),
+                                date=(rec.get("show_date") or "")[:10], sub=result["submission_id"]))
 
     submitted_lang = "es" if (f.get("form_lang") or "").strip().lower() == "es" else "en"
     return render_template("thanks.html", band=band_name,
@@ -478,7 +491,7 @@ def _email_submission_match(result, rec):
             _log_db_error("match_notified", e)
 
 
-def _regen_submitted_show(rec):
+def _regen_submitted_show(rec, submission_id=None):
     """Regenerate just the submitting show's advance doc — never the whole tree
     (Brian, 2026-09-11: one band's submission was restamping every file). Needs
     venue + show_date + band_name, all carried on the form. Detached, best-effort."""
@@ -496,7 +509,8 @@ def _regen_submitted_show(rec):
             logf.flush()
             subprocess.Popen(
                 [sys.executable, "regen_show.py", "--venue", venue,
-                 "--date", date, "--artist", artist],
+                 "--date", date, "--artist", artist]
+                + (["--submission-id", str(submission_id)] if submission_id else []),
                 cwd=TOOLS_DIR, stdout=logf, stderr=subprocess.STDOUT,
                 start_new_session=True,
             )
@@ -633,7 +647,7 @@ def _run_pipeline_then_trigger_now(scope=None):
 # ── gated views (passcode) ──────────────────────────────────────────────────
 
 GATED_PREFIXES = ("/staff", "/search", "/artist", "/file", "/submission", "/booking",
-                  "/dashboard", "/show")
+                  "/dashboard", "/show", "/doc-review")
 
 GATE_MAX_FAILS = 5
 GATE_WINDOW_MIN = 15
@@ -780,6 +794,10 @@ def dashboard_data():
     try:
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             rows = advance_db.dashboard_status(cur)
+            cur.execute("""SELECT venue, event_date, count(*) AS n FROM doc_notices
+                           WHERE kind='diff' AND resolved_at IS NULL AND event_date >= CURRENT_DATE
+                           GROUP BY venue, event_date""")
+            open_reviews = {(r["event_date"], r["venue"]): r["n"] for r in cur.fetchall()}
     except Exception as e:
         _log_db_error("dashboard_data", e)
         return {"error": "query-failed", "bills": [], "generated_at": dt.datetime.now().isoformat()}, 500
@@ -793,6 +811,7 @@ def dashboard_data():
                 "venue": r["venue"] or "Venue TBD",
                 "series": r["show_series"] or "",
                 "days_until": r["days_until_show"],
+                "reviews": open_reviews.get(key, 0),
                 "acts": [],
             }
             order.append(key)
@@ -1313,6 +1332,119 @@ def show_merge(show_id, target_id):
         advance_db.release_candidate_holds(cur, show_id)
         conn.commit()
     return redirect(url_for("artist_detail", artist_id=tgt["artist_id"]))
+
+
+# ── staff edit + doc change review (Brian, 2026-09-14) ──────────────────────
+# Edit form: the band's advance form for one show, pre-filled with that
+# show's latest answers, submitted as a staff edit. Anything the resubmission
+# would change in a filled cell of the advance doc waits on /doc-review for
+# Keep doc / Use new (docmerge's resubmission review).
+
+_INTERNAL_KEYS = ("_submitted_at", "_db", "_staff_edit", "artist_id", "website",
+                  "stage_plot_carried_from", "form_lang")
+
+
+@app.get("/show/<int:show_id>/edit")
+def show_edit(show_id):
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.show_with_artist(cur, show_id)
+        if not s:
+            abort(404)
+        cur.execute("SELECT * FROM submissions WHERE show_id=%s ORDER BY submitted_at DESC LIMIT 1",
+                    (show_id,))
+        sub = cur.fetchone() or advance_db.newest_submission(cur, s["artist_id"])
+        cur.execute(r"""SELECT * FROM bookings WHERE venue=%s AND event_date=%s
+                        AND lower(btrim(regexp_replace(artist_name, '\s+', ' ', 'g'))) = %s
+                        ORDER BY id DESC LIMIT 1""", (s["venue"], s["show_date"], s["match_key"]))
+        booking = cur.fetchone() or {}
+        slot = advance_db.slot_for(cur, s["artist_id"], s["venue"], s["show_date"])
+    series = s.get("show_series") or booking.get("series")
+    location = booking.get("location") or ((sub or {}).get("data") or {}).get("location")
+    cfg = forms_config.get_config(series_key=series, venue=s["venue"], location=location,
+                                  slot=slot, lang="en")
+    cfg["third_party"] = advance_db.is_third_party(series)
+    prefill = {k: v for k, v in ((sub or {}).get("data") or {}).items() if k not in _INTERNAL_KEYS}
+    prefill.update({"band_name": s["artist_name"], "venue": s["venue"],
+                    "show_date": s["show_date"].isoformat() if s["show_date"] else ""})
+    if not sub:
+        prefill["contact_name"] = booking.get("contact_name") or ""
+        prefill["contact_email"] = booking.get("contact_email") or s.get("last_email") or ""
+    return render_template(
+        "form.html", venues=forms_config.VENUES, cfg=cfg,
+        prefill=prefill, returning=bool(sub), artist_name=s["artist_name"],
+        tech_packs=forms_config.tech_packs(),
+        known_artist_id=s["artist_id"], artist_tok=artist_token(s["artist_id"]),
+        locked_venue=True, locked_date=True, staff_edit=True, staff_show=s,
+        has_answers=bool(sub),
+    )
+
+
+def _review_date(v):
+    try:
+        return dt.date.fromisoformat((v or "")[:10])
+    except ValueError:
+        abort(400, "bad date")
+
+
+@app.get("/doc-review")
+def doc_review():
+    if not DB_OK:
+        abort(503)
+    venue = request.args.get("venue") or ""
+    d = _review_date(request.args.get("date"))
+    sub_id = request.args.get("sub", type=int)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        notices = advance_db.open_doc_notices(cur, venue, d)
+        sub = advance_db.get_submission(cur, sub_id) if sub_id else None
+        cur.execute("""SELECT field, doc_value, new_value, resolution, resolved_at FROM doc_notices
+                       WHERE venue=%s AND event_date=%s AND kind='diff' AND resolved_at IS NOT NULL
+                         AND resolved_at > now() - interval '2 hours'
+                         AND resolution IN ('kept', 'applied')
+                       ORDER BY resolved_at DESC LIMIT 20""", (venue, d))
+        recent = cur.fetchall()
+        cur.execute("""SELECT a.name FROM shows s JOIN artists a ON a.id=s.artist_id
+                       WHERE s.venue=%s AND s.show_date=%s AND s.cancelled_at IS NULL ORDER BY a.name""",
+                    (venue, d))
+        bands = [r["name"] for r in cur.fetchall()]
+    waiting_check = bool(sub and not sub.get("doc_checked_at"))
+    applying = any(n.get("apply_requested_at") and not n.get("apply_error") for n in notices)
+    return render_template("doc_review.html", venue=venue, d=d, notices=notices, sub=sub,
+                           waiting=waiting_check or applying, waiting_check=waiting_check,
+                           recent=recent, bands=bands)
+
+
+@app.post("/doc-review/decide")
+def doc_review_decide():
+    if not DB_OK:
+        abort(503)
+    venue = request.form.get("venue") or ""
+    d = _review_date(request.form.get("date"))
+    apply_ids = []
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        for n in advance_db.open_doc_notices(cur, venue, d):
+            choice = request.form.get(f"n{n['id']}")
+            if choice == "keep":
+                advance_db.keep_doc_value(cur, n)
+            elif choice == "apply" and n.get("cell_key"):
+                cur.execute("""UPDATE doc_notices SET apply_requested_at=now(), apply_error=NULL
+                               WHERE id=%s""", (n["id"],))
+                apply_ids.append(n["id"])
+        conn.commit()
+    if apply_ids:
+        try:
+            log_path = BASE / "data" / "doc_review.log"
+            with open(log_path, "a") as logf:
+                logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')} "
+                           f"apply {apply_ids} ---\n")
+                logf.flush()
+                subprocess.Popen([sys.executable, "doc_review.py", "--apply", *map(str, apply_ids)],
+                                 cwd=TOOLS_DIR, stdout=logf, stderr=subprocess.STDOUT,
+                                 start_new_session=True)
+        except Exception as e:
+            _log_db_error("doc_review_apply", e)
+    return redirect(url_for("doc_review", venue=venue, date=d.isoformat()))
 
 
 # ── submission ↔ booking matches (audit #6) ─────────────────────────────────
