@@ -1,4 +1,10 @@
-## 2026-09-09 (latest) — Cold Storage rotates at eight, and the backup gets its own report workflow
+> **From 2026-09-14 this file is generated, not hand-written** (pipeline-fix, Brian's call): `python3 _tools/gen_changelog.py --since <date> --write` prepends the meaningful workspace and wiki commits. Write good commit messages; do not append entries here by hand. Everything below the generated block is the hand-kept history through 2026-08.
+
+## 2026-09-14 (latest) — Band Advance: live sends, the 23-fix audit, and the review pass
+
+[Band Advance Pipeline](/band-advance-pipeline) rewritten to match what's actually running. Since the 9/9 article: band-facing email **sends for real** from Production@3cdc.org (a send counts only on a confirmed Graph 202; an n8n edit made by raw SQL once shipped two empty welcomes — deploy workflows only through `deploy_n8n_workflows.command`); the filed advance doc lives in the real 3CDC venue folder and is **never overwritten** — per-cell provenance lets the pipeline update its own cells while a hand edit is untouchable; cancel / hold / merge; a name-plausibility gate and honeypot on submissions; 7/3/1 reminders with a 48-hour gap after the welcome; a day-before confirmation to every band that answered; a Needs-you panel on the dashboard and at the top of the 7am digest, which now carries most alerts; a 06:30 nightly full run; a scripted staging harness (`tools/staging/`, 70 checks). The full findings and decisions are in `Handoffs/band-advance-audit-decisions-2026-09-13.md` and `Handoffs/band-advance-review-2026-09-13.md`.
+
+## 2026-09-09 — Cold Storage rotates at eight, and the backup gets its own report workflow
 
 Two follow-ups to the [Band Advance backup](/band-advance-pipeline) built earlier the same day, both Brian's asks. Cold Storage now holds a flat rotating **eight** archives — newest kept, oldest deleted every run — because that's the box he actually opens and eight weeks is the history he wants sitting there. The Audio NAS keeps the deeper tail (twelve weekly plus every first-of-month for two years), so nothing older is genuinely gone. Retention went per-target to do it: each `TARGETS` line carries its own `keep` and `monthly`, with `monthly: 0` meaning flat rotation.
 
