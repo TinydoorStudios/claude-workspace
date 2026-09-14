@@ -149,6 +149,10 @@ class _Ctx:
         # ("Monitors|RatBoys"); a case-only rename must not orphan them
         self.prov_ci = {k.lower(): v for k, v in self.prov.items()}
         self.newprov = {}
+        ids = [int(el.get(qn("w:val"))) for el in E.element.body.iter(qn("w:id"))
+               if el.getparent() is not None and el.getparent().tag == qn("w:sdtPr")
+               and (el.get(qn("w:val")) or "").lstrip("-").isdigit()]
+        self.next_sdt_id = (max(ids) + 1) if ids else 200000000
 
     def owned(self, key, legacy_key=None):
         """What the pipeline last wrote for this cell, under the current key
@@ -157,10 +161,6 @@ class _Ctx:
             if k and k.lower() in self.prov_ci:
                 return self.prov_ci[k.lower()]
         return None
-        ids = [int(el.get(qn("w:val"))) for el in E.element.body.iter(qn("w:id"))
-               if el.getparent() is not None and el.getparent().tag == qn("w:sdtPr")
-               and (el.get(qn("w:val")) or "").lstrip("-").isdigit()]
-        self.next_sdt_id = (max(ids) + 1) if ids else 200000000
 
     def prepare_copy(self, el):
         """Deep-copy a fresh-doc element for insertion into the filed doc:
