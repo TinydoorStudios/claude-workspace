@@ -532,6 +532,66 @@ def t_dayahead():
     check(not [m for m in sent2 if m["artist_name"] == "Tomorrow Test Band"], "second run sends nothing")
 
 
+@test("booking edit: band-facing change inside the window queues one diff email (2026-09-14)")
+def t_booking_edit_notify():
+    login()
+    d = TODAY + dt.timedelta(days=10)
+    # a slot string nothing else uses (server doesn't restrict slot to
+    # BOOKING_SLOTS) — the clone is a snapshot of live bookings, so a real
+    # Fountain Square show could already hold "headliner" that day
+    base = {"artist_name": "Edit Test Band", "venue": "Fountain Square", "event_date": d.isoformat(),
+            "series": "Jazz on the Square", "contact_name": "Test Contact",
+            "contact_email": "edittest@example.test", "entered_by": "tests",
+            "band_count": "1", "slot": "edittestslot", "event_start": "7:00p", "event_end": "10:00p"}
+    st, _ = post("/booking", base)
+    check(st == 200, f"booking created ({st})")
+    row = q("""SELECT id FROM bookings WHERE lower(btrim(artist_name))='edit test band'
+               AND venue='Fountain Square' AND event_date=%s""", (d,), one=True)
+    bid = row["id"] if row else None
+    check(bid is not None, "booking row found")
+
+    # a same-day typo fix on an internal-only field (entered_by) queues nothing
+    typo = dict(base, entered_by="tests2")
+    st, _ = post(f"/booking/{bid}/edit", typo)
+    check(st == 200, f"internal-only edit saved ({st})")
+    pending = q("SELECT changes, notify FROM booking_edits WHERE booking_id=%s AND sent_at IS NULL", (bid,))
+    check(not pending, f"entered_by-only change queues nothing ({pending})")
+
+    # a band-facing change (event_start) queues a pending, unsent row
+    changed = dict(base, entered_by="tests2", event_start="8:00p")
+    st, _ = post(f"/booking/{bid}/edit", changed)
+    check(st == 200, f"band-facing edit saved ({st})")
+    pending = q("SELECT id, changes, notify, sent_at FROM booking_edits WHERE booking_id=%s", (bid,))
+    check(len(pending) == 1 and pending[0]["notify"] and pending[0]["sent_at"] is None,
+          f"one pending notify row ({pending})")
+    check(pending[0]["changes"].get("event_start") == {"old": "7:00p", "new": "8:00p"},
+          f"diff carries old -> new ({pending[0]['changes']})")
+
+    # a second edit before the notice sends merges into the same pending row
+    changed2 = dict(base, entered_by="tests2", event_start="8:30p")
+    post(f"/booking/{bid}/edit", changed2)
+    pending2 = q("SELECT id, changes FROM booking_edits WHERE booking_id=%s AND sent_at IS NULL", (bid,))
+    check(len(pending2) == 1 and pending2[0]["id"] == pending[0]["id"], "second edit merges, not a new row")
+    check(pending2[0]["changes"]["event_start"] == {"old": "7:00p", "new": "8:30p"},
+          f"merged diff keeps first old, latest new ({pending2[0]['changes']})")
+
+    import booking_update
+    n0 = mail_count()
+    booking_update.send_due(lambda *a: None)
+    mine = [m for m in sends_since(n0) if m["payload"].get("to") == "edittest@example.test"]
+    check(len(mine) == 1 and mine[0]["payload"]["subject"].startswith("Updated booking details"),
+          f"one update email ({len(mine)})")
+    body = mine[0]["payload"]["body"] if mine else ""
+    check("7:00p" in body and "8:30p" in body and "->" in body, "email body carries the diff")
+    sent_row = q("SELECT sent_at FROM booking_edits WHERE id=%s", (pending[0]["id"],), one=True)
+    check(sent_row["sent_at"] is not None, "stamped sent_at")
+
+    n1 = mail_count()
+    booking_update.send_due(lambda *a: None)
+    check(mail_count() == n1, "second run sends nothing more")
+    wait_run_now()
+
+
 @test("digest: Needs you + queued items (E1)")
 def t_digest():
     import daily_digest

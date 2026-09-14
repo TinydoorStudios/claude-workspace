@@ -32,10 +32,33 @@
 </head>
 <body>
 {% include '_nav.html' %}
-<header><div class="wrap"><h1>New Artist Booking</h1><p>3CDC Events — log a booking; the band fills the rest on their advance form.</p></div></header>
+<header><div class="wrap"><h1>{% if edit_booking_id %}Edit Booking{% else %}New Artist Booking{% endif %}</h1><p>3CDC Events — {% if edit_booking_id %}update this booking's core details.{% else %}log a booking; the band fills the rest on their advance form.{% endif %}</p></div></header>
 <div class="wrap">
 
-{% if saved %}
+{% if edited %}
+  <div class="banner ok">
+    Booking updated: <strong>{{ saved.artist_name }}</strong>{% if saved.event_name %} — {{ saved.event_name }}{% endif %}{% if saved.venue %} @ {{ saved.venue }}{% endif %}{% if saved.event_date %} ({{ saved.event_date }}){% endif %}.
+  </div>
+  <div class="card">
+    {% if edit_changes %}
+    <p class="hint" style="margin-top:0;color:#e6edf3;font-size:14px">Changed:</p>
+    <ul style="margin:0 0 12px;padding-left:18px;font-size:14px">
+      {% for field, d in edit_changes.items() %}
+      <li>{{ field.replace('_',' ')|title }}: <span style="color:#8b97a6">{{ d.old or '(not set)' }}</span> → {{ d.new or '(not set)' }}</li>
+      {% endfor %}
+    </ul>
+    {% if will_notify %}
+    <p class="hint" style="margin:0">This show is inside the 21-day window — {{ saved.artist_name }} will get an "info changed" email listing these at the next daily run (not immediately).</p>
+    {% else %}
+    <p class="hint" style="margin:0">Outside the 21-day window (or a contact-only field), so no email goes out for this change.</p>
+    {% endif %}
+    {% else %}
+    <p class="hint" style="margin-top:0">No band-facing fields changed — nothing to notify the band about.</p>
+    {% endif %}
+  </div>
+  <a class="btn" href="{{ url_for('booking_edit', booking_id=edit_booking_id) }}">← Back to this booking</a>
+  <a class="btn" href="{{ url_for('dashboard') }}" style="margin-left:16px">Dashboard →</a>
+{% elif saved %}
   <div class="banner ok">
     Booking logged: <strong>{{ saved.artist_name }}</strong>{% if saved.event_name %} — {{ saved.event_name }}{% endif %}{% if saved.venue %} @ {{ saved.venue }}{% endif %}{% if saved.event_date %} ({{ saved.event_date }}){% endif %}.
   </div>
@@ -98,7 +121,7 @@
 {% else %}
   {% if error %}<div class="banner err">{{ error }}</div>{% endif %}
   <div class="card">
-  <form method="post" action="{{ url_for('booking') }}">
+  <form method="post" action="{{ url_for('booking_edit', booking_id=edit_booking_id) if edit_booking_id else url_for('booking') }}">
     {% set flat_series = [] %}
     {% for v, opts in series_by_venue.items() %}{% for s in opts %}{% set _ = flat_series.append(s) %}{% endfor %}{% endfor %}
     {% for s in standalone_series %}{% set _ = flat_series.append(s) %}{% endfor %}
@@ -198,7 +221,7 @@
       </div>
     </details>
 
-    <button type="submit">Log booking</button>
+    <button type="submit">{% if edit_booking_id %}Save changes{% else %}Log booking{% endif %}</button>
   </form>
   </div>
   <script>

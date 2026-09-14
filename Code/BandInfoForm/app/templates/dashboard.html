@@ -208,9 +208,16 @@ function render(bills){
         // with its latest answers; submitting it lands on the doc review.
         const editBtn = a.state === "cancelled" ? ""
           : `<a class="cancel-btn" style="text-decoration:none;color:#c7d6e6" href="/show/${a.show_id}/edit" target="_blank">Edit form ✎</a>`;
+        // Edit booking (Brian, 2026-09-14): the bookings row itself — venue,
+        // date, schedule, contact, slot — distinct from "Edit form" above
+        // (the band's own submitted answers). Only shown when a booking row
+        // exists (see dashboard_data's booking_id). A change here inside the
+        // 21-day window queues an "info changed" email at the next daily run.
+        const bookingBtn = (a.state === "cancelled" || !a.booking_id) ? ""
+          : `<a class="cancel-btn" style="text-decoration:none;color:#c7d6e6" href="/booking/${a.booking_id}/edit" target="_blank">Edit booking ✎</a>`;
         const emailBtn = (a.state === "responded" || a.state === "finalized")
           ? `<button class="cancel-btn" style="color:#4da3ff;border-color:#2E6DA4" onclick="draftEmail(${a.artist_id}, ${a.show_id}, this)">Email band ✉</button>` : "";
-        return `<div class="act ${a.state === 'cancelled' ? 'cancelled' : ''}"><span class="band">${esc(a.band)}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}${holdLink}${editBtn}${emailBtn}${cancelBtn}</div></div>`;
+        return `<div class="act ${a.state === 'cancelled' ? 'cancelled' : ''}"><span class="band">${esc(a.band)}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}${holdLink}${editBtn}${bookingBtn}${emailBtn}${cancelBtn}</div></div>`;
       }).join("");
       card.innerHTML = `
         <div class="bill-head">

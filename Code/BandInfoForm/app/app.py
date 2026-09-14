@@ -823,6 +823,11 @@ def dashboard_data():
             # (Brian, 2026-09-13: "I don't want to go searching for bands")
             # without a second round-trip to look them up.
             "artist_id": r["artist_id"], "show_id": r["show_id"],
+            # booking_id (2026-09-14): the bookings row for this act, if
+            # staff logged one — powers the "Edit booking" button. A show
+            # that only exists because the band submitted the advance form
+            # directly (no staff booking row) has no booking to edit.
+            "booking_id": r.get("booking_id"),
         })
     return {"bills": [bills[k] for k in order], "generated_at": dt.datetime.now().isoformat()}
 
@@ -915,20 +920,42 @@ def _manual_fill_link(data):
     return f"{PUBLIC_URL}/f/{token}"
 
 
-def _booking_form(error=None, form=None, status=200):
+def _booking_form(error=None, form=None, status=200, edit_booking_id=None):
     return render_template("booking.html", venues=forms_config.VENUES,
                            wp_locations=list(forms_config.WP_LOCATIONS),
                            slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
                            standalone_series=STANDALONE_SERIES,
                            locked_schedule_series=_locked_schedule_series(),
-                           error=error, form=form or {}), status
+                           error=error, form=form or {}, edit_booking_id=edit_booking_id), status
 
 
-def _slot_taken(cur, venue, event_date, slot, artist_name, series=None):
+def _booking_row_to_form(b):
+    """A bookings row (DB types) -> the string-keyed dict booking.html's
+    prefill logic expects (same shape request.form gives the /booking POST
+    handler)."""
+    form = {k: ("" if b.get(k) is None else str(b[k])) for k in advance_db.BOOKING_FIELDS}
+    if b.get("event_date"):
+        form["event_date"] = b["event_date"].isoformat()
+    form["skip_welcome_email"] = bool(b.get("skip_welcome_email"))
+    form["band_emails"] = bool(b.get("band_emails"))
+    return form
+
+
+def _slot_taken(cur, venue, event_date, slot, artist_name, series=None, exclude_booking_id=None):
     """Another band already holds this slot on this venue+date (audit #20).
     A 3rd-party event is its own bill (Brian, 2026-09-14): its slots never
-    collide with the internal show's, and vice versa."""
+    collide with the internal show's, and vice versa.
+
+    exclude_booking_id (booking edit, 2026-09-14): the row being edited
+    still carries its pre-edit values until the UPDATE commits, so a rename
+    that keeps the same slot would otherwise collide with itself — exclude
+    it by id rather than by (now stale) name."""
     third = advance_db.is_third_party(series)
+    params = [venue, event_date, slot, advance_db.normalize(artist_name), third]
+    exclude_sql = ""
+    if exclude_booking_id:
+        exclude_sql = " AND b.id <> %s"
+        params.append(exclude_booking_id)
     cur.execute(
         r"""SELECT b.artist_name FROM bookings b
             LEFT JOIN artists a ON a.match_key = lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g')))
@@ -936,9 +963,8 @@ def _slot_taken(cur, venue, event_date, slot, artist_name, series=None):
             WHERE b.venue=%s AND b.event_date=%s AND b.slot=%s
               AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) <> %s
               AND s.cancelled_at IS NULL
-              AND (lower(btrim(COALESCE(b.series,''))) = '3rd party') = %s
-            LIMIT 1""",
-        (venue, event_date, slot, advance_db.normalize(artist_name), third))
+              AND (lower(btrim(COALESCE(b.series,''))) = '3rd party') = %s"""
+        + exclude_sql + " LIMIT 1", params)
     row = cur.fetchone()
     return row["artist_name"] if row else None
 
@@ -1025,6 +1051,73 @@ def booking():
                                slots=BOOKING_SLOTS, saved=data, urgent=urgent,
                                fill_link=fill_link, silent_third=silent_third)
     return _booking_form(form={})[0]
+
+
+@app.route("/booking/<int:booking_id>/edit", methods=["GET", "POST"])
+def booking_edit(booking_id):
+    """Edit a logged booking's own core fields (venue/date/schedule/contact/
+    slot — the bookings row itself), distinct from /show/<id>/edit which
+    edits the BAND'S advance-form answers. Same validation as /booking;
+    writes via advance_db.update_booking, which queues an "info changed"
+    email to the band (see BAND_FACING_FIELDS) when a band-facing field
+    changed and the show is still inside the 21-day window — sent at the
+    next daily lifecycle run, never immediately (Brian, 2026-09-14)."""
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        existing = advance_db.get_booking(cur, booking_id)
+    if not existing:
+        abort(404)
+    if request.method == "POST":
+        f = request.form
+        data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
+        data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
+        data["band_emails"] = f.get("band_emails") == "on" and advance_db.is_third_party(data["series"])
+        if not data["entered_by"]:
+            return _booking_form("Who's entering this is required.", f, 400, booking_id)
+        if not data["venue"] or not advance_db.to_date(data["event_date"]):
+            return _booking_form("Venue and a valid event date are required.", f, 400, booking_id)
+        if not data["series"] or data["series"].lower() == "default":
+            return _booking_form("Pick a series — or Stand-Alone Internal / 3rd Party.", f, 400, booking_id)
+        if advance_db.is_third_party(data["series"]) and not data["event_name"]:
+            return _booking_form("Event Name is required for a 3rd-party event.", f, 400, booking_id)
+        if not data["artist_name"]:
+            if not advance_db.is_third_party(data["series"]):
+                return _booking_form("Artist name is required.", f, 400, booking_id)
+            data["artist_name"] = data["event_name"]
+        if (not data["skip_welcome_email"] and "@" not in data["contact_email"]
+                and not advance_db.is_third_party(data["series"])):
+            return _booking_form("Contact email is required (or check Manual band advance).", f, 400, booking_id)
+        if data["band_count"] not in ("", "1") and not data["slot"]:
+            return _booking_form("Pick a slot — this night has more than one band.", f, 400, booking_id)
+        if not data["slot"]:
+            data["slot"] = "headliner"
+        data["event_type"] = _event_type_for_series(data["series"])
+        changes, will_notify = {}, False
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                taken = _slot_taken(cur, data["venue"], advance_db.to_date(data["event_date"]),
+                                    data["slot"], data["artist_name"], series=data["series"],
+                                    exclude_booking_id=booking_id)
+                if taken:
+                    slot_h = data["slot"].replace("_", " ")
+                    return _booking_form(
+                        f"{taken} is already the {slot_h} on {data['event_date']} — pick another slot.",
+                        f, 409, booking_id)
+                changes, will_notify = advance_db.update_booking(cur, booking_id, data)
+                conn.commit()
+        except Exception as e:
+            _log_db_error("update_booking", e)
+            return _booking_form("Couldn't save — the database is unreachable. Try again shortly.",
+                                 f, 503, booking_id)
+        show_date = advance_db.to_date(data.get("event_date"))
+        scope = f"{data['venue']}|{show_date.isoformat()}" if show_date else None
+        _run_pipeline_background(scope)
+        return render_template("booking.html", venues=forms_config.VENUES,
+                               slots=BOOKING_SLOTS, saved=data, urgent=False,
+                               edited=True, edit_changes=changes, will_notify=will_notify,
+                               edit_booking_id=booking_id)
+    return _booking_form(form=_booking_row_to_form(existing), edit_booking_id=booking_id)[0]
 
 
 RUN_STATUS = BASE / "data" / "run_status.json"
@@ -1562,7 +1655,7 @@ def advance_lifecycle():
 
     lock_conn = advance_db.get_conn()
     lock_conn.autocommit = True
-    initial, followup, failures, dayahead = [], [], 0, []
+    initial, followup, failures, dayahead, booking_updates = [], [], 0, [], []
     drafts_dir = None
     try:
         lock_conn.execute("SELECT pg_advisory_lock(%s)", (LIFECYCLE_LOCK_KEY,))
@@ -1754,6 +1847,14 @@ def advance_lifecycle():
             _log_db_error("dayahead", e)
             dayahead = []
 
+        # ── booking-edit "info changed" notices (Brian, 2026-09-14) ──
+        try:
+            from booking_update import send_due as _booking_update_send_due
+            booking_updates = _booking_update_send_due(fail)
+        except Exception as e:  # noqa: BLE001 — never blocks the rest of the run
+            _log_db_error("booking_update", e)
+            booking_updates = []
+
         _email_send_failures()
     except Exception as e:
         _log_db_error("advance_lifecycle", e)
@@ -1769,6 +1870,7 @@ def advance_lifecycle():
             _shutil.rmtree(drafts_dir, ignore_errors=True)
 
     return {"initial": initial, "followup": followup, "dayahead": dayahead,
+            "booking_updates": booking_updates,
             "unresponded_alert_sent": unresponded_sent, "failures": failures}
 
 

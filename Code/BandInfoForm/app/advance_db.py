@@ -1053,6 +1053,110 @@ def insert_booking(cur, data: dict):
     return cur.fetchone()["id"]
 
 
+# Fields a band actually sees/relies on, vs. staff-facing bookkeeping
+# (contact info, entered_by, email_note, lead/paying-band, series, event
+# name, band_count). Changing one of these on an already-logged booking is
+# what queues the "info changed" notice — see update_booking below and
+# tools/booking_update.py (Brian, 2026-09-14).
+BAND_FACING_FIELDS = [
+    "event_date", "venue", "location", "artist_name", "slot", "set_time",
+    "load_in", "soundcheck", "event_start", "event_end", "curfew",
+]
+
+
+def get_booking(cur, booking_id):
+    cur.execute("SELECT * FROM bookings WHERE id=%s", (booking_id,))
+    return cur.fetchone()
+
+
+def update_booking(cur, booking_id, data: dict):
+    """Update an existing staff-entered booking in place (the edit-booking
+    form, distinct from show_edit's band-submission editor). Any BAND_FACING_
+    FIELDS change, while the show is still inside the 21-day window, is
+    recorded as a booking_edits row — merged into any still-unsent pending
+    row for this booking, so several edits before the next daily lifecycle
+    run collapse into one email instead of several (uq_booking_edits_pending).
+
+    Returns (changes, notify) — the diff dict just recorded (empty if
+    nothing band-facing changed) and whether it queued a notice (False when
+    changes is empty, or the show is outside the 21-day notify window)."""
+    import json as _json
+    before = get_booking(cur, booking_id)
+    if not before:
+        raise ValueError(f"no booking {booking_id}")
+    vals = {k: (data.get(k) or None) for k in BOOKING_FIELDS}
+    ed = vals.get("event_date")
+    if isinstance(ed, str) and ed.strip():
+        try:
+            vals["event_date"] = dt.date.fromisoformat(ed.strip()[:10])
+        except ValueError:
+            vals["event_date"] = None
+    vals["skip_welcome_email"] = bool(data.get("skip_welcome_email"))
+    vals["band_emails"] = bool(data.get("band_emails"))
+    vals["id"] = booking_id
+    sets = ", ".join(f"{k} = %({k})s" for k in BOOKING_FIELDS)
+    cur.execute(
+        f"""UPDATE bookings SET {sets}, skip_welcome_email = %(skip_welcome_email)s,
+                                 band_emails = %(band_emails)s
+            WHERE id = %(id)s""", vals)
+
+    changes = {}
+    for f in BAND_FACING_FIELDS:
+        old, new = before.get(f), vals.get(f)
+        old_s = old.isoformat() if isinstance(old, dt.date) else (old or "")
+        new_s = new.isoformat() if isinstance(new, dt.date) else (new or "")
+        if old_s != new_s:
+            changes[f] = {"old": old_s, "new": new_s}
+    event_date = vals.get("event_date") or before.get("event_date")
+    in_window = bool(event_date) and 0 <= (event_date - dt.date.today()).days <= 21
+    notify = bool(changes) and in_window
+    edited_by = data.get("entered_by") or before.get("entered_by")
+    if changes:
+        cur.execute(
+            """SELECT id, changes FROM booking_edits
+               WHERE booking_id=%s AND notify AND sent_at IS NULL""", (booking_id,))
+        pending = cur.fetchone()
+        if pending:
+            merged = pending["changes"]
+            for f, d in changes.items():
+                # keep the earliest "old" so the eventual email reflects the
+                # whole span of edits since it was last sent, not just the last one
+                merged[f] = {"old": merged[f]["old"], "new": d["new"]} if f in merged else d
+            cur.execute(
+                """UPDATE booking_edits SET changes=%s::jsonb, edited_by=%s, edited_at=now(),
+                                             notify=%s WHERE id=%s""",
+                (_json.dumps(merged), edited_by, notify, pending["id"]))
+        else:
+            cur.execute(
+                """INSERT INTO booking_edits (booking_id, changes, edited_by, notify)
+                   VALUES (%s, %s::jsonb, %s, %s)""",
+                (booking_id, _json.dumps(changes), edited_by, notify))
+    return changes, notify
+
+
+def due_booking_edits(cur):
+    """Pending booking-edit notifications ready for the next daily lifecycle
+    run — still inside the 21-day window (an edit queued while urgent, then
+    the window closes some other way before the next run, silently drops
+    the notice rather than sending a stale one)."""
+    cur.execute(
+        """SELECT e.id AS edit_id, e.booking_id, e.changes, e.edited_at,
+                  b.artist_name, b.event_date, b.venue, b.contact_email, b.series
+           FROM booking_edits e JOIN bookings b ON b.id = e.booking_id
+           WHERE e.notify AND e.sent_at IS NULL
+             AND b.event_date IS NOT NULL
+             AND b.event_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 21
+           ORDER BY e.id""")
+    return cur.fetchall()
+
+
+def mark_booking_edit_sent(cur, edit_id, ok, err=None):
+    if ok:
+        cur.execute("UPDATE booking_edits SET sent_at=now(), error=NULL WHERE id=%s", (edit_id,))
+    else:
+        cur.execute("UPDATE booking_edits SET error=%s WHERE id=%s", (err, edit_id))
+
+
 def series_by_venue(cur):
     """Distinct series names staff have already used, grouped by venue —
     powers the booking form's series dropdown so new bookings build on
