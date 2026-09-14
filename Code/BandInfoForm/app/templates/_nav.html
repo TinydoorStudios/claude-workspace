@@ -1,0 +1,21 @@
+{# Staff navigation bar (Brian, 2026-09-14) — on every gated page. Include right after <body>. #}
+<nav class="topnav">
+  <a class="brand" href="{{ url_for('staff') }}">3CDC Advance</a>
+  {% set here = request.path %}
+  <a href="{{ url_for('dashboard') }}" class="{{ 'on' if here.startswith('/dashboard') else '' }}">Dashboard</a>
+  <a href="{{ url_for('booking') }}" class="{{ 'on' if here.startswith('/booking') and not request.args.get('manual') else '' }}">New Booking</a>
+  <a href="{{ url_for('booking', manual=1) }}" class="{{ 'on' if here.startswith('/booking') and request.args.get('manual') else '' }}">Manual Advance</a>
+  <a href="{{ url_for('search') }}" class="{{ 'on' if here.startswith('/search') or here.startswith('/artist') else '' }}">Bands</a>
+  <span class="spacer"></span>
+  <a href="https://tinydoorstudios.com" class="dim">Command Center ↗</a>
+</nav>
+<style>
+  .topnav{display:flex;align-items:center;gap:4px;padding:0 16px;height:44px;background:#0b1520;border-bottom:1px solid #1f2d3d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:13px;position:sticky;top:0;z-index:20;}
+  .topnav a{color:#c7d6e6;text-decoration:none;padding:6px 11px;border-radius:7px;white-space:nowrap;}
+  .topnav a:hover{background:#162233;color:#fff;}
+  .topnav a.on{background:#1A3A5C;color:#fff;}
+  .topnav a.brand{font-weight:700;letter-spacing:.3px;color:#4da3ff;margin-right:8px;padding-left:0;}
+  .topnav a.dim{color:#8b97a6;}
+  .topnav .spacer{flex:1;}
+  @media(max-width:640px){.topnav{overflow-x:auto;height:auto;padding:6px 10px;}}
+</style>

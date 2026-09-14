@@ -19,6 +19,7 @@
 </style>
 </head>
 <body>
+{% include '_nav.html' %}
 <header><div class="wrap">
   <a href="{{ url_for('staff') }}" style="color:#c7d6e6;font-size:13px;text-decoration:none">← Staff</a>
   <h1>Submitted as “{{ m.typed_name }}” — {{ m.venue }} {{ m.show_date.strftime('%m/%d/%Y') if m.show_date else '' }}</h1>

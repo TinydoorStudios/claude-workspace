@@ -21,6 +21,7 @@
 </style>
 </head>
 <body>
+{% include '_nav.html' %}
 <header><div class="wrap">
   <a href="{{ url_for('artist_detail', artist_id=s.artist_id) }}" style="color:#c7d6e6;font-size:13px;text-decoration:none">← {{ s.artist_name }}</a>
   <h1>{{ s.artist_name }} — {{ s.venue }} {{ s.show_date.strftime('%m/%d/%Y') if s.show_date else '' }}</h1>
