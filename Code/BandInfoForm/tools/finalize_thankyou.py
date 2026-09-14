@@ -151,7 +151,17 @@ def _schedule_lines(doc, slot):
     return lines
 
 
-def build_recap(venue, show_date, artist_name):
+def _venue_gives_drink_tickets(venue, series=None):
+    """Drink tickets are only mentioned where the venue's own email copy
+    offers them (audit #14) — FSQ and WP today."""
+    try:
+        blocks = ve.blocks_for(venue, series=series)
+    except Exception:
+        return False
+    return "drink ticket" in (blocks.get("hospitality") or "").lower()
+
+
+def build_recap(venue, show_date, artist_name, series=None):
     """(schedule_lines, recap_lines) for this artist's finalized show, or
     None if the filed doc — or this artist's own column in it — can't be
     resolved. None is the fail-closed signal: callers must not send
@@ -163,7 +173,10 @@ def build_recap(venue, show_date, artist_name):
     path, rows = found
     rows_by_label = {label: text for label, text in rows}
     recap_lines = []
+    drink = _venue_gives_drink_tickets(venue, series)
     for doc_label, friendly, override in RECAP_ROWS:
+        if doc_label == "Drink Tix" and not drink:
+            continue
         if doc_label in rows_by_label:
             recap_lines.append((friendly, override or rows_by_label[doc_label]))
 
@@ -237,13 +250,76 @@ def build_email(band, venue, show_date, schedule_lines, recap_lines, bilingual):
     return subject, body
 
 
+def send_for_show(show_id):
+    """Worker for Mark Finalized (audit #14): build + send the thank-you for
+    one show, record the outcome on the show, email Brian on failure. Skips
+    (records why, sends nothing) for a past or cancelled show."""
+    import mailer
+    with db.get_conn() as conn, conn.cursor() as cur:
+        s = db.show_with_artist(cur, show_id)
+    if not s:
+        print(f"no show {show_id}")
+        return
+
+    def record(sent, error):
+        with db.get_conn() as conn, conn.cursor() as cur:
+            cur.execute("UPDATE shows SET thankyou_sent_at = CASE WHEN %s THEN now() ELSE thankyou_sent_at END, "
+                        "thankyou_error = %s WHERE id=%s", (sent, error, show_id))
+            conn.commit()
+
+    if s.get("thankyou_sent_at"):
+        print("already sent")
+        return
+    if s.get("cancelled_at"):
+        record(False, "skipped: show cancelled")
+        return
+    if not s.get("show_date") or s["show_date"] < dt.date.today():
+        record(False, "skipped: show already past")
+        print("skipped: past show")
+        return
+    email = (s.get("last_email") or "").strip()
+    error = None
+    if not email:
+        error = "no contact email on file"
+    else:
+        result = build_recap(s["venue"], s["show_date"], s["artist_name"], series=s.get("show_series"))
+        if result is None:
+            error = "couldn't find this band's column in the filed advance doc"
+        else:
+            schedule_lines, recap_lines = result
+            bilingual = bool(s.get("show_series")) and ve.is_bilingual_series(s["show_series"])
+            subject, body = build_email(s["artist_name"], s["venue"], s["show_date"],
+                                        schedule_lines, recap_lines, bilingual=bilingual)
+            ok, err = mailer.send(email, subject, body=body)
+            if ok:
+                record(True, None)
+                print(f"sent to {email}")
+                return
+            error = err or "send failed"
+    record(False, error)
+    mailer.alert(f"Thank-you email NOT sent — {s['artist_name']}",
+                 f"<p>{mailer.esc(s['artist_name'])} @ {mailer.esc(s['venue'])} "
+                 f"{s['show_date'].strftime('%m/%d/%Y')} was marked Finalized, but the thank-you "
+                 f"didn't go out: <b>{mailer.esc(error)}</b>.</p>")
+    print(f"failed: {error}")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--venue", required=True)
-    ap.add_argument("--date", required=True, help="YYYY-MM-DD")
-    ap.add_argument("--artist", required=True)
+    ap.add_argument("--send", action="store_true", help="send for --show-id (Mark Finalized worker)")
+    ap.add_argument("--show-id", type=int)
+    ap.add_argument("--venue")
+    ap.add_argument("--date", help="YYYY-MM-DD")
+    ap.add_argument("--artist")
     ap.add_argument("--dry-run", action="store_true", help="print, never send")
     args = ap.parse_args()
+    if args.send:
+        if not args.show_id:
+            ap.error("--send needs --show-id")
+        send_for_show(args.show_id)
+        return
+    if not (args.venue and args.date and args.artist):
+        ap.error("--venue, --date and --artist are required for a dry run")
     show_date = dt.date.fromisoformat(args.date)
 
     result = build_recap(args.venue, show_date, args.artist)
@@ -254,7 +330,6 @@ def main():
     schedule_lines, recap_lines = result
     print("schedule:", schedule_lines)
     print("recap:", recap_lines)
-    bilingual = ve.is_bilingual_series(args.artist)  # placeholder for CLI testing only
     subject, body = build_email(args.artist, args.venue, show_date,
                                  schedule_lines, recap_lines, bilingual=False)
     print(f"\nSubject: {subject}\n\n{body}")

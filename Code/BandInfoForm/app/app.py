@@ -26,6 +26,8 @@ from itsdangerous import URLSafeSerializer, BadData
 import forms_config
 import i18n
 import es_translate
+import mailer
+import status_labels
 
 BASE = Path(__file__).resolve().parent
 DATA = BASE / "data"
@@ -66,6 +68,21 @@ app.config.update(
 )
 
 _signer = URLSafeSerializer(SECRET, salt="advance-prefill")
+# Signed artist id carried on the band form (audit #6) — a plain hidden
+# artist_id could be edited to rename another artist / change their email.
+_artist_signer = URLSafeSerializer(SECRET, salt="advance-artist-id")
+
+
+def artist_token(artist_id):
+    return _artist_signer.dumps(int(artist_id)) if artist_id else ""
+
+
+def verify_artist_token(tok):
+    try:
+        return int(_artist_signer.loads(tok)) if tok else None
+    except (BadData, TypeError, ValueError):
+        return None
+
 
 # advance_db is optional at import time so the form still runs if psycopg is missing
 try:
@@ -149,7 +166,7 @@ def form():
         "form.html", venues=forms_config.VENUES, cfg=cfg,
         prefill={}, returning=False, artist_name=None,
         tech_packs=forms_config.tech_packs(),
-        known_artist_id=None, locked_venue=False, locked_date=False,
+        known_artist_id=None, artist_tok="", locked_venue=False, locked_date=False,
     )
 
 
@@ -258,8 +275,8 @@ def prefilled_form(token):
         "form.html", venues=forms_config.VENUES, cfg=cfg,
         prefill=prefill, returning=returning, artist_name=artist_name,
         tech_packs=forms_config.tech_packs(),
-        known_artist_id=known_artist_id, locked_venue=locked_venue,
-        locked_date=locked_date,
+        known_artist_id=known_artist_id, artist_tok=artist_token(known_artist_id),
+        locked_venue=locked_venue, locked_date=locked_date,
     )
 
 
@@ -269,10 +286,13 @@ def submit():
     if not f.get("band_name"):
         abort(400, "Band name is required.")
 
+    # The band's own link carries a SIGNED artist id (audit #6). A raw
+    # artist_id field is ignored — it could be edited to hijack another
+    # artist's record.
+    verified_artist_id = verify_artist_token(f.get("artist_token"))
+
     # Stage plot: upload OR description is required, not both (Brian,
-    # 2026-09-08) — exempt only if this band already has one on file (same
-    # "only upload if it has changed" rule the form itself follows). Real
-    # server-side check, not just the form's client-side one.
+    # 2026-09-08) — exempt only if this band already has one on file.
     upload = request.files.get("stage_plot_file")
     has_upload = bool(upload and upload.filename)
     has_desc = bool((f.get("stage_plot_desc") or "").strip())
@@ -281,31 +301,20 @@ def submit():
         if DB_OK:
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
-                    # Prefer the known artist id (same reasoning as
-                    # record_submission's known_id) — a band that just edited
-                    # its own name shouldn't lose its "already have a stage
-                    # plot on file" exemption because the edited text no
-                    # longer matches its old match_key.
-                    artist = None
-                    known_id = f.get("artist_id")
-                    if known_id:
-                        try:
-                            artist = advance_db.get_artist(cur, int(known_id))
-                        except (TypeError, ValueError):
-                            artist = None
+                    artist = advance_db.get_artist(cur, verified_artist_id) if verified_artist_id else None
                     if not artist:
                         artist = advance_db.find_artist_by_name(cur, f.get("band_name"))
                     if artist:
-                        sub = advance_db.newest_submission(cur, artist["id"])
-                        if sub and (sub.get("data") or {}).get("stage_plot_file"):
-                            has_existing = True
+                        cur.execute("""SELECT 1 FROM submissions WHERE artist_id=%s
+                                       AND COALESCE(data->>'stage_plot_file','') <> '' LIMIT 1""",
+                                    (artist["id"],))
+                        has_existing = cur.fetchone() is not None
             except Exception as e:
                 _log_db_error("stage_plot_check", e)
         if not has_existing:
             abort(400, "Please provide a stage plot upload or a description — at least one is required.")
 
-    # WP location monitor cap — hard limit (Brian, 2026-09-06): Porch/Bandstand/
-    # Main Stage each have a physical wedge count that can't be exceeded.
+    # WP location monitor cap — hard limit (Brian, 2026-09-06)
     if f.get("venue") == "Washington Park" and f.get("location") in forms_config.WP_LOCATIONS:
         cap = forms_config.WP_LOCATIONS[f["location"]]["monitor_cap"]
         try:
@@ -317,12 +326,15 @@ def submit():
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     slug = _slug(f.get("band_name"))
-    rec = {k: v for k, v in f.items()}
+    rec = {k: v for k, v in f.items() if k not in ("artist_id", "artist_token")}
+    if verified_artist_id:
+        rec["artist_id"] = str(verified_artist_id)
+    if (rec.get("show_series") or "").strip().lower() == "default":
+        rec["show_series"] = ""
     rec["_submitted_at"] = dt.datetime.now().isoformat(timespec="seconds")
 
     file_info = None
-    upload = request.files.get("stage_plot_file")
-    if upload and upload.filename:
+    if has_upload:
         safe = secure_filename(upload.filename)
         stored = f"{stamp}__{slug}__{safe}"
         dest = UPLOADS / stored
@@ -334,55 +346,90 @@ def submit():
             "size": dest.stat().st_size if dest.exists() else None,
         }
 
-    # 0) A Spanish-language submission (form_lang, carried on the hidden
-    # form_lang field set by the language the band's form was rendered in —
-    # see i18n.py) gets its free-text answers translated to English HERE,
-    # before anything downstream — disk JSON, Postgres, the notify email,
-    # the filed advance/daysheet doc — ever sees them (Brian, 2026-09-12).
-    # Every select/radio/number field is already English regardless of
-    # language (i18n.py only swaps the on-screen label, never the stored
-    # value), so only the open textareas need this. Fails soft: on any
-    # error (no API key configured, the API down/slow, a bad response) the
-    # original Spanish text is left in place rather than blocking or
-    # corrupting the submission.
+    # 1) DISK FIRST — before translation or anything else that can be slow
+    #    or fail (audit #23). Rewritten below once the record is enriched.
+    disk_path = DATA / f"{stamp}__{slug}.json"
+    disk_path.write_text(json.dumps(rec, indent=2))
+
+    # 2) Spanish free-text answers -> English (fails soft, originals kept)
     if (rec.get("form_lang") or "").strip().lower() == "es":
         try:
             es_translate.translate_es_fields(rec, log=_log_db_error)
         except Exception as e:
             _log_db_error("es_translate", e)
 
-    # 1) DISK FIRST — the durable record. Never fails the request over the DB.
-    (DATA / f"{stamp}__{slug}.json").write_text(json.dumps(rec, indent=2))
-
-    # 2) Postgres, best-effort.
+    # 3) Postgres, best-effort: resolves the booking (audit #6) and carries a
+    #    returning band's plot forward when they didn't re-upload (audit #8).
+    result = None
     if DB_OK:
         try:
-            advance_db.record_submission(rec, file_info=file_info, source="form")
+            result = advance_db.record_submission(rec, file_info=file_info, source="form")
+            rec["_db"] = {"artist_id": result["artist_id"], "show_id": result["show_id"],
+                          "submission_id": result["submission_id"]}
         except Exception as e:
             _log_db_error("record_submission", e)
+            _alert_db_write_failure(rec, e)
+    try:
+        disk_path.write_text(json.dumps(rec, indent=2))
+    except OSError as e:
+        _log_db_error("disk_rewrite", e)
 
-    # 3) Notify, best-effort (Slack webhook if configured; summary email always).
+    # 4) Notify, best-effort
     _notify_submission(rec)
     _notify_email("submission", rec)
+    if result and result.get("match"):
+        _email_submission_match(result, rec)
 
-    # 4) Regenerate ONLY this band's advance doc in the background (Brian,
-    # 2026-09-11) — a submit must not re-file every other show. Fire-and-forget:
-    # the band's thank-you page never waits on it.
-    _regen_submitted_show(rec)
+    # 5) File ONLY this show's advance doc, in the background — blank cells
+    #    only, never overwriting (audit #1). Uses the artist the submission
+    #    actually landed on, which may be the booked name (audit #6).
+    regen_rec = dict(rec)
+    if result:
+        regen_rec["band_name"] = result["artist_name"]
+    _regen_submitted_show(regen_rec)
 
-    # 5) A band that just submitted no longer needs a "please fill this out"
-    # nag sitting in Outlook — clean up any stale draft for them (Brian,
-    # 2026-09-12). Best-effort, same as the notify/regen steps above.
-    _cleanup_outlook_drafts(rec)
-
-    # The language the BAND used (carried on the form's hidden form_lang
-    # field), not whatever ?lang= happens to be on this POST's query string
-    # (there usually isn't one) — explicit kwargs here win over the
-    # context processor's query-string-based default (Flask re-applies the
-    # caller's own context keys last).
     submitted_lang = "es" if (f.get("form_lang") or "").strip().lower() == "es" else "en"
     return render_template("thanks.html", band=f.get("band_name"),
                             lang=submitted_lang, t=i18n.translator(submitted_lang))
+
+
+def _alert_db_write_failure(rec, err):
+    """The submission is safe on disk but didn't reach the database — without
+    this nobody would know until the band got a 'please fill this out'."""
+    mailer.alert(
+        f"Advance submission NOT saved to the database — {rec.get('band_name')}",
+        f"<p>{mailer.esc(rec.get('band_name'))} @ {mailer.esc(rec.get('venue'))} "
+        f"{mailer.esc(rec.get('show_date'))} submitted the form. It's saved on disk but the "
+        f"database write failed: <code>{mailer.esc(repr(err))}</code>.</p>"
+        "<p>Reminders for this show will keep going until it's replayed.</p>")
+
+
+def _email_submission_match(result, rec):
+    m = result["match"]
+    link = f"{PUBLIC_URL}/submission-match/{m['id']}"
+    typed = mailer.esc(rec.get("band_name"))
+    where = f"{mailer.esc(rec.get('venue'))} {mailer.esc(rec.get('show_date'))}"
+    if m["status"] == "attached_auto":
+        subject = f"Check a submission match — “{rec.get('band_name')}” attached to {m['booked_name']}"
+        body = (f"<p>A band submitted as <b>{typed}</b> for {where}, but no booking has that name. "
+                f"The only unanswered booking that night is <b>{mailer.esc(m['booked_name'])}</b>, "
+                "so the submission was attached to it (its reminders stop now).</p>"
+                f"<p><a href='{link}'>Confirm, or “Wrong band, detach” →</a></p>")
+    else:
+        names = ", ".join(mailer.esc(c["artist_name"]) for c in m["candidates"]) or "none"
+        subject = f"Pick the booking for a submission — “{rec.get('band_name')}”"
+        body = (f"<p>A band submitted as <b>{typed}</b> for {where}. No booking has that name, and "
+                f"there isn't exactly one unanswered booking that night (candidates: {names}). "
+                "It was saved under the name they typed.</p>"
+                f"<p><a href='{link}'>Pick the booking it belongs to →</a></p>")
+    ok, _ = mailer.alert(subject, body)
+    if ok and DB_OK:
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                cur.execute("UPDATE submission_matches SET notified_at=now() WHERE id=%s", (m["id"],))
+                conn.commit()
+        except Exception as e:
+            _log_db_error("match_notified", e)
 
 
 def _regen_submitted_show(rec):
@@ -455,117 +502,17 @@ def _notify_email(event_type, fields):
         _log_db_error("notify_email", e)
 
 
-def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=15,
-                          _is_alert=False):
-    """Fire an ACTUAL send (never a draft) via n8n's 'Internal Send —
-    Outlook' webhook — used for BOTH Brian's own internal alerts and, as
-    of the 2026-09-13 live-send migration, band-facing advance/follow-up
-    email too (previously routed through 'Internal Create Draft' for
-    Brian to review; that path is no longer used by this app). Pass
-    `body` for plain text (the normal case — every advance/follow-up
-    email is plain text) or `html` for a formatted internal alert; not
-    both. `attachment` is (name, content_type, base64_content), same
-    shape venue_email.venue_attachment() returns. Best-effort: never
-    raises, returns True/False so the caller can decide whether to stamp
-    a 'sent' flag. Never blocks the request it's called from beyond the
-    timeout (band-facing sends get a longer one than internal alerts —
-    Graph attachment uploads can be slow).
-
-    Empty-body guard (Brian, 2026-09-13 — "this cannot happen" after a
-    band got a welcome email with nothing in it, root cause: an n8n
-    workflow edit that silently never took effect due to n8n's own
-    versioned-publish model, see ARCHITECTURE.md / n8n/README.md). If the
-    content to send is blank/whitespace-only, this refuses to send it to
-    `to` at all — sends an alert to Brian instead, naming what was
-    blocked, and returns False. A second, independent copy of this same
-    guard lives in n8n's own Send via Graph node (internal_send_outlook.
-    json) — that one is the one that actually would have caught the real
-    incident, since Flask's own `body`/`html` here were NOT empty that
-    day; the corruption happened entirely inside n8n's stale cached node.
-    Keeping both: this one still catches a future bug that DOES originate
-    on the Flask side (a bad render, a missing template, etc.)."""
-    if not INTERNAL_SEND_URL:
-        return False
-    content = html if html else (body or "")
-    if not _is_alert and not str(content).strip():
-        _log_db_error("send_outlook_email", RuntimeError(
-            f"BLOCKED empty-body send to {to!r} subject={subject!r} — not sent"))
-        _send_outlook_email(
-            UNRESPONDED_ALERT_TO,
-            f"BLOCKED empty-body send — was: {subject}",
-            html=(f"<p>An attempt to send “{subject}” to <b>{to}</b> was "
-                  f"blocked because the message body was empty. Nothing went to the "
-                  f"recipient. Check whatever built this email (a lifecycle run, a "
-                  f"template render) for a bug.</p>"),
-            _is_alert=True,
-        )
-        return False
-    try:
-        import urllib.request
-        payload = {"to": to, "subject": subject}
-        if html:
-            payload["html"] = html
-        else:
-            payload["body"] = body or ""
-        if attachment:
-            payload["attachment_name"], payload["attachment_type"], payload["attachment_content"] = attachment
-        req = urllib.request.Request(
-            INTERNAL_SEND_URL, data=json.dumps(payload).encode(),
-            headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN},
-        )
-        urllib.request.urlopen(req, timeout=timeout)
-        return True
-    except Exception as e:
-        _log_db_error("send_outlook_email", e)
-        return False
+def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=30):
+    """(ok, error) — thin wrapper over mailer.send, the single send path
+    (audit #3: a send only counts when n8n confirms Graph accepted it)."""
+    return mailer.send(to, subject, body=body, html=html, attachment=attachment, timeout=timeout)
 
 
 def _send_internal_email(subject, html, to=None):
-    """Brian's own internal alerts (HTML) — thin wrapper over
-    _send_outlook_email defaulting `to` to his address."""
-    return _send_outlook_email(to or UNRESPONDED_ALERT_TO, subject, html=html)
+    return mailer.alert(subject, html, to=to)
 
 
-def _cleanup_outlook_drafts(rec):
-    """Best-effort: once a band submits, any drafted (or scheduled-but-unsent)
-    Outlook email still sitting there for them is stale — delete it so nobody
-    accidentally sends a "please fill this out" nag to a band that already
-    responded (Brian, 2026-09-12).
-
-    Matches by the artist's own KNOWN contact email (artists.last_email — the
-    address any advance/follow-up draft was actually addressed to), not
-    whatever the band just typed into the form — that could be a different
-    band member's inbox than the one staff have on file and drafted to."""
-    if not CLEANUP_DRAFTS_URL or not DB_OK:
-        return
-    try:
-        email = None
-        with advance_db.get_conn() as conn, conn.cursor() as cur:
-            artist = None
-            known_id = rec.get("artist_id")
-            if known_id:
-                try:
-                    artist = advance_db.get_artist(cur, int(known_id))
-                except (TypeError, ValueError):
-                    artist = None
-            if not artist:
-                artist = advance_db.find_artist_by_name(cur, rec.get("band_name"))
-            if artist:
-                email = (artist.get("last_email") or "").strip()
-        if not email:
-            return
-        import urllib.request
-        body = json.dumps({"band": rec.get("band_name"), "email": email}).encode()
-        req = urllib.request.Request(
-            CLEANUP_DRAFTS_URL, data=body,
-            headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN},
-        )
-        urllib.request.urlopen(req, timeout=8)
-    except Exception as e:
-        _log_db_error("cleanup_outlook_drafts", e)
-
-
-def _run_pipeline_background():
+def _run_pipeline_background(scope=None):
     """Kick off run_now.py in the background — never blocks or risks the request
     it's called from. Detached (start_new_session) so it outlives this worker.
     run_now.py's own lock file makes overlapping triggers (this + the booking
@@ -578,8 +525,9 @@ def _run_pipeline_background():
         with open(log_path, "a") as logf:
             logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')} ---\n")
             logf.flush()
+            cmd = [sys.executable, "run_now.py"] + (["--scope", scope] if scope else [])
             subprocess.Popen(
-                [sys.executable, "run_now.py"], cwd=TOOLS_DIR,
+                cmd, cwd=TOOLS_DIR,
                 stdout=logf, stderr=subprocess.STDOUT,
                 start_new_session=True,
             )
@@ -604,7 +552,7 @@ def _trigger_immediate_advance():
         _log_db_error("trigger_immediate_advance", e)
 
 
-def _run_pipeline_then_trigger_now():
+def _run_pipeline_then_trigger_now(scope=None):
     """Late-booking path: a show inside the 21-day window at the moment it's
     booked can't wait for the next daily check the way a normal-lead-time
     booking can (Brian, 2026-09-03). Runs the pipeline SYNCHRONOUSLY so the
@@ -612,8 +560,8 @@ def _run_pipeline_then_trigger_now():
     draft + notify — then fires it. Runs in a background thread (not the
     request thread) so /booking's response is never held up by it."""
     try:
-        subprocess.run([sys.executable, "run_now.py"], cwd=TOOLS_DIR,
-                        capture_output=True, text=True, timeout=240)
+        subprocess.run([sys.executable, "run_now.py"] + (["--scope", scope] if scope else []),
+                        cwd=TOOLS_DIR, capture_output=True, text=True, timeout=1200)
     except Exception as e:
         _log_db_error("late_booking_pipeline", e)
         return
@@ -622,7 +570,11 @@ def _run_pipeline_then_trigger_now():
 
 # ── gated views (passcode) ──────────────────────────────────────────────────
 
-GATED_PREFIXES = ("/staff", "/search", "/artist", "/file", "/submission", "/booking", "/dashboard")
+GATED_PREFIXES = ("/staff", "/search", "/artist", "/file", "/submission", "/booking",
+                  "/dashboard", "/show")
+
+GATE_MAX_FAILS = 5
+GATE_WINDOW_MIN = 15
 
 
 @app.before_request
@@ -632,12 +584,81 @@ def _gate():
         return redirect(url_for("gate", next=p))
 
 
+def _client_ip():
+    return (request.headers.get("CF-Connecting-IP")
+            or (request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+            or request.remote_addr or "unknown")
+
+
+def _safe_next(nxt):
+    """Only ever redirect to a page on this site (audit #13)."""
+    if nxt and nxt.startswith("/") and not nxt.startswith("//") and "\\" not in nxt:
+        return nxt
+    return url_for("staff")
+
+
+def _gate_locked(cur, ip):
+    cur.execute("""SELECT locked_at FROM gate_lockouts
+                   WHERE ip=%s AND locked_at > now() - (%s || ' minutes')::interval""",
+                (ip, GATE_WINDOW_MIN))
+    return cur.fetchone() is not None
+
+
 @app.route("/gate", methods=["GET", "POST"])
 def gate():
+    """Staff passcode gate. Both standing passcodes stay valid; 5 wrong tries
+    from one IP within 15 minutes locks that IP out for 15 minutes and emails
+    Brian once (audit #13). Counts live in the database so every worker
+    shares them. If the database is down the gate still works, unthrottled —
+    never lock staff out over a DB outage."""
+    ip = _client_ip()
     if request.method == "POST":
-        if request.form.get("passcode") in VALID_GATE_PASSES:
+        locked = False
+        if DB_OK:
+            try:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    locked = _gate_locked(cur, ip)
+            except Exception as e:
+                _log_db_error("gate_check", e)
+        if locked:
+            return render_template("gate.html",
+                                   error=f"Too many attempts — try again in {GATE_WINDOW_MIN} minutes."), 429
+        ok = request.form.get("passcode") in VALID_GATE_PASSES
+        if DB_OK:
+            try:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    cur.execute("INSERT INTO gate_attempts (ip, ok) VALUES (%s,%s)", (ip, ok))
+                    if not ok:
+                        cur.execute("""SELECT count(*) AS n FROM gate_attempts
+                                       WHERE ip=%s AND NOT ok
+                                         AND attempted_at > now() - (%s || ' minutes')::interval
+                                         AND attempted_at > COALESCE((SELECT locked_at FROM gate_lockouts
+                                                                      WHERE ip=%s), '-infinity')""",
+                                    (ip, GATE_WINDOW_MIN, ip))
+                        if cur.fetchone()["n"] >= GATE_MAX_FAILS:
+                            cur.execute("""INSERT INTO gate_lockouts (ip, locked_at, notified_at)
+                                           VALUES (%s, now(), NULL)
+                                           ON CONFLICT (ip) DO UPDATE SET locked_at=now(), notified_at=NULL""",
+                                        (ip,))
+                            locked = True
+                    conn.commit()
+                if locked:
+                    sent, _ = mailer.alert(
+                        "Advance staff login locked out — repeated wrong passcodes",
+                        f"<p>{GATE_MAX_FAILS} wrong passcodes from IP <b>{mailer.esc(ip)}</b> within "
+                        f"{GATE_WINDOW_MIN} minutes. That IP is locked out for {GATE_WINDOW_MIN} minutes.</p>")
+                    if sent:
+                        with advance_db.get_conn() as conn, conn.cursor() as cur:
+                            cur.execute("UPDATE gate_lockouts SET notified_at=now() WHERE ip=%s", (ip,))
+                            conn.commit()
+            except Exception as e:
+                _log_db_error("gate_record", e)
+        if ok:
             session["auth"] = True
-            return redirect(request.args.get("next") or url_for("staff"))
+            return redirect(_safe_next(request.args.get("next")))
+        if locked:
+            return render_template("gate.html",
+                                   error=f"Too many attempts — try again in {GATE_WINDOW_MIN} minutes."), 429
         return render_template("gate.html", error="Incorrect passcode."), 403
     return render_template("gate.html", error=None)
 
@@ -678,15 +699,7 @@ def staff():
 # word for the same state — already-existing drift, fixed here too) and
 # merge_status.py/status_sheet.py's color maps — so nothing says something
 # different from this page ever again.
-DASHBOARD_STATE_LABELS = {
-    "queued":           ("Queued",                  "queued"),
-    "awaiting":         ("Sent — Awaiting Reply",    "awaiting"),
-    "ready_to_send":    ("Sent — Awaiting Reply",    "ready"),
-    "followup_due":     ("Follow-up Due",            "due"),
-    "followup_drafted": ("Follow-up Sent",           "followup"),
-    "responded":        ("Advancing In Progress",    "responded"),
-    "finalized":        ("Finalized",                "finalized"),
-}
+DASHBOARD_STATE_LABELS = status_labels.dashboard_map()
 
 
 @app.get("/dashboard")
@@ -734,6 +747,13 @@ def dashboard_data():
 
 
 BOOKING_SLOTS = ["headliner", "direct_support", "opener"]
+# No-series choices (audit #16). The top Series pick decides internal vs 3rd
+# party; the old Event Type field is gone from the form.
+STANDALONE_SERIES = ["Stand-Alone Internal", "3rd Party"]
+
+
+def _event_type_for_series(series):
+    return "Third Party" if (series or "").strip().lower() == "3rd party" else "Internal"
 
 
 def _locked_schedule_series():
@@ -750,10 +770,9 @@ def _locked_schedule_series():
 
 
 def _series_by_venue():
-    """Best-effort — an empty dict just means the form falls back to a plain
-    '+ Add new series…' entry, never blocks the booking form from loading.
-    Ordered to match forms_config.VENUES; any venue name in the data that
-    isn't in that list (renamed/retired venue) sorts to the end."""
+    """Best-effort — an empty dict just means the form falls back to the
+    stand-alone choices + '+ Add new series…'. The stand-alone choices are
+    never listed as a venue's series (they'd drag the venue picker along)."""
     if not DB_OK:
         return {}
     try:
@@ -762,27 +781,22 @@ def _series_by_venue():
     except Exception as e:
         _log_db_error("series_by_venue", e)
         return {}
+    skip = {x.lower() for x in STANDALONE_SERIES}
+    raw = {v: [x for x in opts if x.lower() not in skip] for v, opts in raw.items()}
     ordered = {}
     for v in forms_config.VENUES:
-        if v in raw:
+        if raw.get(v):
             ordered[v] = raw[v]
     for v, opts in raw.items():
-        if v not in ordered:
+        if v not in ordered and opts:
             ordered[v] = opts
     return ordered
 
 
 def _manual_fill_link(data):
-    """One-time-use-in-practice link to the band's own full advance form, for a
-    skip_welcome_email booking (Brian, 2026-09-13: a band that emailed its info
-    directly instead of using the form). Same signed-token/short-link shape as
-    the returning-artist reminder link (see advance_lifecycle), just without an
-    artist id — none may exist yet, since the pipeline that creates the shows
-    row hasn't run. venue/date/series/contact prefill and lock the same way any
-    other seeded link does; band name and everything else is left for staff to
-    type in from the band's email. Falls back to the un-shortened /f/<token>
-    URL if the DB is down or the short-link insert fails — still a working link,
-    just longer."""
+    """Link to the band's own full advance form for a manual-entry booking
+    (skip_welcome_email). Same signed-token/short-link shape as the
+    reminder link, without an artist id."""
     token = _signer.dumps({"a": None, "s": {
         "venue": data.get("venue") or None,
         "date": data.get("event_date") or None,
@@ -803,96 +817,123 @@ def _manual_fill_link(data):
     return f"{PUBLIC_URL}/f/{token}"
 
 
+def _booking_form(error=None, form=None, status=200):
+    return render_template("booking.html", venues=forms_config.VENUES,
+                           wp_locations=list(forms_config.WP_LOCATIONS),
+                           slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
+                           standalone_series=STANDALONE_SERIES,
+                           locked_schedule_series=_locked_schedule_series(),
+                           error=error, form=form or {}), status
+
+
+def _slot_taken(cur, venue, event_date, slot, artist_name):
+    """Another band already holds this slot on this venue+date (audit #20)."""
+    cur.execute(
+        r"""SELECT b.artist_name FROM bookings b
+            LEFT JOIN artists a ON a.match_key = lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g')))
+            LEFT JOIN shows s ON s.artist_id = a.id AND s.venue = b.venue AND s.show_date = b.event_date
+            WHERE b.venue=%s AND b.event_date=%s AND b.slot=%s
+              AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) <> %s
+              AND s.cancelled_at IS NULL
+            LIMIT 1""",
+        (venue, event_date, slot, advance_db.normalize(artist_name)))
+    row = cur.fetchone()
+    return row["artist_name"] if row else None
+
+
 @app.route("/booking", methods=["GET", "POST"])
 def booking():
     """Short staff intake form for a new artist booking. Writes to the bookings
-    table, then runs the pipeline — seeds the sheet, builds the package, and
-    gets the initial advance sent via Outlook without anyone clicking anything
-    (live-send migration, Brian 2026-09-13 — used to draft in Gmail, then
-    Outlook; now a real send). A show already inside the 21-day window at
-    booking time can't wait for the next daily check: that case runs the
-    pipeline synchronously (background thread, response isn't held up) and
-    triggers the send + notify right away. Everything else runs on the
-    normal next-daily-check cadence.
+    table, then runs the pipeline scoped to THIS show only (audit #1): seeds
+    the sheet, files this show's doc (blank cells only), and — for a show
+    already inside the 21-day window — triggers the welcome send right away.
 
-    "Skip welcome email" checkbox (Brian, 2026-09-13): for a band that emailed
-    its info directly instead of using the form. Stamps skip_welcome_email on
-    the booking row, which shows_due_for_initial_advance reads via its own
-    bookings LEFT JOIN to permanently exclude this show from the automated
-    welcome/initial-advance send — permanent (matched on venue+date+artist
-    name, same as everything else that join does), not a one-shot race
-    against the immediate on-booking trigger below. The sheet-seed/docfill/
-    dashboard pipeline still runs exactly as normal; only that one send is
-    suppressed. The thank-you page gets a direct link to the band's own full
-    form (_manual_fill_link) for staff to fill in themselves right there."""
+    Rules (audit 2026-09-13):
+      #3  contact email is required unless "Manual band advance" is checked
+      #16 Series is required: a named series, "Stand-Alone Internal" or
+          "3rd Party"; that pick sets Event Type (named series = Internal)
+      #20 a slot already held by another band that night is refused; a
+          multi-band night has no default slot"""
     if request.method == "POST":
         f = request.form
-        if not f.get("artist_name") or not f.get("entered_by"):
-            return render_template("booking.html", venues=forms_config.VENUES,
-                                   wp_locations=list(forms_config.WP_LOCATIONS),
-                                   slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
-                                   locked_schedule_series=_locked_schedule_series(),
-                                   error="Artist name and who's entering this are required.",
-                                   form=f), 400
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
         data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
+        if not data["artist_name"] or not data["entered_by"]:
+            return _booking_form("Artist name and who's entering this are required.", f, 400)
+        if not data["venue"] or not advance_db.to_date(data["event_date"]):
+            return _booking_form("Venue and a valid event date are required.", f, 400)
+        if not data["series"] or data["series"].lower() == "default":
+            return _booking_form("Pick a series — or Stand-Alone Internal / 3rd Party.", f, 400)
+        if not data["skip_welcome_email"] and "@" not in data["contact_email"]:
+            return _booking_form("Contact email is required (or check Manual band advance).", f, 400)
+        if data["band_count"] not in ("", "1") and not data["slot"]:
+            return _booking_form("Pick a slot — this night has more than one band.", f, 400)
+        if not data["slot"]:
+            data["slot"] = "headliner"
+        data["event_type"] = _event_type_for_series(data["series"])
         saved = False
         if DB_OK:
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    taken = _slot_taken(cur, data["venue"], advance_db.to_date(data["event_date"]),
+                                        data["slot"], data["artist_name"])
+                    if taken:
+                        slot_h = data["slot"].replace("_", " ")
+                        return _booking_form(
+                            f"{taken} is already the {slot_h} on {data['event_date']} — pick another slot.",
+                            f, 409)
                     advance_db.insert_booking(cur, data)
                     conn.commit()
                 saved = True
             except Exception as e:
                 _log_db_error("insert_booking", e)
         if not saved:
-            return render_template("booking.html", venues=forms_config.VENUES,
-                                   wp_locations=list(forms_config.WP_LOCATIONS),
-                                   slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
-                                   locked_schedule_series=_locked_schedule_series(),
-                                   error="Couldn't save — the database is unreachable. Try again shortly.",
-                                   form=f), 503
+            return _booking_form("Couldn't save — the database is unreachable. Try again shortly.", f, 503)
         _notify_email("booking", data)
         show_date = advance_db.to_date(data.get("event_date"))
         days_out = (show_date - dt.date.today()).days if show_date else None
         urgent = days_out is not None and 0 <= days_out <= 21
+        scope = f"{data['venue']}|{show_date.isoformat()}" if show_date else None
         if urgent:
-            # inside the 21-day window at booking time — can't wait for the
-            # next daily check like a normal-lead-time booking can.
-            threading.Thread(target=_run_pipeline_then_trigger_now, daemon=True).start()
+            threading.Thread(target=_run_pipeline_then_trigger_now, args=(scope,), daemon=True).start()
         else:
-            _run_pipeline_background()
+            _run_pipeline_background(scope)
         fill_link = _manual_fill_link(data) if data["skip_welcome_email"] else None
         return render_template("booking.html", venues=forms_config.VENUES,
                                slots=BOOKING_SLOTS, saved=data, urgent=urgent,
                                fill_link=fill_link)
-    return render_template("booking.html", venues=forms_config.VENUES,
-                           wp_locations=list(forms_config.WP_LOCATIONS),
-                           slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
-                           locked_schedule_series=_locked_schedule_series(), form={})
+    return _booking_form(form={})[0]
+
+
+RUN_STATUS = BASE / "data" / "run_status.json"
 
 
 @app.post("/booking/run")
 def booking_run():
-    """Thank-you-page button: seed the sheet, build the package, file the venue
-    tree, fold status back in — all local now that the sheet lives on this box
-    too (Dropbox-synced). Gated same as /booking. Idempotent (run_now.py locks
-    against overlap); safe to click more than once."""
+    """'Run again': starts a FULL run (every current show's doc, blank cells
+    only) in the background and returns immediately (audit #23); the page
+    polls /booking/run/status."""
     try:
-        p = subprocess.run(
-            [sys.executable, "run_now.py"], cwd=TOOLS_DIR,
-            capture_output=True, text=True, timeout=240,
-        )
-    except subprocess.TimeoutExpired:
-        return {"error": "timed out after 240s"}, 504
-    line = (p.stdout or "").strip().splitlines()[-1] if p.stdout else ""
+        RUN_STATUS.write_text(json.dumps({"state": "running",
+                                          "started": dt.datetime.now().isoformat(timespec="seconds")}))
+        log_path = BASE / "data" / "run_now_background.log"
+        with open(log_path, "a") as logf:
+            logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')} (Run again) ---\n")
+            logf.flush()
+            subprocess.Popen([sys.executable, "run_again.py", str(RUN_STATUS)], cwd=TOOLS_DIR,
+                             stdout=logf, stderr=subprocess.STDOUT, start_new_session=True)
+    except Exception as e:
+        _log_db_error("booking_run", e)
+        return {"state": "error", "error": e.__class__.__name__}, 500
+    return {"state": "running"}
+
+
+@app.get("/booking/run/status")
+def booking_run_status():
     try:
-        result = json.loads(line)
-    except (ValueError, IndexError):
-        return {"error": "bad output", "stdout": p.stdout[-2000:], "stderr": p.stderr[-2000:]}, 500
-    if "error" in result:
-        return result, 500
-    return result
+        return json.loads(RUN_STATUS.read_text())
+    except (OSError, ValueError):
+        return {"state": "idle"}
 
 
 @app.get("/search")
@@ -945,52 +986,20 @@ def artist_detail(artist_id):
                            state_labels=DASHBOARD_STATE_LABELS)
 
 
-def _send_finalize_thankyou(artist_name, email, venue, show_date, series):
-    """Best-effort, background (Brian, 2026-09-13 — reversed same-day from
-    "no thank-you emails, permanently" once he decided to bring it back for
-    every finalize going forward). Reads the filed advance doc, not the
-    database — tools/finalize_thankyou.py's module docstring covers why
-    (a same-day hand-edit Brian makes directly in the doc has to reach the
-    band, which only reading the doc itself can do). Fails closed: a doc or
-    column that can't be resolved just means nothing sends, logged here —
-    finalize_show() below has already committed the sign-off by the time
-    this even runs, so a failure here can never undo or block that."""
-    try:
-        sys.path.insert(0, str(TOOLS_DIR))
-        import finalize_thankyou as ft
-        import venue_email as ve
-        result = ft.build_recap(venue, show_date, artist_name)
-        if result is None:
-            _log_db_error("finalize_thankyou", RuntimeError(
-                f"no filed doc/column for {artist_name!r} @ {venue} {show_date} "
-                "— thank-you not sent"))
-            return
-        schedule_lines, recap_lines = result
-        bilingual = bool(series) and ve.is_bilingual_series(series)
-        subject, body = ft.build_email(artist_name, venue, show_date,
-                                        schedule_lines, recap_lines, bilingual=bilingual)
-        _send_outlook_email(email, subject, body=body)
-    except Exception as e:
-        _log_db_error("finalize_thankyou", e)
+def _back(default):
+    return redirect(_safe_next(request.form.get("next") or request.args.get("next") or default))
 
 
 @app.post("/artist/<int:artist_id>/finalize/<int:show_id>")
 def finalize_show(artist_id, show_id):
     """Human sign-off that a show's advance is fully complete (Brian,
-    2026-09-13) — falls under the existing /artist gate prefix, no GATED_
-    PREFIXES change needed. Never trusts the button alone: re-checks server-
-    side that the show actually belongs to this artist and has a response on
-    file (state 'responded' or 'finalized' — the button is hidden before
-    that, but a stale page / replayed request must not be able to finalize a
-    show with nothing on file). advance_db.finalize_show's own `WHERE
-    finalized_at IS NULL` makes the actual stamp atomically idempotent — a
-    double-click or two staff acting at once can never double-fire whatever
-    happens next, including the thank-you send below.
+    2026-09-13). Re-checks server-side that the show belongs to this artist
+    and has a response on file; `WHERE finalized_at IS NULL` makes the stamp
+    atomically idempotent, so the thank-you can never double-fire.
 
-    Thank-you email (back on, 2026-09-13 — see _send_finalize_thankyou):
-    fires only on a genuine first-time transition (`result` non-None) with
-    an email on file, in a background thread so this request's redirect is
-    never held up by a doc read + network call."""
+    Thank-you (audit #14): runs as a detached worker (tools/finalize_thankyou.py
+    --send) that skips past/cancelled shows, records sent/failed on the show,
+    and emails Brian if it couldn't send."""
     if not DB_OK:
         abort(503)
     with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -1001,17 +1010,160 @@ def finalize_show(artist_id, show_id):
         if st not in ("responded", "finalized"):
             abort(400, "This show has no response on file yet — nothing to finalize.")
         result = advance_db.finalize_show(cur, show_id)
-        artist = advance_db.get_artist(cur, artist_id)
         conn.commit()
-    if (result and artist and artist.get("last_email")
-            and show.get("venue") and show.get("show_date")):
-        threading.Thread(
-            target=_send_finalize_thankyou,
-            args=(artist["name"], artist["last_email"], show["venue"],
-                  show["show_date"], show.get("show_series")),
-            daemon=True,
-        ).start()
+    if result:
+        _spawn_tool("finalize_thankyou.py", "--send", "--show-id", str(show_id),
+                    log_name="thankyou.log")
     return redirect(url_for("artist_detail", artist_id=artist_id))
+
+
+def _spawn_tool(script, *args, log_name="tools_background.log"):
+    try:
+        log_path = BASE / "data" / log_name
+        with open(log_path, "a") as logf:
+            logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')} {script} {' '.join(args)} ---\n")
+            logf.flush()
+            subprocess.Popen([sys.executable, script, *args], cwd=TOOLS_DIR,
+                             stdout=logf, stderr=subprocess.STDOUT, start_new_session=True)
+    except Exception as e:
+        _log_db_error(f"spawn_{script}", e)
+
+
+# ── cancel / hold / merge (audit #4) ────────────────────────────────────────
+
+@app.post("/show/<int:show_id>/cancel")
+def show_cancel(show_id):
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.get_show(cur, show_id)
+        if not s:
+            abort(404)
+        advance_db.cancel_show(cur, show_id)
+        if s.get("hold_reason") == "missing from the advance sheet":
+            advance_db.release_candidate_holds(cur, show_id)
+        conn.commit()
+    return _back(url_for("artist_detail", artist_id=s["artist_id"]))
+
+
+@app.post("/show/<int:show_id>/uncancel")
+def show_uncancel(show_id):
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.get_show(cur, show_id)
+        if not s:
+            abort(404)
+        advance_db.uncancel_show(cur, show_id)
+        conn.commit()
+    return _back(url_for("artist_detail", artist_id=s["artist_id"]))
+
+
+@app.get("/show/<int:show_id>/hold")
+def show_hold(show_id):
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.show_with_artist(cur, show_id)
+        if not s:
+            abort(404)
+        cands = advance_db.merge_candidates(cur, show_id)
+        cur.execute("SELECT state FROM advance_status WHERE show_id=%s", (show_id,))
+        st = (cur.fetchone() or {}).get("state")
+    return render_template("show_hold.html", s=s, cands=cands, state=st,
+                           state_labels=DASHBOARD_STATE_LABELS)
+
+
+@app.post("/show/<int:show_id>/restore")
+def show_restore(show_id):
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.get_show(cur, show_id)
+        if not s:
+            abort(404)
+        advance_db.restore_show(cur, show_id)
+        advance_db.release_candidate_holds(cur, show_id)
+        conn.commit()
+    return redirect(url_for("show_hold", show_id=show_id))
+
+
+@app.post("/show/<int:show_id>/merge/<int:target_id>")
+def show_merge(show_id, target_id):
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        tgt = advance_db.get_show(cur, target_id)
+        if not tgt or not advance_db.get_show(cur, show_id):
+            abort(404)
+        advance_db.merge_shows(cur, show_id, target_id)
+        advance_db.release_candidate_holds(cur, show_id)
+        conn.commit()
+    return redirect(url_for("artist_detail", artist_id=tgt["artist_id"]))
+
+
+# ── submission ↔ booking matches (audit #6) ─────────────────────────────────
+
+@app.get("/submission-match/<int:match_id>")
+def submission_match(match_id):
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        m = advance_db.get_match(cur, match_id)
+        if not m:
+            abort(404)
+        sub = advance_db.get_submission(cur, m["submission_id"])
+        current = advance_db.show_with_artist(cur, sub["show_id"]) if sub and sub.get("show_id") else None
+        cur.execute(
+            """SELECT s.id AS show_id, a.name AS artist_name, s.venue, s.show_date, s.responded_at
+               FROM shows s JOIN artists a ON a.id=s.artist_id
+               WHERE s.venue=%s AND s.cancelled_at IS NULL
+                 AND s.show_date BETWEEN %s::date - 30 AND %s::date + 30
+                 AND NOT EXISTS (SELECT 1 FROM submissions x WHERE x.show_id=s.id)
+               ORDER BY abs(s.show_date - %s::date), a.name""",
+            (m["venue"], m["show_date"], m["show_date"], m["show_date"]))
+        options = cur.fetchall()
+    return render_template("submission_match.html", m=m, sub=sub, current=current, options=options)
+
+
+@app.post("/submission-match/<int:match_id>/confirm")
+def submission_match_confirm(match_id):
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        cur.execute("UPDATE submission_matches SET status='confirmed', resolved_at=now() WHERE id=%s",
+                    (match_id,))
+        conn.commit()
+    return redirect(url_for("submission_match", match_id=match_id))
+
+
+@app.post("/submission-match/<int:match_id>/detach")
+def submission_match_detach(match_id):
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        m = advance_db.get_match(cur, match_id)
+        if not m:
+            abort(404)
+        sub = advance_db.get_submission(cur, m["submission_id"])
+        advance_db.detach_submission(cur, m["submission_id"], m["typed_name"], m["venue"],
+                                     m["show_date"], series=(sub.get("data") or {}).get("show_series") or None)
+        cur.execute("UPDATE submission_matches SET status='detached', resolved_at=now() WHERE id=%s",
+                    (match_id,))
+        conn.commit()
+    return redirect(url_for("submission_match", match_id=match_id))
+
+
+@app.post("/submission-match/<int:match_id>/attach/<int:show_id>")
+def submission_match_attach(match_id, show_id):
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        m = advance_db.get_match(cur, match_id)
+        if not m or not advance_db.get_show(cur, show_id):
+            abort(404)
+        advance_db.reattach_submission(cur, m["submission_id"], show_id)
+        cur.execute("""UPDATE submission_matches SET status='attached_manual', booked_show_id=%s,
+                       resolved_at=now() WHERE id=%s""", (show_id, match_id))
+        conn.commit()
+        s = advance_db.show_with_artist(cur, show_id)
+    _regen_submitted_show({"venue": s["venue"], "show_date": s["show_date"].isoformat(),
+                           "band_name": s["artist_name"]})
+    return redirect(url_for("submission_match", match_id=match_id))
 
 
 @app.get("/file/<int:file_id>")
@@ -1027,145 +1179,62 @@ def download_file(file_id):
                                download_name=row.get("filename") or row["stored_name"])
 
 
-@app.post("/internal/run-followups")
-def run_followups():
-    """Called by the n8n daily check. Finds advances that are follow-up due
-    (emailed, no response, past the window) and queues a reminder draft for each.
-    Idempotent — a band already queued is skipped. Token-protected; nothing sends."""
+LIFECYCLE_LOCK_KEY = 874201913
+
+
+def _internal_auth():
     if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
         abort(403)
-    if not DB_OK:
-        return {"error": "db-unavailable"}, 503
-    queued = []
-    try:
-        with advance_db.get_conn() as conn, conn.cursor() as cur:
-            cur.execute(
-                """SELECT show_id, band, venue, show_date, show_series, contact_email
-                   FROM advance_status WHERE state = 'followup_due'"""
-            )
-            for r in cur.fetchall():
-                link = f"{PUBLIC_URL}/?venue={quote(r['venue'] or '')}"
-                if r.get("show_series"):
-                    link += f"&series={quote(r['show_series'])}"
-                when = f" on {r['show_date']}" if r.get("show_date") else ""
-                subject = f"Reminder — advance details for your 3CDC show ({r['venue']}{when})"
-                body = (
-                    f"Hi {r['band']},\n\n"
-                    f"Circling back on the advance for your show at {r['venue']}{when}. "
-                    "We still need your show details to run it well — stage plot, monitors, "
-                    "hospitality, and a couple of site logistics. It takes about five minutes:\n\n"
-                    f"{link}\n\n"
-                    "If you've already sent this over, disregard. Thanks,\n"
-                    "3CDC Events / Production"
-                )
-                cur.execute(
-                    """INSERT INTO followup_queue (show_id, band, contact_email, subject, body)
-                       VALUES (%s,%s,%s,%s,%s)
-                       ON CONFLICT (show_id) DO NOTHING RETURNING id""",
-                    (r["show_id"], r["band"], r["contact_email"], subject, body),
-                )
-                if cur.fetchone():
-                    queued.append(r["band"])
-            conn.commit()
-    except Exception as e:
-        _log_db_error("run_followups", e)
-        return {"error": e.__class__.__name__}, 500
-    return {"queued": len(queued), "bands": queued}
 
 
 @app.post("/internal/advance-lifecycle")
 def advance_lifecycle():
-    """Called by n8n's daily 'Advance Lifecycle Check', and on-demand for a
-    late booking (see _trigger_immediate_advance). LIVE-SEND MIGRATION
-    (Brian, 2026-09-13): both guardrails below now SEND for real (via
-    _send_outlook_email, straight to n8n's internal-send-outlook webhook)
-    instead of building an Outlook draft for Brian to review — no more
-    human-in-the-loop step for either one. Three guardrails (drafting-vs-
-    sending history: drafted immediately at booking 2026-09-03; live-send
-    migration + tier cadence trimmed to 7/3/1 + unresponded alert all
-    2026-09-13):
-      - INITIAL advance sends itself the moment a show is within 21 days
-        AND a lifecycle run happens to touch it (daily cron, or any
-        unrelated urgent booking's on-demand trigger) — ceiling restored
-        on shows_due_for_initial_advance itself same day (see its
-        docstring for the incident this closes: with no ceiling on the
-        send gate, one urgent booking's on-demand trigger swept up and
-        live-sent the welcome for every queued show, including ones
-        3-6 weeks out that were never meant to go out yet). Reuses
-        draft_emails.py's render as-is (writes to
-        tools/drafts/*.md same as always, unchanged), so the NEW-vs-
-        RETURNING 6-month cross-venue check applies automatically, then
-        sends that rendered content directly instead of turning it into a
-        draft. Right after sending, any FOLLOWUP_TIERS mark already on or
-        before TODAY (same day counts as already-passed too — a reminder
-        never fires the same day as the welcome) is pre-skipped for this
-        show for good (mark_stale_followup_tiers_skipped) — only tiers
-        still strictly ahead of today stay open to fire later as their
-        date arrives. The old 21-day "your draft is ready to send" nudge
-        (shows_due_for_send_reminder/send_reminder_sent_at) is RETIRED —
-        nothing to nudge about once the welcome sends itself.
-      - FOLLOW-UP sends itself if nothing's heard back, at each of 7/3/1
-        days out from the show (advance_db.FOLLOWUP_TIERS, trimmed from
-        7/3/2/1 — the 2-day tier is gone) — date-driven, not tied to when
-        the initial went out. Each tier fires at most once, independently,
-        whether it actually sent (an email existed) or was marked resolved
-        with nothing to send (mark_followup_sent(..., sent=False) for a
-        band with no email on file, or because it was pre-skipped as
-        stale above) — either way it never asks again for that tier.
-      - UNRESPONDED ALERT fires ONE real email to Brian (bypassing n8n's
-        draft path entirely, same as the two above) the first time a show
-        crosses 3 days out with no submission on file — a flag for him to
-        follow up by hand, listing every band that qualifies this run.
-        Independent of the tier-3 band-facing follow-up above (own
-        shows.unresponded_alert_sent_at column, own gate) and NOT skipped
-        for a band with no email — he especially wants to know about those.
-    due_followup/due_unresponded are queried in a FRESH query, after
-    due_initial's own sends are committed, not before — a late booking
-    already inside one of those windows at the moment it's booked must
-    show up in THIS SAME run, not wait for tomorrow (bug found 2026-09-13:
-    querying them up front, before due_initial's advance_draft_created_at
-    commit, meant a same-request late booking could never appear in its
-    own run since every one of these gates requires
-    advance_draft_created_at IS NOT NULL).
-    initial/followup come back as lightweight {artist_name, venue,
-    show_date} summaries (no subject/body/to — those already went out for
-    real) purely for n8n's own digest email to Brian. Token-protected,
-    same as /internal/run-followups."""
-    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
-        abort(403)
+    """Called by n8n's daily 9am 'Advance Lifecycle Check' (?source=cron) and
+    on demand for a late booking. Sends for real via Outlook.
+
+      - WELCOME (initial advance): a show within 21 days, not yet welcomed,
+        not responded, not cancelled / on hold, not a manual-entry booking.
+      - FOLLOW-UPS at 7 / 3 / 1 days out while there's no response.
+      - UNRESPONDED ALERT to Brian at 3 days out (manual-entry shows too).
+
+    Audit 2026-09-13:
+      #3  a send is stamped ONLY when mailer confirms it (Graph 202). A
+          failure, a missing email address, or a draft that didn't render
+          leaves the show unsent — it retries on the next run — and Brian
+          gets one email per show/kind per day naming the band and the error.
+      #5  each show is stamped the moment its send is confirmed (its own
+          commit), and a Postgres advisory lock lets only one lifecycle run
+          send at a time — a second run waits, then sees the stamps.
+      #21 only the closest open reminder sends per show per run (older open
+          ones are marked skipped), so a missed day never sends two at once.
+          Each scheduled run is recorded for the 10:15 watchdog."""
+    _internal_auth()
     if not DB_OK:
         return {"error": "db-unavailable"}, 503
-
-    initial, followup = [], []
+    source = (request.args.get("source") or "on-demand").strip()[:20]
     sys.path.insert(0, str(TOOLS_DIR))
     import venue_email as ve
+
+    lock_conn = advance_db.get_conn()
+    lock_conn.autocommit = True
+    initial, followup, failures = [], [], 0
     try:
+        lock_conn.execute("SELECT pg_advisory_lock(%s)", (LIFECYCLE_LOCK_KEY,))
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            advance_db.record_job_run(cur, "advance-lifecycle", source)
+            conn.commit()
+
+        def fail(show_id, kind, error):
+            nonlocal failures
+            failures += 1
+            with advance_db.get_conn() as c2, c2.cursor() as k:
+                advance_db.record_send_failure(k, show_id, kind, error)
+                c2.commit()
+
+        # ── welcomes ──
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             due_initial = advance_db.shows_due_for_initial_advance(cur)
-
-        # due_followup/due_reminders are queried AFTER due_initial is fully
-        # processed and committed below, not up here (bug found 2026-09-13:
-        # a late booking inside its OWN follow-up tier at the moment it's
-        # booked — e.g. a Salsa band booked only 4 days out — was drafting
-        # its initial advance but silently missing an immediately-due
-        # follow-up for a full day, until the next 9am cron. Both queries
-        # gate on `advance_draft_created_at IS NOT NULL`
-        # (shows_due_for_followup/shows_due_for_send_reminder), which is
-        # still NULL for a show due_initial hasn't drafted yet — querying
-        # them here, before that commit, meant a same-request late booking
-        # could never appear in its own run's due_followup, even when it's
-        # already inside that tier's window. send_reminder never showed
-        # this symptom only because the ready_now branch below already
-        # special-cases it inline; follow-up had no equivalent. Querying
-        # both fresh after the commit fixes it for good instead of adding
-        # another one-off special case.)
-
-        # ── initial advances: reuse draft_emails.py wholesale (NEW/RETURNING,
-        # venue blocks, short link, bill grouping — all of it, unchanged) ──
         if due_initial:
-            # every field draft_emails.py's batch format understands, not just
-            # the bare minimum — see shows_due_for_initial_advance's 2026-09-08
-            # fix note for why this list matters.
             batch = [{
                 "name": r["artist_name"], "show_date": r["show_date"].isoformat(),
                 "venue": r["venue"] or "", "series": r["series"] or "",
@@ -1180,145 +1249,187 @@ def advance_lifecycle():
                 "contact_name": r["contact_name"] or "",
                 "contact_email": r["booking_contact_email"] or "",
             } for r in due_initial]
-            batch_file = TOOLS_DIR / ".lifecycle_initial_batch.json"
+            batch_file = TOOLS_DIR / f".lifecycle_initial_batch_{os.getpid()}.json"
             batch_file.write_text(json.dumps(batch))
+            rendered = True
             try:
                 subprocess.run([sys.executable, "draft_emails.py", str(batch_file)],
                                cwd=TOOLS_DIR, capture_output=True, text=True,
-                               timeout=120, check=True)
+                               timeout=180, check=True)
+            except Exception as e:
+                rendered = False
+                _log_db_error("lifecycle_draft_render", e)
             finally:
                 batch_file.unlink(missing_ok=True)
 
             from draft_emails import slug as _dslug
             drafts_dir = TOOLS_DIR / "drafts"
-            with advance_db.get_conn() as conn, conn.cursor() as cur:
-                for r in due_initial:
-                    sg = _dslug(r["artist_name"])
-                    hits = sorted(drafts_dir.glob(f"{sg}__{r['show_date'].isoformat()}__*.md"))
-                    if not hits:
-                        continue
-                    text = hits[0].read_text()
-                    subj_line, _, body = text.partition("\n")
-                    subject = subj_line.removeprefix("Subject:").strip()
-                    # advance_draft_created_at is stamped regardless of
-                    # whether an email address exists — the show has now
-                    # been through the pipeline once, same as before this
-                    # change; a band with no email just never gets sent
-                    # anything (same gap that existed under drafting too).
-                    days_out = (r["show_date"] - dt.date.today()).days if r["show_date"] else None
-                    if r["email"]:
-                        att = ve.venue_attachment(r["venue"])
-                        ok = _send_outlook_email(r["email"], subject, body=body.lstrip("\n"),
-                                                  attachment=att)
-                        if ok:
-                            initial.append({"artist_name": r["artist_name"],
-                                            "venue": r["venue"] or "",
-                                            "show_date": us_date(r["show_date"])})
+            for r in due_initial:
+                if not r["email"]:
+                    fail(r["show_id"], "welcome", "no contact email on file")
+                    continue
+                hits = sorted(drafts_dir.glob(f"{_dslug(r['artist_name'])}__{r['show_date'].isoformat()}__*.md"),
+                              key=lambda p: p.stat().st_mtime, reverse=True)
+                if not rendered or not hits:
+                    fail(r["show_id"], "welcome", "welcome email didn't render")
+                    continue
+                text = hits[0].read_text()
+                subj_line, _, body = text.partition("\n")
+                subject = subj_line.removeprefix("Subject:").strip()
+                ok, err = _send_outlook_email(r["email"], subject, body=body.lstrip("\n"),
+                                              attachment=ve.venue_attachment(r["venue"]))
+                if not ok:
+                    fail(r["show_id"], "welcome", err)
+                    continue
+                days_out = (r["show_date"] - dt.date.today()).days
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
                     advance_db.mark_advance_drafted(cur, r["show_id"])
-                    # Live-send migration (Brian, 2026-09-13): the welcome
-                    # sends for real the moment the booking is seeded, so
-                    # there's no draft left sitting around to nudge Brian
-                    # about at the 21-day mark — mark_send_reminder_sent /
-                    # shows_due_for_send_reminder are retired, not called
-                    # anywhere anymore. Any FOLLOWUP_TIERS mark that's
-                    # already on or before TODAY (same day as this welcome
-                    # counts as "already passed" too) gets permanently
-                    # skipped for this show instead of firing a backdated
-                    # reminder later — only tiers still ahead of today stay
-                    # open to fire normally as their date arrives.
                     advance_db.mark_stale_followup_tiers_skipped(cur, r["show_id"], days_out)
-                conn.commit()
+                    conn.commit()
+                initial.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
+                                "show_date": us_date(r["show_date"])})
 
-        # Fresh queries, now that any show due_initial just drafted has its
-        # advance_draft_created_at actually committed — see the note above
-        # due_initial for why this can't run any earlier in this request.
+        # ── follow-ups: closest open tier only, per show (#21) ──
         with advance_db.get_conn() as conn, conn.cursor() as cur:
-            # (show_id, tier) tag carried alongside each row so mark_followup_sent
-            # below stamps the RIGHT tier — a show can legitimately show up under
-            # more than one tier across different runs, never more than once per tier.
-            due_followup = [(tier, r) for tier in advance_db.FOLLOWUP_TIERS
-                             for r in advance_db.shows_due_for_followup(cur, tier)]
-            due_unresponded = advance_db.shows_due_for_unresponded_alert(cur, 3)
-
-        # ── follow-ups: date-driven, short-link, "performance detail" wording,
-        # fired for real at each of 7/3/1 days out (advance_db.FOLLOWUP_TIERS)
-        # — live-send migration, Brian 2026-09-13. A tier already on or before
-        # the day a show was booked never reaches this point at all: it was
-        # pre-skipped in the due_initial loop above (mark_stale_followup_
-        # tiers_skipped), so shows_due_for_followup never returns it.
-        if due_followup:
+            by_show = {}
+            for tier in advance_db.FOLLOWUP_TIERS:
+                for r in advance_db.shows_due_for_followup(cur, tier):
+                    by_show.setdefault(r["show_id"], []).append((tier, r))
+        for show_id, tiers in by_show.items():
+            tiers.sort(key=lambda t: t[0])
+            tier, r = tiers[0]
+            older = [t for t, _ in tiers[1:]]
+            if not r["email"]:
+                fail(show_id, f"followup_{tier}", "no contact email on file")
+                continue
             with advance_db.get_conn() as conn, conn.cursor() as cur:
-                for tier, r in due_followup:
-                    if not r["email"]:
-                        advance_db.mark_followup_sent(cur, r["show_id"], tier, sent=False)
-                        continue
-                    token = _signer.dumps({"a": r["artist_id"],
-                                           "s": {"venue": r["venue"],
-                                                 "date": r["show_date"].isoformat(),
-                                                 "series": r["series"] or None,
-                                                 "location": r["location"] or None,
-                                                 "contact_name": r["contact_name"] or None,
-                                                 "contact_email": r["booking_contact_email"] or None}})
-                    code = advance_db.get_or_create_short_link(cur, token)
-                    link = f"{PUBLIC_URL}/s/{code}"
-                    when = f" on {us_date(r['show_date'])}" if r["show_date"] else ""
-                    subject = f"Reminder — performance details for your 3CDC show ({r['venue']}{when})"
-                    greeting = (f"Hello {r['contact_name']} and {r['artist_name']}"
-                                if r["contact_name"] else f"Hello {r['artist_name']}")
-                    body = (
-                        f"{greeting},\n\n"
-                        f"Circling back on the performance details for your show at "
-                        f"{r['venue']}{when} — we still need them to run it well: stage "
-                        "plot, monitors, hospitality, and a couple of site logistics. "
-                        "It takes about five minutes:\n\n"
-                        f"{link}\n\n"
-                        "If you've already sent this over, disregard. Thanks,\n"
-                        "3CDC Events / Production"
-                    )
-                    att = ve.venue_attachment(r["venue"])
-                    ok = _send_outlook_email(r["email"], subject, body=body, attachment=att)
-                    if ok:
-                        followup.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
-                                          "show_date": us_date(r["show_date"]), "days_out": tier})
-                    advance_db.mark_followup_sent(cur, r["show_id"], tier, sent=ok)
+                token = _signer.dumps({"a": r["artist_id"],
+                                       "s": {"venue": r["venue"],
+                                             "date": r["show_date"].isoformat(),
+                                             "series": r["series"] or None,
+                                             "location": r["location"] or None,
+                                             "contact_name": r["contact_name"] or None,
+                                             "contact_email": r["booking_contact_email"] or None}})
+                code = advance_db.get_or_create_short_link(cur, token)
                 conn.commit()
+            link = f"{PUBLIC_URL}/s/{code}"
+            when = f" on {us_date(r['show_date'])}" if r["show_date"] else ""
+            subject = f"Reminder — performance details for your 3CDC show ({r['venue']}{when})"
+            greeting = (f"Hello {r['contact_name']} and {r['artist_name']}"
+                        if r["contact_name"] else f"Hello {r['artist_name']}")
+            body = (
+                f"{greeting},\n\n"
+                f"Circling back on the performance details for your show at "
+                f"{r['venue']}{when} — we still need them to run it well: stage "
+                "plot, monitors, hospitality, and a couple of site logistics. "
+                "It takes about five minutes:\n\n"
+                f"{link}\n\n"
+                "If you've already sent this over, disregard. Thanks,\n"
+                "3CDC Events / Production"
+            )
+            ok, err = _send_outlook_email(r["email"], subject, body=body,
+                                          attachment=ve.venue_attachment(r["venue"]))
+            if not ok:
+                fail(show_id, f"followup_{tier}", err)
+                continue
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                advance_db.mark_followup_sent(cur, show_id, tier, sent=True)
+                for t in older:
+                    advance_db.mark_followup_sent(cur, show_id, t, sent=False)
+                conn.commit()
+            followup.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
+                             "show_date": us_date(r["show_date"]), "days_out": tier})
 
-        # ── unresponded-at-3-days alert: a real SENT email to Brian, not a
-        # draft (Brian, 2026-09-13) — a flag for him to follow up manually,
-        # separate from and in addition to the band-facing tier-3 follow-up
-        # above. Includes a band with no email on file (the tier-3 follow-up
-        # above skips those); one email listing every band that just crossed
-        # the mark this run, not one email per band.
+        # ── unresponded-at-3-days alert to Brian ──
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            due_unresponded = advance_db.shows_due_for_unresponded_alert(cur, 3)
         unresponded_sent = 0
         if due_unresponded:
-            with advance_db.get_conn() as conn, conn.cursor() as cur:
-                rows = [(r["artist_name"], r["venue"] or "", us_date(r["show_date"]))
-                        for r in due_unresponded]
-                for r in due_unresponded:
-                    advance_db.mark_unresponded_alert_sent(cur, r["show_id"])
-                conn.commit()
-            band_word = "band" if len(rows) == 1 else "bands"
-            subject = f"Advance follow-up needed — {len(rows)} {band_word} unresponded at 3 days out"
+            band_word = "band" if len(due_unresponded) == 1 else "bands"
+            subject = (f"Advance follow-up needed — {len(due_unresponded)} {band_word} "
+                       "unresponded at 3 days out")
             tr = "".join(
-                f"<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;"
-                f"font:13px -apple-system,sans-serif\">{n}</td>"
-                f"<td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">"
-                f"<b>{v}</b> — {d}</td></tr>"
-                for n, v, d in rows
-            )
+                f"<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;font:13px -apple-system,sans-serif\">"
+                f"{mailer.esc(r['artist_name'])}"
+                + (" <b style='color:#b45309'>MANUAL — staff never filled the form</b>" if r["manual"] else "")
+                + f"</td><td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">"
+                f"<b>{mailer.esc(r['venue'] or '')}</b> — {us_date(r['show_date'])}</td></tr>"
+                for r in due_unresponded)
             html = (f"<div style=\"font-family:-apple-system,sans-serif\">"
-                    f"<p>These bands are now inside the 3-day mark with no advance "
-                    f"form on file — worth a manual follow-up:</p>"
-                    f"<table>{tr}</table>"
-                    f"<p style=\"margin-top:14px\">"
-                    f"<a href=\"{PUBLIC_URL}/search\">Open the advance search →</a></p></div>")
-            _send_internal_email(subject, html)
-            unresponded_sent = len(rows)
+                    f"<p>These bands are now inside the 3-day mark with no advance form on file — "
+                    f"worth a manual follow-up:</p><table>{tr}</table>"
+                    f"<p style=\"margin-top:14px\"><a href=\"{PUBLIC_URL}/dashboard\">Open the dashboard →</a></p></div>")
+            ok, _err = _send_internal_email(subject, html)
+            if ok:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    for r in due_unresponded:
+                        advance_db.mark_unresponded_alert_sent(cur, r["show_id"])
+                    conn.commit()
+                unresponded_sent = len(due_unresponded)
+
+        _email_send_failures()
     except Exception as e:
         _log_db_error("advance_lifecycle", e)
-        return {"error": e.__class__.__name__}, 500
+        return {"error": e.__class__.__name__, "initial": initial, "followup": followup}, 500
+    finally:
+        try:
+            lock_conn.execute("SELECT pg_advisory_unlock(%s)", (LIFECYCLE_LOCK_KEY,))
+        except Exception:
+            pass
+        lock_conn.close()
 
-    return {"initial": initial, "followup": followup, "unresponded_alert_sent": unresponded_sent}
+    return {"initial": initial, "followup": followup, "unresponded_alert_sent": unresponded_sent,
+            "failures": failures}
+
+
+def _email_send_failures():
+    """One email listing every send failure not yet reported (at most one per
+    show / kind / day, via send_failures)."""
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        rows = advance_db.unnotified_send_failures(cur)
+    if not rows:
+        return
+    tr = "".join(
+        f"<tr><td style='padding:4px 10px'>{mailer.esc(r['artist_name'])}</td>"
+        f"<td style='padding:4px 10px'>{mailer.esc(r['venue'])} {us_date(r['show_date'])}</td>"
+        f"<td style='padding:4px 10px'>{mailer.esc(r['kind'])}</td>"
+        f"<td style='padding:4px 10px'>{mailer.esc(r['error'])}</td></tr>" for r in rows)
+    html = ("<div style='font-family:-apple-system,sans-serif;font-size:13px'>"
+            "<p>These emails did <b>not</b> go out. Nothing was marked sent — each one retries on the "
+            "next run. Fix whatever's named (a missing address, an Outlook/n8n problem) and it will send.</p>"
+            "<table border='1' cellspacing='0' style='border-collapse:collapse'>"
+            "<tr><th>Band</th><th>Show</th><th>Email</th><th>Why</th></tr>" + tr + "</table></div>")
+    ok, _ = mailer.alert(f"Advance emails NOT sent — {len(rows)} need attention", html)
+    if ok:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            advance_db.mark_send_failures_notified(cur, [r["id"] for r in rows])
+            conn.commit()
+
+
+@app.post("/internal/lifecycle-watchdog")
+def lifecycle_watchdog():
+    """Called by a VM systemd timer at 10:15 (audit #21): if today's scheduled
+    9am lifecycle check never reached this app, email Brian once."""
+    _internal_auth()
+    if not DB_OK:
+        return {"error": "db-unavailable"}, 503
+    today9 = dt.datetime.combine(dt.date.today(), dt.time(8, 55))
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        ran = advance_db.job_ran_since(cur, "advance-lifecycle", "cron", today9)
+        alerted = advance_db.job_ran_since(cur, "lifecycle-watchdog-alert", "auto",
+                                           dt.datetime.combine(dt.date.today(), dt.time()))
+    if ran or alerted:
+        return {"ran": ran, "alerted": alerted}
+    ok, err = mailer.alert(
+        "Advance 9am check did NOT run today",
+        "<p>The daily Advance Lifecycle Check (welcomes, reminders, the 3-day alert) didn't run "
+        "this morning — n8n or the VM may be down. Nothing was sent today. Check n8n; the next "
+        "run catches up (one reminder per band, never a pile).</p>")
+    if ok:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            advance_db.record_job_run(cur, "lifecycle-watchdog-alert", "auto")
+            conn.commit()
+    return {"ran": False, "alert_sent": ok, "error": err}
 
 
 @app.post("/internal/run-recap-extraction")
@@ -1330,8 +1441,7 @@ def run_recap_extraction():
     for why this can't just live in events/event_acts. Token-protected, same
     as /internal/run-followups. Never touches anything band-facing directly;
     the stored recap is read later by draft_emails.py for a returning artist."""
-    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
-        abort(403)
+    _internal_auth()
     if not DB_OK:
         return {"error": "db-unavailable"}, 503
     sys.path.insert(0, str(TOOLS_DIR))
@@ -1357,8 +1467,7 @@ def daily_digest():
     that workflow's cron trigger was removed, only its on-demand webhook
     remains, still served by /internal/crew-report below.
     Token-protected, same as /internal/run-followups."""
-    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
-        abort(403)
+    _internal_auth()
     if not DB_OK:
         return {"error": "db-unavailable"}, 503
     sys.path.insert(0, str(TOOLS_DIR))
@@ -1380,8 +1489,7 @@ def crew_report_endpoint():
     public 3CDC staffing sheet. Doesn't touch advance-db at all (pure
     staffing-sheet read), so no DB_OK gate. Token-protected, same as the
     other /internal endpoints."""
-    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
-        abort(403)
+    _internal_auth()
     sys.path.insert(0, str(TOOLS_DIR))
     from crew_report import build_report
     try:

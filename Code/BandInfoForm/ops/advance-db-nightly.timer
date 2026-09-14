@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly Band Advance DB dump (02:40)
+
+[Timer]
+OnCalendar=*-*-* 02:40:00
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

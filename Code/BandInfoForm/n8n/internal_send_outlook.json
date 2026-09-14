@@ -68,6 +68,20 @@
           "name": "Microsoft Graph - Production@3cdc.org (App-only)"
         }
       }
+    },
+    {
+      "id": "code-confirm",
+      "name": "Confirm Sent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// 2026-09-13 audit #3: a send only counts when Graph accepted it (202).\n// A known non-202 status throws, which makes this webhook answer 500, so the\n// Flask app records it as NOT sent (retries next run, alerts Brian) instead\n// of believing a 200 from a request Graph actually rejected.\n// If the status can't be read at all, this does NOT throw: a real 202 must\n// never be reported as a failure (that would re-send to a band next run).\nconst r = $input.first().json;\nconst status = (typeof r.statusCode === 'number') ? r.statusCode : null;\nconst b = $('Trigger').first().json.body || {};\nconst empty = !String(b.html || b.body || '').trim();\nif (status !== null && status !== 202) {\n  throw new Error('Graph did not accept the message: HTTP ' + status + ' ' + JSON.stringify(r.body || '').slice(0, 300));\n}\nif (empty) {\n  return [{ json: { sent: false, status, blocked: 'empty body' } }];\n}\nreturn [{ json: { sent: true, status } }];"
+      }
     }
   ],
   "connections": {
@@ -87,6 +101,17 @@
         [
           {
             "node": "Send via Graph",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send via Graph": {
+      "main": [
+        [
+          {
+            "node": "Confirm Sent",
             "type": "main",
             "index": 0
           }

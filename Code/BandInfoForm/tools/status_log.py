@@ -37,7 +37,9 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
-NYQUIST_DEFAULT = Path.home() / "Dropbox" / "Nyquist"
+sys.path.insert(0, str(HERE))
+import fieldspec as fs
+NYQUIST_DEFAULT = fs.nyquist_root()
 DEFAULT_OUT = NYQUIST_DEFAULT / "Show Status Log.xlsx"
 
 NAVY = "1A3A5C"
@@ -52,15 +54,10 @@ MANUAL_TINT = "FFF3CD"  # matches the amber TOUR/hand-filled convention elsewher
 # means now — that word moved to "finalized" instead, same wording the live
 # dashboard uses for the same state, so nothing here says something different
 # from that page ever again.
-STATE_STYLE = {
-    "queued":           ("Not Started",           "E5E7EB", "1F2937"),
-    "awaiting":         ("Drafted",                "FEF3C7", "78350F"),
-    "ready_to_send":    ("Ready to Send",          "C7D2FE", "1E3A5F"),
-    "followup_due":     ("Follow-up Due",          "FFE4B5", "7C2D12"),
-    "followup_drafted": ("Follow-up Sent",         "DBEAFE", "1E3A5F"),
-    "responded":        ("Advancing In Progress",  "E9D8FD", "44337A"),
-    "finalized":        ("Finalized",              "C6EFCE", "14532D"),
-}
+sys.path.insert(0, str(HERE.parent))
+import status_labels as SL
+# one shared label set for every surface (audit #17)
+STATE_STYLE = {k: (v[0], v[2], v[3]) for k, v in SL.STATE.items()}
 
 # (label, width, "live" | "manual")
 COLS = [
@@ -108,17 +105,25 @@ def fetch_rows(cur):
     return cur.fetchall()
 
 
+class UnreadableLog(Exception):
+    pass
+
+
 def read_manual(path):
-    """{show_id: {label: value}} preserved from the existing file, if any."""
+    """{show_id: {label: value}} preserved from the existing file. Raises
+    UnreadableLog when the file exists but can't be read safely (open in
+    Excel, mid-sync, damaged) — the caller must NOT overwrite it then
+    (audit #19)."""
     if not path.exists():
         return {}
+    if any(p.name[2:] and path.name.endswith(p.name[2:]) for p in path.parent.glob("~$*")):
+        raise UnreadableLog("open in Excel")
     try:
         wb = load_workbook(path)
     except Exception as e:
-        print(f"  ! couldn't open existing {path} to preserve manual cells: {e}", file=sys.stderr)
-        return {}
+        raise UnreadableLog(repr(e))
     if "Show Status" not in wb.sheetnames:
-        return {}
+        raise UnreadableLog("no 'Show Status' tab")
     ws = wb["Show Status"]
     label_col = {ws.cell(4, c).value: c for c in range(1, len(COLS) + 1)}
     out = {}
@@ -230,25 +235,10 @@ def build(rows, manual_by_id):
     t2 = lg.cell(1, 1, "Advance Status — what each stage means")
     t2.font = Font(bold=True, size=13, color=NAVY)
     lg.merge_cells("A1:B1")
-    meanings = {
-        "Not Started": "Show is booked but no advance-ask email has been drafted yet.",
-        "Drafted": "The advance-ask has gone out via Outlook (live-send migration, 2026-09-13 — "
-                    "this used to mean a Gmail/Outlook draft awaiting your send; now it means sent). "
-                    "Grandfathered/legacy only — a 21-day ceiling on the send itself (2026-09-13) means "
-                    "this can't newly occur; a show now only ever sends once inside that window.",
-        "Ready to Send": "Sent, more than a week out from the show, no response yet. The NORMAL state a "
-                    "freshly-sent show lands in (welcome only sends within 21 days of the show, "
-                    "2026-09-13) — not legacy, despite the name.",
-        "Follow-up Due": "No response yet and the show is inside its next reminder tier (7/3/1 days out).",
-        "Follow-up Sent": "A follow-up has gone out via Outlook for real (live-send migration, 2026-09-13).",
-        "Advancing In Progress": "The band responded — their submission is in. Waiting on a human to "
-                    "review everything and sign off (Mark Finalized, 2026-09-13).",
-        "Finalized": "A human has reviewed everything and signed off — the advance is fully done "
-                    "(2026-09-13).",
-    }
+    meanings = dict(SL.MEANINGS)
     row_i = 3
     for label, desc in meanings.items():
-        fg, txt = next((s[1], s[2]) for s in STATE_STYLE.values() if s[0] == label)
+        fg, txt = next(((st[1], st[2]) for st in STATE_STYLE.values() if st[0] == label), ("E5E7EB", "374151"))
         c = lg.cell(row_i, 1, label)
         c.fill = PatternFill("solid", fgColor=fg)
         c.font = Font(bold=True, color=txt)
@@ -271,19 +261,69 @@ def build(rows, manual_by_id):
     return wb, last_row - hrow
 
 
+FAIL_STATE = HERE.parent / "data" / "status_log_failures.json"
+BACKUP_KEEP = 30
+
+
+def _failures(update=None):
+    import json
+    try:
+        data = json.loads(FAIL_STATE.read_text())
+    except (OSError, ValueError):
+        data = {"count": 0, "alerted": False}
+    if update is not None:
+        data = update
+        FAIL_STATE.parent.mkdir(parents=True, exist_ok=True)
+        FAIL_STATE.write_text(json.dumps(data))
+    return data
+
+
 def main():
+    import datetime as dt
+    import shutil
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = ap.parse_args()
     args.out.parent.mkdir(parents=True, exist_ok=True)
 
-    manual_by_id = read_manual(args.out)
+    try:
+        manual_by_id = read_manual(args.out)
+    except UnreadableLog as e:
+        # skip, retry next run, alert after 3 in a row (audit #19)
+        st = _failures()
+        st["count"] = st.get("count", 0) + 1
+        print(f"  ! Show Status Log not updated — existing file unreadable ({e}); "
+              f"failure {st['count']} in a row", file=sys.stderr)
+        if st["count"] >= 3 and not st.get("alerted"):
+            try:
+                import mailer
+                ok, _ = mailer.alert(
+                    "Show Status Log hasn't updated in 3 runs",
+                    f"<p>The last {st['count']} pipeline runs couldn't read "
+                    f"<code>{mailer.esc(args.out.name)}</code> ({mailer.esc(str(e))}), so it was left "
+                    "untouched rather than overwritten. Close it in Excel / check for a Dropbox "
+                    "conflicted copy.</p>")
+                st["alerted"] = bool(ok)
+            except Exception as mail_err:  # noqa: BLE001
+                print(f"  ! alert failed: {mail_err!r}", file=sys.stderr)
+        _failures(st)
+        return
 
     with db.get_conn() as conn, conn.cursor() as cur:
         rows = fetch_rows(cur)
 
+    if args.out.exists():
+        bdir = args.out.parent / "_status_log_backups"
+        bdir.mkdir(exist_ok=True)
+        shutil.copy2(args.out, bdir / f"Show Status Log {dt.datetime.now().strftime('%Y%m%d-%H%M%S')}.xlsx")
+        for old in sorted(bdir.glob("Show Status Log *.xlsx"))[:-BACKUP_KEEP]:
+            old.unlink(missing_ok=True)
+
     wb, n_shows = build(rows, manual_by_id)
-    wb.save(args.out)
+    tmp = args.out.parent / f".~tmp-{args.out.name}"
+    wb.save(tmp)
+    tmp.replace(args.out)
+    _failures({"count": 0, "alerted": False})
     print(f"Show Status Log: {n_shows} show(s) -> {args.out} "
           f"({len(manual_by_id)} row(s) had manual cells preserved)")
 

@@ -11,6 +11,13 @@
     <div style="color:#a9c0d8;font-size:13px;margin-top:4px;">{{ today }}</div>
   </td></tr>
 
+  {% if missed_yesterday %}
+  <tr><td style="padding:14px 28px 0;">
+    <div style="background:#FEE2E2;border:1px solid #FCA5A5;color:#7F1D1D;border-radius:8px;padding:10px 12px;font-size:13px;">
+      <b>Yesterday's 9am advance check did not run.</b> Welcomes/reminders due yesterday went out late or not at all — check n8n.
+    </div>
+  </td></tr>
+  {% endif %}
   <!-- Section 1: Today's Shows -->
   <tr><td style="padding:24px 28px 8px;">
     <div style="font-size:15px;font-weight:700;color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:6px;">

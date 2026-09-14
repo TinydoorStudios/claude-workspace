@@ -129,7 +129,15 @@ def form_fields(sub):
         "performers": (str(sub["performers"]) if sub.get("performers") is not None
                        else d.get("performers")),
         "large_vehicle": _yn(sub.get("large_vehicle")) or d.get("large_vehicle"),
+        # audit #7: the count questions that replaced large_vehicle never
+        # reached the doc — Parking was blank on every new submission.
+        "vehicle_count": (str(sub["vehicle_count"]) if sub.get("vehicle_count") is not None
+                          else d.get("vehicle_count")),
+        "large_vehicle_count": (str(sub["large_vehicle_count"]) if sub.get("large_vehicle_count") is not None
+                                else d.get("large_vehicle_count")),
         "stage_plot_file": d.get("stage_plot_file"),
+        "stage_escort_name": d.get("stage_escort_name"),
+        "stage_escort_cell": d.get("stage_escort_cell"),
     }
     return {k: v for k, v in out.items() if v not in (None, "")}
 
@@ -195,40 +203,28 @@ def act_row_values(f):
 
     if f.get("merch"):
         out["merch"] = f["merch"]
-    vc, lvc, lv = f.get("vehicle_count"), f.get("large_vehicle_count"), f.get("large_vehicle")
-    if vc not in (None, "") or lvc not in (None, "") or lv:
-        # Vehicle count (Brian, 2026-09-13) tells him how many parking garage
-        # validations to prep per band. Its own follow-up started as a plain
-        # large-vehicle Yes/No, then became a count the same day — a bill's
-        # vehicles aren't all-or-nothing (e.g. 1 large + 1 standard), which a
-        # Yes/No can't represent. large_vehicle_count (preferred whenever
-        # present) splits the total into large vs. standard; large_vehicle
-        # (the old boolean) is the fallback for submissions from before that
-        # change; a bare vehicle_count with no breakdown at all falls back
-        # further still to just the total.
-        def plural(n, word):
-            return f"{n} {word}" if n == 1 else f"{n} {word}s"
+    def _int(v):
+        try:
+            return int(str(v).strip())
+        except (TypeError, ValueError):
+            return None
 
-        if lvc not in (None, ""):
-            large_n = int(lvc)
-            standard_n = int(vc) - large_n if vc not in (None, "") else None
-            large_txt = plural(large_n, "large vehicle")
-            # "standard" alone reads fine for one ("1 standard"); pluralized
-            # it needs "vehicles" spelled out ("3 standard vehicles") —
-            # "3 standards" reads like a grading rubric, not a parking count.
-            standard_txt = "1 standard" if standard_n == 1 else f"{standard_n} standard vehicles"
-            if large_n and standard_n:
-                out["parking"] = f"{large_txt} and {standard_txt}"
-            elif large_n:
-                out["parking"] = large_txt
-            elif vc not in (None, ""):
-                out["parking"] = plural(int(vc), "vehicle")
-            else:
-                out["parking"] = "Standard"
-        elif lv:
-            out["parking"] = "Large vehicle" if str(lv).lower() == "yes" else "Standard"
-        elif vc not in (None, ""):
-            out["parking"] = plural(int(vc), "vehicle")
+    vc, lvc, lv = _int(f.get("vehicle_count")), _int(f.get("large_vehicle_count")), f.get("large_vehicle")
+    # Parking (audit #7): "3 vehicles: 1 large, 2 standard". Counts win; the
+    # old Yes/No large_vehicle is only the fallback for older submissions.
+    # A non-numeric value never crashes the fill — it's just skipped.
+    if vc is not None:
+        noun = "vehicle" if vc == 1 else "vehicles"
+        if lvc is not None and 0 < lvc <= vc:
+            out["parking"] = f"{vc} {noun}: {lvc} large, {vc - lvc} standard"
+        elif lvc == 0:
+            out["parking"] = f"{vc} {noun}: all standard"
+        else:
+            out["parking"] = f"{vc} {noun}"
+    elif lvc is not None:
+        out["parking"] = f"{lvc} large vehicle{'s' if lvc != 1 else ''}"
+    elif lv:
+        out["parking"] = "Large vehicle" if str(lv).lower() == "yes" else "Standard"
     if f.get("performers") not in (None, ""):
         out["number of performers"] = str(f["performers"])
         # Drink Tix = 2x band/crew headcount (Brian, 2026-09-13) — computed,
@@ -242,10 +238,21 @@ def act_row_values(f):
         out["dressing room tent"] = "Yes" if str(f["band_tent"]).lower().startswith("yes") else "No"
     if f.get("backline"):
         out["backline"] = f["backline"]
-    if f.get("contact_name"):
-        out["band contact — name"] = f["contact_name"]
-    if f.get("contact_phone"):
-        out["band contact — cell"] = f["contact_phone"]
+    # Salsa stage-escort rep (audit #15) goes under the main contact.
+    esc_name, esc_cell = (f.get("stage_escort_name") or "").strip(), (f.get("stage_escort_cell") or "").strip()
+    name, cell = (f.get("contact_name") or "").strip(), (f.get("contact_phone") or "").strip()
+    if esc_name and name and norm(esc_name) == norm(name):
+        name = f"{name} (stage escort)"
+    elif esc_name:
+        name = f"{name}\nStage escort: {esc_name}" if name else f"Stage escort: {esc_name}"
+    if esc_cell and cell and esc_cell != cell:
+        cell = f"{cell}\nEscort: {esc_cell}"
+    elif esc_cell and not cell:
+        cell = f"Escort: {esc_cell}"
+    if name:
+        out["band contact — name"] = name
+    if cell:
+        out["band contact — cell"] = cell
     return out
 
 
@@ -414,6 +421,7 @@ def set_cell(cell, text):
         extra._element.getparent().remove(extra._element)
     for r in list(p.runs):
         r.text = ""
+    # a "\n" in text becomes a Word line break inside the one paragraph
     (p.runs[0] if p.runs else p.add_run("")).text = text
 
 
@@ -567,7 +575,13 @@ def fill_event_type(grid, event, n=1):
     band count, not just the first n (fixed 2026-09-08 — cells 2/3 used to
     stay pristine-blank forever on a multi-band bill; fixed again 2026-09-11
     when a 1-band bill's act moved to column 3, not column 1)."""
-    det = event.get("details") or {}
+    det = dict(event.get("details") or {})
+    # audit #16: the booking's Series pick decides it — "3rd Party" is a
+    # Third Party Event, every named series (and "Stand-Alone Internal") is
+    # Internal. Only a show with no series at all falls back to a typed type.
+    series = (event.get("series") or "").strip()
+    if series:
+        det["event_type"] = "Third Party" if series.lower() == "3rd party" else "Internal"
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "event type":
             for ci in _active_cols(n):
@@ -766,6 +780,15 @@ def fill_lead(doc, event):
         set_cell(t.rows[1].cells[1], det["lead_phone"])
 
 
+def _series_without_riser(series):
+    try:
+        sys.path.insert(0, str(HERE.parent))
+        import forms_config
+        return bool(series) and forms_config.SERIES.get(series, {}).get("drum_riser") is False
+    except Exception:
+        return False
+
+
 def act_columns(grid, n_acts):
     """Row -> its N value cells, keyed by normalized label. Cells inside a
     colSpan report once per spanned grid column in python-docx, so a
@@ -782,7 +805,23 @@ def act_columns(grid, n_acts):
 
 
 def fill(event_id, template=None, out_path=None, stageplot_names=None):
-    """stageplot_names: {artist name -> filed stage-plot filename}. When an act's
+    """Build and SAVE a fresh day-sheet to out_path (CLI / tools/filled only).
+    The live filing path never calls this — it goes through
+    docmerge.file_event_doc, which never overwrites a filed doc."""
+    doc, event, acts, n = build(event_id, template=template, stageplot_names=stageplot_names)
+    if out_path is None:
+        tag = re.sub(r"[^A-Za-z0-9]+", "_", event.get("name") or f"event{event_id}").strip("_")
+        date = event.get("event_date")
+        out_path = FILLED / f"{tag}__{date or 'nodate'}__daysheet.docx"
+    doc.save(out_path)
+    print(f"Filled day-sheet ({n}-band template): {out_path}")
+    return out_path
+
+
+def build(event_id, template=None, stageplot_names=None):
+    """(Document, event, acts, n) — the day-sheet as the pipeline would write it
+    fresh from the template, in memory, never saved here.
+    stageplot_names: {artist name -> filed stage-plot filename}. When an act's
     plot was downloaded and filed next to this doc, its Stage Plot cell reads
     'See DB — <filename>' instead of the inline description."""
     stageplot_names = stageplot_names or {}
@@ -792,6 +831,11 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
             print(f"No event {event_id}", file=sys.stderr); sys.exit(1)
         acts = db.event_acts(cur, event_id)
         declared_n = db.band_count_for_event(cur, event.get("venue"), event.get("event_date"))
+        # a cancelled band's info never goes into the doc (audit #4)
+        cur.execute("SELECT artist_id FROM shows WHERE venue=%s AND show_date=%s AND cancelled_at IS NOT NULL",
+                    (event.get("venue"), event.get("event_date")))
+        cancelled = {r["artist_id"] for r in cur.fetchall()}
+        acts = [a for a in acts if a.get("artist_id") not in cancelled]
 
     # a declared "bands on the bill" (Brian, 2026-09-08 — set per booking, so
     # it's known even before every act has its own event_acts row yet) wins
@@ -858,8 +902,11 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
 
     rows_by_label = act_columns(grid, n)
     filled_acts = 0
+    no_riser_series = _series_without_riser(event.get("series"))
     for a in acts:
         mf = merged_fields(a)
+        if no_riser_series and not mf.get("stage_type"):
+            mf["stage_type"] = "Flat stage"  # audit #15: no risers for this series
         if a.get("set_time"):
             mf_set_length = a["set_time"]
         else:
@@ -890,24 +937,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
             else:
                 set_cell(row.cells[ci], text)
 
-    if out_path is None:
-        tag = re.sub(r"[^A-Za-z0-9]+", "_", event.get("name") or f"event{event_id}").strip("_")
-        date = event.get("event_date")
-        out_path = FILLED / f"{tag}__{date or 'nodate'}__daysheet.docx"
-    doc.save(out_path)
-    print(f"Filled day-sheet ({n}-band template): {out_path}")
-    print(f"  {event.get('name')} @ {event.get('venue')} {event.get('event_date')} "
-          f"— {filled_acts}/{len(acts)} act(s) filled")
-    for a in acts:
-        who = a["artist"]["name"] if a.get("artist") else "(none)"
-        src = []
-        if a.get("submission"):
-            src.append("form")
-        if a.get("sheet_fields"):
-            src.append("sheet")
-        tag = ("+".join(src)) if src else "no data"
-        print(f"    {a['slot']:16} {who}  [{tag}]  {a.get('set_time') or ''}")
-    return out_path
+    return doc, event, acts, n
 
 
 # ── reading a PAST advance back out (for the returning-artist recap email) ──
@@ -919,7 +949,7 @@ def fill(event_id, template=None, out_path=None, stageplot_names=None):
 # included, so this reads the real file back rather than reconstructing from
 # the DB. Brian's explicit call (2026-09-07) over the DB-reconstruction option.
 
-NYQUIST_DEFAULT = Path.home() / "Dropbox" / "Nyquist"  # same default run_now.py uses
+NYQUIST_DEFAULT = fs.nyquist_root()  # same default run_now.py uses
 # 2026-09-12: filed advance docs live in the REAL Dropbox venue folders now,
 # not Nyquist — see fieldspec.real_venue_folder()/real_month_folder().
 
@@ -941,12 +971,31 @@ def _candidate_docs(venue, event_date, root=None):
     Adv.docx, in the real Dropbox tree) — globbed by date stamp since a past
     event's real name isn't reliably in the DB any more (events/event_acts is
     a working model, not an archive)."""
+    # Registry first (2026-09-13 audit #2): the doc(s) the pipeline actually
+    # filed for this venue+date, newest write first — never filename sort
+    # order. Only when nothing is registered (a show filed before the
+    # registry existed) fall back to the date-stamp glob, newest-modified first.
+    if root is None:
+        try:
+            with db.get_conn() as conn, conn.cursor() as cur:
+                rows = db.filed_docs_for(cur, venue, event_date)
+            hits = []
+            for r in rows:
+                p = Path(r["path"])
+                p = p if p.is_absolute() else fs.real_dropbox_root() / p
+                if p.exists():
+                    hits.append(p)
+            if hits:
+                return hits
+        except Exception as e:  # noqa: BLE001 — fall back to the folder scan
+            print(f"[daysheet] filed_docs lookup failed: {e!r}", file=sys.stderr)
     root = Path(root) if root else fs.real_dropbox_root()
     folder = root / fs.real_venue_folder(venue) / fs.real_month_folder(venue, event_date)
     if not folder.exists():
         return []
     stamp = event_date.strftime("%m%d%y")
-    return sorted(folder.glob(f"{stamp} * Prod Adv.docx"))
+    return sorted(folder.glob(f"{stamp} * Prod Adv.docx"),
+                  key=lambda p: p.stat().st_mtime, reverse=True)
 
 
 def _act_count_and_column(grid, target_norm, require_name_match):

@@ -67,6 +67,12 @@
   .pill.followup{background:rgba(210,153,34,.18);color:#d29922;}
   .pill.responded{background:rgba(163,113,247,.16);color:#a371f7;}
   .pill.finalized{background:rgba(63,185,80,.16);color:#3fb950;}
+  .pill.held{background:rgba(251,191,36,.16);color:#fbbf24;}
+  .pill.cancelled{background:rgba(248,81,73,.12);color:#f85149;}
+  .act.cancelled .band{color:#6e7681;text-decoration:line-through;}
+  .cancel-btn{flex-shrink:0;background:transparent;color:#6e7681;border:1px solid #2a323d;border-radius:999px;
+    padding:2px 9px;font-size:10.5px;cursor:pointer;white-space:nowrap;}
+  .cancel-btn:hover{color:#f85149;border-color:#f85149;}
 
   .finalize-btn{flex-shrink:0;background:#1A3A5C;color:#fff;border:0;border-radius:999px;
     padding:3px 11px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
@@ -98,6 +104,8 @@
   <span><i style="background:#d29922"></i> Follow-up Sent</span>
   <span><i style="background:#4da3ff"></i> Sent — Awaiting Reply</span>
   <span><i style="background:#8b97a6"></i> Queued</span>
+  <span><i style="background:#fbbf24"></i> On Hold</span>
+  <span><i style="background:#f85149;opacity:.6"></i> Cancelled</span>
 </div>
 
 <div class="chips" id="chips"></div>
@@ -172,11 +180,15 @@ function render(bills){
         const finalizeBtn = a.state === "responded"
           ? `<button class="finalize-btn" onclick="finalizeShow(${a.artist_id}, ${a.show_id}, this)">Mark Finalized</button>`
           : "";
-        return `<div class="act"><span class="band">${a.band}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}</div></div>`;
+        const holdLink = a.state === "held"
+          ? `<a class="finalize-btn" style="text-decoration:none" href="/show/${a.show_id}/hold">Decide</a>` : "";
+        const cancelBtn = a.state === "cancelled" ? ""
+          : `<button class="cancel-btn" onclick="cancelShow(${a.show_id}, this)">Cancel</button>`;
+        return `<div class="act ${a.state === 'cancelled' ? 'cancelled' : ''}"><span class="band">${esc(a.band)}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}${holdLink}${cancelBtn}</div></div>`;
       }).join("");
       card.innerHTML = `
         <div class="bill-head">
-          <div><div class="venue">${b.venue}</div>${b.series ? `<div class="series">${b.series}</div>` : ""}</div>
+          <div><div class="venue">${esc(b.venue)}</div>${b.series ? `<div class="series">${esc(b.series)}</div>` : ""}</div>
           <div class="days-badge">${b.days_until === 0 ? "today" : b.days_until + "d"}</div>
         </div>
         <div class="acts">${actsHtml}</div>`;
@@ -185,6 +197,21 @@ function render(bills){
     day.appendChild(grid);
     main.appendChild(day);
   });
+}
+
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+async function cancelShow(showId, btn){
+  if (!confirm("Cancel this show? Nothing more will be emailed for it. It stays on record as Cancelled.")) return;
+  btn.disabled = true;
+  try{
+    const res = await fetch(`/show/${showId}/cancel`, {method: "POST"});
+    if (!res.ok) throw new Error(res.status);
+    await refresh();
+  }catch(e){
+    btn.disabled = false;
+    alert("Couldn't cancel — try again.");
+  }
 }
 
 async function finalizeShow(artistId, showId, btn){

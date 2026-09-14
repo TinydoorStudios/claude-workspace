@@ -1,0 +1,9 @@
+[Unit]
+Description=Check at 10:15 that the 9am Advance Lifecycle Check ran
+
+[Timer]
+OnCalendar=*-*-* 10:15:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target

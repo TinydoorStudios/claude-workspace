@@ -46,6 +46,7 @@ fi
     cd /opt/n8n
     sudo docker compose exec -T n8n n8n export:credentials --all --output=/tmp/creds_all.json >/dev/null 2>&1
     sudo docker compose exec -T n8n cat /tmp/creds_all.json
+    sudo docker compose exec -T n8n rm -f /tmp/creds_all.json
   ' | python3 -c "
 import json, sys
 try:
@@ -68,6 +69,8 @@ for c in creds:
   for f in "${FILES[@]}"; do
     name="$(basename "$f")"
     wfid="$(python3 -c "import json; print(json.load(open('$f'))['id'])")"
+    # a workflow committed with "active": false is unpublished, not published
+    PUBCMD="$(python3 -c "import json; print('unpublish:workflow' if json.load(open('$f')).get('active', True) is False else 'publish:workflow')")"
     IDS+=("$wfid")
     echo "  $name -> id=$wfid"
     tmp="/tmp/n8n_deploy_$name"
@@ -80,7 +83,9 @@ for c in creds:
       cd /opt/n8n
       sudo docker compose cp $tmp n8n:$tmp
       sudo docker compose exec -T n8n n8n import:workflow --input=$tmp
-      sudo docker compose exec -T n8n n8n publish:workflow --id=$wfid
+      sudo docker compose exec -T n8n n8n $PUBCMD --id=$wfid
+      sudo docker compose exec -T n8n rm -f $tmp
+      rm -f $tmp
     " || echo "  import/publish FAILED for $name"
   done
 

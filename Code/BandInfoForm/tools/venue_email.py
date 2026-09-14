@@ -169,7 +169,8 @@ Hospitalidad y sitio:
 # own README.md for the exact file format (## Location / Load-In / Technical
 # / Hospitality / Requirements sections, only fill in what you want to
 # override). One subfolder per venue, one .md file per series within it.
-SERIES_EMAIL_ROOT = Path.home() / "Dropbox" / "Nyquist" / "Series Email Templates"
+import os as _os
+SERIES_EMAIL_ROOT = Path(_os.environ.get("ADVANCE_DROPBOX_ROOT") or (Path.home() / "Dropbox")) / "Nyquist" / "Series Email Templates"
 
 
 def venue_attachment(venue, root=None):
@@ -455,6 +456,27 @@ SUMMARY_LABELS_ES = {
     "Band tent": "Carpa de la banda", "Large vehicle": "Vehículo grande",
     "Backline": "Backline",
 }
+
+
+# "Text or call your day-of contact when you're about 5 minutes out, and
+# introduce yourself..." only makes sense when the email names a day-of
+# contact (audit #15). Without one, drop the texting clause and keep the
+# introduce-yourself instruction.
+_TEXT_ON_ARRIVAL = {
+    "en": re.compile(r"Text or call your day-of contact when you're about 5 minutes out,\s*and\s*", re.I),
+    "es": re.compile(r"Llamen o envíen un mensaje de texto a su contacto del día del evento cuando "
+                     r"estén a unos 5 minutos de llegar,\s*y\s*", re.I),
+}
+
+
+def without_text_on_arrival(blocks, lang="en"):
+    pat = _TEXT_ON_ARRIVAL["es" if lang == "es" else "en"]
+    cap = re.compile(pat.pattern + r"(\w)", pat.flags)
+    out = dict(blocks)
+    for k, v in out.items():
+        if isinstance(v, str) and pat.search(v):
+            out[k] = cap.sub(lambda m: m.group(1).upper(), v)
+    return out
 
 
 class _SafeDict(dict):

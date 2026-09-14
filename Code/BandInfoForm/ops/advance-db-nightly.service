@@ -1,0 +1,10 @@
+[Unit]
+Description=Band Advance — nightly database dump to both TrueNAS boxes
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/band-advance/ops/advance_db_nightly.sh
+TimeoutStartSec=900
+Nice=10

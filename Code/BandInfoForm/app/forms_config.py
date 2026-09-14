@@ -90,6 +90,7 @@ SERIES = {
             "lighting": True,
             "scenic": True,
             "backline": True,
+            "stage_escort": False,
         },
     },
     # Salsa On The Square (Brian, 2026-09-12): a house band situation, not a
@@ -106,7 +107,12 @@ SERIES = {
         "blocks": {
             "backline": False,
             "scenic": False,
+            # audit #15: named stage-escort rep, identified to on-site staff
+            "stage_escort": True,
         },
+        # audit #15: no drum risers for this series — never ask flat/riser;
+        # the advance doc's Stage Type defaults to Flat.
+        "drum_riser": False,
     },
     # Example of a leaner variant — a small acoustic series that skips riser/parking:
     # "acoustic": {
@@ -159,6 +165,9 @@ def get_config(series_key=None, venue=None, location=None, slot=None, lang="en")
         cfg["blocks"]["lighting"] = loc["lighting"]
         cfg["blocks"]["band_tent"] = loc["band_tent"]
         cfg["drum_riser_available"] = loc["drum_riser"]
+
+    if series_key and SERIES.get(series_key, {}).get("drum_riser") is False:
+        cfg["drum_riser_available"] = False
 
     # Fountain Square: only the headliner is asked about a drum riser — an
     # opener or direct-support act has no riser call of its own, so hide the

@@ -34,7 +34,7 @@
         300
       ],
       "parameters": {
-        "url": "http://192.168.200.84:8097/internal/advance-lifecycle",
+        "url": "=http://192.168.200.84:8097/internal/advance-lifecycle?source={{ $json.source || 'on-demand' }}",
         "method": "POST",
         "sendHeaders": true,
         "headerParameters": {
@@ -59,7 +59,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const body = $('Fetch Due').first().json;\nconst initial = body.initial || [];\nconst followup = body.followup || [];\nconst total = initial.length + followup.length;\nif (!total) return [];\nconst line = (x) => `<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;font:13px -apple-system,sans-serif\">${x.artist_name}</td><td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">${x.venue}${x.show_date ? ' \u2014 ' + x.show_date : ''}</td></tr>`;\nlet html = '<div style=\"font-family:-apple-system,sans-serif\">';\nif (initial.length) {\n  html += `<p><b>${initial.length} welcome email${initial.length===1?'':'s'} sent</b></p><table>${initial.map(line).join('')}</table>`;\n}\nif (followup.length) {\n  html += `<p style=\"margin-top:14px\"><b>${followup.length} follow-up${followup.length===1?'':'s'} sent</b></p><table>${followup.map(line).join('')}</table>`;\n}\nhtml += '<p style=\"margin-top:14px\">Sent via Outlook \u2014 nothing to review, this is just a summary.</p></div>';\nconst parts = [];\nif (initial.length) parts.push(`${initial.length} welcome`);\nif (followup.length) parts.push(`${followup.length} follow-up`);\nconst subject = `Advance update \u2014 ${parts.join(', ')}`;\nreturn [{ json: { subject, html } }];"
+        "jsCode": "const body = $('Fetch Due').first().json;\nconst initial = body.initial || [];\nconst followup = body.followup || [];\nconst total = initial.length + followup.length;\nif (!total) return [];\nconst line = (x) => `<tr><td style=\"padding:4px 10px 4px 0;color:#6b7280;font:13px -apple-system,sans-serif\">${x.artist_name}</td><td style=\"padding:4px 0;font:13px -apple-system,sans-serif\">${x.venue}${x.show_date ? ' — ' + x.show_date : ''}</td></tr>`;\nlet html = '<div style=\"font-family:-apple-system,sans-serif\">';\nif (initial.length) {\n  html += `<p><b>${initial.length} welcome email${initial.length===1?'':'s'} sent</b></p><table>${initial.map(line).join('')}</table>`;\n}\nif (followup.length) {\n  html += `<p style=\"margin-top:14px\"><b>${followup.length} follow-up${followup.length===1?'':'s'} sent</b></p><table>${followup.map(line).join('')}</table>`;\n}\nhtml += '<p style=\"margin-top:14px\">Sent via Outlook — nothing to review, this is just a summary.</p></div>';\nconst parts = [];\nif (initial.length) parts.push(`${initial.length} welcome`);\nif (followup.length) parts.push(`${followup.length} follow-up`);\nconst subject = `Advance update — ${parts.join(', ')}`;\nreturn [{ json: { subject, html } }];"
       }
     },
     {
@@ -119,6 +119,20 @@
         "mode": "runOnceForAllItems",
         "jsCode": "const EXPECTED_TOKEN = 'REPLACE_WITH_ADVANCE_INTERNAL_TOKEN';\nconst headers = $input.first().json.headers || {};\nconst token = headers['x-advance-token'];\nif (token !== EXPECTED_TOKEN) {\n  return [];\n}\nreturn [{ json: {} }];"
       }
+    },
+    {
+      "id": "code-cron",
+      "name": "Mark Cron",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        310,
+        180
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// audit #21: the app records scheduled runs so a missed 9am check gets noticed\nreturn [{ json: { source: 'cron' } }];"
+      }
     }
   ],
   "connections": {
@@ -126,7 +140,7 @@
       "main": [
         [
           {
-            "node": "Fetch Due",
+            "node": "Mark Cron",
             "type": "main",
             "index": 0
           }
@@ -167,6 +181,17 @@
       ]
     },
     "Check Token": {
+      "main": [
+        [
+          {
+            "node": "Fetch Due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Cron": {
       "main": [
         [
           {

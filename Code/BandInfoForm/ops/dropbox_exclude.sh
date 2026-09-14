@@ -17,6 +17,7 @@
 # `exclude add` + local rm does not touch the cloud copy or the Mac's copy —
 # verified after the fact). Brought the VM back to 74% / 10G free.
 #
+# Only changes selective-sync settings — it never deletes files (2026-09-13).
 # Safe to re-run any time (e.g. a new top-level Dropbox item shows up): it
 # reconciles the CURRENT exclude list against KEEP, excluding what should be
 # excluded and un-excluding what should be kept, rather than assuming either
@@ -92,13 +93,11 @@ for s in "${EXCLUDE_SUBPATHS[@]}"; do
   SUBPATH_ABS+=("$HOME/Dropbox/$s")
 done
 python3 ~/dropbox.py exclude add "${SUBPATH_ABS[@]}"
-# `exclude add` alone doesn't reclaim space on its own timeline — nudge it by
-# deleting the now-excluded local copy directly (safe: excluded means the
-# client no longer considers a local copy authoritative; this does not
-# propagate as a delete to the cloud or other devices — verified 2026-09-12).
-for p in "${SUBPATH_ABS[@]}"; do
-  [ -e "$p" ] && rm -rf "$p"
-done
+# NO local delete here, ever (2026-09-13 audit #10). The old version ran
+# `rm -rf` on these folders right after `exclude add` without checking the
+# exclude took — if the Dropbox daemon was down or the exclude silently
+# failed, that rm would sync as a DELETE of shared team archives to everyone.
+# Dropbox reclaims the local space for excluded folders on its own.
 
 echo "--- current exclude list ---"
 python3 ~/dropbox.py exclude list

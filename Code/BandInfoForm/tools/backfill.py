@@ -20,15 +20,31 @@ for _cand in (HERE.parent, HERE.parent / "app"):  # deployed flat, or repo layou
 import advance_db as db
 
 # where the deployed app keeps disk records; override with arg 1
-DATA = Path(sys.argv[1]) if len(sys.argv) > 1 else (APP / "data")
+DATA = APP / "data"
+
+
+def _already_loaded(cur, rec):
+    cur.execute("""SELECT 1 FROM submissions sub JOIN artists a ON a.id = sub.artist_id
+                   WHERE sub.data->>'_submitted_at' = %s
+                     AND (a.match_key = %s OR sub.data->>'band_name' = %s) LIMIT 1""",
+                (rec.get("_submitted_at"), db.normalize(rec.get("band_name")), rec.get("band_name")))
+    return cur.fetchone() is not None
 
 
 def main():
-    files = sorted(DATA.glob("*.json"))
+    """Dry run by default (audit #22): lists what WOULD load. --apply loads
+    only files not already in the database (matched on submit timestamp +
+    band), so re-running never duplicates. Sends nothing."""
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("data_dir", nargs="?", default=str(DATA))
+    ap.add_argument("--apply", action="store_true")
+    args = ap.parse_args()
+    files = sorted(Path(args.data_dir).glob("*.json"))
     if not files:
-        print(f"No submission JSON found in {DATA}")
+        print(f"No submission JSON found in {args.data_dir}")
         return
-    loaded = skipped = failed = 0
+    loaded = skipped = present = failed = 0
     for f in files:
         try:
             rec = json.loads(f.read_text())
@@ -39,18 +55,30 @@ def main():
         if not rec.get("band_name"):
             skipped += 1
             continue
+        with db.get_conn() as conn, conn.cursor() as cur:
+            if _already_loaded(cur, rec):
+                present += 1
+                continue
+        if not args.apply:
+            print(f"  would load {f.name}")
+            loaded += 1
+            continue
         file_info = None
         if rec.get("stage_plot_file"):
             file_info = {"filename": rec["stage_plot_file"],
                          "stored_name": rec["stage_plot_file"]}
         try:
-            a, s, sub = db.record_submission(rec, file_info=file_info, source="backfill")
-            print(f"  loaded {f.name} -> artist {a}, show {s}, submission {sub}")
+            res = db.record_submission(rec, file_info=file_info, source="backfill",
+                                       resolve_booking=False, carry_plot=False)
+            print(f"  loaded {f.name} -> artist {res['artist_id']}, show {res['show_id']}, "
+                  f"submission {res['submission_id']}")
             loaded += 1
         except Exception as e:
             print(f"  FAIL {f.name}: {e}")
             failed += 1
-    print(f"\nBackfill done: {loaded} loaded, {skipped} skipped (no band), {failed} failed.")
+    verb = "loaded" if args.apply else "would load"
+    print(f"\nBackfill {'done' if args.apply else 'DRY RUN'}: {loaded} {verb}, {present} already in DB, "
+          f"{skipped} skipped (no band), {failed} failed.")
 
 
 if __name__ == "__main__":

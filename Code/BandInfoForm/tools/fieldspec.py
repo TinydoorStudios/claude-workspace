@@ -12,6 +12,7 @@ band fields — the day-sheet row it maps to.
 Merge rule (Brian's directive): the SPREADSHEET value wins when present; the FORM
 submission fills anything the spreadsheet left blank.
 """
+import os
 from pathlib import Path
 
 VENUES = [
@@ -44,7 +45,9 @@ SLOTS = ["opener", "direct_support", "headliner"]
 # Email Drafts/ — see VENUE_ABBR + month_folder() below, unchanged from before
 # this migration. real_venue_folder()/real_month_folder() are the new ones;
 # venue_abbr()/month_folder() are legacy-but-still-live, Nyquist-drafts-only.
-REAL_DROPBOX_ROOT = Path.home() / "Dropbox"
+# ADVANCE_DROPBOX_ROOT overrides the root for staging/tests (2026-09-13 audit)
+# so a test run can never write into the real shared venue folders.
+REAL_DROPBOX_ROOT = Path(os.environ.get("ADVANCE_DROPBOX_ROOT") or (Path.home() / "Dropbox"))
 
 VENUE_REAL_FOLDER = {
     "Fountain Square": "3CDC Fountain Square", "Washington Park": "3CDC Washington Park",
@@ -75,6 +78,12 @@ EMAIL_DRAFTS_DIR = "Email Drafts"
 
 def real_dropbox_root():
     return REAL_DROPBOX_ROOT
+
+
+def nyquist_root():
+    """The Nyquist cockpit (advance-list.xlsx, Series Email Templates, Show
+    Status Log) — always under the same Dropbox root as the venue folders."""
+    return REAL_DROPBOX_ROOT / "Nyquist"
 
 
 def real_venue_folder(v):

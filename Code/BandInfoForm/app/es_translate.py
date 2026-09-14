@@ -89,12 +89,24 @@ def _post_json(url, headers, body_bytes, timeout):
     response body (str) on a 2xx, raises RuntimeError otherwise (curl
     process failure, or an HTTP error status with the response body
     included in the message for logging)."""
+    import tempfile
+    # Headers (including the API key) go through a private temp file, never
+    # the command line, so the key isn't visible in the process list.
+    with tempfile.NamedTemporaryFile("w", prefix="es-hdr-", delete=False) as hf:
+        os.chmod(hf.name, 0o600)
+        for k, v in headers.items():
+            hf.write(f"{k}: {v}\n")
+        hdr_path = hf.name
     cmd = ["curl", "-sS", "--max-time", str(int(timeout)), "-X", "POST", url,
-           "-w", _STATUS_MARKER + "%{http_code}"]
-    for k, v in headers.items():
-        cmd += ["-H", f"{k}: {v}"]
-    cmd += ["--data-binary", "@-"]
-    proc = subprocess.run(cmd, input=body_bytes, capture_output=True, timeout=timeout + 10)
+           "-w", _STATUS_MARKER + "%{http_code}", "-H", f"@{hdr_path}",
+           "--data-binary", "@-"]
+    try:
+        proc = subprocess.run(cmd, input=body_bytes, capture_output=True, timeout=timeout + 10)
+    finally:
+        try:
+            os.unlink(hdr_path)
+        except OSError:
+            pass
     if proc.returncode != 0:
         raise RuntimeError(f"curl exit {proc.returncode}: "
                             f"{proc.stderr.decode('utf-8', 'replace')[:300]}")

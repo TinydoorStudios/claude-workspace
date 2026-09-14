@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Show on hold — {{ s.artist_name }}</title>
+<style>
+  :root{color-scheme:dark;}
+  body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;}
+  header{background:#1A3A5C;color:#fff;padding:20px 0;}
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px 60px;}
+  header .wrap{padding-bottom:0;}
+  h1{margin:0;font-size:20px;} header p{margin:6px 0 0;font-size:13px;color:#c7d6e6;}
+  .card{background:#161b22;border:1px solid #2a323d;border-radius:10px;padding:16px 18px;margin:18px 0;}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#4da3ff;margin:0 0 10px;}
+  .muted{color:#8b97a6;font-size:13px;}
+  button{border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;font-size:14px;}
+  .primary{background:#1A3A5C;color:#fff;} .danger{background:#5a1d1d;color:#fff;} .plain{background:#2a323d;color:#e6edf3;}
+  form{display:inline;} .row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #2a323d;}
+  a{color:#4da3ff;}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a href="{{ url_for('artist_detail', artist_id=s.artist_id) }}" style="color:#c7d6e6;font-size:13px;text-decoration:none">← {{ s.artist_name }}</a>
+  <h1>{{ s.artist_name }} — {{ s.venue }} {{ s.show_date.strftime('%m/%d/%Y') if s.show_date else '' }}</h1>
+  <p>Status: {{ state_labels.get(state, (state, ''))[0] }}{% if s.hold_reason %} · {{ s.hold_reason }}{% endif %}{% if s.advance_draft_created_at %} · welcome already sent {{ s.advance_draft_created_at.strftime('%m/%d') }}{% endif %}</p>
+</div></header>
+<div class="wrap">
+  {% if state == 'held' %}
+  <div class="card">
+    <h2>Was this a typo fix?</h2>
+    {% if cands %}
+    <p class="muted">Merge moves this show's send history, reminders, submissions and sign-off onto the corrected show — the band won't get a second welcome. This held record is then removed.</p>
+    {% for c in cands %}
+    <div class="row">
+      <div>{{ c.artist_name }} — {{ c.venue }} {{ c.show_date.strftime('%m/%d/%Y') if c.show_date else '' }}
+        <div class="muted">{% if c.held_at %}on hold ({{ c.hold_reason }}){% elif c.advance_draft_created_at %}welcome sent{% else %}no welcome yet{% endif %}</div></div>
+      <form method="post" action="{{ url_for('show_merge', show_id=s.id, target_id=c.id) }}"
+            onsubmit="return confirm('Merge {{ s.artist_name|e }} {{ s.show_date }} into {{ c.artist_name|e }} {{ c.show_date }}?');">
+        <button class="primary" type="submit">Typo for this → merge</button>
+      </form>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="muted">No likely corrected version found.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Or</h2>
+    <div class="row">
+      <div>Cancel — the show didn't happen / was removed. Kept on record as Cancelled; nothing more sends.</div>
+      <form method="post" action="{{ url_for('show_cancel', show_id=s.id) }}?next={{ url_for('show_hold', show_id=s.id) }}">
+        <button class="danger" type="submit">Cancel show</button>
+      </form>
+    </div>
+    <div class="row">
+      <div>Restore — it's real, keep advancing it (it won't be put on hold again).</div>
+      <form method="post" action="{{ url_for('show_restore', show_id=s.id) }}">
+        <button class="plain" type="submit">Restore</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <div class="card"><p>This show isn't on hold (status: {{ state_labels.get(state, (state, ''))[0] }}). Nothing to decide.</p></div>
+  {% endif %}
+</div>
+</body>
+</html>

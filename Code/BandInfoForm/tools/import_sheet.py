@@ -47,6 +47,35 @@ def get_or_create_event(cur, name, venue, event_date, series):
     return db.create_event(cur, name, venue, event_date, series=series)
 
 
+def _report_clashes(clashes):
+    """Record each clash once (doc_notices kind 'slot_clash') and email Brian
+    the new ones."""
+    new = []
+    with db.get_conn() as conn, conn.cursor() as cur:
+        for venue, edate, ename, slot, kept, skipped in clashes:
+            nid = db.insert_doc_notice(cur, venue, to_date(edate), (ename or "").lower(), "slot_clash",
+                                       slot, skipped, kept, detail=ename)
+            if nid:
+                new.append((nid, venue, edate, ename, slot, kept, skipped))
+        conn.commit()
+    if not new:
+        return
+    try:
+        import mailer
+    except ImportError:
+        return
+    rows = "".join(f"<li>{mailer.esc(v)} {mailer.esc(d)} — {mailer.esc(e or '')}: <b>{mailer.esc(sk)}</b> and "
+                   f"<b>{mailer.esc(k)}</b> are both <i>{mailer.esc(sl.replace('_', ' '))}</i>. "
+                   f"Only {mailer.esc(k)} is in the advance doc.</li>"
+                   for _n, v, d, e, sl, k, sk in new)
+    ok, _ = mailer.alert(f"Advance sheet slot clash — {len(new)} to fix",
+                         f"<p>Fix the Slot column in advance-list.xlsx:</p><ul>{rows}</ul>")
+    if ok:
+        with db.get_conn() as conn, conn.cursor() as cur:
+            db.mark_doc_notices_notified(cur, [n[0] for n in new])
+            conn.commit()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("sheet", help="advance list .xlsx")
@@ -64,6 +93,7 @@ def main():
         groups.setdefault(key, []).append(r)
 
     events_made = acts_made = 0
+    clashes = []
     with db.get_conn() as conn:
         for (ename, edate, evenue), acts in groups.items():
             series = next((a.get("series") for a in acts if a.get("series")), None)
@@ -78,11 +108,21 @@ def main():
                                           to_date(edate), series)
                 db.update_event_details(cur, eid, details)
                 events_made += 1
+                taken = {}
                 for a in acts:
                     slot = (a.get("slot") or "").strip().lower() or "headliner"
                     if slot not in SLOTS:
                         print(f"  ! bad slot '{slot}' for {a['artist_name']} — skipped")
                         continue
+                    if slot in taken and db.normalize(taken[slot]) != db.normalize(a["artist_name"]):
+                        # two bands in one slot — the second used to silently
+                        # replace the first in the doc (audit #20). Keep the
+                        # first, skip the second, tell Brian.
+                        print(f"  ! slot clash: {a['artist_name']} and {taken[slot]} are both "
+                              f"{slot} on {ename or '(unnamed)'} {edate} — kept {taken[slot]}")
+                        clashes.append((evenue, edate, ename, slot, taken[slot], a["artist_name"]))
+                        continue
+                    taken[slot] = a["artist_name"]
                     artist_id = db.upsert_artist(cur, a["artist_name"],
                                                  email=a.get("contact_email"))
                     # band-detail overrides typed into the sheet (non-empty only)
@@ -95,6 +135,8 @@ def main():
             print(f"  event: {ename or '(unnamed)'} @ {evenue or '?'} {edate or '?'} "
                   f"— {len(acts)} act(s)")
 
+    if clashes:
+        _report_clashes(clashes)
     print(f"\nImported {events_made} event(s), {acts_made} act(s). "
           f"Generate a day-sheet with:  python3 daysheet.py --event <id>")
     print("List events:  python3 event.py list")

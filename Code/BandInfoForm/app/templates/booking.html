@@ -60,26 +60,37 @@
   <a class="btn" href="{{ url_for('booking') }}">+ Log another booking</a>
   <script>
   async function runNow() {
+    // Starts a full run in the background and polls for the result (audit #23) —
+    // a run can take a few minutes; the page never times out waiting on it.
     const btn = document.getElementById('runBtn');
     const out = document.getElementById('runResult');
     btn.disabled = true;
     btn.textContent = 'Running…';
-    out.innerHTML = '';
+    out.innerHTML = '<div class="banner ok">Running — this usually takes under a minute…</div>';
     try {
       const r = await fetch('{{ url_for("booking_run") }}', {method: 'POST'});
-      const data = await r.json();
-      if (!r.ok || data.error) {
-        out.innerHTML = '<div class="banner err">' + (data.error || 'Run failed') + '</div>';
-      } else {
-        out.innerHTML = '<div class="banner ok">Done — ' + data.events + ' event(s) filed, '
-          + data.emails + ' email(s) drafted' + (data.plots ? ', ' + data.plots + ' stage plot(s) filed' : '')
-          + '.</div>';
+      if (!r.ok) throw new Error('start failed (' + r.status + ')');
+      for (let i = 0; i < 300; i++) {
+        await new Promise(res => setTimeout(res, 3000));
+        const st = await (await fetch('{{ url_for("booking_run_status") }}', {cache: 'no-store'})).json();
+        if (st.state === 'done') {
+          out.innerHTML = '<div class="banner ok">Done — ' + (st.events || 0) + ' show(s) checked'
+            + (st.plots ? ', ' + st.plots + ' stage plot(s)' : '')
+            + (st.failed ? ' — ' + st.failed + ' doc(s) skipped (open in Word or changed mid-run; they retry next run)' : '')
+            + '.</div>';
+          return;
+        }
+        if (st.state === 'error') {
+          out.innerHTML = '<div class="banner err">Run failed: ' + (st.error || 'unknown') + '</div>';
+          return;
+        }
       }
+      out.innerHTML = '<div class="banner err">Still running after 15 minutes — check back later.</div>';
     } catch (e) {
       out.innerHTML = '<div class="banner err">Request failed: ' + e + '</div>';
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Run advance now';
+      btn.textContent = 'Run again';
     }
   }
   </script>
@@ -89,10 +100,14 @@
   <form method="post" action="{{ url_for('booking') }}">
     {% set flat_series = [] %}
     {% for v, opts in series_by_venue.items() %}{% for s in opts %}{% set _ = flat_series.append(s) %}{% endfor %}{% endfor %}
+    {% for s in standalone_series %}{% set _ = flat_series.append(s) %}{% endfor %}
     {% set series_is_custom = form.series and form.series not in flat_series %}
-    <div class="full"><label>Series</label>
-      <select id="seriesPick" onchange="onSeriesChange()" {% if not series_is_custom %}name="series"{% endif %}>
-        <option value="">— No series / one-off —</option>
+    <div class="full req"><label>Series</label>
+      <select id="seriesPick" onchange="onSeriesChange()" required {% if not series_is_custom %}name="series"{% endif %}>
+        <option value="" {% if not form.series %}selected{% endif %} disabled>Select…</option>
+        <optgroup label="No series">
+          {% for s in standalone_series %}<option value="{{ s }}" {% if form.series==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </optgroup>
         {% for v, opts in series_by_venue.items() %}
         <optgroup label="{{ v }}">
           {% for s in opts %}<option value="{{ s }}" {% if form.series==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
@@ -124,17 +139,18 @@
     </div>
     <div class="req"><label>Artist / Band</label><input name="artist_name" value="{{ form.artist_name or '' }}" placeholder="Band name (exactly)" required></div>
     <div class="req"><label>Contact Name</label><input name="contact_name" value="{{ form.contact_name or '' }}" placeholder="booking contact"></div>
-    <div class="req"><label>Contact Email</label><input type="email" name="contact_email" value="{{ form.contact_email or '' }}" placeholder="booking contact"></div>
+    <div class="req"><label>Contact Email</label><input type="email" name="contact_email" id="contact_email_input" value="{{ form.contact_email or '' }}" placeholder="booking contact" required></div>
     <div class="full req"><label>Entered By</label><input name="entered_by" value="{{ form.entered_by or '' }}" placeholder="your name" required></div>
     <div class="full" style="background:#1c232d;border:1px solid #2a323d;border-radius:8px;padding:12px 14px">
       <label style="display:flex;align-items:flex-start;gap:9px;text-transform:none;font-weight:400;letter-spacing:normal;color:#e6edf3;font-size:14px;cursor:pointer">
-        <input type="checkbox" name="skip_welcome_email" style="width:auto;margin-top:2px" {% if form.skip_welcome_email or (not form and request.args.get('manual')) %}checked{% endif %}>
+        <input type="checkbox" name="skip_welcome_email" id="skip_welcome_email" onchange="onManualChange()" style="width:auto;margin-top:2px" {% if form.skip_welcome_email or (not form and request.args.get('manual')) %}checked{% endif %}>
         <span>Manual band advance</span>
       </label>
       <p class="hint" style="margin:6px 0 0 25px">Band already emailed their info directly — no automated welcome email, you'll fill in their form yourself.</p>
     </div>
     <div><label>Slot</label>
       <select name="slot" id="slot_select">
+        <option value="" {% if not form.slot %}selected{% endif %}>Select…</option>
         {% for s in slots %}<option value="{{ s }}" {% if form.slot==s %}selected{% endif %}>{{ s.replace('_',' ') }}</option>{% endfor %}
       </select>
     </div>
@@ -151,13 +167,6 @@
     <details id="more_detail" {% if form.lead_name or form.load_in or form.email_note %}open{% endif %}>
       <summary>More detail (optional — schedule, contacts, note)</summary>
       <div class="grid2">
-        <div><label>Event Type</label>
-          <select name="event_type">
-            <option value="" {% if not form.event_type %}selected{% endif %}>—</option>
-            <option {% if form.event_type=='Internal' %}selected{% endif %}>Internal</option>
-            <option {% if form.event_type=='Third Party' %}selected{% endif %}>Third Party</option>
-          </select>
-        </div>
         <div><label>Paying Band?</label>
           <select name="paying_band">
             <option value="" {% if not form.paying_band %}selected{% endif %}>—</option>
@@ -233,7 +242,7 @@
       custom.style.display = 'none';
       custom.removeAttribute('name');
       sel.setAttribute('name', 'series');
-      if (sel.value && SERIES_VENUE[sel.value]) {
+      if (sel.value && SERIES_VENUE[sel.value] && {{ standalone_series|tojson }}.indexOf(sel.value) < 0) {
         document.getElementById('venue_select').value = SERIES_VENUE[sel.value];
         onVenueChange();
       }
@@ -253,14 +262,20 @@
   }
   onVenueChange();
   function onBandCountChange() {
-    // A solo act is unambiguously the headliner — default the slot there
-    // whenever the bill drops to 1 (Brian, 2026-09-09). Still just a
-    // default, not locked: staff can still pick something else after.
+    // A solo act is the headliner by default; a multi-band night has NO
+    // default slot — staff must pick (audit #20).
     var count = document.getElementById('band_count_select');
     var slot = document.getElementById('slot_select');
-    if (count.value === '1') { slot.value = 'headliner'; }
+    if (count.value === '1') { if (!slot.value) slot.value = 'headliner'; slot.required = false; }
+    else { slot.required = true; }
   }
   onBandCountChange();
+  function onManualChange() {
+    // Contact email is required unless this is a manual band advance (audit #3).
+    var manual = document.getElementById('skip_welcome_email').checked;
+    document.getElementById('contact_email_input').required = !manual;
+  }
+  onManualChange();
   </script>
 {% endif %}
 </div>

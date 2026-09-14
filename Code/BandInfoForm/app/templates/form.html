@@ -86,7 +86,7 @@
 
 <div class="wrap">
 <form class="card" id="bandform" action="{{ url_for('submit') }}" method="post" enctype="multipart/form-data">
-  <input type="hidden" name="show_series" value="{{ cfg.series_key }}">
+  <input type="hidden" name="show_series" value="{{ '' if cfg.series_key == 'default' else cfg.series_key }}">
   <input type="hidden" name="form_lang" value="{{ lang }}">
   {% if cfg.location %}<input type="hidden" name="location" value="{{ cfg.location }}">{% endif %}
 
@@ -104,7 +104,7 @@
     <label class="q">{{ t('band_name_label') }}<span class="req">*</span></label>
     <input type="text" name="band_name" required value="{{ v('band_name') }}">
     {% if known_artist_id %}
-    <input type="hidden" name="artist_id" value="{{ known_artist_id }}">
+    <input type="hidden" name="artist_token" value="{{ artist_tok }}">
     <p class="help">{{ t('band_name_prefill_help') }}</p>
     {% endif %}
   </div>
@@ -289,6 +289,18 @@
   </div>
   {% endif %}
 
+  {% if cfg.blocks.stage_escort %}
+  <div class="field">
+    <label class="q">{{ t('stage_escort_name_label') }}<span class="req">*</span></label>
+    <input type="text" name="stage_escort_name" required value="{{ v('stage_escort_name') }}">
+  </div>
+  <div class="field">
+    <label class="q">{{ t('stage_escort_cell_label') }}<span class="req">*</span></label>
+    <input type="tel" name="stage_escort_cell" required value="{{ v('stage_escort_cell') }}">
+    <p class="help">{{ t('stage_escort_help') }}</p>
+  </div>
+  {% endif %}
+
   <div class="field">
     <label class="q">{{ t('performers_label') }}<span class="req">*</span></label>
     <input type="number" name="performers" min="1" step="1" required value="{{ v('performers') }}">
@@ -311,12 +323,23 @@
 
   <div class="section"><h2>{{ t('section_ack') }}</h2></div>
 
-  <div class="field">
+  {# audit #15: the garage/QR load-in acknowledgment is Fountain Square only;
+     every other venue gets a short "review load-in with your day-of contact". #}
+  <div class="field" id="ack_loadin_fsq">
     <div class="ack">
       {{ t('ack_loadin_text') }}
       <div class="checkrow">
         <input type="checkbox" id="ack_loadin" name="ack_loadin" value="yes" required>
         <label for="ack_loadin">{{ t('ack_loadin_check') }}<span class="req">*</span></label>
+      </div>
+    </div>
+  </div>
+  <div class="field hidden" id="ack_loadin_other">
+    <div class="ack">
+      {{ t('ack_loadin_generic_text') }}
+      <div class="checkrow">
+        <input type="checkbox" id="ack_loadin_generic" name="ack_loadin" value="yes">
+        <label for="ack_loadin_generic">{{ t('ack_loadin_generic_check') }}<span class="req">*</span></label>
       </div>
     </div>
   </div>
@@ -413,6 +436,23 @@
   }
   venueSel.addEventListener('change', syncTechPack);
   syncTechPack();
+
+  // Load-in acknowledgment: FSQ garage/QR text for Fountain Square only.
+  var ackFsq = document.getElementById('ack_loadin_fsq');
+  var ackOther = document.getElementById('ack_loadin_other');
+  var venueHidden = document.querySelector('input[type=hidden][name=venue]');
+  function currentVenue(){ return venueHidden ? venueHidden.value : venueSel.value; }
+  function syncLoadinAck(){
+    var fsq = !currentVenue() || currentVenue() === 'Fountain Square';
+    ackFsq.classList.toggle('hidden', !fsq);
+    ackOther.classList.toggle('hidden', fsq);
+    document.getElementById('ack_loadin').required = fsq;
+    document.getElementById('ack_loadin').disabled = !fsq;
+    document.getElementById('ack_loadin_generic').required = !fsq;
+    document.getElementById('ack_loadin_generic').disabled = fsq;
+  }
+  venueSel.addEventListener('change', syncLoadinAck);
+  syncLoadinAck();
 </script>
 </body>
 </html>

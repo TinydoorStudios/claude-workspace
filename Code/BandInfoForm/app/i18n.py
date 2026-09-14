@@ -221,6 +221,22 @@ STRINGS = {
                                  "propia validación de estacionamiento con código QR antes de "
                                  "llegar; escaneen en el quiosco al entrar o salir (por favor no "
                                  "paguen)."},
+    # audit #15: every non-FSQ venue gets this instead of the FSQ garage/QR text
+    "ack_loadin_generic_text": {"en": "Please review your load-in details with your day-of contact before show day.",
+                                 "es": "Por favor revisen los detalles de carga con su contacto del día del "
+                                       "evento antes del día del show."},
+    "ack_loadin_generic_check": {"en": "I will review load-in details with our day-of contact.",
+                                  "es": "Revisaremos los detalles de carga con nuestro contacto del día del evento."},
+    # audit #15: Salsa On The Square stage-escort rep
+    "stage_escort_name_label": {"en": "Band representative for stage escort — name",
+                                 "es": "Representante de la banda para acompañar al escenario — nombre"},
+    "stage_escort_cell_label": {"en": "Band representative for stage escort — cell phone",
+                                 "es": "Representante de la banda para acompañar al escenario — celular"},
+    "stage_escort_help": {"en": "One person from your group who can escort approved guests on and off "
+                                 "stage. Please identify this person to on-site staff upon arrival.",
+                           "es": "Una persona de su grupo que pueda acompañar a los invitados aprobados al "
+                                 "subir y bajar del escenario. Por favor preséntenla al personal en el sitio "
+                                 "al llegar."},
     "ack_loadin_check":  {"en": "I have reviewed the load-in document.",
                            "es": "He revisado el documento de carga."},
     "ack_95db_text":     {"en": "We're required by the city to maintain a strict 95 dBA-Slow limit, "

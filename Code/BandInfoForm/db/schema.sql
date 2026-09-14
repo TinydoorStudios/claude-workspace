@@ -368,3 +368,146 @@ ALTER TABLE submissions ADD COLUMN IF NOT EXISTS vehicle_count INTEGER;
 -- case a Yes/No can't represent. large_vehicle stays on old submissions for
 -- history; nothing new writes it going forward, only large_vehicle_count.
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS large_vehicle_count INTEGER;
+
+-- ═════════════════════════════════════════════════════════════════════════
+-- 2026-09-13 QC audit fixes (see Handoffs/band-advance-audit-decisions-2026-09-13.md)
+-- ═════════════════════════════════════════════════════════════════════════
+
+-- #1/#2: registry of every filed advance doc the pipeline created or adopted.
+-- Docs are never overwritten; lookups go through here, not filename sort order.
+CREATE TABLE IF NOT EXISTS filed_docs (
+    id          SERIAL PRIMARY KEY,
+    venue       TEXT NOT NULL,
+    event_date  DATE NOT NULL,
+    event_key   TEXT NOT NULL,            -- normalized event name (or series)
+    path        TEXT NOT NULL,            -- relative to the Dropbox root
+    sha256      TEXT,                     -- hash of what the PIPELINE last wrote
+    written_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    seeded      BOOLEAN NOT NULL DEFAULT false,  -- adopted an existing file, not written by us
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (venue, event_date, event_key)
+);
+
+-- #1: "doc says X, new info says Y" notices — stored once, emailed once.
+CREATE TABLE IF NOT EXISTS doc_notices (
+    id          SERIAL PRIMARY KEY,
+    venue       TEXT NOT NULL DEFAULT '',
+    event_date  DATE,
+    event_key   TEXT NOT NULL DEFAULT '',
+    kind        TEXT NOT NULL DEFAULT 'diff',
+    field       TEXT NOT NULL DEFAULT '',
+    new_value   TEXT NOT NULL DEFAULT '',
+    doc_value   TEXT,
+    detail      TEXT,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    notified_at TIMESTAMPTZ,
+    UNIQUE (venue, event_date, event_key, kind, field, new_value)
+);
+
+-- #4: cancel / hold / merge; #14: thank-you record
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS cancelled_at      TIMESTAMPTZ;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS held_at           TIMESTAMPTZ;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS hold_reason       TEXT;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS hold_notified_at  TIMESTAMPTZ;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS hold_dismissed_at TIMESTAMPTZ;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS thankyou_sent_at  TIMESTAMPTZ;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS thankyou_error    TEXT;
+
+-- #3: a failed/blocked send, alerted to Brian at most once per show per kind per day
+CREATE TABLE IF NOT EXISTS send_failures (
+    id          SERIAL PRIMARY KEY,
+    show_id     INTEGER REFERENCES shows(id) ON DELETE CASCADE,
+    kind        TEXT NOT NULL,            -- welcome | followup_<n> | thankyou | ...
+    error       TEXT,
+    day         DATE NOT NULL DEFAULT CURRENT_DATE,
+    notified_at TIMESTAMPTZ,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (show_id, kind, day)
+);
+
+-- #21: when did the scheduled 9am lifecycle check actually run
+CREATE TABLE IF NOT EXISTS job_runs (
+    id      SERIAL PRIMARY KEY,
+    job     TEXT NOT NULL,
+    source  TEXT,
+    ran_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_job_runs_job ON job_runs (job, ran_at DESC);
+
+-- #13: staff gate attempts (rate limit shared across every worker)
+CREATE TABLE IF NOT EXISTS gate_attempts (
+    id           SERIAL PRIMARY KEY,
+    ip           TEXT NOT NULL,
+    ok           BOOLEAN NOT NULL,
+    attempted_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_gate_attempts_ip ON gate_attempts (ip, attempted_at DESC);
+CREATE TABLE IF NOT EXISTS gate_lockouts (
+    ip          TEXT PRIMARY KEY,
+    locked_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    notified_at TIMESTAMPTZ
+);
+
+-- #6: a submission whose band name didn't match its booking
+CREATE TABLE IF NOT EXISTS submission_matches (
+    id              SERIAL PRIMARY KEY,
+    submission_id   INTEGER REFERENCES submissions(id) ON DELETE CASCADE,
+    booked_show_id  INTEGER REFERENCES shows(id) ON DELETE SET NULL,
+    typed_name      TEXT,
+    venue           TEXT,
+    show_date       DATE,
+    status          TEXT NOT NULL,        -- attached_auto | pending_pick | confirmed | detached | attached_manual
+    candidates      JSONB NOT NULL DEFAULT '[]'::jsonb,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    notified_at     TIMESTAMPTZ,
+    resolved_at     TIMESTAMPTZ
+);
+
+-- #4/#17: status view with cancelled + on-hold states
+DROP VIEW IF EXISTS advance_status;
+CREATE VIEW advance_status AS
+SELECT
+    s.id            AS show_id,
+    a.id            AS artist_id,
+    a.name          AS band,
+    s.venue,
+    s.show_series,
+    s.show_date,
+    s.email_sent_at,
+    s.responded_at,
+    s.followup_sent_at,
+    s.advance_draft_created_at,
+    s.followup_draft_created_at,
+    s.send_reminder_sent_at,
+    s.finalized_at,
+    s.cancelled_at,
+    s.held_at,
+    s.thankyou_sent_at,
+    s.thankyou_error,
+    (SELECT max(sub.submitted_at) FROM submissions sub WHERE sub.show_id = s.id)
+                    AS last_submission,
+    CASE
+        WHEN s.cancelled_at IS NOT NULL THEN 'cancelled'
+        WHEN s.finalized_at IS NOT NULL THEN 'finalized'
+        WHEN s.held_at IS NOT NULL THEN 'held'
+        WHEN s.responded_at IS NOT NULL
+             OR EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+            THEN 'responded'
+        WHEN s.followup_draft_created_at IS NOT NULL THEN 'followup_drafted'
+        WHEN s.advance_draft_created_at IS NOT NULL
+             AND s.show_date IS NOT NULL
+             AND s.show_date <= CURRENT_DATE + 7
+            THEN 'followup_due'
+        WHEN s.advance_draft_created_at IS NOT NULL
+             AND s.show_date IS NOT NULL
+             AND s.show_date <= CURRENT_DATE + 21
+            THEN 'ready_to_send'
+        WHEN s.advance_draft_created_at IS NOT NULL  THEN 'awaiting'
+        ELSE 'queued'
+    END             AS state,
+    CASE WHEN s.show_date IS NOT NULL
+         THEN (s.show_date - CURRENT_DATE) END
+                    AS days_until_show,
+    a.last_email    AS contact_email
+FROM shows s
+JOIN artists a ON a.id = s.artist_id;

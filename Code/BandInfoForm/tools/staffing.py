@@ -207,15 +207,16 @@ def _mix_tokens(venue, show_date):
 
 
 def _event_time(tok):
-    """One side of an Event-cell range ('*4:15', '10', '9a') -> house time
-    '4:15p'. Times are ALWAYS PM (Brian, 2026-09-11) — the evening shows that
-    flow through advances are all PM, so asterisks and any a/p suffix in the
-    source are ignored and PM is assumed."""
+    """One side of an Event-cell range ('*4:15', '10', '9a', '11am') -> house
+    time '4:15p'. An explicit a/am or p/pm is honored (audit cleanup — a
+    daytime event used to get a 9:00p crew call); with no suffix, PM is
+    assumed (Brian, 2026-09-11: evening shows are the norm)."""
     tok = re.sub(r"[*\s]", "", tok).lower()
-    m = re.match(r"^(\d{1,2})(?::(\d{2}))?", tok)
+    m = re.match(r"^(\d{1,2})(?::(\d{2}))?(am|pm|a|p)?", tok)
     if not m:
         return None
-    return f"{int(m.group(1))}:{int(m.group(2) or 0):02d}p"
+    suffix = "a" if (m.group(3) or "").startswith("a") else "p"
+    return f"{int(m.group(1))}:{int(m.group(2) or 0):02d}{suffix}"
 
 
 def event_times_for(venue, show_date, series=None):

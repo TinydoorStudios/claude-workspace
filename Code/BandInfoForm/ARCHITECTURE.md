@@ -276,3 +276,57 @@ the in-app **`/staff` hub** (log a booking, browse venue → series → band, se
 detail with files) built 2026-09-04 satisfies that — confirmed with Brian 2026-09-06, no
 separate Wiki.js instance needed. Not revisiting unless something concrete surfaces that
 the staff hub genuinely can't do.
+
+## QC audit fixes (2026-09-13)
+
+Full decision record: `~/Documents/Claude/Handoffs/band-advance-audit-decisions-2026-09-13.md`.
+What changed in how the system behaves:
+
+- **Filed advance docs are never overwritten** (`tools/docmerge.py`). A show's doc is
+  created once; every later pass only fills cells still identical to the blank universal
+  template. A value that differs from what the doc says is left alone and emailed to Brian
+  as a notice ("doc says X, new info says Y"). Docs open in Word (`~$` owner file) are
+  skipped that run. Writes are atomic and re-check the file hash before replacing. Every doc
+  is registered in `filed_docs`; lookups go through the registry, never filename sort order.
+  When the headliner changes, the same file is renamed in place. Past shows are never touched.
+  A booking's run files only that show (`run_now.py --scope "Venue|YYYY-MM-DD"`); a submit
+  files only its show; "Run again" files every current show — all blank-cells-only.
+- **One send path** (`app/mailer.py`). A send counts only when n8n's "Confirm Sent" node saw
+  Graph return 202; otherwise the webhook answers 500. Failed sends, missing addresses and
+  unrendered drafts are never stamped — they retry next run and Brian gets one alert per
+  show/kind/day (`send_failures`). `ADVANCE_MAIL_DISABLED=1` is a hard kill switch for manual
+  runs; `ADVANCE_STAGING=1` refuses anything but the local capture stub.
+- **Lifecycle** stamps each show immediately after its confirmed send and holds a Postgres
+  advisory lock so overlapping runs can't double-send. Only the closest open reminder tier
+  sends per run. The 3-day unresponded alert includes manual-entry shows and waits 24h after
+  a welcome. The 9am cron run is tagged (`?source=cron`, `job_runs`); a 10:15 systemd timer
+  (`ops/advance-lifecycle-watchdog.*`) alerts if it didn't run, and the digest flags a miss.
+- **Cancel / hold / merge.** Cancel on the artist page and dashboard (kept on record as
+  Cancelled). After every package run `tools/holds.py` holds any current show missing from
+  advance-list.xlsx — no sends — plus any fresh show that looks like its corrected version,
+  and emails Brian a link to `/show/<id>/hold` (Cancel / Restore / "typo for → merge").
+  Merge moves send history, reminders, submissions and sign-off to the corrected show. A bad
+  sheet read (empty, or >30% of shows missing) holds nothing and alerts instead.
+- **Submissions** save to disk before translation. A name that doesn't match its booking
+  auto-attaches when exactly one unanswered booking exists at that venue+date (Brian gets
+  Confirm / Detach at `/submission-match/<id>`), otherwise Brian picks. The form carries a
+  signed artist token, never a raw id. A returning band that doesn't re-upload keeps its
+  latest stage plot (`stage_plot_carried_from`).
+- **Booking form**: contact email required unless Manual band advance; Series required —
+  a named series, "Stand-Alone Internal" or "3rd Party" (that pick sets Event Type; the
+  Event Type field is gone); a slot already held that night is refused; multi-band nights
+  have no default slot. "Run again" runs in the background and the page polls.
+- **Content**: vehicle counts reach the doc Parking row, sheet, artist page, notify email and
+  thank-you; day-of contact is the staffing sheet's mix engineer (+ "don't advance with them
+  before show day") with Lead/"week of the show" fallbacks; Salsa: no riser question, stage-
+  escort rep field, Nick Radina parking line; garage/QR load-in acknowledgment on FSQ forms only.
+- **Thank-you** runs as a worker (`finalize_thankyou.py --send --show-id`), skips past and
+  cancelled shows, records `thankyou_sent_at`/`thankyou_error`, alerts on failure, and only
+  mentions drink tickets where the venue's copy does.
+- **Labels**: one table in `app/status_labels.py` for dashboard, artist page, digest, Show
+  Status Log and the sheet's STATUS block (adds On Hold and Cancelled). merge_status removes
+  any stale STATUS block and always rebuilds one at the far right.
+- **Ops**: nightly DB dump to both NAS boxes (`ops/advance_db_nightly.sh`, 02:40, keep 14);
+  `dropbox_exclude.sh` never deletes; gunicorn runs threaded workers with a 120s timeout;
+  deploys wait for in-flight pipeline runs; `backfill.py` is dry-run by default and skips
+  submissions already loaded; the Groq key never appears on a command line.

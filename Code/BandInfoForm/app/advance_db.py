@@ -78,6 +78,16 @@ def upsert_artist(cur, name, email=None, phone=None, known_id=None):
     back to the ordinary name-matching insert below, same as when no id is
     known at all (a brand new artist, or the bare public form)."""
     if known_id:
+        # a rename that collides with ANOTHER artist's match_key would violate
+        # the unique index and lose the whole submission's DB write — keep
+        # the existing name in that case, update contact info only.
+        cur.execute("SELECT 1 FROM artists WHERE match_key = %s AND id <> %s",
+                    (normalize(name), known_id))
+        if cur.fetchone():
+            cur.execute("SELECT name FROM artists WHERE id = %s", (known_id,))
+            row = cur.fetchone()
+            if row:
+                name = row["name"]
         cur.execute(
             """
             UPDATE artists SET
@@ -212,6 +222,9 @@ def shows_due_for_initial_advance(cur):
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                   AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
            WHERE s.advance_draft_created_at IS NULL
+             AND s.cancelled_at IS NULL AND s.held_at IS NULL
+             AND s.responded_at IS NULL
+             AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
              AND s.show_date IS NOT NULL
              AND s.show_date >= CURRENT_DATE
              AND s.show_date <= CURRENT_DATE + 21
@@ -277,6 +290,7 @@ def shows_due_for_followup(cur, days_before=7):
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                   AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
            WHERE s.advance_draft_created_at IS NOT NULL
+             AND s.cancelled_at IS NULL AND s.held_at IS NULL
              AND s.responded_at IS NULL
              AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
              AND NOT EXISTS (SELECT 1 FROM advance_reminders r
@@ -355,23 +369,36 @@ def mark_send_reminder_sent(cur, show_id):
 
 def shows_due_for_unresponded_alert(cur, days_before=3):
     """Shows within `days_before` days of their date with no response and no
-    internal alert sent yet — Brian's manual-follow-up flag (2026-09-13), a
-    real SENT email to him, separate from the band-facing tier reminders
-    in advance_reminders. Fires once per show (unresponded_alert_sent_at),
-    regardless of whether the band has an email on file — unlike
-    shows_due_for_followup, which skips those since there's nowhere to
-    send a band-facing reminder. Requires the initial advance to have
-    already gone out, same as the band-facing follow-up."""
+    internal alert sent yet — Brian's manual-follow-up flag (2026-09-13).
+    Fires once per show, whether or not the band has an email on file.
+
+    Audit 2026-09-13:
+      #12 — manual-entry shows (bookings.skip_welcome_email, no welcome ever
+            sent) are included, flagged `manual`, so a form staff never
+            filled in still gets caught.
+      #21 — never within 24h of the show's welcome (or, for a manual show,
+            of its booking) so a late booking doesn't trip the alert minutes
+            after its own welcome went out.
+      #4  — cancelled and on-hold shows never alert."""
     cur.execute(
-        """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
-                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date
+        r"""SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
+                  COALESCE(b.skip_welcome_email, false) AS manual
            FROM shows s JOIN artists a ON a.id = s.artist_id
-           WHERE s.advance_draft_created_at IS NOT NULL
-             AND s.responded_at IS NULL
+           LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
+                  AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
+           WHERE s.responded_at IS NULL
              AND s.unresponded_alert_sent_at IS NULL
+             AND s.cancelled_at IS NULL AND s.held_at IS NULL
              AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
+             AND (
+                  (s.advance_draft_created_at IS NOT NULL
+                   AND s.advance_draft_created_at <= now() - interval '24 hours')
+               OR (b.skip_welcome_email IS TRUE AND s.advance_draft_created_at IS NULL
+                   AND COALESCE(b.created_at, s.created_at) <= now() - interval '24 hours')
+             )
            ORDER BY s.show_date""",
         (days_before,),
     )
@@ -574,29 +601,89 @@ def insert_file(cur, submission_id, artist_id, filename, stored_name,
     return cur.fetchone()["id"]
 
 
-def record_submission(form: dict, file_info=None, source="form"):
-    """High-level: one transaction that upserts the artist + show, inserts the
-    submission, stamps responded_at, and links any uploaded file. Returns
-    (artist_id, show_id, submission_id). Raises on failure — caller decides
-    whether that's fatal (the form treats it as non-fatal)."""
-    name = form.get("band_name") or "(unknown)"
+def record_submission(form: dict, file_info=None, source="form", resolve_booking=True,
+                      carry_plot=True):
+    """One transaction: resolve which artist+show this submission belongs to,
+    insert it, stamp responded_at, link any uploaded file. Returns a dict:
+    {artist_id, show_id, submission_id, artist_name, match, carried_from}.
+    Raises on failure — the form treats that as non-fatal.
+
+    Resolution (2026-09-13 audit #6):
+      1. form["artist_id"] — ONLY set by app.py after verifying the signed
+         artist token from the band's own link. Same artist record, even if
+         they edited the name.
+      2. the typed name matches an artist who is booked at this venue+date.
+      3. otherwise, if exactly ONE unresponded booking exists at this
+         venue+date, attach to it (match status 'attached_auto'; Brian gets a
+         Confirm / Detach email).
+      4. otherwise a new artist/show from the typed name, match status
+         'pending_pick' (Brian picks the booking from an email).
+    Carry-forward (audit #8): a submission with no stage plot upload reuses
+    the artist's most recent stored plot, recorded as stage_plot_carried_from."""
+    import json
+    name = (form.get("band_name") or "(unknown)").strip()
     known_id = form.get("artist_id")
     try:
         known_id = int(known_id) if known_id else None
     except (TypeError, ValueError):
         known_id = None
+    venue = form.get("venue")
+    show_date = to_date(form.get("show_date"))
+    series = (form.get("show_series") or "").strip() or None
+    if series and series.lower() == "default":
+        series = None
+    match = None
     with get_conn() as conn:
         with conn.cursor() as cur:
-            artist_id = upsert_artist(
-                cur, name, email=form.get("contact_email"),
-                phone=form.get("contact_phone"), known_id=known_id,
-            )
-            show_id = upsert_show(
-                cur, artist_id, form.get("venue"), to_date(form.get("show_date")),
-                series=form.get("show_series"),
-            )
+            artist_id = show_id = None
+            if known_id and get_artist(cur, known_id):
+                artist_id = upsert_artist(cur, name, email=form.get("contact_email"),
+                                          phone=form.get("contact_phone"), known_id=known_id)
+            elif resolve_booking and venue and show_date:
+                by_name = find_artist_by_name(cur, name)
+                booked = show_for_artist_at(cur, by_name["id"], venue, show_date) if by_name else None
+                if booked:
+                    artist_id = by_name["id"]
+                else:
+                    cands = unresponded_shows_at(cur, venue, show_date)
+                    if len(cands) == 1:
+                        artist_id, show_id = cands[0]["artist_id"], cands[0]["show_id"]
+                        cur.execute("""UPDATE artists SET last_email = COALESCE(%s, last_email),
+                                       last_phone = COALESCE(%s, last_phone) WHERE id=%s""",
+                                    (form.get("contact_email") or None,
+                                     form.get("contact_phone") or None, artist_id))
+                        match = {"status": "attached_auto", "booked_show_id": show_id,
+                                 "booked_name": cands[0]["artist_name"], "candidates": []}
+                    else:
+                        match = {"status": "pending_pick", "booked_show_id": None,
+                                 "candidates": [{"show_id": c["show_id"], "artist_name": c["artist_name"]}
+                                                for c in cands]}
+            if artist_id is None:
+                artist_id = upsert_artist(cur, name, email=form.get("contact_email"),
+                                          phone=form.get("contact_phone"))
+            if show_id is None:
+                show_id = upsert_show(cur, artist_id, venue, show_date, series=series)
+
+            carried_from = None
+            if carry_plot and not form.get("stage_plot_file"):
+                cur.execute(
+                    """SELECT sub.data->>'stage_plot_file' AS stored, sub.submitted_at,
+                              f.filename, f.mime, f.size
+                       FROM submissions sub
+                       LEFT JOIN files f ON f.submission_id = sub.id
+                            AND f.stored_name = sub.data->>'stage_plot_file'
+                       WHERE sub.artist_id=%s AND COALESCE(sub.data->>'stage_plot_file','') <> ''
+                       ORDER BY sub.submitted_at DESC LIMIT 1""", (artist_id,))
+                prior = cur.fetchone()
+                if prior:
+                    carried_from = prior["submitted_at"].date().isoformat()
+                    form["stage_plot_file"] = prior["stored"]
+                    form["stage_plot_carried_from"] = carried_from
+                    file_info = {"filename": prior["filename"] or prior["stored"],
+                                 "stored_name": prior["stored"], "mime": prior["mime"],
+                                 "size": prior["size"]}
+
             sub_id = insert_submission(cur, artist_id, show_id, form, source=source)
-            # advance finished — stamp responded_at (first response wins)
             cur.execute(
                 "UPDATE shows SET responded_at = COALESCE(responded_at, now()) WHERE id = %s",
                 (show_id,),
@@ -608,8 +695,19 @@ def record_submission(form: dict, file_info=None, source="form"):
                     stored_name=file_info.get("stored_name"),
                     mime=file_info.get("mime"), size=file_info.get("size"),
                 )
+            if match:
+                cur.execute(
+                    """INSERT INTO submission_matches (submission_id, booked_show_id, typed_name,
+                           venue, show_date, status, candidates)
+                       VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                    (sub_id, match["booked_show_id"], name, venue, show_date, match["status"],
+                     json.dumps(match["candidates"])))
+                match["id"] = cur.fetchone()["id"]
+            artist = get_artist(cur, artist_id)
         conn.commit()
-    return artist_id, show_id, sub_id
+    return {"artist_id": artist_id, "show_id": show_id, "submission_id": sub_id,
+            "artist_name": artist["name"] if artist else name, "match": match,
+            "carried_from": carried_from}
 
 
 # ── queries: prefill, returning-artist logic, search ────────────────────────
@@ -968,3 +1066,284 @@ def resolve_short_link(cur, code):
     cur.execute("SELECT token FROM short_links WHERE code = %s", (code,))
     row = cur.fetchone()
     return row["token"] if row else None
+
+
+# ── filed advance docs registry (2026-09-13 audit #1/#2) ─────────────────────
+
+def get_filed_doc(cur, venue, event_date, event_key):
+    cur.execute("SELECT * FROM filed_docs WHERE venue=%s AND event_date=%s AND event_key=%s",
+                (venue, event_date, event_key))
+    return cur.fetchone()
+
+
+def filed_docs_for(cur, venue, event_date):
+    cur.execute("SELECT * FROM filed_docs WHERE venue=%s AND event_date=%s "
+                "ORDER BY written_at DESC, id DESC", (venue, event_date))
+    return cur.fetchall()
+
+
+def upsert_filed_doc(cur, venue, event_date, event_key, path, sha256, seeded=False,
+                     reg_id=None, keep_written_at=False):
+    if reg_id:
+        cur.execute(
+            """UPDATE filed_docs SET event_key=%s, path=%s, sha256=%s,
+                   written_at = CASE WHEN %s THEN written_at ELSE now() END
+               WHERE id=%s""",
+            (event_key, path, sha256, keep_written_at, reg_id))
+        return reg_id
+    cur.execute(
+        """INSERT INTO filed_docs (venue, event_date, event_key, path, sha256, seeded)
+           VALUES (%s,%s,%s,%s,%s,%s)
+           ON CONFLICT (venue, event_date, event_key) DO UPDATE SET
+               path=EXCLUDED.path, sha256=EXCLUDED.sha256, written_at=now()
+           RETURNING id""",
+        (venue, event_date, event_key, path, sha256, seeded))
+    return cur.fetchone()["id"]
+
+
+def insert_doc_notice(cur, venue, event_date, event_key, kind, field, new_value,
+                      doc_value=None, detail=None):
+    """Returns the new id, or None if this exact notice was already recorded."""
+    cur.execute(
+        """INSERT INTO doc_notices (venue, event_date, event_key, kind, field, new_value,
+                                    doc_value, detail)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+           ON CONFLICT (venue, event_date, event_key, kind, field, new_value) DO NOTHING
+           RETURNING id""",
+        (venue or "", event_date, event_key or "", kind, field or "", new_value or "",
+         doc_value, detail))
+    row = cur.fetchone()
+    return row["id"] if row else None
+
+
+def unnotified_doc_notices(cur):
+    cur.execute("SELECT * FROM doc_notices WHERE notified_at IS NULL "
+                "AND (event_date IS NULL OR event_date >= CURRENT_DATE) ORDER BY event_date, id")
+    return cur.fetchall()
+
+
+def mark_doc_notices_notified(cur, ids):
+    if ids:
+        cur.execute("UPDATE doc_notices SET notified_at=now() WHERE id = ANY(%s)", (list(ids),))
+
+
+# ── send failures (audit #3) ─────────────────────────────────────────────────
+
+def record_send_failure(cur, show_id, kind, error):
+    """One row per show/kind/day. Returns True if this is new today."""
+    cur.execute(
+        """INSERT INTO send_failures (show_id, kind, error) VALUES (%s,%s,%s)
+           ON CONFLICT (show_id, kind, day) DO UPDATE SET error=EXCLUDED.error
+           RETURNING (xmax = 0) AS inserted""",
+        (show_id, kind, (error or "")[:1000]))
+    return cur.fetchone()["inserted"]
+
+
+def unnotified_send_failures(cur):
+    cur.execute(
+        """SELECT f.*, a.name AS artist_name, s.venue, s.show_date
+           FROM send_failures f JOIN shows s ON s.id = f.show_id
+           JOIN artists a ON a.id = s.artist_id
+           WHERE f.notified_at IS NULL ORDER BY s.show_date, f.id""")
+    return cur.fetchall()
+
+
+def mark_send_failures_notified(cur, ids):
+    if ids:
+        cur.execute("UPDATE send_failures SET notified_at=now() WHERE id = ANY(%s)", (list(ids),))
+
+
+# ── job runs (audit #21) ─────────────────────────────────────────────────────
+
+def record_job_run(cur, job, source):
+    cur.execute("INSERT INTO job_runs (job, source) VALUES (%s,%s)", (job, source))
+
+
+def job_ran_since(cur, job, source, since):
+    cur.execute("SELECT 1 FROM job_runs WHERE job=%s AND source=%s AND ran_at >= %s LIMIT 1",
+                (job, source, since))
+    return cur.fetchone() is not None
+
+
+# ── cancel / hold / merge (audit #4) ─────────────────────────────────────────
+
+def cancel_show(cur, show_id):
+    cur.execute("UPDATE shows SET cancelled_at = COALESCE(cancelled_at, now()), held_at = NULL "
+                "WHERE id=%s RETURNING id", (show_id,))
+    return cur.fetchone() is not None
+
+
+def uncancel_show(cur, show_id):
+    cur.execute("UPDATE shows SET cancelled_at = NULL, hold_dismissed_at = now() "
+                "WHERE id=%s RETURNING id", (show_id,))
+    return cur.fetchone() is not None
+
+
+def hold_show(cur, show_id, reason):
+    cur.execute("""UPDATE shows SET held_at = now(), hold_reason = %s
+                   WHERE id=%s AND held_at IS NULL AND cancelled_at IS NULL
+                     AND hold_dismissed_at IS NULL RETURNING id""", (reason, show_id))
+    return cur.fetchone() is not None
+
+
+def restore_show(cur, show_id):
+    """Release a hold for good — this show is never auto-held again."""
+    cur.execute("UPDATE shows SET held_at = NULL, hold_reason = NULL, hold_dismissed_at = now() "
+                "WHERE id=%s RETURNING id", (show_id,))
+    return cur.fetchone() is not None
+
+
+def release_candidate_holds(cur, orphan_show_id):
+    """Shows held only as a 'possible correction' of this orphan go back to
+    normal (they are real bookings in their own right)."""
+    cur.execute("""UPDATE shows SET held_at = NULL, hold_reason = NULL, hold_dismissed_at = now()
+                   WHERE hold_reason = %s AND cancelled_at IS NULL""",
+                (f"possible correction of show {orphan_show_id}",))
+
+
+def merge_shows(cur, old_id, new_id):
+    """Typo fix: everything recorded against old_id moves to new_id, then the
+    old record is deleted. Send history carries over, so the corrected show
+    never gets a second welcome or repeat reminders."""
+    cur.execute("SELECT * FROM shows WHERE id=%s", (old_id,))
+    old = cur.fetchone()
+    cur.execute("SELECT * FROM shows WHERE id=%s", (new_id,))
+    new = cur.fetchone()
+    if not old or not new or old_id == new_id:
+        raise ValueError("both shows must exist and differ")
+    cur.execute("UPDATE submissions SET show_id=%s WHERE show_id=%s", (new_id, old_id))
+    if old["artist_id"] != new["artist_id"]:
+        cur.execute("UPDATE submissions SET artist_id=%s WHERE show_id=%s AND artist_id=%s",
+                    (new["artist_id"], new_id, old["artist_id"]))
+        cur.execute("""UPDATE files SET artist_id=%s WHERE submission_id IN
+                       (SELECT id FROM submissions WHERE show_id=%s)""", (new["artist_id"], new_id))
+    cur.execute("""INSERT INTO advance_reminders (show_id, days_before, drafted_at, sent)
+                   SELECT %s, days_before, drafted_at, sent FROM advance_reminders WHERE show_id=%s
+                   ON CONFLICT (show_id, days_before) DO NOTHING""", (new_id, old_id))
+    cur.execute("""UPDATE advance_recaps SET show_id=%s WHERE show_id=%s
+                   AND NOT EXISTS (SELECT 1 FROM advance_recaps WHERE show_id=%s)""",
+                (new_id, old_id, new_id))
+    cur.execute("UPDATE submission_matches SET booked_show_id=%s WHERE booked_show_id=%s",
+                (new_id, old_id))
+    cur.execute(
+        """UPDATE shows n SET
+             email_sent_at = COALESCE(n.email_sent_at, o.email_sent_at),
+             responded_at = COALESCE(n.responded_at, o.responded_at),
+             followup_sent_at = COALESCE(n.followup_sent_at, o.followup_sent_at),
+             advance_draft_created_at = COALESCE(n.advance_draft_created_at, o.advance_draft_created_at),
+             followup_draft_created_at = COALESCE(n.followup_draft_created_at, o.followup_draft_created_at),
+             send_reminder_sent_at = COALESCE(n.send_reminder_sent_at, o.send_reminder_sent_at),
+             unresponded_alert_sent_at = COALESCE(n.unresponded_alert_sent_at, o.unresponded_alert_sent_at),
+             finalized_at = COALESCE(n.finalized_at, o.finalized_at),
+             thankyou_sent_at = COALESCE(n.thankyou_sent_at, o.thankyou_sent_at),
+             held_at = NULL, hold_reason = NULL, hold_dismissed_at = now()
+           FROM shows o WHERE n.id=%s AND o.id=%s""", (new_id, old_id))
+    cur.execute("DELETE FROM shows WHERE id=%s", (old_id,))
+    if old["artist_id"] != new["artist_id"]:
+        cur.execute("""DELETE FROM artists a WHERE a.id=%s
+                       AND NOT EXISTS (SELECT 1 FROM shows WHERE artist_id=a.id)
+                       AND NOT EXISTS (SELECT 1 FROM submissions WHERE artist_id=a.id)""",
+                    (old["artist_id"],))
+
+
+def active_future_shows(cur):
+    cur.execute("""SELECT s.*, a.name AS artist_name, a.match_key
+                   FROM shows s JOIN artists a ON a.id = s.artist_id
+                   WHERE s.show_date >= CURRENT_DATE AND s.cancelled_at IS NULL""")
+    return cur.fetchall()
+
+
+def show_with_artist(cur, show_id):
+    cur.execute("""SELECT s.*, a.name AS artist_name, a.last_email, a.match_key
+                   FROM shows s JOIN artists a ON a.id=s.artist_id WHERE s.id=%s""", (show_id,))
+    return cur.fetchone()
+
+
+def merge_candidates(cur, show_id):
+    """Shows that could be the corrected version of this one: same band on a
+    different date/venue, or the same venue+date under a different band name."""
+    s = show_with_artist(cur, show_id)
+    if not s:
+        return []
+    cur.execute(
+        """SELECT s.*, a.name AS artist_name FROM shows s JOIN artists a ON a.id=s.artist_id
+           WHERE s.id <> %s AND s.cancelled_at IS NULL AND s.show_date >= CURRENT_DATE - 1
+             AND ( s.artist_id = %s
+                   OR (s.venue = %s AND s.show_date = %s) )
+           ORDER BY s.created_at DESC LIMIT 10""",
+        (show_id, s["artist_id"], s["venue"], s["show_date"]))
+    return cur.fetchall()
+
+
+# ── submission → booking matching (audit #6) ─────────────────────────────────
+
+def unresponded_shows_at(cur, venue, show_date):
+    cur.execute(
+        """SELECT s.id AS show_id, s.artist_id, a.name AS artist_name, s.show_series
+           FROM shows s JOIN artists a ON a.id = s.artist_id
+           WHERE s.venue=%s AND s.show_date=%s AND s.cancelled_at IS NULL
+             AND s.responded_at IS NULL
+             AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+           ORDER BY s.id""", (venue, show_date))
+    return cur.fetchall()
+
+
+def show_for_artist_at(cur, artist_id, venue, show_date):
+    cur.execute("SELECT * FROM shows WHERE artist_id=%s AND venue=%s AND show_date=%s",
+                (artist_id, venue, show_date))
+    return cur.fetchone()
+
+
+def get_match(cur, match_id):
+    cur.execute("SELECT * FROM submission_matches WHERE id=%s", (match_id,))
+    return cur.fetchone()
+
+
+def reattach_submission(cur, submission_id, target_show_id, delete_empty_source=True):
+    """Move a submission (and its files) onto another show + that show's
+    artist, stamp that show responded, and clean up whatever the submission
+    left behind (a show/artist it alone created)."""
+    cur.execute("SELECT * FROM submissions WHERE id=%s", (submission_id,))
+    sub = cur.fetchone()
+    cur.execute("SELECT * FROM shows WHERE id=%s", (target_show_id,))
+    tgt = cur.fetchone()
+    if not sub or not tgt:
+        raise ValueError("submission or target show missing")
+    old_show, old_artist = sub["show_id"], sub["artist_id"]
+    cur.execute("UPDATE submissions SET show_id=%s, artist_id=%s WHERE id=%s",
+                (target_show_id, tgt["artist_id"], submission_id))
+    cur.execute("UPDATE files SET artist_id=%s WHERE submission_id=%s", (tgt["artist_id"], submission_id))
+    cur.execute("UPDATE shows SET responded_at = COALESCE(responded_at, now()) WHERE id=%s",
+                (target_show_id,))
+    if delete_empty_source:
+        _release_show_if_empty(cur, old_show, old_artist)
+    else:
+        cur.execute("""UPDATE shows SET responded_at = NULL WHERE id=%s
+                       AND NOT EXISTS (SELECT 1 FROM submissions WHERE show_id=%s)""",
+                    (old_show, old_show))
+
+
+def detach_submission(cur, submission_id, typed_name, venue, show_date, series=None):
+    """'Wrong band' — the submission goes to its own artist/show under the name
+    the band typed; the booked show goes back to unresponded."""
+    artist_id = upsert_artist(cur, typed_name)
+    show_id = upsert_show(cur, artist_id, venue, show_date, series=series)
+    reattach_submission(cur, submission_id, show_id, delete_empty_source=False)
+    return show_id
+
+
+def _release_show_if_empty(cur, show_id, artist_id):
+    if show_id:
+        cur.execute("""SELECT advance_draft_created_at, finalized_at FROM shows WHERE id=%s""", (show_id,))
+        row = cur.fetchone()
+        cur.execute("SELECT count(*) AS n FROM submissions WHERE show_id=%s", (show_id,))
+        n = cur.fetchone()["n"]
+        if row and n == 0:
+            if row["advance_draft_created_at"] is None and row["finalized_at"] is None:
+                cur.execute("DELETE FROM shows WHERE id=%s", (show_id,))
+            else:
+                cur.execute("UPDATE shows SET responded_at=NULL WHERE id=%s", (show_id,))
+    if artist_id:
+        cur.execute("""DELETE FROM artists a WHERE a.id=%s
+                       AND NOT EXISTS (SELECT 1 FROM shows WHERE artist_id=a.id)
+                       AND NOT EXISTS (SELECT 1 FROM submissions WHERE artist_id=a.id)""", (artist_id,))

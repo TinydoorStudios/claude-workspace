@@ -52,15 +52,9 @@ TEMPLATES = HERE / "email_templates"
 # relabeled "Advancing In Progress" and "finalized" added (Brian, 2026-09-13),
 # kept in sync with status_log.py's own STATE_STYLE — see that file's comment
 # for why.
-STATE_STYLE = {
-    "queued":           ("Not Started",           "#E5E7EB", "#1F2937"),
-    "awaiting":         ("Drafted",                "#FEF3C7", "#78350F"),
-    "ready_to_send":    ("Ready to Send",          "#C7D2FE", "#1E3A5F"),
-    "followup_due":     ("Follow-up Due",          "#FFE4B5", "#7C2D12"),
-    "followup_drafted": ("Follow-up Sent",         "#DBEAFE", "#1E3A5F"),
-    "responded":        ("Advancing In Progress",  "#E9D8FD", "#44337A"),
-    "finalized":        ("Finalized",              "#C6EFCE", "#14532D"),
-}
+sys.path.insert(0, str(HERE.parent))
+import status_labels as SL
+STATE_STYLE = {k: (v[0], "#" + v[2], "#" + v[3]) for k, v in SL.STATE.items()}
 
 SCHEDULE_FIELDS = ("load_in", "soundcheck", "event_start", "event_end", "curfew")
 
@@ -130,16 +124,25 @@ def build_digest(days_ahead=14, hours_back=24):
         drafted = db.advances_drafted_since(cur, hours=hours_back)
         responded = db.advances_responded_since(cur, hours=hours_back)
         upcoming = db.upcoming_advance_status(cur, days=days_ahead)
+        # audit #21: flag a missed 9am lifecycle check yesterday
+        yday = today - dt.timedelta(days=1)
+        missed_yesterday = not db.job_ran_since(
+            cur, "advance-lifecycle", "cron", dt.datetime.combine(yday, dt.time(8, 55))) or False
+        if missed_yesterday:
+            cur.execute("SELECT 1 FROM job_runs WHERE job='advance-lifecycle' AND source='cron' LIMIT 1")
+            missed_yesterday = cur.fetchone() is not None  # only once cron tagging exists
 
     for row in upcoming:
         row["style"] = STATE_STYLE.get(row["state"], (row["state"] or "—", "#E5E7EB", "#374151"))
 
-    env = Environment(loader=FileSystemLoader(str(TEMPLATES)))
+    # autoescape: band/venue names are user-typed (audit cleanup)
+    env = Environment(loader=FileSystemLoader(str(TEMPLATES)), autoescape=True)
     tpl = env.get_template("daily_digest.html.j2")
     html = tpl.render(
         today=today.strftime("%A, %B ") + str(today.day) + today.strftime(", %Y"),
         today_shows=today_shows, today_crew=today_crew,
         drafted=drafted, responded=responded, upcoming=upcoming,
+        missed_yesterday=missed_yesterday,
     )
     subject = f"Advance Digest — {today.strftime('%a %m/%d')}"
     if today_shows:

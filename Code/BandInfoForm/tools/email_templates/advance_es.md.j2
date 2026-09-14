@@ -34,6 +34,8 @@ Hola{% if contact_name %} {{ contact_name }} y{% endif %}{% if name %} {{ name }
 Lugar / Ubicación: {% if blocks.location %}{{ blocks.location }}{% else %}{{ venue }}{% endif +%}
 Contacto de avance: {{ advancing_contact }}
 {% if day_of_contact %}Contacto del día del evento: {{ day_of_contact }}
+{% if engineer_contact %}  Por favor no coordinen el avance con ellos ni los llamen antes del día del show, ya que son personal de medio tiempo.
+{% endif %}{% else %}Contacto del día del evento: les enviaremos su contacto del día del evento la semana del show.
 {% endif %}{% if set_line %}{{ set_line }}
 {% endif %}{% if bill_block %}{{ bill_block }}
 

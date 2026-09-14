@@ -1,0 +1,17 @@
+# Reference copy of /etc/systemd/system/band-advance.service (2026-09-13 audit #23):
+# threaded workers with a 120s timeout so a large stage-plot upload or a slow
+# Spanish translation can't kill a band's submission mid-request, and a 120s
+# graceful shutdown so a restart lets in-flight requests finish.
+[Unit]
+Description=3CDC Band Advance Form
+After=network.target docker.service
+
+[Service]
+User=brian
+WorkingDirectory=/opt/band-advance
+EnvironmentFile=/opt/band-advance/advance.env
+ExecStart=/opt/band-advance/venv/bin/gunicorn --worker-class gthread -w 4 --threads 4 --timeout 120 --graceful-timeout 120 -b 0.0.0.0:8097 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

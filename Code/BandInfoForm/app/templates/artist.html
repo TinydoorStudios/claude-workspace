@@ -37,6 +37,12 @@
   .finalize-btn{background:#1A3A5C;color:#fff;border:0;border-radius:7px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;}
   .finalize-btn:hover{background:#234b70;}
   .finalized-note{color:#3fb950;font-size:12.5px;}
+  .pill.held{background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:#fbbf24;}
+  .pill.cancelled{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.35);color:#f85149;text-decoration:line-through;}
+  .minor-btn{background:transparent;color:#8b97a6;border:1px solid #2a323d;border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;margin-top:6px;}
+  .minor-btn:hover{color:#f85149;border-color:#f85149;}
+  .note{color:#8b97a6;font-size:12px;margin-top:4px;}
+  .note.bad{color:#f85149;}
 </style>
 </head>
 <body>
@@ -59,13 +65,28 @@
       <td class="muted">{{ s.show_series or '—' }}</td>
       <td><span class="pill {{ css }}">{{ label }}</span></td>
       <td>
-        {% if s.state == 'responded' %}
+        {% if s.state == 'held' %}
+        <a href="{{ url_for('show_hold', show_id=s.show_id) }}">On hold — decide →</a>
+        {% elif s.state == 'responded' %}
         <form method="post" action="{{ url_for('finalize_show', artist_id=artist.id, show_id=s.show_id) }}"
               onsubmit="return confirm('Mark this show\'s advance fully finalized? This can\'t be undone.');">
           <button class="finalize-btn" type="submit">Mark Finalized</button>
         </form>
         {% elif s.state == 'finalized' %}
         <span class="finalized-note">✓ Finalized {{ s.finalized_at.strftime('%Y-%m-%d') if s.finalized_at else '' }}</span>
+        {% if s.thankyou_sent_at %}<div class="note">Thank-you sent {{ s.thankyou_sent_at.strftime('%m/%d') }}</div>
+        {% elif s.thankyou_error %}<div class="note bad">Thank-you not sent: {{ s.thankyou_error }}</div>{% endif %}
+        {% endif %}
+        {% if s.state == 'cancelled' %}
+        <form method="post" action="{{ url_for('show_uncancel', show_id=s.show_id) }}"
+              onsubmit="return confirm('Restore this cancelled show? Emails can resume for it.');">
+          <button class="minor-btn" type="submit">Undo cancel</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('show_cancel', show_id=s.show_id) }}"
+              onsubmit="return confirm('Cancel this show? Nothing more will be emailed for it. It stays on record as Cancelled.');">
+          <button class="minor-btn" type="submit">Cancel show</button>
+        </form>
         {% endif %}
       </td>
     </tr>
@@ -87,7 +108,13 @@
         <div class="k">Own engineer</div><div>{{ sub.own_engineer or '—' }}</div>
         <div class="k">Merch</div><div>{{ 'Yes' if sub.merch else ('No' if sub.merch is false else '—') }}</div>
         <div class="k">Band tent</div><div>{{ sub.band_tent or '—' }}</div>
+        {% if sub.vehicle_count is not none or sub.large_vehicle_count is not none %}
+        <div class="k">Vehicles</div><div>{{ sub.vehicle_count if sub.vehicle_count is not none else '—' }} total{% if sub.large_vehicle_count is not none %} · {{ sub.large_vehicle_count }} large{% endif %}</div>
+        {% else %}
         <div class="k">Large vehicle</div><div>{{ 'Yes' if sub.large_vehicle else ('No' if sub.large_vehicle is false else '—') }}</div>
+        {% endif %}
+        {% if sub.data.get('stage_escort_name') %}<div class="k">Stage escort</div><div>{{ sub.data.get('stage_escort_name') }}{% if sub.data.get('stage_escort_cell') %} · {{ sub.data.get('stage_escort_cell') }}{% endif %}</div>{% endif %}
+        {% if sub.data.get('stage_plot_carried_from') %}<div class="k">Stage plot</div><div>carried from {{ sub.data.get('stage_plot_carried_from') }}</div>{% endif %}
         {% if sub.data.get('changed_notes') %}<div class="k" style="color:#fbbf24">Changed since last</div><div style="color:#fbbf24">{{ sub.data.get('changed_notes') }}</div>{% endif %}
         {% if sub.data.get('backline') %}<div class="k">Backline</div><div>{{ sub.data.get('backline') }}</div>{% endif %}
         {% if sub.data.get('stage_plot_desc') %}<div class="k">Stage plot notes</div><div>{{ sub.data.get('stage_plot_desc') }}</div>{% endif %}

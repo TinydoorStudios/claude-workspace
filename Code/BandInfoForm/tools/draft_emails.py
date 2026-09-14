@@ -250,10 +250,17 @@ def main():
                 conn.commit()
 
             slot = (r.get("slot") or "").replace("_", " ")
+            # Day-of contact (audit #15): the MIX ENGINEER's name + cell from the
+            # staffing sheet (FSQ and WP), then the booking's Lead, then — if
+            # neither exists yet — say it comes the week of the show and drop
+            # the "text them 5 minutes out" line (there's no one to text).
             day_of_contact = ""
-            wp_engineer = staffing.engineer_for(venue, show_date) if venue == "Washington Park" else None
-            if wp_engineer:
-                day_of_contact = wp_engineer  # WP: staffing sheet wins over manual entry
+            engineer_contact = False
+            eng = (staffing.engineer_for(venue, show_date)
+                   if venue in ("Fountain Square", "Washington Park") else None)
+            if eng:
+                day_of_contact = eng
+                engineer_contact = True
             elif r.get("lead_name"):
                 day_of_contact = r["lead_name"] + (
                     f" ({r['lead_phone']})" if r.get("lead_phone") else "")
@@ -395,9 +402,13 @@ def main():
 
             last_rows = summarize_submission(prior) if returning else []
             personal_note_en = (r.get("email_note") or "").strip()
+            blocks_en = ve.blocks_for(venue, series=series, **email_extra)
+            if not day_of_contact:
+                blocks_en = ve.without_text_on_arrival(blocks_en, lang="en")
             ctx = dict(
                 name=name, contact_name=_greeting_contact_name(r.get("contact_name"), name), venue=venue,
-                blocks=ve.blocks_for(venue, series=series, **email_extra), common_requirements=ve.COMMON_REQUIREMENTS,
+                blocks=blocks_en, common_requirements=ve.COMMON_REQUIREMENTS,
+                engineer_contact=engineer_contact,
                 personal_note=(f"{personal_note_en}\n\n" if personal_note_en else ""),
                 event_name=r.get("event_name") or "",
                 series=series or "",
@@ -421,8 +432,11 @@ def main():
                 # the English half above already carries both, nothing is
                 # lost by not duplicating them here untranslated.
                 ctx_es = dict(ctx)
+                blocks_es = ve.blocks_for(venue, series=series, lang="es", **email_extra)
+                if not day_of_contact:
+                    blocks_es = ve.without_text_on_arrival(blocks_es, lang="es")
                 ctx_es.update(
-                    blocks=ve.blocks_for(venue, series=series, lang="es", **email_extra),
+                    blocks=blocks_es,
                     common_requirements=ve.COMMON_REQUIREMENTS_ES,
                     personal_note="",
                     set_line=set_line_es, schedule_block=schedule_block_es,

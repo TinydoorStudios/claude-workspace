@@ -125,7 +125,7 @@ def build_report(days=14, start=None):
         days_out.append({"date": d, "label": d.strftime("%A, %b %-d"), "rows": rows})
         d += dt.timedelta(days=1)
 
-    env = Environment(loader=FileSystemLoader(str(TEMPLATES)))
+    env = Environment(loader=FileSystemLoader(str(TEMPLATES)), autoescape=True)
     tpl = env.get_template("crew_report.html.j2")
     return tpl.render(
         start=start.strftime("%b %-d"), end=end.strftime("%b %-d, %Y"), days=days_out,

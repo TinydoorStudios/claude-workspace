@@ -1,29 +1,25 @@
 #!/usr/bin/env python3
 """Build the advance filing tree from the advance list spreadsheet.
 
-The single entrypoint generate.command runs on the VM. It rebuilds events+acts
-from the sheet (form submissions are never touched), then files each event
-into TWO separate subtrees under --out (2026-09-12 — real venue folders):
+Rebuilds events+acts from the sheet (form submissions are never touched),
+then:
 
-    filed/<Real Venue Folder>/<MM.YYYY Code>/
-        <MMDDYY> <Event Name> Prod Adv.docx
-        <MMDDYY> <Band Name> Stageplot.<ext>
-    drafts/<VenueAbbr>/<Year>/<MM Month>/Email Drafts/
-        <MMDDYY> <Event Name> email - <Band>.md      (one per act)
-        <MMDDYY> <Event Name> followup - <Band>.md    (only if queued)
-    status.json                                            (for the sheet's Status)
+  - files each event's advance doc + stage plots IN PLACE in the real venue
+    folder, ~/Dropbox/<Real Venue Folder>/<MM.YYYY Code>/ — created once,
+    after that only blank cells are ever filled (tools/docmerge.py; 2026-09-13
+    audit #1). A value that differs from what the doc already says is left
+    alone and emailed to Brian as a notice. Past shows are never touched.
+    --scope "Venue|YYYY-MM-DD" limits filing to one show (a booking's run).
+  - writes internal email drafts under --out/drafts/<VenueAbbr>/<Year>/
+    <MM Month>/Email Drafts/ (run_now.py overlays those onto Nyquist/)
+  - writes --out/status.json for the sheet's STATUS block
 
-`filed/` mirrors the real, human-used 3CDC venue folders (e.g. "3CDC Fountain
-Square/09.2026 FSQ/") using their own hand-typed naming convention — run_now.py
-overlays it straight onto ~/Dropbox/, alongside everyone else's files. `drafts/`
-has no equivalent in the real folders (an internal working artifact, not a
-finished document) and stays under the Nyquist cockpit instead, in the old
-scheme. Nothing is ever sent — the send step moves to Outlook, so generate no
-longer stamps email_sent_at.
+Nothing here sends band email.
 
-  python3 package_run.py lists/_current.xlsx --out _package
+  python3 package_run.py ~/Dropbox/Nyquist/advance-list.xlsx --out _package [--scope "Fountain Square|2026-09-18"]
 """
 import argparse
+import datetime as dt
 import json
 import re
 import shutil
@@ -39,7 +35,9 @@ for _cand in (HERE.parent, HERE.parent / "app"):
 sys.path.insert(0, str(HERE))
 import advance_db as db
 import daysheet
+import docmerge
 import fieldspec as fs
+import holds
 from draft_emails import slug  # same slug the drafts are named with
 
 PY = sys.executable
@@ -58,15 +56,16 @@ def safe(s):
     return re.sub(r"\s+", " ", s)
 
 
-def event_dir(out, ev, acts):
-    """<out>/filed/<Real Venue Folder>/<MM.YYYY Code>/ — where this event's
-    advance doc + stage plot land, mirroring the real Dropbox venue folder."""
+def event_dir(ev):
+    """~/Dropbox/<Real Venue Folder>/<MM.YYYY Code>/ — where this event's
+    advance doc + stage plot live, written in place (never via an overlay)."""
     venue = ev.get("venue")
     real_folder = fs.real_venue_folder(venue)
     d = ev.get("event_date")
+    root = fs.real_dropbox_root()
     if d:
-        return out / "filed" / safe(real_folder) / fs.real_month_folder(venue, d)
-    return out / "filed" / safe(real_folder) / "No Date"
+        return root / real_folder / fs.real_month_folder(venue, d)
+    return root / real_folder / "No Date"
 
 
 def event_drafts_dir(out, ev):
@@ -96,11 +95,28 @@ def find_one(folder, pattern):
     return hits[0] if hits else None
 
 
+def _scope_set(values):
+    """--scope "Venue|YYYY-MM-DD" (repeatable) -> {(venue, date)}; empty = every event."""
+    out = set()
+    for v in values or []:
+        venue, _, date = v.partition("|")
+        if venue and date:
+            out.add((venue.strip(), date.strip()[:10]))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("sheet")
     ap.add_argument("--out", default="_package")
+    ap.add_argument("--scope", action="append",
+                    help='only file docs for this show: "Venue|YYYY-MM-DD" (repeatable)')
+    ap.add_argument("--no-mail", action="store_true",
+                    help="never email (doc-change notices are still recorded)")
+    ap.add_argument("--dry-run-docs", action="store_true",
+                    help="report what filing would do; write no doc/plot and record nothing")
     args = ap.parse_args()
+    scope = _scope_set(args.scope)
 
     out = (HERE / args.out).resolve()
     if out.exists():
@@ -113,8 +129,7 @@ def main():
         conn.commit()
     run("import_sheet.py", args.sheet)
 
-    # 2. regenerate the flat draft/day-sheet artifacts into their working dirs
-    #    (no --mark-sent: sending is the Outlook step, not generation)
+    # 2. regenerate the flat draft artifacts into their working dirs
     for d in (DRAFTS, FOLLOWUPS, daysheet.FILLED):
         if d.exists():
             for f in d.glob("*"):
@@ -124,88 +139,106 @@ def main():
     run("dump_followups.py")
     run("status_sheet.py", "--json", str(out / "status.json"))
 
-    # 3. file each event into the venue tree
+    # 3. file each event's advance doc IN PLACE in the real venue folder —
+    #    created once, then only blank cells ever filled (docmerge.py). No
+    #    staging tree + rsync overlay any more: that overlay is what used to
+    #    overwrite every filed doc on every run (2026-09-13 audit #1).
     n_events = n_emails = n_followups = n_plots = n_failed = 0
     plot_rels = {}   # (band, venue, date) -> relative path to the filed stage plot
+    results = []
+    today = dt.date.today()
     with db.get_conn() as conn, conn.cursor() as cur:
-        for e in db.list_events(cur):
-            eid = e["id"]
-            ev = db.get_event(cur, eid)
-            acts = db.event_acts(cur, eid)
-            folder = event_dir(out, ev, acts)
-            folder.mkdir(parents=True, exist_ok=True)
-            stem = event_stem(ev, acts)
-            n_events += 1
+        events = db.list_events(cur)
+        per_day = {}
+        for e in events:
+            k = (e.get("venue"), e.get("event_date"))
+            per_day[k] = per_day.get(k, 0) + 1
+        loaded = [(e["id"], db.get_event(cur, e["id"]), db.event_acts(cur, e["id"])) for e in events]
 
-            # download + file each band's stage plot next to the advance doc,
-            # renamed to the show; the day-sheet cell then points at the file.
-            # Named after the BAND, not the event (Brian, 2026-09-08) — a
-            # stage plot is always one band's own document, even on a shared
-            # multi-band bill, so "090926 Sylmar stage plot.pdf" beats
-            # "090926 513 Airwaves w Inhaler Radio stage plot.pdf" regardless
-            # of how many acts are on the night.
-            d = ev.get("event_date")
-            plots = [(a, ((a.get("submission") or {}).get("data") or {}).get("stage_plot_file"))
-                     for a in acts]
-            plots = [(a, s) for (a, s) in plots if s]
-            stageplot_names = {}
-            for a, stored in plots:
-                src = UPLOADS / stored
+    for eid, ev, acts in loaded:
+        n_events += 1
+        d = ev.get("event_date")
+        venue = ev.get("venue")
+        in_scope = (not scope) or ((venue, d.isoformat() if d else "") in scope)
+        folder = event_dir(ev)
+        stem = event_stem(ev, acts)
+        future = bool(d) and d >= today
+
+        stageplot_names = {}
+        plot_notices = []
+        for a in acts:
+            stored = ((a.get("submission") or {}).get("data") or {}).get("stage_plot_file")
+            if not stored or not d:
+                continue
+            band = a["artist"]["name"] if a.get("artist") else "band"
+            fname = f"{fs.stageplot_stem(band, d)}{Path(stored).suffix}"
+            src = UPLOADS / stored
+            if in_scope and future:
                 if not src.exists():
                     print(f"  ! stage plot file missing on server: {stored}")
-                    continue
-                band = a["artist"]["name"] if a.get("artist") else "band"
-                ext = Path(stored).suffix
-                plot_stem = (fs.stageplot_stem(band, d) if d
-                             else f"{safe(band)} stageplot")
-                fname = f"{plot_stem}{ext}"
-                shutil.copy(src, folder / fname)
+                else:
+                    fname, notice = docmerge.file_stage_plot(src, folder, fname,
+                                                              dry_run=args.dry_run_docs)
+                    if notice:
+                        plot_notices.append(notice)
+                    n_plots += 1
+            if (folder / fname).exists() or (in_scope and future and src.exists()):
                 stageplot_names[band] = fname
-                # Link stored in the sheet is relative to the WORKBOOK
-                # (~/Dropbox/Nyquist/advance-list.xlsx), not to `out` — the
-                # filed doc now lives one level up from Nyquist, in the real
-                # venue folder, so "../<Real Venue Folder>/<Month>/<file>".
-                rel = (Path("..") / fs.real_venue_folder(ev.get("venue")) /
-                       fs.real_month_folder(ev.get("venue"), d) / fname).as_posix()
-                key = (band.strip().lower(),
-                       (ev.get("venue") or "").strip().lower(),
-                       d.isoformat() if d else "")
-                plot_rels[key] = rel
-                n_plots += 1
+                rel = (Path("..") / fs.real_venue_folder(venue) /
+                       fs.real_month_folder(venue, d) / fname).as_posix()
+                plot_rels[(band.strip().lower(), (venue or "").strip().lower(),
+                           d.isoformat())] = rel
 
-            # One event's day-sheet failing (e.g. no template for a venue/act-count
-            # combo that's never come up before) must never take down every OTHER
-            # event in the same run — that silently blocked three unrelated real
-            # shows behind one bad one (caught 2026-09-10). Log it, keep going: the
-            # band-facing email drafts below still get filed even without a day-sheet.
+        if in_scope and future:
             try:
-                daysheet.fill(eid, out_path=folder / f"{stem}.docx",
-                              stageplot_names=stageplot_names)
+                res = docmerge.file_event_doc(
+                    eid, ev, acts, stem, stageplot_names=stageplot_names, today=today,
+                    dry_run=args.dry_run_docs,
+                    n_events_same_day=per_day.get((venue, d), 1))
+                res["notices"] = (res.get("notices") or []) + plot_notices
+                results.append((ev, res))
+                print(f"  doc {res['action']:9} {Path(res.get('path') or '').name}"
+                      + (f"  (renamed from {res['renamed_from']})" if res.get("renamed_from") else "")
+                      + (f"  filled {res['filled']}" if res.get("filled") else "")
+                      + (f"  {len(res['notices'])} notice(s)" if res.get("notices") else "")
+                      + ("  [hand-edited]" if res.get("hand_edited") else ""))
+                if res["action"] in ("locked", "conflict"):
+                    n_failed += 1
             except (Exception, SystemExit) as e:
-                # daysheet.fill() calls sys.exit(1) on a missing template — that's
-                # a SystemExit, not an Exception, so it has to be caught here too
-                # or it walks right past this try/except like it isn't there.
+                # one event failing (missing template, unreadable doc) never
+                # takes down every other event in the run (2026-09-10)
                 n_failed += 1
-                print(f"  ! day-sheet failed for '{stem}' ({ev.get('venue')}): {e}",
-                      file=sys.stderr)
+                print(f"  ! day-sheet failed for '{stem}' ({venue}): {e!r}", file=sys.stderr)
 
-            date = ev.get("event_date").isoformat() if ev.get("event_date") else None
-            drafts_dir = event_drafts_dir(out, ev)
-            for a in acts:
-                if not a.get("artist"):
-                    continue
-                name = a["artist"]["name"]
-                sg = slug(name)
-                draft = find_one(DRAFTS, f"{sg}__{date}__*.md" if date else f"{sg}__*.md")
-                if draft:
-                    drafts_dir.mkdir(parents=True, exist_ok=True)
-                    shutil.copy(draft, drafts_dir / f"{stem} email - {safe(name)}.md")
-                    n_emails += 1
-                fu = find_one(FOLLOWUPS, f"{sg}__followup.md")
-                if fu:
-                    drafts_dir.mkdir(parents=True, exist_ok=True)
-                    shutil.copy(fu, drafts_dir / f"{stem} followup - {safe(name)}.md")
-                    n_followups += 1
+        date = d.isoformat() if d else None
+        drafts_dir = event_drafts_dir(out, ev)
+        for a in acts:
+            if not a.get("artist"):
+                continue
+            name = a["artist"]["name"]
+            sg = slug(name)
+            draft = find_one(DRAFTS, f"{sg}__{date}__*.md" if date else f"{sg}__*.md")
+            if draft:
+                drafts_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copy(draft, drafts_dir / f"{stem} email - {safe(name)}.md")
+                n_emails += 1
+            fu = find_one(FOLLOWUPS, f"{sg}__followup.md")
+            if fu:
+                drafts_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copy(fu, drafts_dir / f"{stem} followup - {safe(name)}.md")
+                n_followups += 1
+
+    if results and not args.dry_run_docs:
+        new_notices = docmerge.record_and_email_notices(results, send_mail=not args.no_mail)
+        if new_notices:
+            print(f"  {new_notices} new doc-change notice(s) recorded")
+
+    # 3b. any current show no longer in the sheet goes ON HOLD — no sends —
+    #     until Brian cancels / restores / merges it (audit #4)
+    try:
+        holds.run(args.sheet, send_mail=not args.no_mail, dry_run=args.dry_run_docs)
+    except Exception as e:  # noqa: BLE001 — never blocks filing
+        print(f"  ! holds check failed: {e!r}", file=sys.stderr)
 
     # 4. tell the status merge where each filed stage plot landed (for the sheet link)
     status_path = out / "status.json"

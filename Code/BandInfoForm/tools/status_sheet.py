@@ -18,6 +18,7 @@ for _cand in (HERE.parent, HERE.parent / "app"):
 sys.path.insert(0, str(HERE))
 import advance_db as db
 import fieldspec as fs
+import status_labels as SL
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -81,7 +82,7 @@ COLS = [
     ("Date", 12, lambda st, sub, a: d(st["show_date"]) if st["show_date"] else ""),
     ("Slot", 14, lambda st, sub, a: (a or {}).get("slot", "")),
     ("Set Length", 13, lambda st, sub, a: (a or {}).get("set_time", "")),
-    ("Status", 14, lambda st, sub, a: st["state"]),
+    ("Status", 14, lambda st, sub, a: SL.label(st["state"])),
     ("Advance Drafted", 14, lambda st, sub, a: d(st["advance_draft_created_at"])),
     ("Follow-up Due", 13, lambda st, sub, a: followup_due(st)),
     ("Completed", 11, lambda st, sub, a: "Yes" if st["state"] in ("responded", "finalized") else ""),
@@ -98,6 +99,8 @@ COLS = [
     ("Merch", 8, lambda st, sub, a: yn(sub.get("merch")) if sub else ""),
     ("Band Tent", 22, lambda st, sub, a: g(sub, "band_tent")),
     ("Large Vehicle", 12, lambda st, sub, a: yn(sub.get("large_vehicle")) if sub else ""),
+    ("Vehicle Count", 10, lambda st, sub, a: g(sub, "vehicle_count")),
+    ("Large Vehicle Count", 10, lambda st, sub, a: g(sub, "large_vehicle_count")),
     ("Stage Plot", 30, lambda st, sub, a: g(sub, "stage_plot_desc")),
     ("Backline", 24, lambda st, sub, a: g(sub, "backline")),
     ("Scenic", 22, lambda st, sub, a: g(sub, "scenic")),
@@ -144,6 +147,7 @@ def _band_fields(sub):
         "performers": g(sub, "performers"),
         "large_vehicle": yn(sub.get("large_vehicle")),
         "vehicle_count": g(sub, "vehicle_count"),
+        "large_vehicle_count": g(sub, "large_vehicle_count"),
     }
     return {k: ("" if v is None else str(v)) for k, v in out.items() if v not in (None, "")}
 

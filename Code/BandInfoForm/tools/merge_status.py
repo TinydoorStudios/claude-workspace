@@ -31,6 +31,17 @@ import fieldspec as fs
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.cell_range import CellRange
+import copy
+
+for _c in (Path(__file__).resolve().parent.parent, Path(__file__).resolve().parent.parent / "app"):
+    if (_c / "status_labels.py").exists():
+        sys.path.insert(0, str(_c))
+        break
+try:
+    import status_labels as SL
+except ImportError:  # Mac-side copy without the app folder: fall back to raw keys
+    SL = None
 
 INPUT_SHEET = "Advance List"
 META_SHEET = "_advance_meta"
@@ -44,11 +55,7 @@ GROUP_FILL = "2E7D5B"        # STATUS group bar (green = auto)
 # its own tint since it's now a distinct, earlier stage ("Advancing In
 # Progress" elsewhere in the pipeline — this column shows the raw state key
 # verbatim, same as it always has for every other state).
-STATE_FILL = {
-    "queued": "E5E7EB", "awaiting": "FEF3C7", "ready_to_send": "C7D2FE",
-    "followup_due": "FFE4B5", "followup_drafted": "DBEAFE", "responded": "E9D8FD",
-    "finalized": "C6EFCE",
-}
+STATE_FILL = ({k: v[2] for k, v in SL.STATE.items()} if SL else {})
 
 # appended status columns: (label, json key, width)
 STATUS_COLS = [
@@ -58,6 +65,10 @@ STATUS_COLS = [
     ("Additional", "additional", 26),
 ]
 FILL_KEYS = list(fs.BAND_KEYS) + ["contact_email"]
+STATUS_LABELS = [lbl for (lbl, _k, _w) in STATUS_COLS]
+# Spec columns that get appended to the live sheet automatically if missing
+# (audit #7). Any other missing spec column is assumed deliberately deleted.
+AUTO_ADD_LABELS = ["Vehicle Count", "Large Vehicle Count"]
 _thin = Side(style="thin", color="D9DEE5")
 BORDER = Border(left=_thin, right=_thin, top=_thin, bottom=_thin)
 
@@ -118,6 +129,70 @@ def save_meta(wb, meta):
         ws.cell(i, 2, val)
 
 
+def _shift_col_in_range(ref, start, count):
+    """Shift a range string left by `count` for columns after the deleted
+    block; None if the range lies entirely inside the deleted block."""
+    cr = CellRange(ref)
+    end = start + count - 1
+    if cr.min_col >= start and cr.max_col <= end:
+        return None
+    def sh(c):
+        if c > end:
+            return c - count
+        if c >= start:
+            return start
+        return c
+    new_min, new_max = sh(cr.min_col), sh(cr.max_col)
+    if cr.max_col > end and cr.min_col < start:
+        new_max = cr.max_col - count
+    return CellRange(min_col=new_min, min_row=cr.min_row, max_col=new_max, max_row=cr.max_row).coord
+
+
+def delete_columns_safe(ws, start, count, meta):
+    """Delete `count` columns at `start` and keep everything that openpyxl
+    doesn't move by itself consistent: merged ranges, data validations,
+    column widths, and the _advance_meta cell addresses (audit #17)."""
+    merges = [str(m) for m in ws.merged_cells.ranges]
+    for m in merges:
+        ws.unmerge_cells(m)
+    widths = {c: ws.column_dimensions[get_column_letter(c)].width
+              for c in range(1, ws.max_column + 1)}
+    ws.delete_cols(start, count)
+    for m in merges:
+        new = _shift_col_in_range(m, start, count)
+        if new:
+            ws.merge_cells(new)
+    for dv in list(ws.data_validations.dataValidation):
+        parts = []
+        for rng in str(dv.sqref).split():
+            new = _shift_col_in_range(rng, start, count)
+            if new:
+                parts.append(new)
+        if parts:
+            dv.sqref = " ".join(parts)
+        else:
+            ws.data_validations.dataValidation.remove(dv)
+    for c, w in widths.items():
+        if c >= start + count:
+            ws.column_dimensions[get_column_letter(c - count)].width = w
+    remapped = {}
+    for addr, val in meta.items():
+        r, c = addr[1:].split("c")
+        c = int(c)
+        if start <= c < start + count:
+            continue
+        remapped[f"r{r}c{c - count if c >= start + count else c}"] = val
+    return remapped
+
+
+def last_header_col(ws, hrow):
+    last = 0
+    for c in range(1, ws.max_column + 1):
+        if _s(ws.cell(hrow, c).value):
+            last = c
+    return last
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--list", required=True, type=Path)
@@ -137,6 +212,35 @@ def main():
 
     hrow = find_header_row(ws)
     data_start = hrow + 1
+    meta_prev = load_meta(wb)
+
+    # ── remove EVERY existing STATUS block (stale copies included) so the one
+    #    rebuilt below is always the only one, always at the far right, and
+    #    never overwrites a column someone added by hand (audit #17) ─────────
+    while True:
+        found = None
+        for c in range(1, ws.max_column - len(STATUS_LABELS) + 2):
+            if [_s(ws.cell(hrow, c + i).value) for i in range(len(STATUS_LABELS))] == STATUS_LABELS:
+                found = c
+        if not found:
+            break
+        meta_prev = delete_columns_safe(ws, found, len(STATUS_LABELS), meta_prev)
+
+    # ── append any auto-add spec column that's missing (audit #7) ───────────
+    present = {_s(ws.cell(hrow, c).value) for c in range(1, ws.max_column + 1)}
+    for lbl in AUTO_ADD_LABELS:
+        if lbl in present:
+            continue
+        col = last_header_col(ws, hrow) + 1
+        src = ws.cell(hrow, col - 1)
+        h = ws.cell(hrow, col, lbl)
+        if src.has_style:
+            h.font = copy.copy(src.font)
+            h.fill = copy.copy(src.fill)
+            h.alignment = copy.copy(src.alignment)
+            h.border = copy.copy(src.border)
+        ws.column_dimensions[get_column_letter(col)].width = 14
+        present.add(lbl)
 
     # label -> column, from the actual header row (so columns can be reordered or
     # removed). The STATUS block is anchored past the last real input column, not
@@ -147,7 +251,7 @@ def main():
         lbl = _s(ws.cell(hrow, c).value)
         if lbl in spec_labels:
             col_of[lbl] = c
-    n_input = max(col_of.values()) if col_of else 0
+    n_input = last_header_col(ws, hrow)
     key_col = {fs.LABEL_TO_KEY[lbl]: c for lbl, c in col_of.items()
                if lbl in fs.LABEL_TO_KEY}
     fill_cols = [(k, key_col[k]) for k in FILL_KEYS if k in key_col]
@@ -157,7 +261,6 @@ def main():
     if not c_artist:
         raise SystemExit("couldn't locate the Artist Name column")
 
-    meta_prev = load_meta(wb)
     meta_new = {}
 
     # last real data row
@@ -218,7 +321,8 @@ def main():
             cell.fill = PatternFill(fill_type=None)
             cell.border = Border()
 
-    ws.merge_cells(start_row=hrow - 1, start_column=start, end_row=hrow - 1, end_column=end)
+    if hrow > 1:
+        ws.merge_cells(start_row=hrow - 1, start_column=start, end_row=hrow - 1, end_column=end)
     gb = ws.cell(hrow - 1, start, "STATUS — auto, do not edit")
     gb.fill = PatternFill("solid", fgColor=GROUP_FILL)
     gb.font = Font(bold=True, color="FFFFFF")
@@ -241,7 +345,10 @@ def main():
         rec = index.get((norm(band), norm(venue), date)) or {}
         for i, (_lbl, k, _w) in enumerate(STATUS_COLS):
             c = start + i
-            cell = ws.cell(r, c, rec.get(k, "") or "")
+            val = rec.get(k, "") or ""
+            if k == "state" and val and SL:
+                val = SL.label(val)
+            cell = ws.cell(r, c, val)
             cell.border = BORDER
             cell.alignment = Alignment(vertical="center", wrap_text=True)
             cell.fill = banding(r)
