@@ -659,7 +659,9 @@ def fill_engineer(grid, event, n, acts=None):
     names = {}
     if venue and date:
         try:
-            names = staffing.engineers_for(venue, date.isoformat())
+            names = staffing.engineers_for(
+                venue, date.isoformat(),
+                series=event.get("series"), event_name=event.get("name"))
         except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the fill
             print(f"[daysheet] engineer lookup failed: {e!r}", file=sys.stderr)
             names = {}

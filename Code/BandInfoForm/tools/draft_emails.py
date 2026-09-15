@@ -266,7 +266,9 @@ def main():
             # the "text them 5 minutes out" line (there's no one to text).
             day_of_contact = ""
             engineer_contact = False
-            eng = (staffing.engineer_for(venue, show_date)
+            eng = (staffing.engineer_for(venue, show_date,
+                                         series=r.get("series"),
+                                         event_name=r.get("event_name"))
                    if venue in ("Fountain Square", "Washington Park") else None)
             if eng:
                 day_of_contact = eng

@@ -75,7 +75,9 @@ def _schedule_lines(r, lang="en"):
 
 
 def _day_of_contact(r):
-    eng = (staffing.engineer_for(r["venue"], r["show_date"])
+    eng = (staffing.engineer_for(r["venue"], r["show_date"],
+                                 series=r.get("series"),
+                                 event_name=r.get("event_name"))
            if r["venue"] in ("Fountain Square", "Washington Park") else None)
     if eng:
         return eng, True
