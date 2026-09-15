@@ -2,6 +2,9 @@
 
 The console has a bank of 32-band graphic EQs. They're internal devices, inserted on a bus like an FX unit.
 
+![Graphic EQ panel](/figures/q2-graphic-eq.png)
+*Graphic EQ panel — Quantum 2 offline software, V22.*
+
 ## Insert it
 
 1. Open the bus's Output panel (touch the bottom of the strip). Choose **insert A** or **insert B**.

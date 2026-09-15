@@ -2,6 +2,9 @@
 
 Setup > **Talkback** opens the panel. The talkback mic input, its gain and the three talk buttons are all here and mirrored on the surface talkback area.
 
+![Setup > Talkback](/figures/q2-talkback.png)
+*Setup > Talkback — Quantum 2 offline software, V22.*
+
 ![Talkback panel](/figures/ref-p169-1.png)
 
 ## Set up the mic

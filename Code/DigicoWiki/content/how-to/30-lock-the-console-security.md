@@ -2,6 +2,9 @@
 
 System > **Security**. Three levels:
 
+![System > Security](/figures/q2-security.png)
+*System > Security — Quantum 2 offline software, V22.*
+
 | Mode | Effect |
 |---|---|
 | **Setup** | Everything open. Normal state. |

@@ -2,6 +2,9 @@
 
 The Spice Rack is the Quantum processing rack. Two devices: **Chilli 6**, a multiband compressor with four flat-top bands plus two parametric bands, and **Naga 6**, a six-band dynamic EQ. You insert one on a channel or bus like any internal device, then edit it here.
 
+![Processors > Spice Rack (Chilli 6)](/figures/q2-spice-rack.png)
+*Processors > Spice Rack (Chilli 6) — Quantum 2 offline software, V22.*
+
 Open it: Master screen > **Processors** > **Spice Rack**. Soloing a channel that has a Spice Rack unit inserted brings the rack up on the right slot automatically.
 
 ![Spice Rack / Chilli 6](/figures/ref-p126-1.png)

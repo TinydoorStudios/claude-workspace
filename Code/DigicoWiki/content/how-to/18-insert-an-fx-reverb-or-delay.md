@@ -2,6 +2,9 @@
 
 The console's own FX are stereo FPGA reverbs, delays, chorus, pitch and enhancers, created from **fx presets** and fed from any channel output, direct out, aux or insert send.
 
+![The fx rack](/figures/q2-fx.png)
+*The fx rack — Quantum 2 offline software, V22.*
+
 ## The usual way: an aux feeding a reverb
 
 1. Pick an aux to be the reverb send. Touch the **bottom** of the aux strip to open its Output panel and press **fx presets**.

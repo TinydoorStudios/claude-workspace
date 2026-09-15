@@ -2,6 +2,9 @@
 
 Work top-down. Most "no audio" calls are routing or a mute, not a fault.
 
+![System > Diagnostics](/figures/q2-diagnostics.png)
+*System > Diagnostics — Quantum 2 offline software, V22.*
+
 ## No audio on a channel
 
 1. Is the channel **muted**, CG-muted (blue CG MUTE indicator) or hard-muted? Is the fader up? Is the **main/alt** input the one you expect (red = alt)?

@@ -2,6 +2,9 @@
 
 Setup > **Audio Sync**. The session sample rate (48 or 96 kHz) is set in Session Structure; this panel only chooses where the clock comes from.
 
+![Setup > Audio Sync](/figures/q2-audio-sync.png)
+*Setup > Audio Sync — Quantum 2 offline software, V22.*
+
 ![Audio Sync panel](/figures/ref-p157-2.png)
 
 Default is **Master** (internal). The Q225 can also lock to Word Clock, AES, MADI, the Waves card, and DMI cards (Dante, MADI). A green **OK** beside a source means a valid clock is present there, whether or not it's selected. The setting is saved in the session.

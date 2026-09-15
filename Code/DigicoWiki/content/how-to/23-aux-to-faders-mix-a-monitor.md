@@ -2,6 +2,12 @@
 
 Solo an aux and the channel faders become the sends to that aux. That's the default behaviour (Options > Solo > *Solo assigns aux sends to faders*, on by default) and the fastest way to build a wedge or IEM mix.
 
+![Layout > Aux to Faders](/figures/q2-aux-to-faders.png)
+*Layout > Aux to Faders — Quantum 2 offline software, V22.*
+
+![Layout > Aux Nodes](/figures/q2-aux-nodes.png)
+*Layout > Aux Nodes — Quantum 2 offline software, V22.*
+
 1. Go to the outputs layer and press **solo** on the aux. The input faders jump to their send levels for that aux; the top row of encoders also takes the sends (*Solo assigns aux to top encoders*).
 2. Move faders. What you hear on the solo bus is that aux, post its own processing if **True Solo** is on.
 3. Press the aux's solo again (or Clear) to return the faders to channel levels.

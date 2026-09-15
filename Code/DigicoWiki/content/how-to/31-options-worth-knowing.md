@@ -2,6 +2,9 @@
 
 Master screen > **Options**. Ten tabs; purple = on. These are the ones that change how the desk feels.
 
+![Options panel](/figures/q2-options.png)
+*Options panel — Quantum 2 offline software, V22.*
+
 ## Surface
 
 - **Auto expand EQ / dynamics** and the *auto-expand time* pot: the panel pops open when you turn an encoder and closes after n seconds. *Auto-Expand Exclude Off* stops it popping when you switch a module off.

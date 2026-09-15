@@ -2,6 +2,9 @@
 
 The DMI-KLANG takes 64 channels from the console and returns **16 stereo mixes** (as 32 channels) plus a stereo engineer cue (channels 33/34). No audio connectors on the card: the audio moves over the DMI bus. Two EtherCON and one RJ45 **control** ports (all one internal switch) for the console, the KLANG:app computer and Wi-Fi for the musicians' phones; a USB port for updates and presets.
 
+![Setup > External Control, where KLANG is added](/figures/q2-external-control.png)
+*Setup > External Control, where KLANG is added — Quantum 2 offline software, V22.*
+
 ![DMI-KLANG](/figures/ref-p242-1.png)
 
 ## Install and network

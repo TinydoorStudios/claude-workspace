@@ -2,6 +2,12 @@
 
 Everything else on this wiki assumes the desk is up. Here's the order that keeps it happy.
 
+![The Master screen on the Q225 (offline software, V22)](/figures/q2-master-screen.png)
+*The Master screen on the Q225 (offline software, V22) — Quantum 2 offline software, V22.*
+
+![System menu](/figures/q2-m-system.png)
+*System menu — Quantum 2 offline software, V22.*
+
 ## Power up
 
 1. Make all audio and network connections first: MADI/Dante to the racks, Ethernet to the KLANG/Waves computers, USB MADI to the recording machine. DiGiCo's advice is connections before power, every time.

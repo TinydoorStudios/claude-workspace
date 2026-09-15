@@ -2,6 +2,15 @@
 
 The Q225 surface is two sections of 12 faders. Each section has up to 3 **layers**, each layer up to 4 **banks** of 12. The bank and layer buttons sit to the right of each section. Hold a bank button on one side and press the other side's to switch both sections together.
 
+![One bank of twelve input channels on the Left screen](/figures/q2-channel-strip.png)
+*One bank of twelve input channels on the Left screen — Quantum 2 offline software, V22.*
+
+![Layout > Fader Banks](/figures/q2-fader-banks.png)
+*Layout > Fader Banks — Quantum 2 offline software, V22.*
+
+![Layout > Channel List](/figures/q2-channel-list.png)
+*Layout > Channel List — Quantum 2 offline software, V22.*
+
 ![Layers and banks](/figures/gs-p009-1.png)
 
 Default layout: inputs on layer 1, outputs (groups, auxes, matrices) on layer 2, control groups on layer 2 as well. The right section can also show the Master screen (button above the master fader).

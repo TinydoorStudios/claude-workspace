@@ -2,6 +2,9 @@
 
 Two kinds of names. **Socket names** live in Audio I/O and follow the physical input ("Stage Rack: Mic 3"). **Channel names** live on the channel and, by default, copy the socket name until you type something.
 
+![Layout > Channel List](/figures/q2-channel-list.png)
+*Layout > Channel List — Quantum 2 offline software, V22.*
+
 ## Channel names, one at a time
 
 Touch the white name box in Channel Setup (top of the strip) or the Output panel. The on-screen keyboard has cut/copy/paste, arrows, **OK** and **CAN**. **Next** saves and jumps to the following channel, which is the fast way to name a bank.

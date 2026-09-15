@@ -2,6 +2,9 @@
 
 Don't build from nothing on show day. Load the house template, then rename and save it as the show. Building from scratch is for when the channel count or bus layout has to change.
 
+![Files > Session Structure](/figures/q2-session-structure.png)
+*Files > Session Structure — Quantum 2 offline software, V22.*
+
 ## From a template
 
 Files > **Templates** > pick the template > **Load**. Then Files > Save As New File with the show name.

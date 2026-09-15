@@ -2,6 +2,12 @@
 
 Sessions are `.ses` files. The console keeps its own in `D:\Projects`; a USB stick shows up as *Removable*.
 
+![Files > Load Session](/figures/q2-load-session.png)
+*Files > Load Session — Quantum 2 offline software, V22.*
+
+![Files > Templates](/figures/q2-templates.png)
+*Files > Templates — Quantum 2 offline software, V22.*
+
 1. Master screen > **Files** > **Load Session**.
 2. Top left: pick **Internal** (D:\Projects) or **Removable** (USB). Expand folders with the **+**.
 3. Touch the session in the middle list. The columns tell you when it was saved, its description, and how many inputs, auxes, groups and matrix channels it has, which is a quick way to spot the wrong file.

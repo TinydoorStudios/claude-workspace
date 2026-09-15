@@ -2,6 +2,12 @@
 
 ## From the channel strip
 
+![Input channel strips: gain/trim and 48V live in the input area at the top](/figures/q2-channel-strip.png)
+*Input channel strips: gain/trim and 48V live in the input area at the top — Quantum 2 offline software, V22.*
+
+![Setup > Audio I/O with a rack port selected](/figures/q2-audio-io.png)
+*Setup > Audio I/O with a rack port selected — Quantum 2 offline software, V22.*
+
 The **input area** at the top of the strip shows analogue gain (big rotary), digital trim (small rotary), polarity, 48V and, on the Q225, the main/alt selector.
 
 - Assign the channel (touch it so it goes gold). The big on-screen rotary follows the encoder above the strip; the button under that encoder flips **polarity**.

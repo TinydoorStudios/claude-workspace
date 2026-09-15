@@ -2,6 +2,9 @@
 
 ## On the console
 
+![Setup > Audio I/O: one port per connection](/figures/q2-audio-io.png)
+*Setup > Audio I/O: one port per connection — Quantum 2 offline software, V22.*
+
 The Q225 rear panel carries 8 mic/line inputs and 8 line outputs, 4 AES I/O, a MADI port (BNC), USB audio (the "UB MADI" device the recording machine sees), MIDI, GPIO, word clock I/O, two Ethernet ports, a display port, and **two DMI slots**. Everything beyond that comes through the DMI cards.
 
 ![Q225 rear panel](/figures/gs-p008-1.png)

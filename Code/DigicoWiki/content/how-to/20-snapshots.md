@@ -2,6 +2,9 @@
 
 A snapshot is a picture of the whole console. What it *changes* when you fire it is limited by the **Global Scope**, each snapshot's own **Recall Scope**, and the **safes** on individual channels.
 
+![Snapshots panel](/figures/q2-snapshots.png)
+*Snapshots panel — Quantum 2 offline software, V22.*
+
 ![Snapshots panel](/figures/ref-p092-2.png)
 
 ## Store

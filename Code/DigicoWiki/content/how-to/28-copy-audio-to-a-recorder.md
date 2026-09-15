@@ -2,6 +2,9 @@
 
 You don't need a direct out per channel to record a show. **Copy Audio** duplicates any input socket to any output port (MADI, USB audio, Dante) without using console processing, and can flip the console to play the recording back for a virtual soundcheck.
 
+![Setup > Copy Audio](/figures/q2-copy-audio.png)
+*Setup > Copy Audio — Quantum 2 offline software, V22.*
+
 ## The quick way: whole rack to one port
 
 Setup > Audio I/O > select the rack in the ports list > **Copy Audio To** dropdown > pick the destination port (e.g. USB audio / MADI to the recorder). All of that rack's inputs are copied in order.

@@ -2,6 +2,9 @@
 
 Two buttons, two different jobs.
 
+![Files > Save As New File](/figures/q2-save-as.png)
+*Files > Save As New File — Quantum 2 offline software, V22.*
+
 **Files > Save Session** overwrites the file you loaded, in place. It's the quick save. There is no undo.
 
 **Files > Save As New File** writes a new file. Use it at the start of a show day so you always have last week's version untouched.

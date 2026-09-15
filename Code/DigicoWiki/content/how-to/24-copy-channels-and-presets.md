@@ -2,6 +2,12 @@
 
 ## Copy To / Copy From
 
+![Copy To panel](/figures/q2-copy-to.png)
+*Copy To panel — Quantum 2 offline software, V22.*
+
+![Channel Presets](/figures/q2-channel-presets.png)
+*Channel Presets — Quantum 2 offline software, V22.*
+
 In Channel Setup (top of the strip) the **Channel Settings** area has **Copy To** and **Copy From**.
 
 - **Copy To** takes *this* channel and pastes it onto one or many others. Press Copy To, tick the scope buttons (input, EQ, dynamics, aux sends, outputs… they go pink when included), then press the select button of each destination. **Stay Open** keeps the panel up while you hit several destinations.

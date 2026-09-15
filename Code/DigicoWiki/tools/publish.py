@@ -45,6 +45,11 @@ def sync_assets(local_dir, slug):
         upload(fid, fp); n += 1
         if n % 50 == 0: print(f'  uploaded {n}…', flush=True)
     print(f'assets /{slug}: {len(files)} local, {n} uploaded, {len(have)} already there')
+    if '--prune-assets' in sys.argv:
+        local = {os.path.basename(f) for f in files}
+        for a in gql('query($f:Int!){assets{list(folderId:$f,kind:ALL){id filename}}}', {'f': fid})['assets']['list']:
+            if a['filename'] not in local:
+                gql('mutation($id:Int!){assets{deleteAsset(id:$id){responseResult{succeeded message}}}}', {'id': a['id']}); print('  deleted asset', a['filename'])
 def main():
     site = sys.argv[1]; flags = sys.argv[2:]
     if '--search' in flags:

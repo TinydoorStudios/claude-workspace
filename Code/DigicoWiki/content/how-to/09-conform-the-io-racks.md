@@ -2,6 +2,12 @@
 
 "Conforming" makes the on-screen rack match the cards physically in it. If a card label under the rack graphic is **red**, the console thinks a different card is there and audio on that card is suspect. **Green** is good.
 
+![Setup > Audio I/O](/figures/q2-audio-io.png)
+*Setup > Audio I/O — Quantum 2 offline software, V22.*
+
+![The Setup menu](/figures/q2-m-setup.png)
+*The Setup menu — Quantum 2 offline software, V22.*
+
 ![Audio I/O panel](/figures/ref-p150-2.png)
 
 ## Conform everything

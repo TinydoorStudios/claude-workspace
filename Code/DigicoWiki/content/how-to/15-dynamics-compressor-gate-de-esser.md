@@ -2,6 +2,9 @@
 
 Each channel has two SD dynamics modules, under the EQ in the strip. Touch **Comp** or **Gate** to open the panel.
 
+![Dynamics panel](/figures/q2-dynamics.png)
+*Dynamics panel — Quantum 2 offline software, V22.*
+
 ![Dynamics panel](/figures/ref-p051-1.png)
 
 **Module 1** is a compressor, a 3-band multiband compressor, or a de-esser (the *comp / multi / desser* button on its left).

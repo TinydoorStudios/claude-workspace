@@ -2,6 +2,9 @@
 
 There are two solo busses. Every channel can be assigned to solo 1, solo 2 or both, so one bus can feed the headphones and the other a wedge or a cue send.
 
+![Solos panel: Solo 1 and Solo 2](/figures/q2-solos.png)
+*Solos panel: Solo 1 and Solo 2 — Quantum 2 offline software, V22.*
+
 ## The Solo panel
 
 Master screen > **Solos**. The left half is Solo 1, the right half Solo 2; they work identically.

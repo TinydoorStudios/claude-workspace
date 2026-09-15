@@ -2,6 +2,9 @@
 
 A Control Group (CG) moves the faders and mutes of its members. It carries no audio, unlike a Group bus. The Q225 has 12; the count is set in Session Structure. CGs live on layer 2 by default.
 
+![Control Groups panel](/figures/q2-control-groups.png)
+*Control Groups panel — Quantum 2 offline software, V22.*
+
 ## Make one
 
 Either:

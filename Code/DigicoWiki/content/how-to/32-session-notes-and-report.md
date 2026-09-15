@@ -2,6 +2,12 @@
 
 ## Notes
 
+![Files > Session Notes](/figures/q2-session-notes.png)
+*Files > Session Notes — Quantum 2 offline software, V22.*
+
+![Files > Session Report](/figures/q2-session-report.png)
+*Files > Session Report — Quantum 2 offline software, V22.*
+
 Files > **Session Notes** is a free-text panel saved in the session. Put the show name, who built it, what's patched where, and anything the next person needs. Each snapshot has its own **Notes** button in the Snapshots panel too.
 
 ![Session Notes](/figures/ref-p082-1.png)

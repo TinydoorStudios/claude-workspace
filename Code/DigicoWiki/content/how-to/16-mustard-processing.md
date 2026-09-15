@@ -2,6 +2,12 @@
 
 Mustard is a second channel strip that runs alongside the standard SD strip on every Quantum channel: a preamp/tube model, a 4-band EQ with filters, four compressor types and a gate/ducker. A channel counts as "using Mustard" as soon as any one module is on; the count in use and remaining is in System > Diagnostics > **Engine**. The Q225 getting-started guide quotes 24 simultaneous Mustard strips.
 
+![Strip switched to the Mustard view (M button)](/figures/q2-mustard-strip.png)
+*Strip switched to the Mustard view (M button) — Quantum 2 offline software, V22.*
+
+![Mustard EQ panel](/figures/q2-mustard-panel.png)
+*Mustard EQ panel — Quantum 2 offline software, V22.*
+
 ![Mustard channel strip](/figures/ref-p054-1.png)
 
 ## Switch the strip view

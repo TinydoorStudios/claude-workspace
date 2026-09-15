@@ -2,6 +2,9 @@
 
 Output channels (aux, group, matrix) route from their **Output** panel to a socket on the console or a rack.
 
+![Output panel routing (same panel on a bus)](/figures/q2-channel-output.png)
+*Output panel routing (same panel on a bus) — Quantum 2 offline software, V22.*
+
 1. Go to the layer/bank with the bus (outputs live on layer 2 by default). Touch the **bottom** of the bus strip.
 2. Press **output** at the bottom of the panel, then the routing button. Pick the port (Local I/O, rack, DMI-Dante…), signal group, then the output socket. Any number of outputs can be selected for a bus.
 3. The route shows under the button. Unlike inputs, adding a route doesn't remove the previous one; touch a blue socket again to remove it.

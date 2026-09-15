@@ -2,6 +2,9 @@
 
 The Quantum offline software is the console application running on a Windows PC. Use it to build a session at home, then load it on the desk, or mirror it to the desk for remote control.
 
+![Network panel](/figures/q2-network.png)
+*Network panel — Quantum 2 offline software, V22.*
+
 ## Get it
 
 support.digico.biz > Software Downloads > Quantum > **V22 Quantum Offline Software** (download the Q225 package; the Q225 and Q225 Dual Screen builds are separate). The console must be on the same version to open a session saved from it. The installer creates `C:\Quantum2` and a desktop shortcut. Templates are read from `C:\Templates` in offline (D:\Templates on the desk).

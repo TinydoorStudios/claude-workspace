@@ -2,6 +2,9 @@
 
 Every input channel has a 24 dB/oct high-pass and low-pass, then four fully parametric bands, each of which can be made dynamic. Output channels have EQ too (see the manual for bus EQ).
 
+![EQ/filters panel](/figures/q2-eq.png)
+*EQ/filters panel — Quantum 2 offline software, V22.*
+
 ## Filters
 
 The filters area sits under the input area of the strip: two frequency rotaries with on/off buttons, LPF on top, HPF below. Dedicated filter encoders are at the top of the channel worksurface controls. If meters are hiding the filters, moving a filter encoder shows them briefly; the assign-down button hides the meters for good.

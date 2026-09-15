@@ -2,6 +2,9 @@
 
 An input channel can feed four places: the **aux busses**, the **group busses** (including the master), its **insert sends**, and its **direct output**.
 
+![Channel Output panel: groups, direct out, inserts](/figures/q2-channel-output.png)
+*Channel Output panel: groups, direct out, inserts — Quantum 2 offline software, V22.*
+
 ## Groups and the master
 
 1. Touch the **bottom** of the channel strip (the mute/name area under the pan) to open the Output panel.
