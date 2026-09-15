@@ -169,7 +169,8 @@ def submit_form(band, venue, date, monitors="3", extra=None, artist_tok=""):
 def make_booking(band, venue, date, series="Jazz on the Square", email=None, **kw):
     data = {"artist_name": band, "venue": venue, "event_date": date.isoformat(), "series": series,
             "contact_name": "Test Contact", "contact_email": email or f"{re.sub('[^a-z]', '', band.lower())}@example.test",
-            "entered_by": "tests", "band_count": "1", "slot": "headliner"}
+            "entered_by": "tests", "band_count": "1", "slot": "headliner",
+            "set_start": "19:00", "set_end": "20:00"}
     data.update(kw)
     return post("/booking", data)
 
@@ -543,7 +544,8 @@ def t_booking_edit_notify():
     base = {"artist_name": "Edit Test Band", "venue": "Fountain Square", "event_date": d.isoformat(),
             "series": "Jazz on the Square", "contact_name": "Test Contact",
             "contact_email": "edittest@example.test", "entered_by": "tests",
-            "band_count": "1", "slot": "edittestslot", "event_start": "7:00p", "event_end": "10:00p"}
+            "band_count": "1", "slot": "edittestslot", "event_start": "7:00p", "event_end": "10:00p",
+            "set_start": "19:00", "set_end": "22:00"}
     st, _ = post("/booking", base)
     check(st == 200, f"booking created ({st})")
     row = q("""SELECT id FROM bookings WHERE lower(btrim(artist_name))='edit test band'
@@ -754,7 +756,8 @@ def t_third_party_contact():
     d = TODAY + dt.timedelta(days=5)
     data = {"artist_name": "No Contact Corp Event", "venue": "Washington Park", "location": "Main Stage",
             "event_date": d.isoformat(), "series": "3rd Party", "contact_name": "", "contact_email": "",
-            "entered_by": "tests", "band_count": "1", "slot": "headliner", "event_name": "Widget Co Picnic"}
+            "entered_by": "tests", "band_count": "1", "slot": "headliner", "event_name": "Widget Co Picnic",
+            "set_start": "12:00", "set_end": "16:00"}
     st, body = post("/booking", data)
     check(st == 200 and "Contact email is required" not in body, f"3rd-party booking accepted without a contact ({st})")
     check(wait_run_now(), "run finished")
@@ -772,7 +775,8 @@ def t_third_party_optional():
     login()
     d = TODAY + dt.timedelta(days=47)
     base = {"artist_name": "", "venue": "Fountain Square", "event_date": d.isoformat(), "series": "3rd Party",
-            "contact_name": "", "contact_email": "", "entered_by": "tests", "band_count": "1", "slot": "headliner"}
+            "contact_name": "", "contact_email": "", "entered_by": "tests", "band_count": "1", "slot": "headliner",
+            "set_start": "12:00", "set_end": "16:00"}
     st, body = post("/booking", dict(base, event_name=""))
     check(st == 400 and "Event Name is required" in body, f"3rd-party booking without an event name refused ({st})")
     st, body = post("/booking", dict(base, event_name="Optional Fields Gala"))

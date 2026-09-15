@@ -859,6 +859,75 @@ def _event_type_for_series(series):
     return "Third Party" if (series or "").strip().lower() == "3rd party" else "Internal"
 
 
+# Set Start / Set End (Brian, 2026-09-15): two new required fields on the
+# booking form that aren't stored themselves — their only job is filling
+# Load-In / Sound Check / Start / End / Set Length. booking.html's JS does
+# this live as staff type; these are the server-side mirror, so a field the
+# JS didn't reach (a non-JS client, a direct API call) still gets filled —
+# and only ever fills a BLANK field, never overwrites what staff (or the JS)
+# already put there.
+_CLOCK_RE = re.compile(r'^\s*(\d{1,2}):(\d{2})\s*([ap])m?\s*$', re.IGNORECASE)
+
+
+def _time_to_minutes(hhmm):
+    """'19:00' (a native <input type=time>'s value) -> 1140, or None."""
+    try:
+        h, m = (hhmm or "").strip().split(":")
+        return int(h) * 60 + int(m)
+    except (ValueError, AttributeError):
+        return None
+
+
+def _minutes_to_clock(mins):
+    """1140 -> '7:00p' — matches the form's own placeholder convention
+    ('e.g. 4:30p', 'e.g. 11:00p') and the JS calc that drives the live
+    preview in booking.html."""
+    mins = ((mins % 1440) + 1440) % 1440
+    h, m = divmod(mins, 60)
+    ap = "a" if h < 12 else "p"
+    h = h % 12 or 12
+    return f"{h}:{m:02d}{ap}"
+
+
+def _clock_to_hhmm(text):
+    """The reverse — '7:00p' / '11:30am' -> '19:00' / '11:30' for a native
+    <input type=time>'s value, or None if it doesn't look like a plain
+    clock time (a locked-schedule series renders other text here, e.g.).
+    Backfills Set Start/Set End when opening the edit page for a booking
+    that predates this feature, from its existing Start/End."""
+    m = _CLOCK_RE.match(text or "")
+    if not m:
+        return None
+    h, mm, ap = int(m.group(1)), int(m.group(2)), m.group(3).lower()
+    if not (1 <= h <= 12 and 0 <= mm < 60):
+        return None
+    h = h % 12
+    if ap == "p":
+        h += 12
+    return f"{h:02d}:{mm:02d}"
+
+
+def _derive_schedule(data, f):
+    """Fill event_start/event_end/load_in/soundcheck/set_time from
+    Set Start/Set End wherever the caller (staff, or the JS) left them
+    blank. Mutates `data` in place."""
+    s = _time_to_minutes(f.get("set_start"))
+    e = _time_to_minutes(f.get("set_end"))
+    if s is not None and not data.get("load_in"):
+        data["load_in"] = _minutes_to_clock(s - 60)
+    if s is not None and not data.get("soundcheck"):
+        data["soundcheck"] = _minutes_to_clock(s - 30)
+    if s is not None and not data.get("event_start"):
+        data["event_start"] = _minutes_to_clock(s)
+    if e is not None and not data.get("event_end"):
+        data["event_end"] = _minutes_to_clock(e)
+    if s is not None and e is not None and not data.get("set_time"):
+        d = e - s
+        if d <= 0:
+            d += 1440
+        data["set_time"] = f"{d} min"
+
+
 def _locked_schedule_series():
     """Best-effort — an empty list just means the booking form shows the
     schedule-time fields for every series, never blocks the form from
@@ -938,6 +1007,16 @@ def _booking_row_to_form(b):
         form["event_date"] = b["event_date"].isoformat()
     form["skip_welcome_email"] = bool(b.get("skip_welcome_email"))
     form["band_emails"] = bool(b.get("band_emails"))
+    # Set Start/Set End (2026-09-15) predate this booking if it's older than
+    # the feature — back-fill them from the existing Start/End so editing an
+    # old booking doesn't get stopped by two newly-required fields it never
+    # had a chance to fill in the first place.
+    hhmm = _clock_to_hhmm(form.get("event_start"))
+    if hhmm:
+        form["set_start"] = hhmm
+    hhmm = _clock_to_hhmm(form.get("event_end"))
+    if hhmm:
+        form["set_end"] = hhmm
     return form
 
 
@@ -981,7 +1060,9 @@ def booking():
       #16 Series is required: a named series, "Stand-Alone Internal" or
           "3rd Party"; that pick sets Event Type (named series = Internal)
       #20 a slot already held by another band that night is refused; a
-          multi-band night has no default slot"""
+          multi-band night has no default slot
+      Set Start / Set End (Brian, 2026-09-15) are required on every booking;
+      they aren't stored fields themselves — see _derive_schedule."""
     if request.method == "POST":
         f = request.form
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
@@ -993,6 +1074,8 @@ def booking():
             return _booking_form("Who's entering this is required.", f, 400)
         if not data["venue"] or not advance_db.to_date(data["event_date"]):
             return _booking_form("Venue and a valid event date are required.", f, 400)
+        if not f.get("set_start") or not f.get("set_end"):
+            return _booking_form("Set Start and Set End are required.", f, 400)
         if not data["series"] or data["series"].lower() == "default":
             return _booking_form("Pick a series — or Stand-Alone Internal / 3rd Party.", f, 400)
         # Brian, 2026-09-14: a 3rd-party event must have an Event Name, and
@@ -1016,6 +1099,7 @@ def booking():
         if not data["slot"]:
             data["slot"] = "headliner"
         data["event_type"] = _event_type_for_series(data["series"])
+        _derive_schedule(data, f)
         saved = False
         if DB_OK:
             try:
@@ -1077,6 +1161,8 @@ def booking_edit(booking_id):
             return _booking_form("Who's entering this is required.", f, 400, booking_id)
         if not data["venue"] or not advance_db.to_date(data["event_date"]):
             return _booking_form("Venue and a valid event date are required.", f, 400, booking_id)
+        if not f.get("set_start") or not f.get("set_end"):
+            return _booking_form("Set Start and Set End are required.", f, 400, booking_id)
         if not data["series"] or data["series"].lower() == "default":
             return _booking_form("Pick a series — or Stand-Alone Internal / 3rd Party.", f, 400, booking_id)
         if advance_db.is_third_party(data["series"]) and not data["event_name"]:
@@ -1093,6 +1179,7 @@ def booking_edit(booking_id):
         if not data["slot"]:
             data["slot"] = "headliner"
         data["event_type"] = _event_type_for_series(data["series"])
+        _derive_schedule(data, f)
         changes, will_notify = {}, False
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:

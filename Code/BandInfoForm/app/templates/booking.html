@@ -161,6 +161,13 @@
         {% for loc in wp_locations %}<option {% if form.location==loc %}selected{% endif %}>{{ loc }}</option>{% endfor %}
       </select>
     </div>
+    <div class="req"><label>Set Start</label>
+      <input type="time" name="set_start" id="set_start_input" value="{{ form.set_start or '' }}" required oninput="calcSetTimes()">
+    </div>
+    <div class="req"><label>Set End</label>
+      <input type="time" name="set_end" id="set_end_input" value="{{ form.set_end or '' }}" required oninput="calcSetTimes()">
+    </div>
+    <p class="hint">Fills Load-In (−1h), Sound Check (−30m), Start, End and Set Length below — hand-edit any of those after and it stops following Set Start/End.</p>
     <div class="full" id="band_emails_field" style="display:none">
       <label style="display:flex;align-items:flex-start;gap:9px;text-transform:none;font-weight:400;letter-spacing:normal;color:#e6edf3;font-size:14px;cursor:pointer">
         <input type="checkbox" name="band_emails" id="band_emails" style="width:auto;margin-top:2px" {% if form.band_emails %}checked{% endif %}>
@@ -185,7 +192,7 @@
         {% for s in slots %}<option value="{{ s }}" {% if form.slot==s %}selected{% endif %}>{{ s.replace('_',' ') }}</option>{% endfor %}
       </select>
     </div>
-    <div><label>Set Length</label><input name="set_time" value="{{ form.set_time or '' }}" placeholder="e.g. 60 min"></div>
+    <div><label>Set Length</label><input name="set_time" id="set_time_input" value="{{ form.set_time or '' }}" placeholder="e.g. 60 min" oninput="scheduleTouched.set_time_input=true"></div>
     <div><label>Bands on the Bill</label>
       <select name="band_count" id="band_count_select" onchange="onBandCountChange()">
         <option value="1" {% if (form.band_count or '1')=='1' %}selected{% endif %}>1 (single band)</option>
@@ -209,10 +216,10 @@
         <div><label>Lead Phone</label><input name="lead_phone" value="{{ form.lead_phone or '' }}"></div>
         <div class="full hint" id="schedule_locked_note" style="display:none;margin-top:2px">This series has a fixed schedule — the times are locked in and don't need to be entered here.</div>
         <div id="schedule_fields" style="display:contents">
-          <div><label>Load-In</label><input name="load_in" id="load_in_input" value="{{ form.load_in or '' }}" placeholder="e.g. 4:30p"></div>
-          <div><label>Sound Check</label><input name="soundcheck" id="soundcheck_input" value="{{ form.soundcheck or '' }}" placeholder="e.g. 5:00p"></div>
-          <div><label>Start</label><input name="event_start" id="event_start_input" value="{{ form.event_start or '' }}" placeholder="e.g. 7:00p"></div>
-          <div><label>End</label><input name="event_end" id="event_end_input" value="{{ form.event_end or '' }}" placeholder="e.g. 10:00p"></div>
+          <div><label>Load-In</label><input name="load_in" id="load_in_input" value="{{ form.load_in or '' }}" placeholder="e.g. 4:30p" oninput="scheduleTouched.load_in_input=true"></div>
+          <div><label>Sound Check</label><input name="soundcheck" id="soundcheck_input" value="{{ form.soundcheck or '' }}" placeholder="e.g. 5:00p" oninput="scheduleTouched.soundcheck_input=true"></div>
+          <div><label>Start</label><input name="event_start" id="event_start_input" value="{{ form.event_start or '' }}" placeholder="e.g. 7:00p" oninput="scheduleTouched.event_start_input=true"></div>
+          <div><label>End</label><input name="event_end" id="event_end_input" value="{{ form.event_end or '' }}" placeholder="e.g. 10:00p" oninput="scheduleTouched.event_end_input=true"></div>
           <div><label>Curfew</label><input name="curfew" id="curfew_input" value="{{ form.curfew or '' }}" placeholder="e.g. 11:00p"></div>
         </div>
       </div>
@@ -257,10 +264,55 @@
     document.getElementById('schedule_fields').style.display = locked ? 'none' : 'contents';
     document.getElementById('schedule_locked_note').style.display = locked ? 'block' : 'none';
     if (locked) {
-      SCHEDULE_FIELD_IDS.forEach(function (id) { document.getElementById(id).value = ''; });
+      SCHEDULE_FIELD_IDS.forEach(function (id) { document.getElementById(id).value = ''; scheduleTouched[id] = false; });
       document.getElementById('more_detail').open = true;
     }
   }
+
+  // Set Start / Set End (Brian, 2026-09-15): fills Load-In (-1h), Sound
+  // Check (-30m), Start, End and Set Length as staff type — never
+  // overwrites a field once someone's hand-edited it (scheduleTouched),
+  // so correcting one auto value doesn't get stomped by the next keystroke
+  // in Set Start/Set End. Mirrors app.py's _derive_schedule exactly, so a
+  // page load with JS off (or a field the JS never reached) still gets the
+  // same numbers filled in server-side.
+  var scheduleTouched = {};
+  ['load_in_input', 'soundcheck_input', 'event_start_input', 'event_end_input', 'set_time_input'].forEach(function (id) {
+    scheduleTouched[id] = false;
+  });
+  function timeToMinutes(hhmm) {
+    if (!hhmm) return null;
+    var parts = hhmm.split(':').map(Number);
+    return parts[0] * 60 + parts[1];
+  }
+  function minutesToClock(mins) {
+    mins = ((mins % 1440) + 1440) % 1440;
+    var h = Math.floor(mins / 60), m = mins % 60;
+    var ap = h < 12 ? 'a' : 'p';
+    h = h % 12; if (h === 0) h = 12;
+    return h + ':' + String(m).padStart(2, '0') + ap;
+  }
+  function setIfUntouched(id, text) {
+    if (scheduleTouched[id]) return;
+    document.getElementById(id).value = text;
+  }
+  function calcSetTimes() {
+    var s = timeToMinutes(document.getElementById('set_start_input').value);
+    var e = timeToMinutes(document.getElementById('set_end_input').value);
+    if (s !== null) {
+      setIfUntouched('load_in_input', minutesToClock(s - 60));
+      setIfUntouched('soundcheck_input', minutesToClock(s - 30));
+      setIfUntouched('event_start_input', minutesToClock(s));
+    }
+    if (e !== null) {
+      setIfUntouched('event_end_input', minutesToClock(e));
+    }
+    if (s !== null && e !== null) {
+      var d = e - s; if (d <= 0) d += 1440;
+      setIfUntouched('set_time_input', d + ' min');
+    }
+  }
+  calcSetTimes();
   function onSeriesChange() {
     var sel = document.getElementById('seriesPick');
     var custom = document.getElementById('seriesCustom');
