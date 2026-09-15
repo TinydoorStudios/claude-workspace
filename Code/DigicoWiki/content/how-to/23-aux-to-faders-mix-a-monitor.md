@@ -21,8 +21,8 @@ With 2nd Function held, the aux row encoders become pans. The aux's Setup panel 
 
 ## Aux Nodes panel
 
-![Layout > Aux Nodes asks for an input or group channel to be selected first](/figures/q2-aux-nodes.png)
-*Layout > Aux Nodes with no channel selected: pick an input or group channel first — Quantum 2 offline software, V22.*
+![Layout > Aux Nodes for channel 1: every aux send as a node with level, on/off and pick-off point, plus the add/bypass/remove nodal-processing buttons](/figures/q2-aux-nodes.png)
+*Layout > Aux Nodes, input/groups view for channel 1 — Quantum 2 offline software, V22.*
 
 Layout > **Aux Nodes** shows either every send from one channel or every contribution to one aux (**input/groups** vs **aux buss** view, with *follow selection* to tie them). From here you can **solo a node**, and on Quantum add **nodal processing** (an EQ and dynamics on one send only) with **Add**, **Bypass**, **Remove**. Nodes can be safed individually.
 
