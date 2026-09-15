@@ -329,6 +329,17 @@ def t_attach():
     sid = db_upsert_show(aid, "Washington Park", d, series="Jazz At The Porch")
     x("UPDATE shows SET responded_at=NULL WHERE id=%s", (sid,))
     x("DELETE FROM submissions WHERE show_id=%s", (sid,))
+    # staging clones live production data, so a real booking can land on the
+    # same venue/date as this test's own show (H5 regression 2026-09-15,
+    # same category as t_third_party_band_emails' slot collision). The
+    # auto-attach gate this test exercises requires EXACTLY ONE unresponded
+    # booking at venue+date (advance_db.unresponded_shows_at) — a coincidental
+    # second real booking there turns the expected attached_auto into
+    # pending_pick. Stamp every other show at this venue/date responded so
+    # this test's own booking is the only candidate, independent of whatever
+    # real shows exist.
+    x("""UPDATE shows SET responded_at = COALESCE(responded_at, now())
+         WHERE venue='Washington Park' AND show_date=%s AND id <> %s""", (d, sid))
     # an unrelated name at the same venue/date must NOT attach
     st, _ = submit_form("Zebra Cakes", "Washington Park", d)
     wait_regen()
