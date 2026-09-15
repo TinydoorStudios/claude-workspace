@@ -137,7 +137,7 @@ $SSH "$VM" '
   sudo cp /opt/n8n/docker-compose.yml /opt/n8n/docker-compose.yml.bak-$TS
 
   for kv in "TRIAGE_API_URL=https://api.groq.com/openai/v1/chat/completions" \
-            "TRIAGE_MODEL=llama-3.3-70b-versatile" \
+            "TRIAGE_MODEL=openai/gpt-oss-20b" \
             "NODE_FUNCTION_ALLOW_BUILTIN=fs,path"; do
     k="${kv%%=*}"
     if sudo grep -q "^${k}=" /opt/n8n/.env; then

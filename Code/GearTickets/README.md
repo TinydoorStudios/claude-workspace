@@ -74,7 +74,7 @@ was actually edited, compare `updatedAt` against `createdAt` in
 
 ## Triage model
 
-Groq, `llama-3.3-70b-versatile`, at `https://api.groq.com/openai/v1/chat/completions`.
+Groq, `openai/gpt-oss-20b`, at `https://api.groq.com/openai/v1/chat/completions`.
 Chosen because the `AI Triage` node already speaks native OpenAI chat-completions
 and Groq's endpoint is that shape exactly — same JSON body, and `Apply Triage`
 already parses `choices[0].message.content`. Free plan is 30 req/min and 1,000
@@ -362,3 +362,5 @@ in.
 
 Re-enable by clearing `disabled` on that node if the queue ever grows past what
 the channel alone keeps visible.
+
+> 2026-09-15: Groq retired `llama-3.3-70b-versatile` (404). `TRIAGE_MODEL` switched to `openai/gpt-oss-20b` on the VM and here.
