@@ -18,6 +18,4 @@ Any number of input channels and output channels can be connected to one or more
 
 A list of all the connected channels and their names is displayed above each Control Group display. You can also clear all the channels from a Control Group by pressing Clear. When a channel is a member of a Control Group, its own controls can still be adjusted independently of the other CG members. Adjustments to fader levels are transmitted to the CG members as dB changes, so that a level increase of 2dB on the CG fader will increase all the member levels by 2dB, irrespective of the relative levels of the individual channel faders. CG Mutes are treated as “in series” where a channel is a member of more than one group. All CG mutes must be off for a channel to be unmuted; any CG muted always mutes all of its members. If a channel is CG muted by single or multiple CGs, the worksurface channel mute button will override all CG mutes for that channel. The channel will not however be removed from CG membership so if the relevant CG is muted again, the channel will also be muted.
 
-32
-
 1.14 Multi-channel formats

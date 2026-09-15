@@ -34,8 +34,6 @@ This comes after processing and before the mute & fader
 
 This comes after the channel’s fader
 
-22
-
 1.9 Mustard Channels
 
 ### 1.9.3 Safes/Scopes
@@ -60,7 +58,9 @@ Mustard Tubes has a drive control, an output gain control, an on/off button and 
 
 Odd harm – This is a modern sounding, low gain distortion preset Even harm – This is a vintage sounding, medium gain distortion preset Overdrive – This is modern sounding, medium gain distortion preset Distortion - This is modern sounding, compressed, high gain distortion preset Crunch – This is a vintage sounding, high gain distortion preset High distortion – This is a modern, heavy sounding, very high gain distortion preset
 
-Labels: 23 · 1.9 Mustard Channels · Mustard Amp Model
+1.9 Mustard Channels
+
+**Mustard Amp Model**
 
 The Mustard Amp Model is a two-stage, highly customisable distortion & overdrive processor. Both stages can be switched to odd or even harmonics independently of each other. Even harmonics can create a triode-style distortion whereas odd harmonics can create a pentode-style distortion. The drive control alters the input level to the first stage of distortion. A bias control between the two stages can create asymmetrical distortion if desired. The midpoint value of 11 is the most transparent. Turning on the ‘saturate’ option increases the effect of the bias setting. There is a high frequency boost after both stages which applies a shelving boost above 6kHz. This is followed by the output gain.
 
@@ -94,7 +94,9 @@ The Mustard channel strip gives the user a choice of four different compressor m
 
 The Mustard classic compressor is a general-purpose feed-forward compressor design with multiple controls allowing flexibility. The threshold, attack time, release time, and ratio can be all controlled by the user. A hard or soft knee can also be selected, and the sidechain’s amplitude sensing can be changed between RMS (Root Mean Squared) level and peak (instantaneous) level.
 
-Labels: 24 · 1.9 Mustard Channels · Vintage VCA
+1.9 Mustard Channels
+
+**Vintage VCA**
 
 The Vintage VCA compressor models classic VCA compressors, with a fixed attack time and an auto-release time. The user can set the threshold and ratio.
 
@@ -109,7 +111,5 @@ The FET limiter has a fixed threshold like many classic FET limiters, however th
 ### 1.9.8 Gate/Ducker
 
 The gate/ducker works functions similarly to the gate and ducker found in the standard SD channel strip, however it has different attack and release shape characteristics. An external sidechain source can be selected, which can then be sent to the sidechain of the compressor and/or gate/ducker.
-
-25
 
 1.10 Spice Rack

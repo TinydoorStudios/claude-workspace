@@ -28,6 +28,4 @@ To load a previously saved session: Touch the Files button on the Master screen 
 
 ![Saving and Loading Sessions (manual p.21)](/figures/gs-p021-2.png)
 
-16
-
 1.6 Audio Sync

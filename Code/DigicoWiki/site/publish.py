@@ -42,7 +42,14 @@ def sync_assets(local_dir, slug):
             if a['filename'].startswith('q2-'):
                 gql('mutation($id:Int!){assets{deleteAsset(id:$id){responseResult{succeeded message}}}}', {'id': a['id']})
         print('  removed old q2-* assets')
-    have = {a['filename'] for a in gql('query($f:Int!){assets{list(folderId:$f,kind:ALL){id filename}}}', {'f': fid})['assets']['list']}
+    remote = gql('query($f:Int!){assets{list(folderId:$f,kind:ALL){id filename fileSize}}}', {'f': fid})['assets']['list']
+    have = set()
+    for a in remote:
+        lp = os.path.join(local_dir, a['filename'])
+        if os.path.exists(lp) and a['fileSize'] != os.path.getsize(lp):
+            gql('mutation($id:Int!){assets{deleteAsset(id:$id){responseResult{succeeded message}}}}', {'id': a['id']})   # changed locally: re-upload
+        else:
+            have.add(a['filename'])
     files = sorted(glob.glob(os.path.join(local_dir, '*')))
     n = 0
     for fp in files:

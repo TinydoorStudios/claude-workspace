@@ -14,8 +14,6 @@ The left-hand side of the expanded display includes metering of the EQ’s IN an
 
 Note: For Q8 only, there is an additional Touch to adjust option available which allows the faders on the expanded display to be adjusted by dragging on screen.
 
-2.8 Graphic EQ Panel
-
 ### 2.8.1 A Ganging Graphic EQs
 
 The grey GANG and build gang buttons above the band faders are used for ganging together different graphic EQ’s. When EQs are ganged, their band faders, on buttons and trim pots are locked together.

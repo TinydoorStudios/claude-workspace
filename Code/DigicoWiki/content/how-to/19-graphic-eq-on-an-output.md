@@ -24,6 +24,6 @@ Master screen > **Graphic EQ**. Touch any of the miniature EQs to bring it into 
 - **flat** zeroes all 32 bands (and any ganged EQs).
 - **safe** protects it from snapshots. **preset** saves and recalls; **default** resets.
 
-Soloing a bus with a graphic on its insert can pop the Graphic EQ panel automatically (Options > Solo > *Solo displays insert/FX*).
+Soloing a bus with a graphic on its insert can pop the Graphic EQ panel automatically — it's gated by Options > Solo > *Solo Displays Inserts and Outputs* (on by default), and the panel itself only shows on the Master screen.
 
 Manual: [Reference 2.8 Graphic EQ Panel](/reference/2-8-graphic-eq-panel).

@@ -46,8 +46,6 @@ each solo buss can be enabled and disabled as required.
 
 either side of the Solo panel.
 
-34
-
 2.1 Fitting DMI Cards
 
 The DiGiCo QUANTUM 2 has two option slots on its rear panel for the installation of DMI cards (see below). These cards come in a variety of I/O types.

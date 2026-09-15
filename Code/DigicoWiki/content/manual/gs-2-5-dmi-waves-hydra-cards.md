@@ -12,6 +12,8 @@ IMPORTANT NOTE: If a DMI Hydra card is used in the QUANTUM console, the console 
 
 ![DMI - Waves - Hydra Cards (manual p.50)](/figures/gs-p050-3.png)
 
-Labels: Select Hydra DMI · Set Hydra ID · 45
+Select Hydra DMI
+
+Set Hydra ID
 
 2.6 DMI - ME - A3232 Cards

@@ -20,7 +20,7 @@ Touch turn and talkback control
 
 Labels: and switches · Snapshot previous · Mute, solo and · and next · TFT displays · Assignable master fader
 
-Labels: and master screen assign · Channel faders · 2 · 1.2 Before You Start · Rear Panel · World
+Labels: and master screen assign · Channel faders · 1.2 Before You Start · Rear Panel · World
 
 Labels: Clock I/O · Ethernet ports · Display port · MADI I/O · Ethernet port
 
@@ -38,8 +38,6 @@ The QUANTUM 2 Engine board contains 2 devices that require an IP address. The Co
 
 NOTE: This IP address will be set to appropriate values when the console is shipped and they should not be changed in normal operation. The IP Addresses for these devices can however be set using Network Settings in the Quantum Home interface. Quantum Home can be accessed using the Master screen > System > Quit To Windows function. This program allows the user to enter a single IP and subnet mask. This is the IP for the Console PC and the application will automatically set the Host Interface controller's IP to the correct sequential Address. Once the required IP or Subnet has been entered, a console power cycle is required for the change to take effect.  Pressing the OK and Shut Down button will initiate the Shut Down Procedure.
 
-3
-
 1.2 Before You Start
 
 ### 1.2.2 Layers and Banks
@@ -51,8 +49,6 @@ NOTE: There is also a Master Screen Assign button above the master fader on the 
 ![Before You Start (manual p.9)](/figures/gs-p009-1.png)
 
 A ‘bank’ is a set of twelve faders, and a ‘layer’ contains up to four ‘banks’. There are up to 3 ‘layers’ in each section of the desk Pressing the bank layer button, located above the fader bank buttons, toggles between layers. To access a bank of faders within that layer, press the appropriate fader bank button. To switch both sections of the console to the same bank level, press and hold one of the fader bank buttons. The specific channels which are contained within each Bank are defined in the Layout > Fader Banks display. By default, the Input channels will be assigned to Layer 1 of the console. The different output channels will be assigned to Layer 2. Control Groups will be assigned to Layer 2. These bank assignments can be customised by the user and saved in a session at any time.
-
-4
 
 1.2 Before You Start
 
@@ -72,8 +68,6 @@ Generally, buttons within the pop-ups are coloured grey when their function is i
 
 The Master Screen button on the right-hand section switches the right screen view from the Master Screen to the bank of channels which are selected in the right-hand section.
 
-5
-
 1.2 Before You Start
 
 ### 1.2.4 The Assigned Channel
@@ -90,7 +84,9 @@ Note that these left and right arrows are duplicated in the channel Setup and Ou
 
 ![Before You Start (manual p.11)](/figures/gs-p011-4.png)
 
-The row of twelve encoders and buttons immediately below the touchscreen (shown above) refer to the channels with which they are Labels: aligned. · 6 · 1.2 Before You Start
+The row of twelve encoders and buttons immediately below the touchscreen (shown above) refer to the channels with which they are aligned.
+
+1.2 Before You Start
 
 Pressing one of the Quick Select buttons on the left of the screen will assign the selected function to the row of these controls below the screen. Five aux sends can be displayed in the Channel Strip panel at any one time. If more than six aux sends have been created in the session, the scroll button outside the bottom left-hand corner of the screen can be used to scroll the display through the remaining auxilaries.
 
@@ -104,7 +100,9 @@ The top half of the channel worksurface controls (down as far as the insert a, i
 
 The Option/All button has 2 main functions:
 
-1) When pressed and released, any channel that is a member of a gang or Multi will be temporarily isolated from that gang or Multi. 2) When pressed and held, any parameter that is adjusted on a single channel will also be adjusted in the same way on all of the Labels: channels in that bank · 7 · 1.2 Before You Start
+1) When pressed and released, any channel that is a member of a gang or Multi will be temporarily isolated from that gang or Multi. 2) When pressed and held, any parameter that is adjusted on a single channel will also be adjusted in the same way on all of the channels in that bank
+
+1.2 Before You Start
 
 ### 1.2.5 The Master Fader
 
@@ -118,7 +116,9 @@ Assign master fader
 
 ![Before You Start (manual p.13)](/figures/gs-p013-2.png)
 
-Labels: Select channel · 8 · 1.2 Before You Start
+Select channel
+
+1.2 Before You Start
 
 ### 1.2.6 Channel Types
 
@@ -137,7 +137,5 @@ Labels: Phase - Gain Tracking · Main/Alt Input Select · Delay · HPF/LPF · In
 Routing Module - Touch to Expand
 
 Gang & Safe Indicators
-
-9
 
 1.3 Hardware Configuration

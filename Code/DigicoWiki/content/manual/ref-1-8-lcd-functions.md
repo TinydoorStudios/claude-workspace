@@ -12,8 +12,6 @@ Selecting one of these options assigns that function mode to the LCD/select butt
 
 (1260+) The LCD function menu can be closed and have LCDs revert back to Solo function after a set period of time by turning on ‘Auto-revert LCD menu to solo’ and setting the duration in Options -> Surface.
 
-1.8 LCD Functions
-
 ### 1.8.1 Solo
 
 When an LCD function button is pressed, the left-hand LCD display is labelled SOLO. When SOLO mode is selected, the LCD/select buttons become solo buttons. The bottom half of the LCD display indicates which solo busses are available to the channel, as defined in the channel Setup display and the SOLO CHOICE function mode (described below). The display also shows whether each buss is AFL or PFL, as defined in the top-left corner of the master solo display.

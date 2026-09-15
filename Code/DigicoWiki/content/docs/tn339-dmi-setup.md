@@ -182,13 +182,13 @@ AES-EBU combined in/out
 
 Pinout and connection Notes: 0 = earth/ground or screen/shield    nc = not connected  + = phase/hot    - = antiphase/cold Analogue connections for input and output are connected the same, as shown Analogue connections for channels 1-8 shown channels 9-16 follow the same pattern (1 = 9, 2 = 10 etc.)  (except 8 channel Mic Pre module) AES connections are shown as 4 stereo (2 channel) connections, equivalent to channels 1-8 AES connections for stereo connections 1-4 (ch 1-8) shown, connections stereo 5-8 (ch 9-16) follow the same pattern (1 = 5, 2 = 6 etc.)
 
-Function pin 8+ 1 0 2 7- 3 6+ 4 0 5 5- 6 4+ 7 0 8 3- 9 2+ 10 0 11 1- 12 nc 13 8- 14 7+ 15 0 16 6- 17 5+ 18 0 19 4- 20 3+ 21 0 22 2- 23 1+ 24 0 Labels: 25 · Function pin · Function pin
+Function pin 8+ 7- 6+ 5- 4+ 3- 2+ 1- nc 8- 7+ 6- 5+ 4- 3+ 2- Labels: 1+ · Function pin · Function pin
 
-4out+ 1 0 2 3out- 3 2out+ 4 0 5 1out- 6 4in+ 7 0 8 3in- 9 2in+ 10 0 11 1in- 12 nc 13 4out- 14 3out+ 15 0 16 2out- 17 1out+ 18 0 19 4in- 20 3in+ 21 0 22 2in- 23 1in+ 24 0 Labels: 25 · Function pin · 0
+4out+ 3out- 2out+ 1out- 4in+ 3in- 2in+ 1in- nc 4out- 3out+ 2out- 1out+ 4in- 3in+ 2in- Labels: 1in+ · Function pin · 1-
 
-2 0 5 0 8 0 11 0 16 0 19 0 22 0 25 1- 12 1+ 24 2- 23 2+ 10 3- 9 3+ 21 4- 20 4+ 7 5- 6 5+ 18 6- 17 6+ 4 7- 3 7+ 15 8- 14 8+ 1 nc 13
+1+ 2- 2+ 3- 3+ 4- 4+ 5- 5+ 6- 6+ 7- 7+ 8- 8+ nc
 
-0 2 0 5 0 8 0 11 0 16 0 19 0 22 0 25 1in- 12 1in+ 24 1out- 6 1out+ 18 2in- 23 2in+ 10 2out- 17 2out+ 4 3in- 9 3in+ 21 3out- 3 3out+ 15 4in- 20 4in+ 7 4out- 14 4out+ 1 nc 13
+1in- 1in+ 1out- 1out+ 2in- 2in+ 2out- 2out+ 3in- 3in+ 3out- 3out+ 4in- 4in+ 4out- 4out+ nc
 
 Note the threaded pillars for locating the D connectors are UNC 440 thread, female.
 

@@ -48,8 +48,6 @@ Each release of Orange Box Controller will contain current DMI card firmware for
 
 Please note that compatible DMI firmware may vary between current Orange Box and SD/S/Quantum series releases.
 
-2
-
 Orange Box and Orange Box Controller V3.0 1.2 DMI Cards.
 
 Inserting a DMI Card.
@@ -96,8 +94,6 @@ DMI ME V238 04/02/2019
 
 DMI KLANG** N/A N/A
 
-3
-
 Orange Box and Orange Box Controller V3.0 2.1 Introduction
 
 ## Orange Box Controller
@@ -136,8 +132,6 @@ https://digico.biz/base_product/orange-box/
 
 2. Unzip the installer package
 
-4
-
 Orange Box and Orange Box Controller V3.0 2.3 The Orange Box Controller Interface
 
 3. Double click on DiGiCo_Orange_Box_Controller_ Installer_VXXXXX.exe.  The Installer can be run from
@@ -165,8 +159,6 @@ The picture below shows the OBC main Control page.  There is a DMI MADI B in DMI
 ![Orange Box + Orange Box Controller V3.0 (DMI card reference) (manual p.6)](/figures/orange-box-guide-p006-1.png)
 
 Since not all cards have variable setting, a control panel will only be display when appropriate.
-
-5
 
 Orange Box and Orange Box Controller V3.0 2.3 The Orange Box Controller Interface
 
@@ -204,8 +196,6 @@ If the Sync Select is not set to AUTO and a specific Sync has been selected and 
 
 In the top left corner of DMI 1 is the sample rate display showing the Current sample rate of DMI 1The DMI card in the SLAVE (DMI 2) port will always be clocked to the MASTER (DMI 1) port.
 
-6
-
 Orange Box and Orange Box Controller V3.0 2.3 The Orange Box Controller Interface
 
 The sample rate display in the top left corner of DMI 2 I the sample rate provided from DMI1 > DMI 2.  If any SRC is enabled, this will show the internal Sample Rate of DMI 2.
@@ -229,8 +219,6 @@ Clicking Update All will update both the Processor and FPGA codes.  Alternativel
 The update process can be run simultaneously on both DMI cards if required.
 
 Please note:- Firmware packaged with OBC maybe different to the DMI firmware included in the current S/SD/Quantum releases, 4rea4 or KLANG Konductor.  OBC only supports the firmware packaged with each OBC release.
-
-7
 
 Orange Box and Orange Box Controller V3.0 3.1 General
 
@@ -264,8 +252,6 @@ OBC will also display the incoming sample rate of each AES stream.
 
 The AES outputs do not have SRCs and will therefore be at system sample rate.
 
-8
-
 Orange Box and Orange Box Controller V3.0 3.3 DMI HYDRA 2
 
 ## 3.3 DMI HYDRA 2
@@ -285,8 +271,6 @@ DMI MADI C has a physical hardware switch which sets whether the card is acting 
 ![Orange Box + Orange Box Controller V3.0 (DMI card reference) (manual p.10)](/figures/orange-box-guide-p010-2.png)
 
 Further detail on this are in TN339 which is available from https://digico.biz/base_product/all-technical-notes/
-
-9
 
 Orange Box and Orange Box Controller V3.0 3.4 DMI MADI B & DMI MADI C
 
@@ -336,8 +320,6 @@ Using DANTE Controller, create a 57CH Bi Directional connection between the two 
 
 When Conform all ports is pressed in Audio IO, the console will report the SD rack as a device type and the console will have full control over all socket parameters eg, gain, +48v, pad.
 
-10
-
 Orange Box and Orange Box Controller V3.0 3.4 DMI MADI B & DMI MADI C
 
 In the above set up, both Orange Boxes transparently pass the DiGiCo control data across the DANTE Network allowing the console to directly communicate with the SD Rack.
@@ -384,8 +366,6 @@ The picture below shows a DMI MADI B in the “SLAVE” port of an Orange Box co
 
 ![Orange Box + Orange Box Controller V3.0 (DMI card reference) (manual p.12)](/figures/orange-box-guide-p012-1.png)
 
-11
-
 Orange Box and Orange Box Controller V3.0 3.4 DMI MADI B & DMI MADI C
 
 **96 kHz MADI**
@@ -407,8 +387,6 @@ An Orange Box containing two DMI MADI cards can be used to convert 96 kHz MADI b
 Redundant. – The same signal is sent and received on both sets on BNC/CAT5 connections.  If the input from connection MADI A fails, then the Audio arriving on MADI B will routed to the other DMI Card.
 
 Dual. -  MADI A and MADI B act as independent MADI connections allowing up to 128 Channels (2 x 64CH) of MADI at 48kHz and up to 64 Channels (2 x 32CH) at 96kHz of MADI to be passed between DMI 1 & DMI 2
-
-12
 
 Orange Box and Orange Box Controller V3.0 3.4 DMI MADI B & DMI MADI C
 
@@ -446,8 +424,6 @@ The controls are: -
 
 The SRC State box compares the Sample rate of the MADI input and the DMI Card Sample rate and will report either Active or Inactive.
 
-13
-
 Orange Box and Orange Box Controller V3.0 3.5 DMI Optocore
 
 ## 3.5 DMI Optocore
@@ -474,8 +450,6 @@ The picture below shows DMI Optocore panel at 96kHz configuring its MADI channel
 
 If the MADI mode was set to 1x64, then only one 64ch port would be displayed.
 
-14
-
 Orange Box and Orange Box Controller V3.0 3.6 DMI Dante 64@96
 
 **Optocore System Clock**
@@ -498,8 +472,6 @@ When the DMI Dante 64@96 is in the SLAVE port of the Orange Box AUTO SRC is acti
 
 When the DMI Dante 64@96 is in the MASTER port of the Orange Box, the SRC control defines the sample rate that is applied to the card in the SLAVE port. The picture below shows an Orange Box with a DMI Dante 64@96 in the MASTER Port running at 48kHz and a DMI Optocore in the SLAVE port where the Optocore Network is running at 48kHz.  The SRC control has been set to 96kHz therefore the SLAVE port will always receive a 96kHz sample rate as its reference.
 
-15
-
 Orange Box and Orange Box Controller V3.0 3.7 DMI KLANG
 
 ![Orange Box + Orange Box Controller V3.0 (DMI card reference) (manual p.17)](/figures/orange-box-guide-p017-1.png)
@@ -519,5 +491,3 @@ All of these settings are also available in KLANG:app.
 The DMI KLANG firmware version cannot be updated using Orange Box Controller.
 
 For Firmware details please see https://www.klang.com/en/downloads
-
-16

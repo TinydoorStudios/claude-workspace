@@ -24,9 +24,7 @@ If the rack is left in an idle state for 2 minutes, it will relock itself.
 
 Please refer to the following diagram for menu navigation details.
 
-9
-
-DQ & MQ-Rack User Guide 1.5 Using the Q-Rack Menu System
+DQ & MQ-Rack User Guide
 
 **MQ-Rack navigation**
 
@@ -38,9 +36,7 @@ DQ & MQ-Rack User Guide 1.5 Using the Q-Rack Menu System
 
 Note: The Q-Rack navigation maps display DQ-Rack and MQ-Rack menu pages in order from left to right. Wherever a “/” (or alternatively a menu page has been created underneath another menu page) has been used, the messages listed can be displayed depending on the rack’s connections. These cannot be changed by the user in the rack menu.  Where a “<” or “>” has been used this means the displayed parameter values can be changed by the user in rack system settings using the left and right arrows, the use of “<…>” means there is a selection of values to choose from in between the displayed parameter values.
 
-10
-
-DQ & MQ-Rack User Guide 1.5 Using the Q-Rack Menu System
+DQ & MQ-Rack User Guide
 
 Main Display.......................................................................
 
@@ -76,9 +72,7 @@ DQ-Rack Main Display
 
 ![Using the Q-Rack Menu System (manual p.12)](/figures/dq-p010-2.png)
 
-11
-
-DQ & MQ-Rack User Guide 1.5 Using the Q-Rack Menu System
+DQ & MQ-Rack User Guide
 
 Status Menu.......................................................
 
@@ -104,9 +98,7 @@ Note: On Quantum consoles, this setting’s status can be displayed and switched
 
 ![Using the Q-Rack Menu System (manual p.13)](/figures/dq-p013-3.png)
 
-12
-
-DQ & MQ-Rack User Guide 1.5 Using the Q-Rack Menu System
+DQ & MQ-Rack User Guide
 
 Oscillators Menu........................................................................
 
@@ -140,9 +132,7 @@ DQ-Rack version menu
 
 ![Using the Q-Rack Menu System (manual p.14)](/figures/dq-p014-4.png)
 
-13
-
-DQ & MQ-Rack User Guide 1.5 Using the Q-Rack Menu System
+DQ & MQ-Rack User Guide
 
 Display Menu ................................................................
 
@@ -160,9 +150,7 @@ When the display shows Hold Right To Default… as highlighted, hold the Right a
 
 ![Using the Q-Rack Menu System (manual p.15)](/figures/dq-p015-2.png)
 
-14
-
-DQ & MQ-Rack User Guide 1.5 Using the Q-Rack Menu System
+DQ & MQ-Rack User Guide
 
 MADI Sync Menu (MQ-Rack only) ................................................................
 
@@ -196,9 +184,7 @@ Available options are 48K and 96K
 
 ![Using the Q-Rack Menu System (manual p.16)](/figures/dq-p016-3.png)
 
-15
-
-DQ & MQ-Rack User Guide 1.5 Using the Q-Rack Menu System
+DQ & MQ-Rack User Guide
 
 Network Menu (DQ-Rack only) ...........................................................
 
@@ -207,7 +193,5 @@ The DQ-Rack has two ethernet ports (Primary and Secondary) which can be used to 
 Note: When first powering on a DQ-Rack, whilst the rack is initialising a “Reset” message will be displayed in network mode field.
 
 ![Using the Q-Rack Menu System (manual p.17)](/figures/dq-p017-1.png)
-
-16
 
 DQ & MQ-Rack User Guide 1.6 Connecting a DANTE rack

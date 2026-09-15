@@ -30,6 +30,4 @@ o Power Off: turns the console PC off. o Restart: reboots the console PC (does n
 
 ![Settings Pane (manual p.59)](/figures/gs-p059-1.png)
 
-54
-
 3.3 System Information

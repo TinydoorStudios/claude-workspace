@@ -10,8 +10,6 @@ Quantum 852, Quantum 338 and SD12 are compatible with the DMI-AMM card. The DMI-
 
 Each of the 64 slots within the AMM control panel include a group assign (Group A & Group B) and a weight control. The Floor control of each group imposes a lower limit on the level detector for all microphones assigned to that group, this prevents a noisy microphone from receiving a disproportionate share of gain. The Floor should be left at the default value of -130dB for normal operation.
 
-6.7 DMI – AMM
-
 ![DMI – AMM (manual p.239)](/figures/ref-p089-1.png)
 
 **Figure 2: Conform AMM**
@@ -22,8 +20,6 @@ Each of the 64 slots within the AMM control panel include a group assign (Group 
 
 There are two ways to route channels to the AMM. The first is from within the AMM Control window itself. Touch the white box below each of the slots, this will open the AMM Routing window (Figure 4). Here you can ripple route channels to the AMM, using touch turn to select the desired number of channels. The AMM is automatically assigned a post-fader Insert B. Therefore, AMM can also be assigned in a way that DiGiCo users will be more familiar with, via the Insert B routing window at the bottom of a channel strip (Figure 5).
 
-6.7 DMI – AMM
-
 ![DMI – AMM (manual p.240)](/figures/ref-p090-3.png)
 
 **Figure 4: Routing Within AMM Control**
@@ -31,8 +27,6 @@ There are two ways to route channels to the AMM. The first is from within the AM
 ![DMI – AMM (manual p.240)](/figures/ref-p090-2.png)
 
 **Figure 5: Routing via Insert B Routing Menu**
-
-6.7 DMI – AMM
 
 When channels are routed to the AMM and assigned to a group, a Share % bar is seen in yellow on the right side of an AMM slot. This represents the gain Share that the channel is getting when the AMM is active. This meter is shown in terms of percentage, meaning that if 2 speakers stop talking at the same time then they will both get 50% of the gain share. The Weight control allows adjustment of the relative sensitivity on a per channel basis. When weighting controls are balanced (equal), each microphone has an equal opportunity to “take over” the system. Changing the weight will not have an effect on the overall level of the channel, just how easily it can take a share of the gain. Adding weight to one primary microphone ensure that the particular microphone (e.g. a chairperson) will get more of the share of gain (Figure 6).
 

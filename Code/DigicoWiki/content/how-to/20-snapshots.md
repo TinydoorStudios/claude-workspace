@@ -38,7 +38,7 @@ Each snapshot can carry a timecode recall time (capture on insert, or *Update re
 
 ## Snapshot groups
 
-Snapshots in a group (red = relative update, blue = non-relative) update together: change a fader in one, the same change goes to the others. Useful for a band's song set where the drum balance should stay consistent.
+Snapshots in a group (red = relative update, blue = non-relative) update together when you press **Update Group**: in relative mode a +10dB fader move in one snapshot applies +10dB to that fader in every member, regardless of its stored level; non-dB controls (pan, dynamics times, EQ freq/Q) only follow along in members that shared the same value before the change. Useful for a band's song set where the drum balance should stay consistent.
 
 ## Setlists (V22)
 

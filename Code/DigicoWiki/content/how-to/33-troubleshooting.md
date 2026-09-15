@@ -16,7 +16,7 @@ Work top-down. Most "no audio" calls are routing or a mute, not a fault.
 
 - **Status** display (Options > Status, or the Master screen status bar): red = look there.
 - System > **Diagnostics**: engine, surfaces, DMI cards, network. On the **Engine** tab you'll also see Mustard and nodal counts.
-- Racks: MQ-Rack display should flash green when linked, *LOCK* on the main display; DQ-Rack *Link: OK*. Light blue with red = not connected to a console.
+- Racks: connected to the console, the rack's main display flashes green; the MQ-Rack shows *LOCK* (clock stable on the incoming MADI) and the DQ-Rack shows *Link: OK* (control data arriving). Disconnected, it's light blue with a red band on an MQ-Rack, flashing red on a DQ-Rack; *NO LOCK* / *NO CTRL* are the failure readings.
 - Audio Sync: does the selected source show green **OK**?
 
 ## Clicks, crackle, pitch drift
@@ -33,7 +33,7 @@ System > **F10: Reset FX**. Briefly bypasses all FX.
 
 ## Engine
 
-System > **F11: Reset Engine** restarts the audio engine. Audio drops for the duration. Last resort short of a reboot. **Restart Computer** reboots the control PC without touching the engine.
+System > **F11: Reset Engine** restarts the audio engine. Audio drops for the duration. Last resort short of a reboot. System > **Reset Computer** reboots the control PC without touching the engine (same as Power > Restart from Quantum Home).
 
 ## Session won't load / behaves oddly
 
@@ -49,6 +49,6 @@ System > Diagnostics > **Console** > **Collect Diagnostics**. Choose D:\logs or 
 
 ## Startup files
 
-If the desk boots into a bad session, Quantum Home (System > Quit to Home) > Settings > **Delete Startup Sessions** removes `startup.ses` and `_session.ses`. Holding **Space** during boot goes to Quantum Home without launching the console app.
+If the desk boots into a bad session, Master screen > System > **Quit To Windows** drops to Quantum Home; its Settings pane > **Delete Startup Sessions** removes `D:\Quantum2\startup.ses` and `D:\Quantum2\_session.ses`. Holding **Space** at startup boots straight to Quantum Home without launching the console app.
 
 Manual: [Reference 2.1 System Menu](/reference/2-1-system-menu), [2.5.10 Options > Status](/reference/2-5-options), [5.1 Quantum Home](/reference/5-1-quantum-home), [V22 release notes 1.9](/docs/v22-release-notes).

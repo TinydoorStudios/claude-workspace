@@ -44,7 +44,7 @@ The dB range that the compressor Labels: will act over · channel · name.
 
 These set the side chain source and type
 
-This sets Labels: the global · Solo · This sets the solo · 26 · 1.10 Spice Rack
+This sets Labels: the global · Solo · This sets the solo · 1.10 Spice Rack
 
 The Naga 6 can be accessed by selecting a Chilli 6 unit and pressing the type button, then choosing Naga 6.
 
@@ -98,8 +98,6 @@ Chilli 6 is a classic multiband compressor with four flat top filter type bands 
 
 Dynamic Angle affects how far above the threshold the signal needs to be before the full range of EQ is applied, similar to a ratio with a smooth transition through the threshold. This can be set anywhere between 1 (default) equivalent to a higher ratio and 0, a lower ratio. Also similar to a knee, when the Dynamic Angle is set to a value less than 1, gain reduction will be applied to signal below the threshold however will always maintain a soft curve.
 
-27
-
 1.10 Spice Rack
 
 Parametric (Bell) Filters. The six bands on the Naga 6 and two of the bands (P1 and P2) on the Chilli 6, are parametric EQ type filters, which have a centre frequency range of 20Hz – 20kHz and Q of 0.35 – 60. When the band is set to “Split” mode, these bands also have their own independent flat top filter bands, which are used only on the side chain dynamic control and as isolating filters when soloing the band. The centre frequency of these bands follow the frequency control of their main parametric filter, and the width adjusts in sympathy with the main ”Q” control. Setting the band to “Wide” bypasses the flat top filter in the dynamic side chain control such that the side chain is fed directly from the input signal, although these filters remain active as isolating filter when soloing. Flat top filters. On the Chilli 6 only, bands 1 – 4 have three crossover filters which are used to position the bands over the desired spectrum. A global Crossover Slope adjusts the filter slope between second order (0) and true fourth order (1). When a band is set to split mode, the side chain control signal is fed post the filter and will respond only to audio within the band, but when set to “Wide” the side chain is fed directly from the input and will respond to the whole spectrum. Soloed signals will always pass through the filter regardless of the “Split”/”Wide” state. Gain acts as a level adjustment for each band. Range determines the limits of compression or expansion applied to a particular band. When activated, the dynamic range is shown by a blue highlight either above (expansion) or below (compression) the current gain in the graphical display. External Side Chain. Pressing the “Side Chain Source Route” will allow you to select an external source to be used as a side chain. Each band can be set to use this one signal as it’s side chain source independently by pressing the “Int” / “Ext” buttons. Any band not using Ext reverts to using self (the input signal) as it’s source. “Ext” cannot be selected if no externally route has been set up. Soloing Bands. Only one band can be soloed at a time, by pressing the “listen” button in the band. With listen Source set to “Band” the solo will monitor the input signal passing through the bands filter controlled by the dynamics, and in the case of parametric filter bands, the signal will also be passed through a side chain isolating flat top filter. This is so that when notch filters (Bell cut) are used, the effected audio region will be isolated. When Listen source is set to “S/C Listen” the external S/C signal (if set to external) or the input signal, will be passed through its own flat top side chain filter. This filter will not be controlled by the dynamics as it is monitoring the source that is controlling the dynamics. Listen/Solo Destination. The soloed band can be sent to the “Solo 1”buss , the “Solo2” buss, or both, without altering the normal signal going through the spice rack (non-destructive). Alternatively, Pressing the “Destructive” button will make the soloed band replace the spice racks normal output with the soloed signal. These controls are global to all the units in the spice rack. Attack and Release determine the speed at which the compression or expansion acts on the signal. Threshold sets the point where compression or expansion is applied. There is an overall Output fader which can be used to make-up or reduce a post-effect gain difference. Any of the bands can be set to Bypass which sets the gain and range for that band to 0dB, maintaining the overall phase. Bypass All applies a blanket bypass across all bands which keeps the state of the individual bypasses.
@@ -117,8 +115,6 @@ Parameters can be touched on screen to determine which row of controls are assig
 **Touch turn**
 
 Each parameter can be pressed individually to be controlled by the touch turn rotary. The touch turn button toggles the bypass state when on-screen rotaries for that band are selected and listen state when the on-screen faders are selected.
-
-28
 
 1.10 Spice Rack
 
@@ -139,7 +135,5 @@ Presets allow the ability to recall and save parameters for a particular setup o
 **Range only**
 
 ![Spice Rack (manual p.34)](/figures/gs-p034-4.png)
-
-29
 
 1.11 Auxiliaries

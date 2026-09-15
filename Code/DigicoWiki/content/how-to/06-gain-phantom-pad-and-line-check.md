@@ -26,7 +26,7 @@ Setup > **Audio I/O** > select the rack port on the left. Each socket in the gra
 
 ## Line check: listen to a socket before it's patched
 
-In Audio I/O, turn on **Line Check**. Now touching any input socket, patched or not, shows its gain/48V controls and a **listen** button that sends that socket to the solo bus set for line check (Options > Solo > *Line check solo bus*). Gain is on the Touch-Turn encoder. This is the fastest way to check a stage box before the session is built.
+In Audio I/O, turn on **Line Check**. Now touching any input socket, patched or not, shows its gain/48V controls and a **listen** button that sends that socket to the solo bus set for line check (Options > Solo > *Line Check Listen*). Gain is on the Touch-Turn encoder. This is the fastest way to check a stage box before the session is built.
 
 ![Line check controls](/figures/ref-p154-1.png)
 

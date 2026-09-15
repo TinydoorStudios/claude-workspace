@@ -1,6 +1,6 @@
 # DMI-Dante 64@96
 
-64 channels in and 64 out to a Dante network at 48 kHz or 96 kHz, with sample rate conversion. Two EtherCON ports (Primary, Secondary) for the Dante network and an RJ45 **Control** port for a laptop running Dante Controller. Two hardware generations exist: the original Summit HC module (green PCB) and the current **Zynq** module (black); the Zynq version takes firmware updates through a web browser at the card's IP.
+64 channels in and 64 out to a Dante network at 48 kHz or 96 kHz, with sample rate conversion. Two EtherCON ports (Primary, Secondary) for the Dante network and an RJ45 **Control** port for a laptop running Dante Controller. In Switched mode all three ports are switched together; in Redundant mode Control+Primary act as one pair against Secondary, each with its own IP — the mode is set in Dante Controller.
 
 ![DMI-Dante 64@96](/figures/ref-p232-1.png)
 
@@ -28,11 +28,11 @@ In Audio I/O, the card's port has an **Auto SRC** toggle. On, the card converts 
 
 ![Auto SRC in Audio I/O](/figures/ref-p198-1.png)
 
-## Firmware notes (from DiGiCo tech notes)
+## Firmware notes
 
-- Controlling a DQ-Rack or A168D needs DMI firmware v103+ and Dante firmware 4.0.20 (Summit) or 4.2.x (Zynq); A168D/A164D racks themselves need DiGiCo firmware V1.5+, updated with the DiGiCo Dante Rack Utility (TN515).
-- The Zynq card ships with v105 and is updated via browser at its IP (TN580/TN582; current guide: "DMI-Dante64@96 with IP Zynq HC – Upgrading firmware to v4.2.11" on support.digico.biz).
-- Redundant mode (Primary + Secondary on separate switches) is set in Dante Controller, not on the console.
+- Controlling a DQ-Rack or A168D/A164D needs DMI-Dante 64@96 firmware v103+ (in the console's V1454 update package or with console app v1280+) and Dante firmware 4.0.20 for the card, updated via Dante Updater in Dante Controller or per TN514.
+- A168D/A164D racks themselves need DiGiCo firmware V1.5+, updated with the DiGiCo Dante Rack Utility (TN515).
+- On console software earlier than V1454, keep A168D/A164D racks on Dante DMI firmware 4.0.19.
 
 ## Data sheet
 

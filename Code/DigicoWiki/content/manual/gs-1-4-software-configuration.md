@@ -34,8 +34,6 @@ Total number of unallocated processing
 
 Begin by setting the sample rate at the top of the panel. There is a total of 72 input channels available and 36 busses (plus a Master buss which can be stereo or LCR). Channel resources can be split into input or output channels in almost any configuration. The default configuration is : 48 input channels (Input channel formats are defined within each channel, not within the Session Structure)
 
-11
-
 1.4 Software Configuration
 
 6 Mono Aux busses & 6 Stereo Aux busses 6 Mono Group busses & 6 Stereo Group busses 12 Matrix Inputs and 12 Matrix Outputs 12 Control Groups
@@ -49,8 +47,6 @@ NOTE : Auto-Routing can only be used in conjunction with the “Clear All” but
 The Audio I/O window is used to configure the physical I/O connected to the QUANTUM 2, including configuring and naming the sockets of the option cards installed in racks, and the setting of Pads and phantom power. Local I/O : The QUANTUM 2 provides local audio I/O on the rear of the console. These operate independently of connected racks, providing additional audio I/O. To access the QUANTUM 2 Audio I/O Setup Touch “Setup” on the Master Screen, followed by “Audio I/O” The Audio I/O window that opens is divided up into the following sections
 
 ![Software Configuration (manual p.17)](/figures/gs-p017-1.png)
-
-12
 
 1.4 Software Configuration
 
@@ -80,8 +76,6 @@ Audio I/O Panel Optocore Setup Single Console
 
 Once all hardware is connected, go to System/Diagnostics/Optocore. This will list all connected Optocore devices either SDeng (console engines) to SDRack (SD Rack or D Rack) by ID.  If any expected devices are not listed, please check all physical connections, Optocore ID’s and Fibre Speeds.  Once all devices are present, close the Diagnostics panel. Irrespective of the type of rack being used, the system needs to be conformed. This involves the console checking the type of racks connected and their I/O capability There are three levels of automatic conforming: - globally, using the red Conform All Ports button in the bottom left of the window; - on a rack-by-rack basis, using the conform rack button just below the rack view section of the window;
 
-13
-
 1.4 Software Configuration
 
 - on a card-by-card basis, by selecting a socket from the card in the graphical display and using the conform card button next to the Card/Slot type button selector in the lower section of the window. (Note that the Cards & Sockets button towards the bottom-left should be selected) Pressing any of these buttons will correctly select the card types for the range in question. Once complete, all of the Card Labels beneath each slot should turn green.
@@ -101,8 +95,6 @@ Audio from a Rack can be copied to the MADI Port Output by selecting the incomin
 **Standard MADI Connections**
 
 If you have a standard MADI connection (not a DiGiCo Rack) to your QUANTUM 2, you can set the console to display the MADI with generic signal names, i.e. MADI 1, MADI 2.. etc. through to MADI 56 (or 64) instead of the usual rack style names. The naming does not affect the signal, but makes routing signals easier.
-
-14
 
 1.4 Software Configuration
 
@@ -127,7 +119,5 @@ If, after a Session Restructure, you find that newly created channels do not app
 Note that column widths can be adjusted by dragging their borders within the title row. To return all columns to their default widths, press RESET WIDTHS, in the top left-hand corner of the window.
 
 ![Software Configuration (manual p.20)](/figures/gs-p020-2.png)
-
-15
 
 1.5 Saving and Loading Sessions

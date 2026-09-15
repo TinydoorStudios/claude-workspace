@@ -22,10 +22,6 @@ In the Dante Clock Status tab, the QUANTUM 2 DMI-Dante card is set to Sync To Ex
 
 ![DMI - Dante Cards (manual p.47)](/figures/gs-p044-1.png)
 
-42
-
-2.3 DMI - Dante Cards
-
 **Example 2 - Dante Network is Master clock for console**
 
 If the console is required to use the Dante network as its sync source the following settings should be applied. Enable Sync to External = OFF
@@ -34,6 +30,8 @@ If the console is required to use the Dante network as its sync source the follo
 
 ![DMI - Dante Cards (manual p.48)](/figures/gs-p045-1.png)
 
-Labels: Sync To External = OFF · Console External DMI Sync · 43
+Sync To External = OFF
+
+Console External DMI Sync
 
 2.4 DMI - ADC - DAC - MIC - AES Cards

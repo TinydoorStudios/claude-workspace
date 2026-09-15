@@ -18,6 +18,4 @@ It is also possible to show all of the aux sends for a channel in a single displ
 
 Once you have adjusted the auxes in this display, you need to close it manually before opening any other channel detail display.
 
-30
-
 1.12 The Matrix

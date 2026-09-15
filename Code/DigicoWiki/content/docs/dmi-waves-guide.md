@@ -14,7 +14,7 @@ SoundGrid is scalable. Connect one I/O device to a DAW and you have a high-quali
 
 Add a server to a SoundGrid system to offload plugin processing from the host CPU to a SoundGrid DSP server. This dramatically increases processing power and enables greater plugin counts—it also provides very low system latency.
 
-DMI Waves / User Guide 3
+DMI Waves / User Guide
 
 ## Hardware and Connections
 
@@ -28,7 +28,7 @@ GigE (Gigabyte Connection Indicator) = solid orange
 
 Two ports enable you to connect the DMI-Waves card directly to a host computer and one other device (e.g., I/Os, SoundGrid server) without needing an Ethernet switch. It is not important which of the two Ethernet ports is used to connect to the SoundGrid network. For installations that include more than two SoundGrid devices, a 1 GB Ethernet
 
-DMI Waves / User Guide 4
+DMI Waves / User Guide
 
 Configure SoundGrid and assign your devices as follows, however large or small your system.
 
@@ -50,11 +50,7 @@ The host computer’s LAN port that’s connected to the SoundGrid network shoul
 
 In this configuration, all plugin processing is carried out on the host computer. The speed and power of the host defines
 
-overall latency
-
-DMI Waves / User Guide 5
-
-Add I/Os
+Labels: overall latency · DMI Waves / User Guide · Add I/Os
 
 Adding I/O devices not only increases the number of I/O channels, but lets you have separate devices for stage and FOH, or live room and control room. When there are more than two network connections, use a "star" network configuration with a 1GB Ethernet switch. Only use switches tested and approved by Waves.
 
@@ -70,7 +66,7 @@ ADD A SERVER
 
 To add a server to your SoundGrid system, just connect it to the Ethernet switch and configure it in your host application. This moves all DSP processing from the host computer to the server, which provides a higher plugin count and enables the eMotion LV1 and ST mixers. Visit the waves.com hardware pages to learn more about SoundGrid servers. Consult your SoundGrid host application’s user guide to learn about using servers.
 
-DMI Waves / User Guide 6
+DMI Waves / User Guide
 
 ## Download and Install Software
 
@@ -102,7 +98,7 @@ LICENSES
 
 You do not need a license to use this device. However, many hosts or specific host configurations do require a license. Refer to your host’s product page for details.
 
-DMI Waves / User Guide 7
+DMI Waves / User Guide
 
 ## Configure the System
 
@@ -120,7 +116,7 @@ SoundGrid Studio Setup Window
 
 All SoundGrid devices are configured in a similar manner. Throughout this section, we show DiGiGrid IOS as an example.
 
-DMI Waves / User Guide 8
+DMI Waves / User Guide
 
 Manual Device Configuration
 
@@ -148,7 +144,7 @@ Auto-config chooses the correct LAN port on the host computer and scans the Soun
 
 Note that SoundGrid Studio assigns the SoundGrid driver automatically. SuperRack SoundGrid and eMotion LV1 require that the SoundGrid ASIO/Core Audio driver is assigned manually.
 
-DMI Waves / User Guide 9
+DMI Waves / User Guide
 
 Device Firmware An I/O that is using outdated or incompatible firmware will not work properly in a SoundGrid network until its firmware is updated. The color of the FW button in a device slot indicates the current firmware status.
 
@@ -176,7 +172,7 @@ When the ID button is pressed, the LEDs on the panel of the card change colors r
 
 SoundGrid Studio SoundGrid QRec
 
-DMI Waves / User Guide 10
+DMI Waves / User Guide
 
 ## DMI Waves Control Panel
 
@@ -206,7 +202,7 @@ Mac: System HD/Applications/Waves/SoundGrid
 
 The About and System Info pages provide information about the unit, such as MAC address, SoE master, firmware version, and more. The Clock page is used to assign clock source and sample rate, as well as to monitor clock status.
 
-DMI Waves / User Guide 11
+DMI Waves / User Guide
 
 ## Clock Page
 
@@ -224,7 +220,7 @@ Sync over Ethernet Syncs to the master I/O of the SoundGrid network.
 
 SAMPLE RATE sets the sample rate when Clock Source is set to Internal. Range: 48 kHz, 96 kHz
 
-DMI Waves / User Guide 12
+DMI Waves / User Guide
 
 **CLOCK STATUS INDICATORS**
 
@@ -240,7 +236,7 @@ When the device is a slave in the SoundGrid network, you will likely sync it to 
 
 Even when the device is an SOE slave, you can lock it to an external clock source. For example, if another SoundGrid I/O device is the SOE master and is locked to a word clock device, you may choose to receive clock from the same external device over word clock from the master device, rather than via network SOE.
 
-DMI Waves / User Guide 13
+DMI Waves / User Guide
 
 ## System Info Page and About Page
 
@@ -250,7 +246,7 @@ The About page contains a description of the device. The System Info page contai
 
 ![DMI-Waves User Guide (Waves) (manual p.14)](/figures/dmi-waves-guide-p014-2.png)
 
-DMI Waves / User Guide 14
+DMI Waves / User Guide
 
 ## Presets
 
@@ -260,7 +256,7 @@ You can save and load presets of device settings. A saved preset includes all Cl
 
 Click the ID button to indicate which DMI-Waves hardware device belongs to this Control Panel. Clicking the button causes the LEDs on the panel of the card change colors repeatedly to help identify the device.
 
-DMI Waves / User Guide 15
+DMI Waves / User Guide
 
 ## Using an I/O Device with a DAW
 
@@ -278,4 +274,4 @@ I/O preferences and in the Input/Output selector in each DAW channel.
 
 2. Route the DAW inputs and outputs to SoundGrid.
 
-DMI Waves / User Guide 16
+DMI Waves / User Guide

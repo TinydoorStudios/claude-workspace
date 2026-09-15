@@ -5,7 +5,7 @@
 ![Setup > Audio I/O: one port per connection](/figures/q2-audio-io.png)
 *Setup > Audio I/O: one port per connection — Quantum 2 offline software, V22.*
 
-The Q225 rear panel carries 8 mic/line inputs and 8 line outputs, 4 AES I/O, a MADI port (BNC), USB audio (the "UB MADI" device the recording machine sees), MIDI, GPIO, word clock I/O, two Ethernet ports, a display port, and **two DMI slots**. Everything beyond that comes through the DMI cards.
+The Q225 rear panel carries 8 mic/line inputs and 8 line outputs, 2 AES/EBU inputs and 2 AES/EBU outputs (4 channels each way), 4 sets of MADI BNC I/O (up to 4 interfaces at 48kHz, 2 at 96kHz), USB audio (the "UB MADI" device the recording machine sees, up to 48 channels), MIDI in/thru/out, GPIs and GPOs, word clock I/O, 4 switched Ethernet ports, 2 DisplayPorts, and **two DMI slots**. Everything beyond that comes through the DMI cards.
 
 ![Q225 rear panel](/figures/gs-p008-1.png)
 
@@ -16,7 +16,7 @@ Two slots, not hot-swappable (power the console off to fit or remove a card; see
 | Card | Channels | What it does |
 |---|---|---|
 | [DMI-Dante 64@96](/hardware/02-dmi-dante-64-96) | 64 in / 64 out at 48 or 96 kHz | Dante network: DQ-Rack, A168D Stage, any Dante device. Auto SRC. Controls DQ/A168D preamps. |
-| [DMI-KLANG](/hardware/06-dmi-klang) | 64 sends in, 16 stereo mixes + cue back | Immersive IEM mixing inside the console. |
+| [DMI-KLANG](/hardware/06-dmi-klang) | 64 sends in, 16 stereo binaural mixes + stereo solo back | Immersive IEM mixing inside the console. |
 | [DMI-Waves](/hardware/07-dmi-waves) | 64 in / 64 out at 48 or 96 kHz | SoundGrid: Waves plugins via SuperRack, or a SoundGrid recorder. |
 | [DMI-MADI](/hardware/08-dmi-madi) | 64 in / 64 out (BNC or Cat5e) | Extra MADI port for a rack or a recorder. Manual SRC. |
 

@@ -12,6 +12,4 @@ The 4 switchable output sockets (6, 12, 18 and 24) have a LED indicator light be
 
 A blue light on one of the switchable AES/Line output sockets indicates that the socket is set to be an AES output in its current state.
 
-8
-
 DQ & MQ-Rack User Guide 1.5 Using the Q-Rack Menu System

@@ -14,6 +14,4 @@ Example Clocking from Optocore@ 96kHz There are also times when the QUANTUM 2 ne
 
 Note : When a valid clock is detected on an external sync input, the corresponding Green OK box will light, even if that input is not selected as the clock source for the QUANTUM 2.
 
-17
-
 1.7 Routing Basics

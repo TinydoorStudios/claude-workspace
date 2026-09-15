@@ -42,13 +42,7 @@ As an example, using just a single console and a single rack, the console could 
 
 With the following routing in place, a console that selects any of the DMI card channels 1-16 as an input source will receive the signal from the same numbered Rack Input socket – this is a logical setup.
 
-17
-
-DQ & MQ-Rack User Guide 1.6 Connecting a DANTE rack
-
-Dante Rack
-
-Inputs
+Labels: DQ & MQ-Rack User Guide · Dante Rack · Inputs
 
 ![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-1.png)
 
@@ -80,9 +74,7 @@ Each channel receives the same numbered input socket from the rack.
 
 In this example, a console that routes signal to DMI card output channels 1-8 will be sending them to the same numbered Rack Output socket.
 
-18
-
-DQ & MQ-Rack User Guide 1.6 Connecting a DANTE rack
+DQ & MQ-Rack User Guide
 
 ![Connecting a DANTE rack (manual p.20)](/figures/dq-p020-1.png)
 
@@ -101,7 +93,5 @@ Dante Controller & Routing
 Dante Rack
 
 ![Connecting a DANTE rack (manual p.20)](/figures/dq-p019-1.png)
-
-19
 
 DQ & MQ-Rack User Guide 1.7 Rack Connections with MADI

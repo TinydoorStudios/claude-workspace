@@ -6,10 +6,6 @@ Quantum 338, Quantum 225, Quantum 7 and SD12 are compatible with the DMI-AMM car
 
 ![DMI – AMM (manual p.51)](/figures/gs-p051-3.png)
 
-46
-
-2.7 DMI – AMM
-
 Each of the 64 slots within the AMM control panel include a group assign (Group A & Group B) and a weight control. The Floor control of each group imposes a lower limit on the level detector for all microphones assigned to that group, this prevents a noisy microphone from receiving a disproportionate share of gain. The Floor should be left at the default value of -130dB for normal operation.
 
 ![DMI – AMM (manual p.52)](/figures/gs-p052-1.png)
@@ -18,17 +14,9 @@ Each of the 64 slots within the AMM control panel include a group assign (Group 
 
 There are two ways to route channels to the AMM. The first is from within the AMM Control window itself. Touch the white box below each of the slots, this will open the AMM Routing window (Figure 4). Here you can ripple route channels to the AMM, using touch turn to select the desired number of channels. The AMM is automatically assigned a post-fader Insert B. Therefore, AMM can also be assigned in a way that DiGiCo users will be more familiar with, via the Insert B routing window at the bottom of a channel strip (Figure 5).
 
-47
-
-2.7 DMI – AMM
-
 ![DMI – AMM (manual p.53)](/figures/gs-p053-1.png)
 
 ![DMI – AMM (manual p.53)](/figures/gs-p053-2.png)
-
-48
-
-2.7 DMI – AMM
 
 When channels are routed to the AMM and assigned to a group, a Share % bar is seen in yellow on the right side of an AMM slot. This represents the gain Share that the channel is getting when the AMM is active. This meter is shown in terms of percentage, meaning that if 2 speakers stop talking at the same time then they will both get 50% of the gain share. The Weight control allows adjustment of the relative sensitivity on a per channel basis. When weighting controls are balanced (equal), each microphone has an equal opportunity to “take over” the system. Changing the weight will not have an effect on the overall level of the channel, just how easily it can take a share of the gain. Adding weight to one primary microphone ensure that the particular microphone (e.g. a chairperson) will get more of the share of gain (Figure 6).
 
@@ -39,7 +27,5 @@ There are a set of master controls available at the bottom of the AMM Control wi
 All AMM parameters (both master and channel specific) are saved on a per snapshot basis and can be safed or removed from the global scope. Only input channels can be added to the AMM. It can be saved globally via the Input Devices option in the Global Scope menu on the Snapshots window. This is NOT enabled by default.
 
 ![DMI – AMM (manual p.54)](/figures/gs-p054-2.png)
-
-49
 
 2.8 DMI-KLANG

@@ -6,6 +6,4 @@ This manual provides an overview of the desk and describes some of the basic ope
 
 ![Manual Overview (manual p.6)](/figures/gs-p006-1.png)
 
-1
-
 1.2 Before You Start

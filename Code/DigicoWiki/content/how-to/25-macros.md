@@ -15,7 +15,7 @@ Setup > **Macros** (or the **assign** button in the macros area of the surface) 
 2. Add commands, two ways:
    - **capture** (top right): press it, do the moves on the console, press it again. Everything you touched is listed in order.
    - or pick a **command type** on the left, then a command from the list below (search box at the top; V22 filters the types as you type). Set the channel range and value.
-3. Commands run in list order. Touch a row to insert before it.
+3. Commands run in list order. New commands overwrite the selected row — touch the row above where you want a new command, then press **insert** to open a row for it rather than overwriting.
 
 ![Macro Editor](/figures/ref-p162-1.png)
 
@@ -31,6 +31,6 @@ A **MacroOSC** command type transmits an OSC message (integer, float, string or 
 
 ## Useful ones from V22
 
-*Lock Console* (jump to Live or Unattended security mode), *Switch to Bank*, *Global Tap Tempo*, LiveTrax record/navigation, *Update Current Snapshot*, *Clear Master Screen*. Macros can now be reordered with **move**.
+New in V22: *Lock Console* (set Security Mode to Live or Unattended) and *Switch to Bank* (send a single surface to a chosen bank). The LiveTrax command type adds Play, Stop, Rewind, Forward, Return to Start, Record Arm, Add Marker, Locate Marker and Send Snapshot Markers. Macros can now be reordered from the Macros panel with **move**, and search results filter to only the command types that match what you typed.
 
 Manual: [Reference 2.12.12–2.12.14 Macros](/reference/2-12-setup-menu).

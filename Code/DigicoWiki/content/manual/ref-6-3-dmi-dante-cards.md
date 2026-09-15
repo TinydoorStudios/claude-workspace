@@ -30,8 +30,6 @@ This setup enables the DMI-Dante in the QUANTUM 8 to take its Audio Sync Source 
 
 ![DMI - Dante Cards (manual p.232)](/figures/ref-p226-1.png)
 
-6.3 DMI - Dante Cards
-
 **Example 2 - Dante Network is Master clock for console**
 
 If the console is required to use the Dante network as its sync source the following settings should be applied.

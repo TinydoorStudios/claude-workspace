@@ -17,7 +17,7 @@ System > **Security**. Three levels:
 - **Set Live Restrictions** opens a tree of functions: tick = allowed in Live, cross = locked. Expand a group (e.g. FX) for per-item control.
 - V22 adds a **Lock Console** macro that switches to Live or Unattended from a smart key. Handy for walking away at intermission.
 
-Forgot the password? DiGiCo's distributor can give a reset password that lets you set new ones.
+Forgot the password? Your distributor can give a reset password — entering it as the master override lets you set new ones.
 
 Unattended mode is the one to use when the desk is live and you're leaving it: it stops a curious hand at FOH.
 

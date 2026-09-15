@@ -28,6 +28,4 @@ Save to File: click to save the system information to a text file. The saved fil
 
 ![System Information (manual p.60)](/figures/gs-p060-1.png)
 
-55
-
 3.4 Advanced Settings

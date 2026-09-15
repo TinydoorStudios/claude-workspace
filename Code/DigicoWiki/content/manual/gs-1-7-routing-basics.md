@@ -16,8 +16,6 @@ Within each display, there are three columns containing three levels of routing 
 
 Note that when routing direct outs from Input channels or outputs from output channels, any number of available signals can be selected. A new route selection will therefore be added to previous selections in these cases. However, inputs, insert sends and insert returns can only route to/from one signal (in the case of mono channels) or two signals (in the case of stereo channels). A new route selection will therefore result in the previous selection being lost for inputs and insert sends and returns. For stereo channels, left and right routes are presumed to be consecutive: When routing stereo signals, select the left route, and the next signal in the list will be automatically selected as the right route. If the last signal in a signal group or port is selected as the left route, the first signal in the following signal group or port will selected as the right route.
 
-18
-
 1.7 Routing Basics
 
 Note: The outputs for the channel being routed are locked out of the signal list
@@ -27,8 +25,6 @@ Note also that the console views all routes as a single list. Therefore, if the 
 ### 1.7.2 Ripple Channels
 
 The ripple channels function, located at the top of the route display, allows consecutive channel routes to follow the routing of the current display incrementally. For example, Channels 1 to 8 direct outputs can be routed to Rack 1 > Line outs 1 to 8 respectively by routing Channel 1’s direct out to Rack 1 > Line out 1 and allowing the ripple channels function to route Channels 2-8 automatically. The number of channels to be rippled is defined either by selecting the appropriate grey numbered button, or by selecting the keyboard button to the right of the numbered buttons, typing the required number of channels (8 in the example above) into the numeric keypad which appears, and pressing OK. Once you have configured the ripple channels function, any routing action will also effect the appropriate number of channels above the channel being routed. The ripple channels function treats stereo channels as two channels. In other words, if Channel 2 in the above example is stereo, the ripple channels function will route Channel 1 to Line out 1, Channel 2 Left and Right to Line outs 2 and 3, Channel 3 to Line out 4 etc. The Ripple by bank/ channel number function changes how the channels are rippled, Ripple by bank ripples the channels by their position in the bank irrespective of channel number, Ripple by Channel number routes the rippled channels by channel number irrespective of position within the bank.
-
-19
 
 1.8 Channel Processing
 

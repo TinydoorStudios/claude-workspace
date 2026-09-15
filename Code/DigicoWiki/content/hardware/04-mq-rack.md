@@ -8,7 +8,7 @@ The MADI twin of the DQ-Rack: 48 mic/line inputs, 24 outputs (6, 12, 18, 24 swit
 
 Console MADI **OUT** to rack MADI **IN Main**; console MADI **IN** to rack MADI **OUT Main**. At 96 kHz, or for a redundant link, add the Aux pair the same way. Console Audio Sync = Master; the rack locks to the incoming MADI.
 
-![MADI connection](/figures/dq-p020-1.png)
+![MADI connection](/figures/dq-p021-1.png)
 
 Then Audio I/O > select the port > device type **MQ-Rack** > conform. 48 inputs and 24 outputs appear; the Line Out/AES switch for the four dual sockets is on the socket in Audio I/O, and inactive outputs are greyed out in routing.
 

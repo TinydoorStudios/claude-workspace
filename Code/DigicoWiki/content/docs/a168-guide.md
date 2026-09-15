@@ -90,4 +90,4 @@ Note
 
 **A168**
 
-2 AP11445 issue 1
+AP11445 issue 1

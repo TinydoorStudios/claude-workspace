@@ -24,9 +24,7 @@ Connect Console MADI BNC OUT socket to Rack BNC IN MAIN socket.
 
 Connect Console MADI BNC IN socket to Rack BNC OUT AUX socket.
 
-20
-
-DQ & MQ-Rack User Guide 1.7 Rack Connections with MADI
+DQ & MQ-Rack User Guide
 
 Connect Console MADI BNC OUT socket to Rack BNC IN AUX socket.
 
@@ -68,9 +66,7 @@ IMPORTANT Note: If Gain Tracking is active on a channel, the digital trim contro
 
 If the "Slave" console loads a session where the Analogue Gain and +48V settings do not match the current state of the racks, the Master console should then reload its session to update the state of these controls on the "Slave" console
 
-21
-
-DQ & MQ-Rack User Guide 1.7 Rack Connections with MADI
+DQ & MQ-Rack User Guide
 
 **FOH & MONITORS WITH SHARED RACK at 48KHz USING MADI**
 
@@ -83,5 +79,3 @@ FOH
 Audio Sync = MASTER
 
 ![Rack Connections with MADI (manual p.23)](/figures/dq-p023-2.png)
-
-22

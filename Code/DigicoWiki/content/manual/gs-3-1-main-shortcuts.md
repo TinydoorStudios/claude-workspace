@@ -20,6 +20,4 @@ Quantum Test: launches the Quantum Test application.
 
 ![Main Shortcuts (manual p.58)](/figures/gs-p058-1.png)
 
-53
-
 3.2 Settings Pane

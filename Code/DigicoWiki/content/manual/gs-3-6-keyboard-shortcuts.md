@@ -5,5 +5,3 @@
 - 
 
 Hold “Space” at start-up: boots to Quantum Home without launching the Quantum 2 application.
-
-58

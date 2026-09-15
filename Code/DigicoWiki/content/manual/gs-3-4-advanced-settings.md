@@ -46,9 +46,7 @@ Left screen (acts as a channel view for the left fader bank, the screen follows 
 
 Overview (acts as an external overview screen). o Configure All: applies the external screen settings and reconfigures the master, left and right screens. Once configured, Quantum Home identifies the screens, allowing for a visual confirmation of the new display configuration. Note that Quantum Home will require a restart after displays configuration, either by locking and rebooting the console or by a forced restart of Quantum Home when exiting the Advanced Settings menu.
 
-Labels: 56 · 3.4 Advanced Settings · o
-
-Identify Displays: pops up the display identification view on each screen highlighting the current screen position.
+o Identify Displays: pops up the display identification view on each screen highlighting the current screen position.
 
 ![Advanced Settings (manual p.62)](/figures/gs-p062-1.png)
 
@@ -58,4 +56,6 @@ Note: To switch between left and Overview screen as selections for the external 
 
 Quantum Home Update:
 
-o Select File: opens a file dialog window to browse and open a new QuantumHome.exe file. o Update: applies the update by replacing the current Quantum Home with the selected file. Triggers a restart of Labels: Quantum Home. · 57 · 3.5 Network Settings
+o Select File: opens a file dialog window to browse and open a new QuantumHome.exe file. o Update: applies the update by replacing the current Quantum Home with the selected file. Triggers a restart of Quantum Home.
+
+3.5 Network Settings

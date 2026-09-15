@@ -8,10 +8,11 @@ Master screen > **Options**. Ten tabs; purple = on. These are the ones that chan
 ## Surface
 
 - **Auto expand EQ / dynamics** and the *auto-expand time* pot: the panel pops open when you turn an encoder and closes after n seconds. *Auto-Expand Exclude Off* stops it popping when you switch a module off.
-- **Big LCD names** shows channel names larger on the LCDs (with gain and solo bus, or name only).
+- **Large LCD names** shows channel names larger on the LCDs (with gain and solo bus, or name only).
 - **Auto-revert LCD menu to solo** and its timer.
 - **Panning type 1 / 2** (2 is the newer sine/cosine law; global).
 - **2nd function auto-cancel** with a timer.
+- **Round to whole dBs** rounds fractional dB values to the nearest integer.
 
 ![Options > Surface](/figures/ref-p111-1.png)
 

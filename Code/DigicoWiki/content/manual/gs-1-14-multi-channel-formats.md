@@ -14,6 +14,4 @@ If the Unfold button in the Multi or in a multi-channel buss channel strip is pr
 
 See the SD/Quantum Series Software Reference Manual for more information on Multi Channel formats
 
-33
-
 1.15 Solo Setup

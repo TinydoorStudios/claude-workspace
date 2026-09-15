@@ -28,12 +28,10 @@ The DMI module range use 25 way “D” connectors, Female on the module (Male r
 
 **Sorted by function**
 
-Function Pin Function Pin Function Pin Function Pin 8+ 1 0 2 4out+ 1 0 2 0 2 0 5 0 2 0 5 7- 3 0 8 3out- 3 0 8 6+ 4 0 11 2out+ 4 0 11 0 5 0 16 0 5 0 16 5- 6 0 19 1out- 6 0 19 4+ 7 0 22 4in+ 7 0 22 0 8 0 25 0 8 0 25 3- 9 1- 12 3in- 9 1in- 12 2+ 10 1+ 24 2in+ 10 1in+ 24 0 11 2- 23 0 11 1out- 6 1- 12 2+ 10 1in- 12 1out+ 18 nc 13 3- 9 nc 13 2in- 23 8- 14 3+ 21 4out- 14 2in+ 10 7+ 15 4- 20 3out+ 15 2out- 17 0 16 4+ 7 0 16 2out+ 4 6- 17 5- 6 2out- 17 3in- 9 5+ 18 5+ 18 1out+ 18 3in+ 21 0 19 6- 17 0 19 3out- 3 4- 20 6+ 4 4in- 20 3out+ 15 3+ 21 7- 3 3in+ 21 4in- 20 0 22 7+ 15 0 22 4in+ 7 2- 23 8- 14 2in- 23 4out- 14 1+ 24 8+ 1 1in+ 24 4out+ 1 0 25 nc 13 0 25 nc 13 Pinout and connection notes: 0 = earth/ground or screen/shield nc = not connected + = phase/hot
+Function Pin Function Pin Function Pin Function Pin 8+ 4out+ 7- 3out- 6+ 2out+ 5- 1out- 4+ 4in+ 3- 1- 3in- 1in- 2+ 1+ 2in+ 1in+ 2- 1out- 1- 2+ 1in- 1out+ nc 3- nc 2in- 8- 3+ 4out- 2in+ 7+ 4- 3out+ 2out- 4+ 2out+ 6- 5- 2out- 3in- 5+ 5+ 1out+ 3in+ 6- 3out- 4- 6+ 4in- 3out+ 3+ 7- 3in+ 4in- 7+ 4in+ 2- 8- 2in- 4out- 1+ 8+ 1in+ 4out+ nc nc Pinout and connection notes: 0 = earth/ground or screen/shield nc = not connected + = phase/hot
 
 - = antiphase/cold
 
 Analogue connections for input and output are connected in the same way, as shown. Analogue connections for channels 1-8 shown, channels 9-16 follow the same pattern (1 = 9, 2 = 10 etc.). AES connections are shown as 4 stereo (2 channel) connections, equivalent to channels 1-8. AES connections for stereo connections 1-4 (ch 1-8) shown, connections stereo 5-8 (ch 9-16) follow the same pattern (1 = 5, 2 = 6 etc.).
-
-44
 
 2.5 DMI - Waves - Hydra Cards

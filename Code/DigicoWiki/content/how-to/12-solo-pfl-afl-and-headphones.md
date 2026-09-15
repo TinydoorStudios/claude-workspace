@@ -38,6 +38,6 @@ Quantum only: Solos panel > **True Solo** copies the processing on an output bus
 
 ## Options that change solo behaviour
 
-Options > **Solo**: solo assigns channel to surface (default on), solo displays insert/FX panels, solo assigns aux sends to faders (default on, that's how "aux to faders" happens when you solo an aux), line check solo bus, restrict PFL/AFL choice to inputs.
+Options > **Solo**: *Solo Assigns Channel* (default on), *Solo Displays Inserts and Outputs* (default on), *Solo Assigns Aux to Faders* (default on — that's how "aux to faders" happens when you solo an aux), *Line Check Listen* (which solo bus line check uses), *Outputs AFL Only* (restricts PFL/AFL choice to inputs, outputs fixed on AFL).
 
 Manual: [Reference 2.10 Solos Menu](/reference/2-10-solos-menu), [1.2.8 Channel Solos](/reference/1-2-channel-input-common-elements), [Getting Started 1.15 Solo Setup](/console/1-15-solo-setup).

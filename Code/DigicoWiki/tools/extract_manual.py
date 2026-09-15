@@ -67,7 +67,7 @@ def main():
                 try:
                     pix = fitz.Pixmap(doc, xref)
                     if pix.n - pix.alpha >= 4: pix = fitz.Pixmap(fitz.csRGB, pix)
-                    data = pix.tobytes('png')
+                    data = pix.tobytes('png')          # only used as the dedupe key (keeps filenames stable)
                 except Exception as e:
                     continue
                 hsh = hashlib.md5(data).hexdigest()
@@ -77,7 +77,14 @@ def main():
                     imgn += 1; figcount += 1
                     fn = f"{a.prefix}-p{pg:03d}-{imgn}.png"
                     path = os.path.join(a.fig_dir, fn)
-                    open(path, 'wb').write(data); seen_hash[hsh] = path
+                    clip = fitz.Rect(b['bbox']) + (-2, -2, 2, 2)
+                    rendered = page.get_pixmap(clip=clip, dpi=220, alpha=False)
+                    from PIL import Image as _I, ImageStat as _S
+                    _im = _I.frombytes('RGB', (rendered.width, rendered.height), rendered.samples)
+                    if sum(_S.Stat(_im).stddev)/3 < 6:          # flat colour = callout box / stencil, not a figure
+                        seen_hash[hsh] = None; imgn -= 1; figcount -= 1; continue
+                    rendered.save(path); seen_hash[hsh] = path
+                if path is None: continue
                 cur['items'].append(('img', os.path.basename(path), '', pg)); cur['pages'].add(pg)
                 continue
             # text block
@@ -118,6 +125,8 @@ def main():
                             it = cur['items'][i]; cur['items'][i] = ('img', it[1], fm.group(1).strip(), it[3]); break
                     continue
                 if size < 8: continue
+                if re.fullmatch(r'\d{1,3}', text): continue                       # bare page number
+                if cur is not None and not bold and re.fullmatch(r'\d+(?:\.\d+)*\s+.{3,60}', text) and text.split(' ',1)[1].strip() == (cur['title'] if cur['num']==('.'.join(cur['num'].split('.')[:2])) else cur['title']) : continue
                 style = 'b' if bold else ('i' if 'Italic' in s0['font'] else '')
                 if not bold and ('F3' in s0['font'] and 'CIDFont' in s0['font']): style = 'b'
                 if a.single and size >= a.single_h and len(text) < 90:

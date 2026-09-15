@@ -82,8 +82,6 @@ Group Update Mode
 
 Note: The current snapshot appears in the panel as the highlighted entry in the list. The snapshot name displayed in green indicates that it is the selected snapshot on the worksurface and its name is indicated in the display. The Fire button recalls this selected snapshot and highlights it in the screen list as the current snapshot.
 
-2.4 Snapshots Menu
-
 Note: An “update Waves only” button appears below the Scope buttons when Waves is active.
 
 If the current snapshot shows an asterisk next to the number (e.g. 001*) this indicates that a controller has changed since the snapshot was fired. If a Snapshot name appears in black in the list, it is a standard Snapshot and if it appears in red or blue then it is a member of a group of snapshots

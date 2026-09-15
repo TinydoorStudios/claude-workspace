@@ -26,9 +26,7 @@ Requires 2 separate mains connections.
 
 Below the panel, the Rack Unit has Input and Output slots consisting of 48 Analogue Mic/Line Inputs and 24 Analogue outputs (4 of these are switchable to AES Mode).
 
-6
-
-DQ & MQ-Rack User Guide 1.1 Introduction
+DQ & MQ-Rack User Guide
 
 NOTE: DQ & MQ-Racks are only compatible with SD and Quantum consoles running
 
@@ -50,6 +48,6 @@ System Settings Labels: Controls · DANTE Ports · D ual Redundant PSUs
 
 20 Analogue Outs
 
-4 Line Out/AES Labels: Switchable Outs · 7 · DQ & MQ-Rack User Guide
+4 Line Out/AES Switchable Outs
 
-1.2 Q-Rack Power
+DQ & MQ-Rack User Guide 1.2 Q-Rack Power
