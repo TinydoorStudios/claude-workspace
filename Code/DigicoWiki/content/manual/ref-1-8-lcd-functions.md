@@ -4,7 +4,7 @@
 
 The LCD button/display is located above the channel fader and is included in every channel in both the centre section and side sections of the consoles. The channel number is displayed in the top half and the current function mode of the button is displayed in the bottom half of the display and is also indicated by its colour.
 
-![LCD Functions (manual p.59)](/figures/ref-p059-1.png)
+![Channel strip LCD/select button showing channel number and current function mode (Ch 3, PFL 1), with the mute button and fader above](/figures/ref-p059-1.png)
 
 LCD buttons (SD5,7) or Select Buttons (SD8,9,10,11,12, Quantum consoles) are able to fulfil a number of different functions, and are even involved in selecting their own function. These functions are accessed by pressing the LCD function button, located above the bank buttons on each section of the desk. When this button is pressed, LCD displays for the channels associated with it turn yellow, indicating that they have become function mode selectors:
 
@@ -40,8 +40,6 @@ Note: that when any member of a gang is Assigned, the Undo function will always 
 
 Note: gangs cannot be edited once they have been created.
 
-1.8 LCD Functions
-
 ### 1.8.4 Join CG (Control Group)
 
 When an LCD function button is pressed, the fourth LCD display from the left is labelled JOIN CG. When this mode is selected, the LCD/select buttons can be used for assigning channels to Control Groups. Control Groups enable a number of channel output levels and mute functions to be controlled from one master fader. Control Groups can include any combination of channels from all four channel types. For more detailed information on Control Groups, please refer to the Master Section of this Manual.
@@ -50,37 +48,17 @@ When an LCD function button is pressed, the fourth LCD display from the left is 
 
 To assign channels to the worksurface, enter ASSIGNFADERS mode. The LCD displays will turn dark green and their lower halves will read ASSIGN. Press the LCD/select buttons for each of the channel strips to which you wish to assign new channels.
 
-Press the LCD
-
-**function**
-
-button then
-
-Press the LCD buttons for assignment
-
-**ASSIGN**
-
-**FADERS**
-
-![LCD Functions (manual p.61)](/figures/ref-p061-1.png)
-
-Go to Layout >
-
-**Channel List on the**
-
-Master Screen and expand the group of channels you want to assign and then click on the first channel you want to apply
-
-![LCD Functions (manual p.61)](/figures/ref-p061-2.png)
+![Press the LCD function button then ASSIGN FADERS; press the LCD buttons for assignment; go to Layout > Channel List on the Master Screen, expand the group of channels you want to assign, and click the first channel you want to apply](/figures/ref-p061-1.png)
 
 To select the channels you wish to assign to those channel strips, open up the Channel List display, accessed by going to the master screen and touching Layout > Channel List. There you will find a list of all input, output and control channels that are present in the session structure, grouped by channel type. Open up the channel list for the channel type of the first channel to be assigned by touching the appropriate down arrow in the left- hand column.
+
+![Channel List display showing input channels grouped by type, with group and patch destination columns](/figures/ref-p061-2.png)
 
 The channel list can be scrolled using the scroll bar on the right of the display: To assign one of the listed channels to the channel strip, simply touch the channel name in the list. The remaining channels can now be assigned in the same way, the channels selected in the Channel List display are assigned to the selected channel strips in ascending order, starting with the lowest channel in the bank.
 
 Note: the assign function is restricted to the currently selected bank.
 
 Note: that when new channels are added to a session, or when a session is created, all of the existing channels can be assigned to the worksurface using the rebuild banks function within the Session Structure display.
-
-1.8 LCD Functions
 
 ### 1.8.6 Unassign Faders
 
@@ -117,8 +95,6 @@ Note: banks can be moved between layers, and also between sections of the consol
 Note: also, that the Fader Banks display on the master screen can also be used for altering the bank layout.
 
 Note: also, that there is no undo function for these actions. Proceed with care!
-
-1.9 Multi Channels
 
 ### 1.8.12 Create Multi
 

@@ -302,7 +302,7 @@
     "/console/2-8-dmi-klang"
    ],
    [
-    "2.9 DMI-Dante 64@96  & Dante IO Control",
+    "2.9 DMI-Dante 64@96 & Dante IO Control",
     "/console/2-9-dmi-dante-64-96-dante-io-control"
    ],
    [
@@ -440,7 +440,7 @@
     "/reference/6-1-fitting-dmi-cards"
    ],
    [
-    "6.2 DMI-MADI Cards",
+    "ref-6-2-dmi-madi-cards.md",
     "/reference/6-2-dmi-madi-cards"
    ],
    [

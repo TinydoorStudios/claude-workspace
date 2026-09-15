@@ -15,7 +15,8 @@ or:
 
 2. On the CG's on-screen strip press **JOIN/LEAVE**, press the members' select buttons, release JOIN/LEAVE.
 
-![Join CG](/figures/ref-p139-1.png)
+![Join CG](/figures/ref-p139-2.png)
+*Manual figure: Join CG — LCD Function > Join CG, select the control group, then the member channels — SD Quantum Software Reference, Issue H, p.139.*
 
 Members are listed at the top of the CG strip. **Clear** empties it. Name it with the usual name box. A channel shows its CG memberships above its GANG/SAFE buttons (only the first two or three fit).
 

@@ -2,6 +2,8 @@
 
 *Chapter 2: The Master Screen — manual pages 147–150*
 
+*On the Q225 — a single-engine console — mirroring means networking to a second console or to a laptop running Offline software, not switching between redundant engines as on the SD7/Q7/Q8. The dual-engine content below (Engine A/B switching, Single Engine Only) is included for reference but doesn't apply.*
+
 ### 2.11.1 Network Configuration
 
 Any two SD Series consoles of the same type can be mirrored together to provide a fully redundant audio system. The SD7. Q7 and Q8 consoles are fitted with two separate engines, and as such, offer built in redundancy.
@@ -10,21 +12,7 @@ In order to take advantage of this redundancy, you need to verify the console ne
 
 Before the consoles/engines can be mirrored, you should ensure that a standard crossover network (Ethernet) cable is connected between the two consoles/engines (a standard network cable will also work with Quantum consoles). Without this connection, the two consoles/engines will not “talk” to each other. To open the Network window, touch the Network button at the top of the Master Screen. The following window will open…
 
-Press the Select button to choose which device to send to or receive a session from
-
-Optocore ID
-
-![Network and Mirroring (manual p.147)](/figures/ref-p147-1.png)
-
-When highlighted in orange the Audio Master button indicates this audio engine is currently active
-
-Once synchronised, session details for both Engines will match
-
-Press here to send a session to the selected device
-
-Press here to receive a session from the selected device
-
-Press here to mirror to or from the selected device
+![Network window: Select, Send Session to Selected, Receive Session from Selected and Mirror to/from Selected buttons either side, with Optocore ID and the Audio Master button (highlighted orange when that engine is active) for each device; once synchronised, session details for both Engines will match (manual p.147)](/figures/ref-p147-1.png)
 
 ### 2.11.2 Mirroring for the first time
 
@@ -33,8 +21,6 @@ If the consoles are physically connected, but do not see each other, then you ma
 There is an option in the OPTIONS/CONSOLE tab to ENABLE CONSOLE NETWORK (YES/NO).  This must be set to YES on both Engines.  After doing this, shutdown and restart both consoles/engines and when the sessions are loaded go to the NETWORK window and you should see yellow OK lights against A & B. This indicates that the network has connected the two consoles/engines, but they are not yet mirrored.
 
 To mirror the two consoles/engines, they need to be running the same session. The way to achieve this is to load the session into the A console/engine, then transfer it to the B console/engine using this Network window.
-
-2.11 Network and Mirroring
 
 1. Ensure you are switched to the A console/engine.
 
@@ -60,19 +46,14 @@ This option determines how the console will behave when Mirrored via a network t
 
 There are 4 modes of operation:
 
-Full Mirror - all functions mirrored from one device to the other - this mode should be used on both engines in an SD7.
-
-Expander - intended for use with an SD7 console and an EX007 Expander unit. The second device mirrors most functions from the first device but, significantly, allows different banks to be selected on the different devices.
-
-Remote - intended for use with a PC being used as a Remote Control for a console. Allows different banks to be selected and different setup options on each device.
-
-One Way - this mode is intended for remote monitoring of what another device is doing. If a device is in this mode, it can "see" what the other mirrored device is doing but cannot control the other device. This mode is only likely to be used in exceptional circumstances.
+- **Full Mirror** — all functions mirrored from one device to the other; this mode should be used on both engines in an SD7.
+- **Expander** — intended for use with an SD7 console and an EX007 Expander unit. The second device mirrors most functions from the first device but, significantly, allows different banks to be selected on the different devices.
+- **Remote** — intended for use with a PC being used as a Remote Control for a console. Allows different banks to be selected and different setup options on each device.
+- **One Way** — intended for remote monitoring of what another device is doing. If a device is in this mode, it can "see" what the other mirrored device is doing but cannot control the other device. This mode is only likely to be used in exceptional circumstances.
 
 When mirroring 2 single engine consoles, the correct mirroring mode will depend on the operational requirements of the system.
 
-2.11 Network and Mirroring
-
-![Network and Mirroring (manual p.149)](/figures/ref-p149-1.png)
+![Options > Console tab: Mirroring Mode buttons — One Way, Remote, Expander, Full Mirror (manual p.149)](/figures/ref-p149-1.png)
 
 ### 2.11.4 Mirroring with a laptop PC
 
@@ -94,18 +75,10 @@ The setup of network addresses on a PC may differ from one operating system to a
 
 As an example, on Windows 10, the IP address and subnet mask can be changed by:
 
-2.12 Setup Menu
-
-1) Opening the Control Panel>Network and Internet>Network and Sharing Centre.
-
-2) Left click on Change adapter settings in the side panel.
-
-3) Double click on the on connection that is connected to the same network as the console.
-
-4) Double Click on Internet Protocol (TCP/IP) from the list to show its properties.
-
-5) Set the radio button to Use the following IP address
-
-6) Type the IP Address and Subnet Mask as detailed above
-
-7) Confirm the changes and restart the computer
+1. Opening the Control Panel>Network and Internet>Network and Sharing Centre.
+2. Left click on Change adapter settings in the side panel.
+3. Double click on the on connection that is connected to the same network as the console.
+4. Double Click on Internet Protocol (TCP/IP) from the list to show its properties.
+5. Set the radio button to Use the following IP address.
+6. Type the IP Address and Subnet Mask as detailed above.
+7. Confirm the changes and restart the computer.

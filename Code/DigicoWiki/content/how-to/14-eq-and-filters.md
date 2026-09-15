@@ -14,6 +14,7 @@ The filters area sits under the input area of the strip: two frequency rotaries 
 Touch the **EQ area** of the strip to open the EQ/filters panel. Bands are colour coded: blue HF, green HMF, yellow LMF, red LF. Each band has gain (±18 dB) on the left, frequency (20 Hz to 20 kHz) top right, Q bottom right; the worksurface encoders follow the same layout.
 
 ![EQ panel](/figures/ref-p048-1.png)
+*Manual figure: input channel EQ strip, expanded EQ panel and response graph — SD Quantum Software Reference, Issue H, p.48.*
 
 - **bell** toggles the outer bands to shelf. Successive presses of the curve button on the Q225 step through the filter types for the top and bottom bands.
 - **precision / classic** (all bands): precision narrows the Q on cuts; classic keeps cut and boost symmetrical.
@@ -31,6 +32,7 @@ Touch the small arrow on any band to reveal its dynamic controls. Two modes:
 - **Under**: the full gain is applied *below* the threshold and comes off as the signal rises.
 
 ![Dynamic EQ](/figures/ref-p049-1.png)
+*Manual figure: SD dynamic EQ panel — threshold, attack, release, ratio, over/under — SD Quantum Software Reference, Issue H, p.49.*
 
 Controls: **threshold**, **attack**, **release**, **ratio** (how fast the full adjustment is reached past the threshold). When any band is dynamic a small icon appears above the EQ graph in the strip with four boxes showing each band's state.
 

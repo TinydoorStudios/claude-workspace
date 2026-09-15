@@ -3,6 +3,7 @@
 48 mic/line inputs, 24 line outputs of which sockets 6, 12, 18 and 24 can each become a pair of AES outputs, dual redundant PSUs (two separate mains feeds), Dante primary and secondary ports, and a small LCD menu on the top panel. 19" rack, 11 kg. Only works with SD and Quantum consoles.
 
 ![DQ-Rack front](/figures/dq-p008-1.png)
+*DQ-Rack front panel — DQ & MQ-Rack User Guide, Issue A.*
 
 ## Connect it
 
@@ -19,7 +20,8 @@ Locked by default. Hold both **left and right arrows** for 2 seconds to unlock; 
 
 Main (locked) display shows **SR** (sample rate), **Mode** (switched or redundant Dante), and **Link**: *OK* when control data is arriving from the console, *NO CTRL* when it isn't. Flashing green background = linked to a console; light blue with flashing red = not connected. The Dante device name (set in Dante Controller) shows at the top.
 
-![DQ-Rack main display](/figures/dq-p011-2.png)
+![DQ-Rack main display](/figures/dq-p010-2.png)
+*DQ-Rack main (locked) display — DANTE, SR, Mode, Link — DQ & MQ-Rack User Guide p.12.*
 
 Menus: **Status** (rate, control, temperature), **Line/AES** (switch outputs 6/12/18/24; the LED under the socket goes blue in AES mode; on a Quantum this is also switchable from Audio I/O), **Oscillators** (hold right to send tone to all 24 outputs; 8 frequencies, level −96 to 0 dB), **PSU Status**, **Version** (Host, FPGA, DNT and Dante), **Display** brightness, **Default Rack** (hold right to reset everything), **Network** (primary/secondary UP or DOWN, IP addresses).
 

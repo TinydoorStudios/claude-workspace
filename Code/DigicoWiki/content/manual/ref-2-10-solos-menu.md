@@ -6,15 +6,7 @@
 
 Touching the Solos menu opens the Solo 1 and Solo 2 displays. These displays are used for configuring the console’s solo busses. Solo buss 1 is configured in the left-hand display, and solo buss 2 in the right. Both displays function in exactly the same way:
 
-Labels: pfl / afl solo mode · multi / single solo mode · Clear
-
-![Solos Menu (manual p.143)](/figures/ref-p143-1.png)
-
-Labels: Solo Level Meter · Solo Trim · Buss Format · Switch · Solo Delay · No solo source · select · Insert Routing · Floating Meter · Direct Out · activation · routing · Headphones · On / Off · Direct Out Level
-
-Fader Assignment
-
-Direct Out Level
+![Solo 1 / Solo 2 display: solo meter, pfl/afl and multi/single mode buttons, clear, no solo source select, insert/direct out routing, headphones, solo trim, solo delay and fader assignment (manual p.143)](/figures/ref-p143-1.png)
 
 Note: The in-channel solo functions are described in the Channel Types Chapter
 
@@ -23,8 +15,6 @@ At the top of each display is a black box containing the solo meter(s), three bu
 The second button toggles the two solo button modes: multi in which multiple channels can feed the solo buss at once, or single in which only one channel can feed the buss. In single mode, when a channel is feeding the solo buss, pressing the solo button on a different channel will cause the originally selected channel to be deselected from the solo buss. The solo button mode is indicated by the multi or single labelling above the button turning red. The button is also ringed red on the worksurface when single is selected.
 
 All feeds to the solo buss can also be cleared by pressing the clear button. When there is a feed to that solo buss somewhere on the console, the button is ringed blue on the worksurface.
-
-2.10 Solos Menu
 
 The level of the solo buss can be adjusted using the trim encoder on the worksurface. The on-screen trim pot is always assigned to this worksurface encoder, as indicated by the presence the green ring around it. The signal can be trimmed by ±18dB, and the trim value is indicated to the right of the on-screen trim pot.
 
@@ -40,11 +30,9 @@ The mono, stereo and surround buttons to the left of the auto solo area select t
 
 Below the mono, stereo and surround buttons, is a button marked no solo. This button defines what signal (if any) is present on the buss when no channel solo is active. By default, the master buss is selected as the no solo source. Pressing this button opens the No Solo Setup display:
 
-![Solos Menu (manual p.144)](/figures/ref-p144-1.png)
+![No Solo Setup display, with buss naming and the no solo source selection columns (manual p.144)](/figures/ref-p144-1.png)
 
 At the top of the display, there is a text box which can be used for renaming the solo buss. Touch the box or the keyboard symbol to its right, type the new name on the on-screen or external keyboard and press OK. The Channel Name display containing commonly used words for quick insertion can be accessed for buss naming by touching the down arrow immediately to the right of the text box. The solo buss name will then appear at the top of its master solo display, and in any solo-assigned master faders (See below for details).
-
-2.10 Solos Menu
 
 Below the naming area, there are two columns of buttons used for selecting the audio source for the no solo function from among the group, aux and matrix channels. The left-hand column contains the following buttons: the groups buttons (mono or stereo), the auxes buttons (mono or stereo) and the Matrix button (mono). Touching one of these buttons causes it to lighten to indicate that it is selected, and results in a list of those channels appearing in the right-hand column. A scroll bar appears in the right of the display if the channel list is too long for the window. Touching one of these signal buttons assigns it to the no solo function, as indicated by the lightening of the signal’s button and by the labelling immediately beneath the no solo button displaying the signal name. If a stereo signal is selected here, only the left-hand signal is displayed beneath the button. Signals can be deselected by touching them again. When no signal is selected for the no solo function, the labelling beneath the button displays none.
 
@@ -70,11 +58,7 @@ This insert point only applies to the Solo buss Direct Output, not to the headph
 
 At the top of the Solo Outputs display, the buss naming function described above is duplicated. Towards the bottom of the display, there are two buttons marked output and insert A. Selecting one of these buttons assigns that send (or send and return) to the signal routing area above it: When the insert is assigned, the ins A send routing button appears in the left-hand column, and the ins A return routing button in the right-hand column; When the output is assigned, the outputs routing button appears in the left-hand column and the right-hand column is left blank. Pressing any of these routing buttons opens a routing display. Insert and output routing can then be routed as described in the Getting Started section.
 
-An extra button labelled send+return is included above the ports list in the Insert Send Route display button. When this button is activated, the send and return routing is linked for all signals within the INTERNAL port: If the Graphic 1 input is assigned to the insert send, the Graphic 1 output is automatically assigned to that insert
-
-2.10 Solos Menu
-
-return. Similarly, if it is the return which is manually assigned, the send automatically copies that send assignment. The send+return button is grey when inactive and brown when active.
+An extra button labelled send+return is included above the ports list in the Insert Send Route display button. When this button is activated, the send and return routing is linked for all signals within the INTERNAL port: If the Graphic 1 input is assigned to the insert send, the Graphic 1 output is automatically assigned to that insert return. Similarly, if it is the return which is manually assigned, the send automatically copies that send assignment. The send+return button is grey when inactive and brown when active.
 
 Once the insert send and return signals have been selected, level trim pots appear in the bottom half of the Solo Outputs display. To the left of both pots there is a meter (or pair of meters, in the case of stereo channels) displaying the send or return level, and to the right of both pots there is a numeric display of the level trim in dB. Below the send level trim there is an on button which switches the send on and off. Below the return level trim there is a reverse phase button which inverts the phase of the returning signal. Both of these buttons become ringed in red to indicate that they are on.
 
@@ -100,4 +84,3 @@ Both Solo 1 and Solo 2 are available as input sources for all channel types.  A 
 
 WARNING:  Soloing a channel that has a solo buss as its source will result in a feedback loop being created and dangerously high audio levels at any output routed from the solo buss or channel
 
-2.11 Network and Mirroring

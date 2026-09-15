@@ -8,7 +8,7 @@ The Options menu includes a variety of SD and Quantum system preferences, groupe
 
 The Surface tab includes settings related to the console screen, buttons and encoders:
 
-![Options (manual p.111)](/figures/ref-p111-1.png)
+![Options panel — Surface tab (manual p.111)](/figures/ref-p111-1.png)
 
 **Touch Keyboard**
 
@@ -33,8 +33,6 @@ This option defines if the dynamics display opens when dynamics is adjusted. It 
 **Auto Expand Time**
 
 This control, located to the right of the Auto Expand EQ and Dynamics options, defines how long the EQ and dynamics displays remain open after the parameters within them are adjusted. The current setting is displayed in seconds, below the control. Touching the control assigns it to the Touch-Turn encoder.
-
-2.5 Options
 
 The Auto-Expand Exclude Off option prevents dynamics and EQ from auto-expanding when being turned off.
 
@@ -78,8 +76,6 @@ This option defines whether or not active 2nd Function buttons are cancelled aft
 
 Note: Both the auto-expand time and auto-cancel time values are set on the console and are not saved as part of the session file.
 
-2.5 Options
-
 **(1272+) Auto-revert LCD Menu to Solo**
 
 When this option is turned on, after the set amount of time the LCD function menu will be cancelled and the LCDs will revert to Solo function. The number of seconds for the LCD function menu to display is set using the auto-revert time rotary.
@@ -90,7 +86,7 @@ This option concerns the Engine button in the top left-hand corner of the SD7's 
 
 ### 2.5.2 Faders
 
-![Options (manual p.113)](/figures/ref-p113-1.png)
+![Options panel — Faders tab (manual p.113)](/figures/ref-p113-1.png)
 
 Note: Function replaced in v1445+ - see below
 
@@ -102,7 +98,9 @@ Note: When this option is active, accidentally touching a fader will assign it t
 
 **Fader 0dB Detent**
 
-This option defines which controls have a detent at 0dB. Options are Inputs, Outputs, Graphic EQ (default) and Labels: CGs. · 2.5 Options · Fader Touch Control
+This option defines which controls have a detent at 0dB. Options are Inputs, Outputs, Graphic EQ (default) and CGs.
+
+**Fader Touch Control**
 
 This option defines whether or not a fader moves when it doesn't detect a touch. Options are Free (fader moves freely) and Protected (fader is protected from moving without touch).
 
@@ -118,7 +116,7 @@ If this option is set to Yes, whenever 'Aux to Faders' is activated (by any mean
 
 A new option has been added in Options>Fader tab called Fader Response During Snapshot Recall. The option has a Standard and a Fast setting. When set to Fast the console avoids delaying the fader input when recalling snapshots/cues.
 
-![Options (manual p.114)](/figures/ref-p114-1.png)
+![Fader Response During Snapshot Recall control, Standard/Fast (manual p.114)](/figures/ref-p114-1.png)
 
 To avoid delaying fader input when recalling Snapshots/Cues select Fast option.
 
@@ -126,13 +124,11 @@ To avoid delaying fader input when recalling Snapshots/Cues select Fast option.
 
 This option defines the way in which Sets are spilled onto the worksurface: L Vert places them on the left side, creating as many banks as are required to spill all the channels in the Set; R Vert does the same on the right side; Horiz places the first 24 channels across both sides of the console before creating as many banks across both sides as are required to spill all the channels.
 
-2.5 Options
-
 ### 2.5.3 Solo
 
 The Solo tab includes settings related to the console’s solo functions:
 
-![Options (manual p.115)](/figures/ref-p115-1.png)
+![Options panel — Solo tab (manual p.115)](/figures/ref-p115-1.png)
 
 **Solo Displays Inserts and Outputs**
 
@@ -154,11 +150,9 @@ This Option defines whether or not the pan assignment for the under-screen rotar
 
 This option defines whether or not a channel is automatically assigned to the channel worksurface controls when that channel’s solo button is pressed. It is active by default.
 
-Solo Assigns Channel also Assigns Screen (consoles with master screen button)
+**Solo Assigns Channel also Assigns Screen (consoles with master screen button)**
 
 When a channel is selected using its solo button, the bank it’s on is assigned to the screen.
-
-2.5 Options
 
 **Solo Reverts to Output**
 
@@ -182,7 +176,7 @@ This option restricts the Solo PFL/AFL choice to input channels only, all output
 
 The Gangs tab allows gang scopes to be specified for each channel type. Selecting/deselecting the controls under each of the channel types will dictate whether those controls will be altered by a gang.
 
-![Options (manual p.116)](/figures/ref-p116-1.png)
+![Options panel — Gangs tab (manual p.116)](/figures/ref-p116-1.png)
 
 ### 2.5.5 Delays
 
@@ -190,21 +184,19 @@ This tab is used for defining the delay units used in the Setup panel of Input c
 
 Note that these options are also displayed to the right of the numeric keypad opened by pressing the delay's keypad symbol.
 
-![Options (manual p.116)](/figures/ref-p116-2.png)
-
-2.5 Options
+![Options panel — Delays tab (manual p.116)](/figures/ref-p116-2.png)
 
 ### 2.5.6 Disable
 
-This tab is used for disabling worksurface buttons, to prevent accidental changes if they are not being used. This function does not affect on-screen operation of the functions:  If the Panel will show the options relevant to your console.
+This tab is used for disabling worksurface buttons, to prevent accidental changes if they are not being used. This function does not affect on-screen operation of the functions.
 
-![Options (manual p.117)](/figures/ref-p117-1.png)
+![Options — Disable tab, showing only the options relevant to your console (manual p.117)](/figures/ref-p117-1.png)
 
 ### 2.5.7 Brightness
 
 The Brightness tab is used for adjusting the brightness of the console’s bridge, led lights, screens and surface LEDs. Touching each pot assigns it to the Touch-Turn encoder.
 
-![Options (manual p.117)](/figures/ref-p117-2.png)
+![Options panel — Brightness tab (manual p.117)](/figures/ref-p117-2.png)
 
 The SD5 and SD7 console’s LCD buttons are not controlled by the surface LEDs pot but by the Dim LCD buttons and Invert LCD Image options towards the bottom of the screen.
 
@@ -214,13 +206,9 @@ Note: The dimming option only dims the brighter LCD colours.
 
 The Meters tab includes settings related to the console meters:
 
-![Options (manual p.117)](/figures/ref-p117-3.png)
+![Options panel — Meters tab (manual p.117)](/figures/ref-p117-3.png)
 
-The four pots across the middle of the panel affect the attack and release reaction time (attack rate and release rate), the peak hold time and the overs hold time. The current setting for each is displayed in either milliseconds or seconds, below each pot. Touching each pot assigns it to the Touch-Turn encoder. The row of
-
-2.5 Options
-
-buttons above the pots provide access to preset meter configurations, including the SD default and a number of PPM formats. The second row of buttons allows the system to compensate for changes in operating levels when viewing PPM meters so that all PPM meters are referenced to 0dBu. The default operating level for SD Series consoles and racks is set to +22dBu.
+The four pots across the middle of the panel affect the attack and release reaction time (attack rate and release rate), the peak hold time and the overs hold time. The current setting for each is displayed in either milliseconds or seconds, below each pot. Touching each pot assigns it to the Touch-Turn encoder. The row of buttons above the pots provide access to preset meter configurations, including the SD default and a number of PPM formats. The second row of buttons allows the system to compensate for changes in operating levels when viewing PPM meters so that all PPM meters are referenced to 0dBu. The default operating level for SD Series consoles and racks is set to +22dBu.
 
 Note: When the overs hold time is set to 0, the hold time is set to infinite, not 0. The overs lights will therefore remain lit until they are manually cleared.
 
@@ -236,13 +224,11 @@ Note: The settings in the bottom half of the display affect the meters on the wo
 
 The Console tab includes settings related to the console’s start up procedure:
 
-![Options (manual p.118)](/figures/ref-p118-1.png)
+![Options panel — Console tab (manual p.118)](/figures/ref-p118-1.png)
 
 **Load Startup Session**
 
 This option allows the startup session to be automatically loaded on system start up. When not selected, the desk will always start up in the default state.
-
-2.5 Options
 
 **Save Startup Session**
 
@@ -274,27 +260,21 @@ How to set up ProLink:
 
 3. The default selected mode is Legacy. Click on ProLink and power cycle the console.
 
-![Options (manual p.119)](/figures/ref-p119-1.png)
+![Options > Console tab: Legacy/ProLink mode selector next to Enable External Waves (manual p.119)](/figures/ref-p119-1.png)
 
 4. Launch SuperRack SoundGrid.
 
 5. In the Controllers pane, add ProLink Console Remote.
 
-2.5 Options
+![SuperRack SoundGrid Controllers pane, adding ProLink Console Remote (manual p.120)](/figures/ref-p120-1.png)
 
-![Options (manual p.120)](/figures/ref-p120-1.png)
+6. If you have previously used the console remote module, you will see Legacy Console Remote assigned in the Controllers pane. If that’s the case, you will first need to remove it, then assign ProLink Console Remote. The correct network port is selected automatically.
 
-6. If you have previously used the console remote module, you will see Legacy Console Remote assigned
-
-in the Controllers pane. If that’s the case, you will first need to remove it, then assign ProLink Console Remote.
-
-The correct network port is selected automatically.
-
-![Options (manual p.120)](/figures/ref-p120-2.png)
+![ProLink Remote Control window with the console's network port auto-selected (manual p.120)](/figures/ref-p120-2.png)
 
 7. Checkmark ‘Assign’ – status will change to ‘Connected’.
 
-![Options (manual p.120)](/figures/ref-p120-3.png)
+![ProLink Remote Control window with Assign checked and Status showing Connected (manual p.120)](/figures/ref-p120-3.png)
 
 A session load command will pass from the console to SuperRack. If there is no matching session in SuperRack’s integrated sessions folder, SuperRack will load an empty session.
 
@@ -304,21 +284,11 @@ Windows: C:\Users\Public\Waves Audio\SuperRack SoundGrid\Integrated Sessions
 
 Mac: Mac HD > Users > Shared > Waves Audio > SuperRack SoundGrid SoundGrid > Integrated Sessions
 
-2.5 Options
-
 ProLink features:
 
-- 
-
-Automated discovery
-
-- 
-
-Sync to console global tempo
-
-- 
-
-Console unattended mode sync with SuperRack
+- Automated discovery
+- Sync to console global tempo
+- Console unattended mode sync with SuperRack
 
 To learn more about DiGiCo remote control integration features and console support, please refer to Waves’ DiGiCo Remote Control Integration and Mirroring article. We strongly advise Waves users to read the MultiRack for DiGiCo SD console user guide.pdf explaining the requirements to use Waves MultiRack/Superrack on an external PC and ensuring that all of the necessary equipment and licences are in place to do this. Please visit http://www.waves.com/downloads/digico for more information Need further assistance? Contact Waves Technical Support.
 
@@ -348,13 +318,11 @@ This option defines the way control is assigned between networked consoles and i
 
 When active, this option allows two SD7's with only one engine to be mirrored together.
 
-2.5 Options
-
 ### 2.5.10 Status
 
 The Status tab defines whether console status notifications are displayed. All functions are active by default.
 
-![Options (manual p.122)](/figures/ref-p122-1.png)
+![Options panel — Status tab (manual p.122)](/figures/ref-p122-1.png)
 
 **Display System Status Indicators**
 
@@ -362,11 +330,11 @@ This option defines whether or not the Status display is open. This display prov
 
 **SD7 Dual engines**
 
+*Not on the Q225.*
+
 The status display on an SD7 will have two columns listing the same elements. Each column represents one of the SD7s engines, local being the currently viewed engine and the other being the other engine.
 
-![Options (manual p.122)](/figures/ref-p122-2.png)
-
-2.5 Options
+![Status display with two engine columns, local and SD7 remote (manual p.122)](/figures/ref-p122-2.png)
 
 **Display System Alerts**
 
@@ -382,4 +350,3 @@ Note: The Signal Overs panel can also be opened using the Signal Over Indicators
 
 With this option active, any system alert will remain on the screen until cancelled by the user.
 
-2.6 FX & Processors

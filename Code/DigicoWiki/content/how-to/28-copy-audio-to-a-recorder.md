@@ -14,6 +14,7 @@ Setup > Audio I/O > select the rack in the ports list > **Copy Audio To** dropdo
 Setup > **Copy Audio**. Input ports run down the left, output ports across the top. Touch a port to expand its sockets; touch or drag on the grid to make routes.
 
 ![Copy Audio matrix](/figures/ref-p155-1.png)
+*Copy Audio matrix — Reference Manual, p.155.*
 
 - **Red** cell = the copy that's also the **Listen Source** for that input. The first copy you make is red.
 - **Orange** cells = further copies. Any input can be copied to as many outputs as you like.

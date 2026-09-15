@@ -2,26 +2,32 @@
 
 An input channel can feed four places: the **aux busses**, the **group busses** (including the master), its **insert sends**, and its **direct output**.
 
+## Groups and the master
+
+1. Touch the **bottom** of the channel strip (the mute/name area under the pan) to open the Output panel. Outputs can also be routed from the Channel List the same way inputs can: Layout > Channel List > **Edit** on, expand the channel type, touch the *output* box for that row.
+
 ![Channel Output panel: groups, direct out, inserts](/figures/q2-channel-output.png)
 *Channel Output panel: groups, direct out, inserts — Quantum 2 offline software, V22.*
 
-## Groups and the master
+![Channel List Display](/figures/ref-p026-1.png)
+*Manual figure: Channel List Display — Reference 1.3.3 Console Output and Insert Routing.*
 
-1. Touch the **bottom** of the channel strip (the mute/name area under the pan) to open the Output panel.
 2. In the groups section, choose **mono** or **stereo** group lists and touch the groups you want. Several can be on at once; a mono group fed from a stereo channel gets L+R summed.
-3. The lowest selected group shows under the channel name as *Grp:*. The master bus is the first stereo group by default.
+3. The lowest selected group shows under the channel name as *Grp:*. The master bus defaults to the first group of the largest format created — on the Q225 that's normally the first stereo group, unless a bigger-format (surround) group exists.
 
-![Channel Output panel](/figures/ref-p032-2.png)
+![Output Routes](/figures/ref-p032-2.png)
+*Manual figure: Output Routes — Reference 1.4.7 Output Routing.*
 
 ## Aux sends
 
 Each aux has a level rotary and an on/off (grey off, red on) in the strip. The encoders under the screen follow whichever aux row is assigned; touch an aux row to assign it. Hold **2nd Function** and the buttons become the send-point selector (pre-fade, pre-mute, mid EQ/dyn, pre-EQ/dyn, pre-processing, post-fade on Quantum) and the encoders become pan on stereo auxes.
 
-Touch an assigned aux to open the expanded aux panel, which shows every send for the channel on the 12 under-screen rotaries, with *more/less* to fold up to 5 rows. Close it by hand before opening another channel panel.
+Touch an assigned aux to open the expanded aux panel, which shows every send for the channel on the 12 under-screen rotaries, with *more/less* to fold up to 5 rows.
 
-![Aux expanded panel](/figures/ref-p036-1.png)
+![Aux Expanded panel, more/less row toggle](/figures/ref-p036-1.png)
+*Manual figure: Aux Expanded panel, more/less row toggle — Reference 1.4.9 Aux Buses & Assignable Controls.*
 
-To set the send point for every channel at once, use the aux's own Setup panel (touch the top of the aux strip).
+Close it by hand before opening another channel panel. To set the send point for every channel at once, use the aux's own Setup panel (touch the top of the aux strip).
 
 ## Direct output
 

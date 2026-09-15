@@ -7,6 +7,7 @@ A Multi folds several mono channels into one strip with a master fader and mute,
 3. In Setup Multi Channels choose the format (LCR, LCRS, 5.1, or **multi-input** for up to 11 components), then press the select buttons of the other components in order. Choose whether the originals stay on the surface (*leave*).
 
 ![Create a Multi](/figures/ref-p063-1.png)
+*Setup Multi Channels — Reference Manual, p.63.*
 
 **Unfold** on the strip shows every component with a master to their left; **FOLD** collapses it. In the unfolded master, **Set Links** links component controls (like a gang, limited to the multi), and the trim/filters/eq/dynamics/faders buttons copy the folded channel's settings to all components. **Folded Control** chooses which component's input, EQ, dynamics or aux sends show in the folded strip.
 

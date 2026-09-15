@@ -12,6 +12,7 @@ System > **Security**. Three levels:
 | **Unattended** | The surface is locked. Nothing works until you unlock. |
 
 ![Security panel](/figures/ref-p068-2.png)
+*Console Security panel — Reference Manual, p.68.*
 
 - **Set Password** sets the Live and Unattended passwords (old, new, new again). Default is blank.
 - **Set Live Restrictions** opens a tree of functions: tick = allowed in Live, cross = locked. Expand a group (e.g. FX) for per-item control.

@@ -2,16 +2,22 @@
 
 Two flavours: **DMI-MADI B** (BNC, AES10) and **DMI-MADI C** (DiGiCo Cat5e, which is *not* Ethernet). Either gives the console a second MADI port: a standard 64-channel MADI stream at 48 or 96 kHz, or one DiGiCo rack (D-Rack, D2-Rack, SD-Rack, SD-MiNiRack; 56 in/56 out plus control data on channel 57). One DiGiCo rack per card.
 
-![DMI-MADI](/figures/ref-p226-1.png)
-
 ## Wiring
 
 - Standard MADI at 48 kHz: card IN A ← device OUT, card OUT A → device IN.
 - Standard MADI at 96 kHz using both ports: A carries channels 1–32, B carries 33–64.
 - D2-Rack/SD-Rack: card A pair to the rack's **Main** pair; add the B pair to the rack's **Aux** pair for 96 kHz or redundancy. Console Audio Sync = Master.
+
+![Single console to D-Rack with DMI-MADI C: one Cat5e connection, Audio Sync set to MASTER](/figures/ref-p226-1.png)
+*Single console to D-Rack over one DMI-MADI C Cat5e run, Audio Sync set to MASTER — Reference Manual p.226.*
+
+![Single console to D2-Rack with DMI-MADI C at 96kHz: Cat5e Main and Aux to ports A and B, Audio Sync set to MASTER](/figures/ref-p227-1.png)
+*D2-Rack at 96 kHz: Main to port A, Aux to port B, Audio Sync panel at 96000Hz — Reference Manual p.227.*
+
 - MADI-C: the two internal switches must be in the **A / Console mode** position before the card goes in (Rack mode is for the far end being a console). Two cards set to the same mode can't pass audio.
 
-![Card A/B to rack Main/Aux](/figures/ref-p227-1.png)
+![DMI-MADI C card's two internal switches, set to A for console use](/figures/tn339-dmi-setup-p002-1.png)
+*The two Cat5e port switches on the DMI-MADI C board — console mode is A, rack mode is B, and it's set per port before the card goes in — TN339 p.2.*
 
 ## Sample rate conversion
 

@@ -2,11 +2,9 @@
 
 *Chapter 2: The Master Screen — manual pages 137–139*
 
-The left-hand side of the expanded display includes metering of the EQ’s IN and OUT signals, a ±12dB gain trim pot with value indication to its right, and an on button which is ringed red to indicate that the EQ is on. Touch the trim pot to assign it to the Touch-Turn encoder. To the right of these controls, the 32 EQ band faders are displayed. The label located beneath each fader indicates the frequency of each band in Hertz, and the gain scale associated with each line on the display is indicated to the left of the lowest band. Each band can also be altered within the miniature display (using a mouse).
-
 The display consists of miniature representations of all available graphic EQ’s, one of which is also shown expanded in the bottom of the display:
 
-![Graphic EQ Panel (manual p.137)](/figures/ref-p137-1.png)
+![Graphic EQ Panel, with the miniature graphic EQ display above and one EQ shown expanded below (manual p.137)](/figures/ref-p137-1.png)
 
 The settings on each graphic EQ are accessed via the expanded display, though some settings can also be adjusted in the miniature display. Touch any of the graphic EQs to assign it to the expanded display. The EQ assigned to the expanded display can also be scrolled using the scroll bar to the right of the expanded display. The EQ currently assigned to the expanded display is indicated in the top left-hand corner of the expanded display, along with indication of the EQ’s source. The miniature display can be opened and closed by pressing the expand button (a down-arrow when opened, and an up-arrow when closed) to the left of the expanded EQ close button.
 
@@ -48,4 +46,3 @@ Activating the safe button, to the right of the flat button, protects the graphi
 
 Touching the preset button, to the right of the safe button, opens the Graphic EQ Presets display in which current settings can be saved and pre-created settings imported. The positions of the trim pot, on button and all 32 faders are included in an EQ preset. To reset the channel to the default settings, press default.
 
-2.9 Control Groups

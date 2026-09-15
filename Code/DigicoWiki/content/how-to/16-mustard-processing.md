@@ -20,7 +20,8 @@ Five positions, shared with Insert A and Insert B (one occupant per position): a
 
 **type** chooses *Tubes* (drive, output, six presets: odd harm, even harm, overdrive, distortion, crunch, high distortion) or the *Amp Model* (two stages, each odd or even harmonics, drive, bias with saturate, HF boost above 6 kHz, output gain).
 
-![Mustard amp model](/figures/ref-p056-1.png)
+![Mustard amp model](/figures/ref-p056-2.png)
+*Manual figure: Mustard Amp Model — drive, bias/saturate, HF boost, output — SD Quantum Software Reference, Issue H, p.56.*
 
 ## Mustard EQ
 

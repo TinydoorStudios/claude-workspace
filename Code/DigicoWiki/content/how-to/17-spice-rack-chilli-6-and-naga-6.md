@@ -7,8 +7,6 @@ The Spice Rack is the Quantum processing rack. Two devices: **Chilli 6**, a mult
 
 Open it: Master screen > **Processors** > **Spice Rack**. Soloing a channel that has a Spice Rack unit inserted brings the rack up on the right slot automatically.
 
-![Spice Rack / Chilli 6](/figures/ref-p126-1.png)
-
 ## Insert one
 
 1. In the channel's Output panel choose **insert A** or **insert B** (or the main output).
@@ -16,6 +14,9 @@ Open it: Master screen > **Processors** > **Spice Rack**. Soloing a channel that
 3. In the Spice Rack, the slot shows the channel name and insert. Press **type** to switch a slot between Chilli 6 and Naga 6. Two units can be **linked** for stereo.
 
 ## Controls that matter
+
+![Spice Rack / Chilli 6](/figures/ref-p126-1.png)
+*Manual figure: Spice Rack panel with controls labelled — routing, safe, link, side chain source/type, dB range, response graph, solo — SD Quantum Software Reference, Issue H, p.126.*
 
 - **Threshold**, **attack**, **release** per band. **Release shape** goes from exponential (0) through linear (0.5) to inverse-exponential (1), which smooths sharp decays between peaks.
 - **Dynamic angle** is the ratio-like control: 1 (default) is a high ratio with a hard transition, lower values soften it and start gain reduction below the threshold.

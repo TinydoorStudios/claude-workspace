@@ -6,6 +6,7 @@ A snapshot is a picture of the whole console. What it *changes* when you fire it
 *Snapshots panel — Quantum 2 offline software, V22.*
 
 ![Snapshots panel](/figures/ref-p092-2.png)
+*Manual figure: Snapshots panel with controls labelled — insert, duplicate, update, edit range, move/rename/renumber/delete, fire prev/selected/next — SD Quantum Software Reference, Issue H, p.92.*
 
 ## Store
 
@@ -23,6 +24,7 @@ Three ways: **Touch to Fire** on the panel then touch the snapshot; the **previo
 - Control groups, matrix, graphic EQs, FX and Spice Rack units all have their own **safe** buttons.
 
 ![Global recall scope](/figures/ref-p099-1.png)
+*Manual figure: Global Scope grid — channel types against controller types — SD Quantum Software Reference, Issue H, p.99.*
 
 ## Edit several snapshots at once
 
@@ -45,6 +47,7 @@ Snapshots in a group (red = relative update, blue = non-relative) update togethe
 Setlists filter and reorder the snapshot list without duplicating anything: the snapshots stay in **ALL SNAPSHOTS** and a setlist just fires them in its own order. Press the **setlist** button for the Setlists panel (New, Duplicate, Rename, Delete, Move); choose one from the dropdown, **Add** snapshots from the full list, **Remove** to take them out of that setlist only. Updating a snapshot from any setlist updates the one original. The Session Information panel shows which setlist is active. Not available in Theatre software.
 
 ![Setlists (V22)](/figures/v22-release-notes-p003-1.png)
+*Manual figure: the setlist button on the Snapshots screen — SD and Quantum V2242 Release Notes, p.3.*
 
 ## Snapshots can trigger other things
 

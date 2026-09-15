@@ -2,12 +2,12 @@
 
 Two buttons, two different jobs.
 
-![Files > Save As New File](/figures/q2-save-as.png)
-*Files > Save As New File — Quantum 2 offline software, V22.*
-
 **Files > Save Session** overwrites the file you loaded, in place. It's the quick save. There is no undo.
 
 **Files > Save As New File** writes a new file. Use it at the start of a show day so you always have last week's version untouched.
+
+![Files > Save As New File](/figures/q2-save-as.png)
+*Files > Save As New File — Quantum 2 offline software, V22.*
 
 1. Files > **Save As New File**.
 2. Choose **Internal** or **Removable**, then the folder. *new folder* / *rename folder* are on the right.
@@ -16,6 +16,7 @@ Two buttons, two different jobs.
 5. Press **Save**. A pop-up confirms where it went.
 
 ![Save As New File](/figures/ref-p079-1.png)
+*Manual figure: Save As New File panel, Reference 2.2.5.*
 
 ## Copy sessions to a USB stick
 
@@ -27,7 +28,7 @@ The Load and Save panels both have **Set backup** and **Copy backup** on the rig
 
 ## Autosave
 
-Options > **Console** > *Auto-save session* writes the active `.ses` on a timer you set with the pot beside it. Turn it on for a show. It saves over the current file, so do a Save As first if you want a clean starting copy.
+Options > **Console** > *Auto-Save Recovery Session* writes the active `.ses` on a timer you set with the pot beside it. Turn it on for a show. It saves over the current file, so do a Save As first if you want a clean starting copy.
 
 ## Startup session
 

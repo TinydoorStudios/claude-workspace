@@ -6,6 +6,7 @@ Each channel has two SD dynamics modules, under the EQ in the strip. Touch **Com
 *Dynamics panel — Quantum 2 offline software, V22.*
 
 ![Dynamics panel](/figures/ref-p051-1.png)
+*Manual figure: expanded compressor/gate graphs, Dynamics 1 (comp/multi/desser) and Dynamics 2 (gate/duck) mode buttons — SD Quantum Software Reference, Issue H, p.51.*
 
 **Module 1** is a compressor, a 3-band multiband compressor, or a de-esser (the *comp / multi / desser* button on its left).
 
@@ -27,7 +28,7 @@ Compressor controls plus a band-pass sidechain filter with centre frequency and 
 
 ## Gate and ducker
 
-Threshold, attack, hold, release, range, plus a band-pass filter in the sidechain (**freq**, **width**). **key** opens a route panel to trigger the gate from another signal (ripple lets consecutive gates key from consecutive channels). The three traffic-light LEDs show open / holding / closed. The ducker is the same set of controls with the opposite action.
+Threshold, attack, hold, release, range, plus a band-pass filter in the sidechain (**freq**, **width**). **key** opens a route panel to trigger the gate from another signal (ripple lets consecutive gates key from consecutive channels). Three traffic-light status LEDs show the gate state. The ducker is the same set of controls with the opposite action.
 
 ## Assign to the encoders
 

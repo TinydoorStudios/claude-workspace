@@ -6,7 +6,7 @@
 
 Selecting the fx menu button in the master screen opens the master fx display, which displays all of the currently assigned fx units in a single rack. Touching any control in this display allows adjustments to be made using the worksurface Touch Turn controls.
 
-![FX & Processors (manual p.124)](/figures/ref-p124-1.png)
+![Master fx display showing the currently assigned fx units in a single rack (manual p.124)](/figures/ref-p124-1.png)
 
 It is also possible to create and delete modules from this display:
 
@@ -18,8 +18,6 @@ To lock a preset, activate the edit name button and touch the preset’s lock co
 
 Note: Factory preset group names can be edited, even though the presets themselves cannot.
 
-2.6 FX & Processors
-
 Once an effects preset has been assigned, the fx output button in the channel strip recalls the preset’s controller display. In the case of Input channels, once an effects preset has been assigned, the preset’s display can be recalled by touching the pan area of the channel strip. The fx Presets display can then be recalled by pressing the fx presets button within the controller display.
 
 Each fx unit can be safed by pressing the safe button at the top of its display. The channel’s name and output are also shown at the top of the display, and each effect displays its input and output levels in meters in the left-hand side of the controller.
@@ -30,21 +28,17 @@ Delay effects can now join a global tap tempo so that a single controller can ch
 
 The global tap can be set using the new macro command type ‘Global Tap Tempo’.
 
-![FX & Processors (manual p.125)](/figures/ref-p125-1.png)
-
-Press to cycle through the options for global tap at various scalers.
-
-![FX & Processors (manual p.125)](/figures/ref-p125-2.png)
+![Delay FX panel: press the delay x2/x1 button to cycle through the global tap scalers (manual p.125)](/figures/ref-p125-1.png)
 
 The Global Tap value can be entered manually by touching the keypad icon in the Delay FX panel and typing a number.
+
+![Delay FX panel with the numeric keypad open for manual Global Tap entry (manual p.125)](/figures/ref-p125-2.png)
 
 **FX Graphs**
 
 All reverbs are editable via a graphical display, with each of the coloured adjustable sliders on the graph representing the rotaries on the fx unit below.
 
-![FX & Processors (manual p.125)](/figures/ref-p125-3.png)
-
-2.6 FX & Processors
+![Reverb FX graphical display with adjustable sliders (manual p.125)](/figures/ref-p125-3.png)
 
 ### 2.6.2 The Spice Rack (Quantum Engines only)
 
@@ -56,47 +50,11 @@ Soloing a channel with a Spice Rack processor inserted will bring up the Spice R
 
 ### 2.6.3 Chilli & Naga 6 Overview
 
-Labels: Open the presets · Safe the current Spice · window
-
-The channel and insert where the
-
-Labels: Link two Chilli 6 units · Rack processor · device is routed · The user interaction · together · Select the Spice Rack · type · device type
-
-![FX & Processors (manual p.126)](/figures/ref-p126-1.png)
-
-List of Labels: current units · The current · frequency
-
-response of Labels: the processed · in the Spice · Rack slots. · Inserted
-
-Labels: units display · signal · the channel · name. · The dB range · that the
-
-compressor Labels: will act over · These set the · side chain
-
-Labels: source and · type · This sets
-
-the global Labels: Solo Mode. · This sets the solo source · 2.6 FX & Processors
+![Chilli 6 multiband compressor panel in the Spice Rack, with routing, safe, interaction type, link, presets and solo controls labelled (manual p.126)](/figures/ref-p126-1.png)
 
 The Naga 6 can be accessed by selecting a Chilli 6 unit and pressing the type button, then choosing Naga 6.
 
-Labels: Open the · Safe the current Spice · presets · Select the Spice Rack
-
-The channel and insert where
-
-Labels: Rack processor · Link two Naga 6 units · device type · The user
-
-Labels: interaction type · the device is routed · together · The current
-
-![FX & Processors (manual p.127)](/figures/ref-p127-1.png)
-
-frequency response of the
-
-List of Labels: current units · processed · signal · in the Spice · Rack slots. · Inserted
-
-Labels: units display · The dB range · that the
-
-Labels: compressor will · the channel · name · act over · Select Side Chain · route · These set the · side chain
-
-Labels: source and · type · This sets the · global Solo · Mode · This sets the solo source
+![Naga 6 dynamic EQ panel in the Spice Rack, with routing, safe, interaction type, link, presets and solo controls labelled (manual p.127)](/figures/ref-p127-1.png)
 
 Chilli 6 is a classic multiband compressor with four flat top filter type bands with shared crossover slope and two separate parametric bands. The Naga 6 is a Multiband Dynamic EQ with six parametric bands and no flat top filters.  They both allow frequency specific dynamic control with compression or expansion applied to audio above a set threshold. When stereo channels are routed to the Spice Rack, two consecutive slots are automatically set to stereo, therefore ganged together. They can be set back to mono to allow the units to have different parameters. Before units can be stereo linked the pair of units have to be set to the same type, Chilli 6 or Naga 6. Pairs must be neighbouring units such as 1 and 2 ,3 and 4, 5 and 6 etc. Note that 2 and 3, 4 and 5 etc cannot be made into a stereo pair.
 
@@ -104,9 +62,7 @@ The green line represents the frequency response of the processed audio and refl
 
 The Release Shape is used to alter the release characteristic with curve type exponential (0) through linear (0.5) to inverse exponential (1). Inverse exponential is a new feature which reduces sharp decays between peaks in signal, whilst maintaining the same overall decay time.
 
-![FX & Processors (manual p.127)](/figures/ref-p127-2.png)
-
-2.6 FX & Processors
+![Release Shape curves: exponential, linear and inverse exponential release (manual p.127)](/figures/ref-p127-2.png)
 
 Dynamic Angle affects how far above the threshold the signal needs to be before the full range of EQ is applied, similar to a ratio with a smooth transition through the threshold. This can be set anywhere between 1 (default) equivalent to a higher ratio and 0, a lower ratio. Also similar to a knee, when the Dynamic Angle is set to a value less than 1, gain reduction will be applied to signal below the threshold however will always maintain a soft curve.
 
@@ -130,8 +86,6 @@ Threshold sets the point where compression or expansion is applied.
 
 There is an overall Output fader which can be used to make-up or reduce a post-effect gain difference.
 
-2.6 FX & Processors
-
 Any of the bands can be set to Bypass which sets the gain and range for that band to 0dB, maintaining the overall phase. Bypass All applies a blanket bypass across all bands which keeps the state of the individual bypasses.
 
 ### 2.6.4 User interaction options
@@ -146,7 +100,7 @@ Each parameter can be pressed individually to be controlled by the touch turn ro
 
 ### 2.6.5 Presets
 
-![FX & Processors (manual p.129)](/figures/ref-p129-1.png)
+![Spice Rack Presets display (manual p.129)](/figures/ref-p129-1.png)
 
 Presets allow the ability to recall and save parameters for a particular setup of a Spice Rack effect. New will create a preset with the current parameters in the effect, this will be stored under a group. Default will recall the default settings for the effect in the current slot.
 
@@ -158,41 +112,21 @@ A variety of factory presets are available as starting points for use on differe
 
 The Fourier transform.engine can be controlled from Quantum consoles (Q8/Q7/Q5/Q3/Q2). There are 2 aspects to the control integration.
 
-- 
-
-Transform Plugin Teleporting and control.
-
-- 
-
-Transform Session and Snapshot integration.
-
-2.6 FX & Processors
+- Transform Plugin Teleporting and control.
+- Transform Session and Snapshot integration.
 
 Teleporting is enabled with the console Enable Fourier Integration option and, if this is enabled, the Enable Sessions and Snapshot Control option is also displayed as an option. Note that Fourier and Waves integration cannot both be enabled at the same time. To enable this integration:
 
-- 
+- Connect the console ethernet port to the transform.engine Control port with an ethernet cable.
+- In the console Options > Console tab, set Enable Fourier Integration to Yes. Then press the Settings button to open the configuration panel.
+- Enter the IP address of the Control Port on the transform.engine and specify the console network adaptor which is used for the ethernet connection. The console must be power cycled after any change of IP address. Note that the transform.engine must be in the same subnet as the console.
+- Select the Audio IO port which will be used for the Transform audio interface which typically will be either a DMI-Dante 64@96 card or an internal Fourier Interface Card. A Fourier Audio logo will appear next to the selected port in the Audio I/O panel.
 
-Connect the console ethernet port to the transform.engine Control port with an ethernet cable.
+![Options > Console tab with Enable Fourier Integration set to Yes, and the Audio I/O Ports panel with the Transform interface port selected (manual p.130)](/figures/ref-p130-1.png)
 
-- 
+![Transform Settings dialog: transform.engine IP address, network adaptor and Transform audio interface (manual p.130)](/figures/ref-p130-2.png)
 
-In the console Options > Console tab, set Enable Fourier Integration to Yes. Then press the Settings button to open the configuration panel.
-
-- 
-
-Enter the IP address of the Control Port on the transform.engine and specify the console network adaptor which is used for the ethernet connection.  The console must be power cycled after any change of IP address. Note that the transform.engine must be in the same subnet as the console.
-
-- 
-
-Select the Audio IO port which will be used for the Transform audio interface which typically will be either a DMI-Dante 64@96 card or an internal Fourier Interface Card. A Fourier Audio logo will appear next to the selected port in the Audio I/O panel.
-
-![FX & Processors (manual p.130)](/figures/ref-p130-1.png)
-
-![FX & Processors (manual p.130)](/figures/ref-p130-2.png)
-
-![FX & Processors (manual p.130)](/figures/ref-p130-3.png)
-
-2.6 FX & Processors
+![Audio I/O Ports panel showing the Transform interface socket detail (manual p.130)](/figures/ref-p130-3.png)
 
 ### 2.6.7 Fourier transform.engine - Session and Snapshot integration (V20xx)
 
@@ -204,35 +138,35 @@ If you wish to save the Transform showfile on a removable USB drive for backup/t
 
 The following situations should be considered:
 
-If you don’t have either an existing console session or a Transform showfile Assuming that the console has had a Default All Session Restructure, before saving the new console session, the Transform engine will create a blank showfile named “_default”. When the session is saved on the console, the Transform engine will also save a file of the same name and make that its current showfile. The displayed showfile name will be “sessionname_autosave”. If you have a console session but no matching Transform showfile If a console session is loaded and the transform.engine does not have a showfile with the same name then it will create a default showfile on the transform engine with the same name as the console session, and create a DiGiCo Cuelist. This cuelist will be populated with snapshots to match the snapshots in the console session file. If you have a console session on the console or removable drive and a matching Transform showfile Import the transform showfile onto the transform.engine. Make sure that the showfile name exactly matches the name of the console session file. If it does not, then this must be changed using Rename Showfile within the transform.client, not in a standard file browser. Note that if the showfile has previously been used with DiGiCo console integration and gained the “_autosave” suffix, this will need to be removed from the showfile name in order to synchronise with the console again. Once it has been imported to the transform.client and the session names have been checked, load the session on the console. When the session is loaded onto the console, it will look for the transform showfile of the same name and load this onto the transform.engine. Note that for console sessions made with Fourier Integration turned off, if it is subsequently enabled then by default, console individual Snapshot Recall Scope is not active for the Fourier Transform until the user chooses to enable it. This can be quickly enabled for all snapshots by using the Edit Range function in the Snapshots panel. Since it is possible to load different sessions and make changes to the snapshot list on the transform.engine from the transform.client, it is possible to get out of sync between the console and the transform.engine. If the console detects that the transform.engine session and snapshots are no longer in sync with the console, it will pause the session and snapshot integration. When paused, a message will appear at the top of the Fourier panel. To resync and resume session and snapshot integration, the console session must be reloaded or the Re- synchronise Snapshots button in Fourier > Settings must be pressed.
+**If you don’t have either an existing console session or a Transform showfile**
 
-2.6 FX & Processors
+Assuming that the console has had a Default All Session Restructure, before saving the new console session, the Transform engine will create a blank showfile named “_default”. When the session is saved on the console, the Transform engine will also save a file of the same name and make that its current showfile. The displayed showfile name will be “sessionname_autosave”.
+
+**If you have a console session but no matching Transform showfile**
+
+If a console session is loaded and the transform.engine does not have a showfile with the same name then it will create a default showfile on the transform engine with the same name as the console session, and create a DiGiCo Cuelist. This cuelist will be populated with snapshots to match the snapshots in the console session file.
+
+**If you have a console session on the console or removable drive and a matching Transform showfile**
+
+Import the transform showfile onto the transform.engine. Make sure that the showfile name exactly matches the name of the console session file. If it does not, then this must be changed using Rename Showfile within the transform.client, not in a standard file browser. Note that if the showfile has previously been used with DiGiCo console integration and gained the “_autosave” suffix, this will need to be removed from the showfile name in order to synchronise with the console again. Once it has been imported to the transform.client and the session names have been checked, load the session on the console. When the session is loaded onto the console, it will look for the transform showfile of the same name and load this onto the transform.engine.
+
+Note that for console sessions made with Fourier Integration turned off, if it is subsequently enabled then by default, console individual Snapshot Recall Scope is not active for the Fourier Transform until the user chooses to enable it. This can be quickly enabled for all snapshots by using the Edit Range function in the Snapshots panel.
+
+Since it is possible to load different sessions and make changes to the snapshot list on the transform.engine from the transform.client, it is possible to get out of sync between the console and the transform.engine. If the console detects that the transform.engine session and snapshots are no longer in sync with the console, it will pause the session and snapshot integration. When paused, a message will appear at the top of the Fourier panel. To resync and resume session and snapshot integration, the console session must be reloaded or the Re-synchronise Snapshots button in Fourier > Settings must be pressed.
 
 ### 2.6.8 Adjusting plugin parameters from the console interface
 
 For plugin teleporting (display and control of the plugin interface on the console), the routed console Transform audio interface socket numbers (typically Dante audio) are associated with the same numbered sockets used with the Transform plugin chain. Note that patching to and from the transform.engine in Dante Controller must be done 1:1. If, for example, console channel 1 has insert send and return routing assigned to the Transform interface sockets input 1 and output 1, selecting/soloing this channel will display the Transform plugin chain with the same numbered socket routes. By default, this would be plugin chain 1. Once all routing to and from the transform.engine has been set up, the Fourier panel can be opened in 3 ways.
 
-- 
-
-Press Processors > Fourier to open the Fourier panel.
-
-- 
-
-Tap the insert routed to the transform engine on the channel strip
-
-- 
-
-Solo a channel that has an insert or output routed to the transform.engine. Note that this will depend on the Solo Displays Insert and Output option found in Options > Solo.
+- Press Processors > Fourier to open the Fourier panel.
+- Tap the insert routed to the transform engine on the channel strip.
+- Solo a channel that has an insert or output routed to the transform.engine. Note that this will depend on the Solo Displays Insert and Output option found in Options > Solo.
 
 Plugin parameters can be controlled by the touchscreen or a mouse connected to the console. For compatible plugins, control can also be achieved by touching a control in the console Fourier plugin interface and using the console worksurface touch turn encoder. If a plugin is not touch turn compatible, this will be indicated at the top of the console plugin list display. In this case, controls should generally still be controllable with on screen touch. Along the left side of the panel is a list of all of the plugins in the chain. Tap on a plugin to display it. Icons may appear next to plugins in the list to show different states such as bypassed or reloading.
 
 The plugin list on the left can be collapsed and expanded using the Collapse or Expand button at the bottom. This increases the size of the plugin viewer and therefore the size of the plugin.
 
-![FX & Processors (manual p.132)](/figures/ref-p132-1.png)
-
-Displays the plugin chain which is routed from the selected channel
-
-2.7 Matrix Menu
+![Fourier plugin chain display, showing the chain routed from the selected channel (manual p.132)](/figures/ref-p132-1.png)
 
 ### 2.6.9 Sharing a transform.engine between multiple consoles
 

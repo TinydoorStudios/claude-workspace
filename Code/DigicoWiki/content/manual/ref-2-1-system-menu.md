@@ -2,25 +2,27 @@
 
 *Chapter 2: The Master Screen — manual pages 67–72*
 
+This chapter describes all of the functions accessed from the Master Screen. The chapter focuses on the functions of the menu buttons across the top of the Master Panel, working through the buttons from left to right. Master Section worksurface elements are described within the context of the Master Panel display.
+
+To open the Master screen, press the worksurface ‘master screen’ button (on relevant consoles).
+
 ### 2.1.1 Diagnostics
 
 The Diagnostics displays status reports for various elements of the console system.
 
 Note: Indicators displayed may differ according to console model.
 
-![System Menu (manual p.67)](/figures/ref-p067-1.png)
+![Diagnostics panel, Console tab — engine/comms status, PSU, Local I/O and CPU readings](/figures/ref-p067-1.png)
 
 ### 2.1.2 Oscillator
 
 The oscillator is configured in the Oscillator display.
 
-![System Menu (manual p.67)](/figures/ref-p067-2.png)
+![Oscillator display — frequency and level rotaries, standard-frequency and standard-level buttons, and the identify Stereo ID / GLITS buttons](/figures/ref-p067-2.png)
 
 The frequency of the oscillator is controlled by the left-hand frequency on-screen rotary, and its audio level is controlled by the right-hand level rotary. The buttons below each rotary, can be used to set the oscillator to standard frequencies (100Hz, 440Hz, 1kHz, 10kHz) and levels (-3dB, -6dB, -12dB, -18dB). The current value of each parameter is displayed below its respective rotary.
 
 For Stereo channels, the 1 kHz oscillator can be set to produce a pulsing ID signal on the left signal or a GLITS signal as indicated by the on-screen graphic.
-
-2.1 System Menu
 
 ### 2.1.3 GPIO Relays
 
@@ -32,33 +34,27 @@ The GPI event light in the top right-hand corner indicates when GPI messages arr
 
 The GPI macro mode can be selected, either ‘ON and OFF’ to trigger a macro on both a low to high and high to low voltage transition or ‘ON only’ to trigger only on low to high transitions.
 
-![System Menu (manual p.68)](/figures/ref-p068-1.png)
+![GPIO Relays panel — out: toggle/pulse buttons, GPI macro mode, and the in:/out: indicator rows](/figures/ref-p068-1.png)
 
 ### 2.1.4 Security
 
 Security modes are selected in the system menu, with a choice of three levels of access:
 
-Setup: Users have full access to every function on the console.
+- **Setup:** Users have full access to every function on the console.
+- **Live:** Access to elements of the console can be limited, and password protected.
+- **Unattended:** The console worksurface is locked and cannot be operated.
 
-Live: Access to elements of the console can be limited, and password protected.
-
-Unattended: The console worksurface is locked and cannot be operated.
-
-![System Menu (manual p.68)](/figures/ref-p068-2.png)
+![Console Security panel — Setup, Live and Unattended access levels with their password buttons](/figures/ref-p068-2.png)
 
 User passwords can be defined for the Live and Unattended modes. To set a password, press the Set Password button. Enter the old password then the new one twice and press OK. By default, the passwords are blank.
 
-2.1 System Menu
-
-![System Menu (manual p.69)](/figures/ref-p069-1.png)
+![Change Unattended Password dialog — existing password, new password and confirm new password fields](/figures/ref-p069-1.png)
 
 Note: If you should forget your password, call your Distributor to obtain a reset password. Entering the master override password will allow new passwords to be set.
 
 To modify restrictions in Live mode, press the Set Live Restrictions button in the Console Security Panel. A range of parameters are shown, with a tick indicating that access is allowed and a cross that the item will be locked out in Live mode. Each group list can be expanded for item-specific restrictions by pressing on the down arrow in the left-hand column, as shown for FX below:
 
-![System Menu (manual p.69)](/figures/ref-p069-2.png)
-
-2.1 System Menu
+![Live Security Restrictions panel — per-channel-type access ticks across input/trim, delay, filters, EQ, dynamics, inserts, sends, fader, mute, panner, to groups, outputs and external, plus global restriction toggles](/figures/ref-p069-2.png)
 
 ### 2.1.5 Signal Over Indicators
 
@@ -78,15 +74,13 @@ Some panels such as the information bar and the status indicators can be dragged
 
 The Keyboard Help button opens up a display detailing the console control elements which are available via an external keyboard (useful when using offline software):
 
-![System Menu (manual p.70)](/figures/ref-p070-1.png)
+![Keyboard Help panel listing external-keyboard shortcuts — Right button, Tab, cursor keys, Control, Shift and Pause](/figures/ref-p070-1.png)
 
 ### 2.1.9 F10: Reset FX
 
 Pressing this entry in the System sub-menu will reset the FX module audio. This allows, for example, lengthy delay and reverb tails to be killed. To complete the reset, select Yes in the warning pop-up which appears.
 
 Note: This will briefly bypass all of the FX units.
-
-2.1 System Menu
 
 ### 2.1.10 F11: Reset Engine
 
@@ -108,6 +102,8 @@ Pressing this entry in the System sub-menu will open the Date and Time window fo
 
 ### 2.1.14 Enable Extensions
 
+*The manual's "Q2" is the Quantum 2, i.e. the Q225/Q338: the theatre extension is available for this console; the broadcast extension is not.*
+
 Some SD and Quantum consoles can be upgraded to include a theatre mode (SD7, SD9, SD10, Q7, Q2) and a broadcast mode (SD7, SD9, SD10, SD11, Q5, Q7) which can be purchased from DiGiCo or an authorised dealer.
 
 Navigate to System > Enable Extensions, provide the dealer with your console’s license number and they will provide you with instructions on how to complete the upgrade.
@@ -123,5 +119,3 @@ Pressing this entry in the System sub-menu shuts the console’s control compute
 ### 2.1.17 Shutdown All
 
 When consoles, engines or remotes are mirrored together in Full Mirror or expander mode, an additional Shutdown All button will appear at the bottom of the system menu.  When pressed, it will shut down all SD/Quantum consoles or remotes which are in either Full Mirror or Expander mirroring modes.
-
-2.2 Files Menu

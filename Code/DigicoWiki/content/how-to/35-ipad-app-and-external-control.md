@@ -16,6 +16,7 @@ Turn **Enable External Control** on only while you need it; DiGiCo asks you to s
 5. Note the console's **Local IP** at the bottom of the panel; enter it in the app's Connect page.
 
 ![External Control: iPad](/figures/ref-p173-1.png)
+*Enabling External Control and adding a DiGiCo Pad device — Reference Manual, p.173.*
 
 ## Generic OSC (Companion, TouchOSC)
 

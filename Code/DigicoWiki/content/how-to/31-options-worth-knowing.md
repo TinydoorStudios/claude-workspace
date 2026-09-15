@@ -15,6 +15,7 @@ Master screen > **Options**. Ten tabs; purple = on. These are the ones that chan
 - **Round to whole dBs** rounds fractional dB values to the nearest integer.
 
 ![Options > Surface](/figures/ref-p111-1.png)
+*Options > Surface — Reference Manual, p.111.*
 
 ## Faders
 

@@ -1,11 +1,9 @@
 # DMI-KLANG (immersive IEM mixing in the console)
 
-The DMI-KLANG takes 64 channels from the console and returns **16 stereo mixes** (as 32 channels) plus a stereo engineer cue (channels 33/34). No audio connectors on the card: the audio moves over the DMI bus. Two EtherCON and one RJ45 **control** ports (all one internal switch) for the console, the KLANG:app computer and Wi-Fi for the musicians' phones; a USB port for updates and presets.
-
-![Setup > External Control, where KLANG is added](/figures/q2-external-control.png)
-*Setup > External Control, where KLANG is added — Quantum 2 offline software, V22.*
+The DMI-KLANG takes 64 channels from the console and returns **16 stereo mixes** (as 32 channels) plus a stereo engineer cue (34 channels total). No audio connectors on the card: the audio moves over the DMI bus. Two EtherCON ports (Console and Control) plus an RJ45 control port, all on one internal switch, and a USB port for firmware and presets; the control ports feed the KLANG:app computer and the musicians' Wi-Fi.
 
 ![DMI-KLANG](/figures/ref-p242-1.png)
+*DMI-KLANG card: Console port (A) and Control port (B), reset button, USB for updates/presets — Reference Manual p.242.*
 
 ## Install and network
 
@@ -17,18 +15,23 @@ The DMI-KLANG takes 64 channels from the console and returns **16 stereo mixes**
 
 1. Setup > Audio I/O > select the DMI-KLANG port, **conform**. Name the sockets: mix returns **KLANG 1**… (32 sockets for 16 stereo mixes, use auto-name), sends **KLANG 1**… ×64. Cascaded processors use *KLANG(1) n* / *KLANG(2) n*.
 2. Setup > External Control > **Enable External Control: Yes**; turn on **Suppress OSC retransmit**; set **KLANG Interface: KLANG enabled**; **add device** > KLANG, IP 192.168.1.200, send 9111 / receive 8200; tick Enabled. The KLANG status goes green.
+
+![Setup > External Control, where KLANG is added](/figures/q2-external-control.png)
+*Setup > External Control panel, KLANG Interface row (KLANG enabled, Enable Mapped Channels) and External Devices table where the KLANG controller gets added — Quantum 2 offline software, V22.*
+
 3. Route channel **direct outs** to the KLANG sockets (Layout > Channel List > Edit > outputs column > direct outs > KLANG port). Groups can go too.
 4. Route each aux's **merge input** from the KLANG mix returns (Channel List > Aux Output > alt input > Merge Input > KLANG n). Auxes must be **stereo** and merge input on.
 5. External Control > KLANG Interface > **Enable Mapped Channels**. Aux nodes whose sockets are named KLANG 1… become KLANG nodes.
 6. Fire a snapshot, then **Enable all channels** (macro available) and **Import Levels / Pans**: the aux mix becomes the starting KLANG mix, sounding the same. Update the snapshot.
-
-![KLANG control in External Control](/figures/ref-p179-2.png)
 
 ## Mixing
 
 On a KLANG-enabled aux node the expanded panel shows the **orbit** (position), azimuth, elevation, type (mono/stereo/3D), level, on/off and a solo. V22 hides the pickoff point on KLANG nodes. **copy to KLANG** in the aux setup copies aux send levels to KLANG levels. Musicians use KLANG:app on a phone or tablet on the control network (CONFIG > CONNECT > pick the processor).
 
 Interface options: **KLANG bypassed** falls back to the console's own aux mix (levels forced to 0 dB when bypassed off / −∞ when on); **Copy KLANG to Aux Send** one-way copies levels; **Recall with Session** resends everything on load.
+
+![KLANG interface behaviour: bypass, recall with session, and level storage](/figures/ref-p179-1.png)
+*Reference Manual's callout for the three KLANG Interface behaviours — bypass reverts to normal aux sends, Recall with Session resends stored KLANG parameters on load, and the KLANG level/aux send level are stored as the same value — Reference Manual p.179.*
 
 ## Modes
 

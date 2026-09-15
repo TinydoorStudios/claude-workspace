@@ -15,6 +15,7 @@ In Channel Setup (top of the strip) the **Channel Settings** area has **Copy To*
 - **undo previous copy** is on the panel if you get it backwards.
 
 ![Copy channels](/figures/ref-p017-3.png)
+*Manual figure: Channel Settings area (Copy From/Copy To) and the Copy Channels display — SD Quantum Software Reference, Issue H, p.17.*
 
 Tip from the manual: Copy To for one-to-many, Copy From for a block-to-block.
 

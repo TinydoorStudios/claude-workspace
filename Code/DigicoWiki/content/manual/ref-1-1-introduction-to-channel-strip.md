@@ -6,25 +6,4 @@ This chapter describes all the functions available within an SD and Quantum seri
 
 Note: Most of the images in this manual reference the SD display style and the Quantum console version will probably differ slightly in appearance and have separate manual chapters to deal with relevant additional features.
 
-![Channel Setup](/figures/ref-p013-1.png)
-*Channel Setup*
-
-Input Labels: Area · Filter Section · Insert position A · (pre-
-
-EQ/dynamics)
-
-4-Band EQ / Dynamic EQ
-
-Dynamics 1: Compressor,
-
-Multi-band Labels: Compressor · or Desser · Dynamics 2:
-
-Gate, Ducker
-
-Insert position B Labels: (pre-fader) · or · Aux Sends · Pan
-
-Controls
-
-Output Area
-
-1.2 Channel Input - Common Elements
+![Channel Setup display (Figure 2)](/figures/ref-p013-1.png)

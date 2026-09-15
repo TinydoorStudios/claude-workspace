@@ -2,19 +2,14 @@
 
 Solo an aux and the channel faders become the sends to that aux. That's the default behaviour (Options > Solo > *Solo assigns aux sends to faders*, on by default) and the fastest way to build a wedge or IEM mix.
 
-![Layout > Aux to Faders](/figures/q2-aux-to-faders.png)
-*Layout > Aux to Faders — Quantum 2 offline software, V22.*
-
-![Layout > Aux Nodes](/figures/q2-aux-nodes.png)
-*Layout > Aux Nodes — Quantum 2 offline software, V22.*
-
 1. Go to the outputs layer and press **solo** on the aux. The input faders jump to their send levels for that aux; the top row of encoders also takes the sends (*Solo assigns aux to top encoders*).
 2. Move faders. What you hear on the solo bus is that aux, post its own processing if **True Solo** is on.
 3. Press the aux's solo again (or Clear) to return the faders to channel levels.
 
 Layout > **Aux to Faders** lists every aux; touching one activates aux-to-faders without soloing. **clear on close** drops the assignment when the panel closes. Macros exist for the same thing.
 
-![Aux to Faders panel](/figures/ref-p088-1.png)
+![Layout > Aux to Faders: one button per aux](/figures/q2-aux-to-faders.png)
+*Layout > Aux Sends to Faders — Quantum 2 offline software, V22.*
 
 ## Send points
 
@@ -26,9 +21,13 @@ With 2nd Function held, the aux row encoders become pans. The aux's Setup panel 
 
 ## Aux Nodes panel
 
+![Layout > Aux Nodes asks for an input or group channel to be selected first](/figures/q2-aux-nodes.png)
+*Layout > Aux Nodes with no channel selected: pick an input or group channel first — Quantum 2 offline software, V22.*
+
 Layout > **Aux Nodes** shows either every send from one channel or every contribution to one aux (**input/groups** vs **aux buss** view, with *follow selection* to tie them). From here you can **solo a node**, and on Quantum add **nodal processing** (an EQ and dynamics on one send only) with **Add**, **Bypass**, **Remove**. Nodes can be safed individually.
 
 ![Aux Nodes panel](/figures/ref-p037-1.png)
+*Manual figure: Aux Nodes panel, input/groups view — aux sends per channel — SD Quantum Software Reference, Issue H, p.37.*
 
 ## Control groups as trims
 

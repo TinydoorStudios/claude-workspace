@@ -10,6 +10,7 @@ There are two solo busses. Every channel can be assigned to solo 1, solo 2 or bo
 Master screen > **Solos**. The left half is Solo 1, the right half Solo 2; they work identically.
 
 ![Solo panel](/figures/ref-p143-1.png)
+*Manual figure: Solo 1 / Solo 2 panel controls — Reference 2.10.1.*
 
 Top row (also on the surface):
 

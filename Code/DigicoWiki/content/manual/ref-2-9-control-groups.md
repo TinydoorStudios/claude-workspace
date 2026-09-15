@@ -6,7 +6,7 @@
 
 An overview of all the Control Groups within a session can be access via the Control Groups menu button in the master panel.
 
-![Control Groups (manual p.139)](/figures/ref-p139-1.png)
+![Master Control Groups display, with a channel strip per Control Group showing spill, join/leave, clear and all mute controls (manual p.139)](/figures/ref-p139-1.png)
 
 This display contains basic channel strips for each Control Group. Each channel strip includes a list of channels that are assigned to that control group and few basic controls that can be adjusted from within the control group view, including spill, join/leave, clear and all mute. The Control Group naming controls are also available within the display’s channel strips.
 
@@ -14,33 +14,13 @@ Any number of input channels and output channels can be assigned to one or more 
 
 There are 2 methods to set up Control Groups:
 
-1) Press the LCD Function button on the CG fader bank followed by the JOIN CG button, then press the channel select button for the CG that you want to use, then press the channel select buttons for each of the channels to be included in the CG, finally deselect the JOIN CG button:
+1. Press the LCD Function button on the CG fader bank followed by the JOIN CG button, then press the channel select button for the CG that you want to use, then press the channel select buttons for each of the channels to be included in the CG, finally deselect the JOIN CG button.
 
-Press LCD function button, then join CG
+![Press the LCD function button, then join CG; select the Control Group to join; press channel LCD buttons to assign members (manual p.139)](/figures/ref-p139-2.png)
 
-![Control Groups (manual p.139)](/figures/ref-p139-2.png)
+2. Press the on-screen JOIN/LEAVE button for the required CG channel; press the channel select buttons for each of the channels that you want to make members of the CG; release the JOIN/LEAVE button.
 
-Press LCD function button, then join CG
-
-Select Control
-
-Press channel LCD buttons to
-
-Labels: Group to join · assign members · 2.9 Control Groups
-
-2) Press the on-screen JOIN/LEAVE button for the required CG channel;
-
-Press the channel select buttons for each of the channels that you want to make members of the CG; Release the JOIN/LEAVE button:
-
-![Control Groups (manual p.140)](/figures/ref-p140-1.png)
-
-List of members
-
-![Control Groups (manual p.140)](/figures/ref-p139-2.png)
-
-Press channel LCD buttons to assign members
-
-Press join/leave button on required CG channel
+![Control Groups panel: list of members, press channel LCD buttons to assign members, press the join/leave button on the required CG channel (manual p.140)](/figures/ref-p140-1.png)
 
 A list of all the connected channels and their names is displayed above each Control Group display.
 
@@ -55,8 +35,6 @@ The number of control groups available is defined in the console Session Structu
 All of the Control Groups to which an input or output channel belongs to are displayed immediately above the GANG and SAFE buttons in the Channel strip panel.
 
 Note: Only the first two to three Control Group assignments within a channel can be displayed in the channel strip.
-
-2.9 Control Groups
 
 All of the channels included in a Control Group are listed in the top half of the Control Group channel strip display. To clear all of the channels currently assigned to a Control Group, touch the Control Group’s clear button, located below the join/ leave button, and press Yes in the warning display that appears.
 
@@ -84,15 +62,11 @@ If a channel is CG muted by single or multiple CGs, the worksurface channel mute
 
 The auto-mute function, activated by touching the auto-mute button located above the Control Group name in the Channel Strip panel, automatically mutes any channel which is removed from that Control Group and unmutes any channel that joins the Control Group.
 
-2.9 Control Groups
-
 ### 2.9.4 Control Group Spill (1272+)
 
 Members of a control group can be spilled directly rather than adding them to a spill set. They can be spilled by using the Spill button on the CG channel strip and the Control Groups panel, or by firing a “Spill Control Group” macro under the Layout command type.
 
-![Control Groups (manual p.142)](/figures/ref-p142-1.png)
-
-Spill members of the CG
+![Control Group channel strip with the spill button — spill members of the CG (manual p.142)](/figures/ref-p142-1.png)
 
 ### 2.9.5 Control Group Aux Send Enable (v1445+)
 
@@ -100,8 +74,7 @@ The aux sends button in the Control Group channel strip allows individual CG fad
 
 An Aux Send Enable macro is included in Setup>Macros under the Control Group command type.
 
-Include/exclude CG from CG controls Aux Sends.
+![Control Group channel strip with the aux sends button — include/exclude the CG from controlling Aux Sends (manual p.142)](/figures/ref-p142-1.png)
 
 Note that the CG Fader Controls Aux Send global setting in Options>Faders has been removed in V1445.
 
-2.10 Solos Menu

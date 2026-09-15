@@ -8,13 +8,7 @@ When you change the configuration of a session you should save it to the console
 
 Note: If you touch a session name on the existing list, this name will automatically be selected as the new file name and touching Save will overwrite the old file.
 
-Enter a Filename
-
-Enter a Description
-
-![Saving and Loading Sessions (manual p.21)](/figures/gs-p021-1.png)
-
-Labels: Select Internal or · Removable USB · Internal Files saved · in D:\Projects · To create a new folder · in D:\Projects
+![Save Session panel: select Internal or Removable USB, internal files saved in D:\Projects, enter a filename and description, create a new folder](/figures/gs-p021-1.png)
 
 Note that column widths can be adjusted by dragging their borders within the title row. To return all columns to their default widths, press RESET WIDTHS, in the top left-hand corner of the window.
 
@@ -24,8 +18,6 @@ This button which is found above the Save As New File button will save the exist
 
 ### 1.5.3 Load Session
 
-To load a previously saved session: Touch the Files button on the Master screen and then press Load Session. Select the source drive (Internal or Removable) and the required file from the list - then press the Load button.
+To load a previously saved session: touch the Files button on the Master screen and then press Load Session. Select the source drive (Internal or Removable) and the required file from the list - then press the Load button.
 
-![Saving and Loading Sessions (manual p.21)](/figures/gs-p021-2.png)
-
-1.6 Audio Sync
+![Load Session panel: select Internal or Removable USB, internal files saved in D:\Projects, select a file, view file details, press Load](/figures/gs-p021-2.png)

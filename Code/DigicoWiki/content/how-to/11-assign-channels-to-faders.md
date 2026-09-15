@@ -2,18 +2,13 @@
 
 The Q225 surface is two sections of 12 faders. Each section has up to 3 **layers**, each layer up to 4 **banks** of 12. The bank and layer buttons sit to the right of each section. Hold a bank button on one side and press the other side's to switch both sections together.
 
-![One bank of twelve input channels on the Left screen](/figures/q2-channel-strip.png)
-*One bank of twelve input channels on the Left screen — Quantum 2 offline software, V22.*
-
-![Layout > Fader Banks](/figures/q2-fader-banks.png)
-*Layout > Fader Banks — Quantum 2 offline software, V22.*
-
-![Layout > Channel List](/figures/q2-channel-list.png)
-*Layout > Channel List — Quantum 2 offline software, V22.*
-
 ![Layers and banks](/figures/gs-p009-1.png)
+*Manual figure: Layers and Banks, fader bank/layer buttons — Getting Started 1.2.2.*
 
 Default layout: inputs on layer 1, outputs (groups, auxes, matrices) on layer 2, control groups on layer 2 as well. The right section can also show the Master screen (button above the master fader).
+
+![A fader bank of FX return channels on the Left screen](/figures/q2-channel-strip.png)
+*A fader bank of FX return channels (reverb/delay), 8 of 12 slots filled, on the Left screen — Quantum 2 offline software, V22.*
 
 ## Assign a channel to a fader
 
@@ -23,7 +18,11 @@ Default layout: inputs on layer 1, outputs (groups, auxes, matrices) on layer 2,
 4. Press the LCD/select button of every fader slot you want to fill.
 5. Layout > **Channel List** opens (or open it). Expand the channel type and touch the first channel. The selected slots fill in ascending order from the lowest one you pressed.
 
+![Layout > Channel List](/figures/q2-channel-list.png)
+*Layout > Channel List, the list you pick channels from in Assign Faders mode — Quantum 2 offline software, V22.*
+
 ![Assign faders](/figures/ref-p061-1.png)
+*Manual figure: Assign Faders sequence — Reference 1.8.5.*
 
 Other LCD functions on the same menu: **UNASSIGN FADERS** (blank a slot), **SWAP FADERS** (press two), **MOVE FADERS** (shift right one place), **COPY BNK FROM / TO**, **CLEAR BANK**. None of these have undo.
 
@@ -33,7 +32,11 @@ The LCD menu auto-reverts to Solo after a timeout if Options > Surface > *Auto-r
 
 Layout > **Fader Banks** shows every bank position on both sections. Highlight a bank, then **swap**, **move**, **copy to**, **clear**, or **lock** (a locked bank can't be cleared by accident). The bank LCD label and colour are editable at the bottom. The master fader can be reassigned here too (*Assign master fader*).
 
+![Layout > Fader Banks](/figures/q2-fader-banks.png)
+*Layout > Fader Banks — Quantum 2 offline software, V22.*
+
 ![Fader Banks panel](/figures/ref-p083-1.png)
+*Manual figure: Fader Banks display — Reference 2.3.1.*
 
 ## After a restructure
 

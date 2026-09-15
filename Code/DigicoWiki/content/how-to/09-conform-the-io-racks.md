@@ -2,25 +2,26 @@
 
 "Conforming" makes the on-screen rack match the cards physically in it. If a card label under the rack graphic is **red**, the console thinks a different card is there and audio on that card is suspect. **Green** is good.
 
-![Setup > Audio I/O](/figures/q2-audio-io.png)
-*Setup > Audio I/O — Quantum 2 offline software, V22.*
+## Conform everything
 
 ![The Setup menu](/figures/q2-m-setup.png)
 *The Setup menu — Quantum 2 offline software, V22.*
 
-![Audio I/O panel](/figures/ref-p150-1.png)
-
-## Conform everything
+![Setup > Audio I/O](/figures/q2-audio-io.png)
+*Setup > Audio I/O — Quantum 2 offline software, V22.*
 
 1. Setup > **Audio I/O**.
 2. Press **Conform All Ports** (bottom left). The console interrogates every port and selects the right card type for every slot.
 3. Check every card label turned green.
 
+![Audio I/O panel](/figures/ref-p150-1.png)
+*Manual figure: Audio I/O panel overview — Reference 2.12.1.*
+
 To conform only one rack: select it in the ports list and press **conform rack** under the graphic. For one card: touch a socket on it, press **Cards & Sockets**, then **conform card**.
 
 ## Ports
 
-The list top-left has one entry per physical connection: Local I/O, each MADI rack, each DMI card, USB audio. **add port** creates a port from the drop-down of known devices (DQ-Rack, MQ-Rack, A168D, KLANG konductor, 4REA4…); **remove port** deletes one you made. The Local I/O port is fixed.
+The list top-left has one entry per physical connection: Local I/O, each MADI rack, each DMI card, USB audio. **add port** creates a port from the drop-down of known devices (DQ-Rack, MQ-Rack, A168D, KLANG Konduktor, 4REA4…); **remove port** deletes one you made. The Local I/O port is fixed.
 
 ## Port control: shared racks
 
@@ -35,6 +36,7 @@ The list top-left has one entry per physical connection: Local I/O, each MADI ra
 Press **Shared** for the rack, then one of the three. Going into full control warns you that live audio may change (the rack jumps to this session's settings); going into receive only warns that the session will change to match the rack.
 
 ![Port control](/figures/ref-p152-1.png)
+*Manual figure: Port Control (Splits and Sharing) — Reference 2.12.4.*
 
 ## Standard MADI names
 

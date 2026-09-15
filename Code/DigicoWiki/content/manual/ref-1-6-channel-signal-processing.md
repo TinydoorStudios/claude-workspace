@@ -4,13 +4,13 @@
 
 Each channel type contains similar signal processing functions, including EQ and dynamics. Input channels also have high-pass and low-pass filters. Pressing on each of these areas of the channel strip will open the relevant signal-processing display.
 
-1.6.1  Channel Filters (All SD and Quantum input channels and on SD8,9,11 output channels)
+### 1.6.1 Channel Filters (All SD and Quantum input channels and on SD8,9,11 output channels)
 
 The filters section of the channel-strip is located below the input section of each input channel. It consists of two frequency rotaries, each with its own on/off button and a display of the filter’s cut off frequency (the -3dB value) in Hertz. The low-pass filter is at the top and the high-pass filter is at the bottom, and both have a roll-off of 24dB per octave.
 
 The filters directly follow the input section in the signal chain. The filters area is replicated at the top of the EQ/filters display, accessed by touching the EQ area of the channel strip. The filter can be configured using the dedicated filter encoders and buttons at the top of the channel worksurface controls:
 
-![Channel Signal Processing (manual p.47)](/figures/ref-p047-1.png)
+![LPF and HPF filter controls, each with an on/off button and frequency rotary](/figures/ref-p047-1.png)
 
 A graphic representation of the filters is included in the EQ graph located below Insert A in the channel strip, described below. The red line in the graph represents the current filter settings.
 
@@ -22,19 +22,19 @@ The SD and Quantum input channel EQ has four bands, each of which can be made dy
 
 Touching the EQ area of the channel strip brings up the EQ/filters display. The EQ section of the display is below the filters section and has another graphic representation of the current EQ at the top. Touching this EQ graph will open an expanded view of the graph. The EQ can be configured using the dedicated encoders and buttons on the worksurface which follow the same layout as the display:
 
-1.6 Channel Signal Processing
-
-![Channel Signal Processing (manual p.48)](/figures/ref-p048-1.png)
+![Channel EQ worksurface controls, the EQ/filters display, and the expanded EQ graph view](/figures/ref-p048-1.png)
 
 In both the EQ/filters display and on the worksurface, each band has a ±18dB gain controller on the left, a frequency controller (ranging from 20Hz to 20kHz) top right and a Q control bottom right. Each rotary has its value displayed to its right.
 
-Bands can be switched between a bell curve (which is the default setting) and a Hi/Lowshelf using the bell button. On SD5, SD7 & Q3, the bell button's 2nd function allows each band to be switched between prec (precision, where the Q is narrower on the cut curve than the boost curve) and class (classic, where the cut and boost Q curves are identical in width). The active setting is shown in red to the right of the bell button. Pressing the precision or classic buttons above the EQ controls will switch all four visible bands to that shape. The active button goes blue – if different bands are employing different shapes, neither button will be lit. The EQ is switched on using the eq on button between the HMF and LMF controls which rings red to indicate that it is on.
+Bands can be switched between a bell curve (which is the default setting) and a Hi/Lowshelf using the bell button.
+
+*Not on the Q225: the bell button's 2nd function (prec/class switching) is SD5, SD7 & Q3 only.*
+
+On SD5, SD7 & Q3, the bell button's 2nd function allows each band to be switched between prec (precision, where the Q is narrower on the cut curve than the boost curve) and class (classic, where the cut and boost Q curves are identical in width). The active setting is shown in red to the right of the bell button. Pressing the precision or classic buttons above the EQ controls will switch all four visible bands to that shape. The active button goes blue – if different bands are employing different shapes, neither button will be lit. The EQ is switched on using the eq on button between the HMF and LMF controls which rings red to indicate that it is on.
 
 Note: that when a band is in dynamic mode, it can also be switched on and off individually in the dynamic display. See below.
 
 Towards the bottom of the EQ/filters display are four grey buttons marked ‘safe’, ‘flat’, ‘preset’ and ‘copy to’. Touching ‘safe’ adds the EQ to that channel’s list of channel safes. Touching ‘flat’ resets the EQ gain controls to 0dB. Touching ‘preset’ brings up the Presets display which can be used to save and recall presets. Touching ‘copy to’ will open the copy to panel with the EQ section pre-selected. Below these buttons is a smaller round button which is also found at the bottom of the channel worksurface controls, for switching the signal- processing order. The default setting is EQ followed by dynamics, as indicated by the eq-dyn label being to the left of the button. Pressing this button reverses the order, as indicated by the labelling switching to a dyn-eq display to the right of the button.
-
-1.6 Channel Signal Processing
 
 ### 1.6.3 Dynamic EQ
 
@@ -50,23 +50,16 @@ To place the dynamic module into Under mode, ensure that the Over indication bel
 
 In under mode, the maximum EQ adjustment (as determined by the frequency, Q and band gain controls) is applied when the signal entering the module is below the threshold. As the signal level approaches the threshold, the EQ adjustment is reduced to the point where there is no EQ being applied at the threshold. The manner in which the EQ adjustment is reduced as the signal level approaches the threshold is determined by the attack, release and ratio controls.
 
-![Channel Signal Processing (manual p.49)](/figures/ref-p049-1.png)
+![SD dynamic EQ band controls: threshold, attack, release, ratio, over/under and band on](/figures/ref-p049-1.png)
 
-**Gain: Sets the maximum EQ adjustment that could be applied**
-
-**Frequency / Q / Curve: Adjusts the EQ characteristics**
-
-Threshold: Sets the threshold at which the EQ starts to be applied
-
-Attack: controls how quickly the dynamic module responds to level passing the threshold
-
-Release: adjusts how quickly the module responds to a fall in level
-
-Ratio: controls how quickly the maximum adjustment is reached once the threshold level is passed.
+- **Gain:** Sets the maximum EQ adjustment that could be applied
+- **Frequency / Q / Curve:** Adjusts the EQ characteristics
+- **Threshold:** Sets the threshold at which the EQ starts to be applied
+- **Attack:** controls how quickly the dynamic module responds to level passing the threshold
+- **Release:** adjusts how quickly the module responds to a fall in level
+- **Ratio:** controls how quickly the maximum adjustment is reached once the threshold level is passed
 
 Over Mode is generally used with a reduction in gain at a specific frequency, such that when the threshold is reached, a gradual reduction of level at that frequency is applied. This could be used to control a change in tonal characteristics as a singer pushes their voice to sing louder.
-
-1.6 Channel Signal Processing
 
 ### 1.6.4 Output Channel EQ
 
@@ -74,9 +67,7 @@ The EQ located in each output Channel is similar in operation to the input chann
 
 The precision and classic buttons above the EQ bands only affect the four bands currently displayed, and not the full 8 bands available. The pre-insert bands do not have dynamic EQ or bell-shelf switching.
 
-![Channel Signal Processing (manual p.50)](/figures/ref-p050-1.png)
-
-1.6 Channel Signal Processing
+![Output channel EQ display showing pre-insert/post-insert band selection, the EQ graph, and the four EQ bands with hishelf/loshelf switching](/figures/ref-p050-1.png)
 
 ### 1.6.5 Channel Dynamics
 
@@ -94,13 +85,7 @@ The Desser only displays a threshold rotary and its value. There is a threshold 
 
 At the top of the expanded display are buttons marked undo, safe, presets, copy to and graph. Touching the undo button will undo the last change that was made to a parameter of the module. Touching safe adds the dynamics to that channel’s list of channel safes. Touching preset brings up the Presets display which can be used to save and recall presets. Touching copy to will open the copy to panel with the dynamics section pre- selected. Touching graph opens up a view of the module in a graphical format.
 
-![Channel Signal Processing (manual p.51)](/figures/ref-p051-1.png)
-
-**Dynamics 1**
-
-**Dynamics 2**
-
-1.6 Channel Signal Processing
+![SD dynamics display with compressor and gate graphs, and the Dynamics 1 (comp/multi/desser) and Dynamics 2 (gate/duck/comp) module type selectors](/figures/ref-p051-1.png)
 
 **Dynamics 1: Compressor**
 
@@ -110,7 +95,7 @@ In Module 1's compressor, threshold, attack, release, ratio and gain controls ar
 
 In Module 1's multiband compressor, each band includes all of the parameters found in the single band compressor. The link function remains available for the whole compressor and is not assigned to any band. The bands can be switched on individually using the on buttons in the left-hand side of each band, or together using the all on button in the display’s right.
 
-![Channel Signal Processing (manual p.52)](/figures/ref-p052-1.png)
+![Module 1 multiband compressor display showing hi/mid/lo band controls, each with threshold, attack, release, ratio and auto gain](/figures/ref-p052-1.png)
 
 The crossover frequency between bands is controlled using the purple and red rotaries to the left of the hi and lo bands. Each crossover has a range of 20Hz to 20kHz, and the crossover frequencies are displayed below each rotary. Each band can be auditioned (destructively) by pressing the listen button below each gain rotary.
 
@@ -118,9 +103,7 @@ The crossover frequency between bands is controlled using the purple and red rot
 
 The de-esser's controls are similar to those of the compressor, with the following exceptions: In the right side of the module, there is a band-pass filter control for the de-esser sidechain, with rotaries provided for the centre frequency and filter width. The -3dB points for the hi-pass (hp) and lo-pass (lp) frequencies are shown. The filtered sidechain can be auditioned by pressing the listen button. Note that there is no makeup gain included.
 
-![Channel Signal Processing (manual p.52)](/figures/ref-p052-2.png)
-
-1.6 Channel Signal Processing
+![De-esser display showing threshold, attack, release, ratio and the sidechain band-pass width/frequency controls](/figures/ref-p052-2.png)
 
 **Dynamics 2: Gate**
 
@@ -135,5 +118,3 @@ The ducker has the same controls as the gate, though the sidechain performs the 
 **Dynamics 2: Compressor**
 
 Module 2's compressor is identical to the single band mode of Module 1, with the addition of the band-pass filter in the sidechain as described above, and a sidechain input function (S/C) which functions exactly like the key function of the gate.
-
-1.7 Mustard Channels (Quantum only)

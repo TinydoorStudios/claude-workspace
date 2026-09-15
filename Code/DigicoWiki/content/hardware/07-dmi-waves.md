@@ -3,6 +3,10 @@
 64 in / 64 out at 48 or 96 kHz to a Waves SoundGrid network over Ethernet. Two ports that act as a small switch: one to the computer running SuperRack SoundGrid, the other to a SoundGrid server or another I/O, so a two-device system needs no switch. Link/Activity LED flashes green, GigE LED solid orange. Bigger systems use a Waves-approved 1 Gb switch in a star.
 
 ![DMI-Waves](/figures/ref-p236-1.png)
+*DMI-Waves card: two Ethercon ports (1/2) to the SoundGrid network — Reference Manual p.236.*
+
+![One I/O: host computer running SuperRack SoundGrid connected direct to a DiGiCo console with a DMI-Waves card](/figures/dmi-waves-guide-p005-1.png)
+*The simplest SoundGrid setup — one DMI-Waves card, one Cat5e run straight to the host computer, no switch needed — DMI-Waves User Guide p.5.*
 
 There is **no control from the console**: the card is just 64 sockets each way in Audio I/O. Everything else happens in Waves software on the host computer. The console cannot run Waves software itself.
 
@@ -17,6 +21,9 @@ With ProLink, saving or loading a session on the console loads the same-named Su
 ## Clock
 
 Waves control panel (gear on the device in the SoundGrid rack, or the driver control panel) > **Clock** page: **Digital** = the card follows the console; **Sync over Ethernet** = follows the SoundGrid master; **Internal** = the card is master and the console can select the Waves card in Audio Sync. Firmware status is the FW button colour: grey OK, blue update available, red must update.
+
+![DMI-Waves Clock control panel: Source, Sample Rate and Status](/figures/dmi-waves-guide-p012-1.png)
+*Clock page on the card's own control panel — Source (Internal/Digital/Sync over Ethernet), Sample Rate and Sync status — DMI-Waves User Guide p.12.*
 
 ## As a recorder interface
 

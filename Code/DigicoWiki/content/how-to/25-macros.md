@@ -8,6 +8,7 @@ A macro is a list of console commands fired from a smart key, a keyboard F-key, 
 Setup > **Macros** (or the **assign** button in the macros area of the surface) opens the list of every macro with its trigger.
 
 ![Macros panel](/figures/ref-p160-1.png)
+*Macros panel — Reference Manual, p.160.*
 
 ## Make one
 
@@ -18,6 +19,7 @@ Setup > **Macros** (or the **assign** button in the macros area of the surface) 
 3. Commands run in list order. New commands overwrite the selected row — touch the row above where you want a new command, then press **insert** to open a row for it rather than overwriting.
 
 ![Macro Editor](/figures/ref-p162-1.png)
+*Macro Editor — Reference Manual, p.162.*
 
 ## Trigger it
 

@@ -13,9 +13,10 @@ The console's own FX are stereo FPGA reverbs, delays, chorus, pitch and enhancer
 
 On any output channel the **FX Output** button under the meters reopens the unit's controls; on an input channel touch the **pan area** once an FX preset is on its direct out.
 
-![Master FX panel](/figures/ref-p124-1.png)
-
 ## The FX rack
+
+![Master FX panel](/figures/ref-p124-1.png)
+*Manual figure: the Master FX display — every fx unit in one rack — SD Quantum Software Reference, Issue H, p.124.*
 
 Master screen > **fx** shows every unit in one rack. **New** (top left) creates one from the presets list; to delete a unit press its **fx presets** button and deselect the preset. Every unit has a **safe** button and shows its input/output meters and which channel feeds it. Touch any control to put it on the Touch-Turn encoder. Reverbs also have a graphical editor: the coloured sliders on the graph are the unit's rotaries.
 

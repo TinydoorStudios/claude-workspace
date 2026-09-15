@@ -2,7 +2,8 @@
 
 A rugged 16-in / 8-out stage box: 16 remote-controlled mic/line XLR inputs with 48V indicators, 8 XLR line outputs at +4 dBu, universal IEC power. The **A168D** is the Dante version (the plain A168 talks DiGiCo 3232 over Cat5e to a 4REA4). Sits flat, on its side, or in a 19" rack with the X-A-168-19RK kit.
 
-![A168 Stage](/figures/a168-guide-p001-1.png)
+![A168 Stage](/figures/a168-guide-p002-1.png)
+*A168 Stage front panel — ① 16 mic/line inputs, ② 8 line outputs — A168 Stage Quick Guide p.2.*
 
 ## Connect it
 
@@ -10,7 +11,8 @@ A rugged 16-in / 8-out stage box: 16 remote-controlled mic/line XLR inputs with 
 2. Dante Controller: match the A168D's sample rate to the DMI card; subscribe DMI receive channels to the A168D's 16 transmit channels and the A168D's 8 receive channels to DMI transmit channels. Keep it 1:1 (input 1 → DMI 1) so the console's names make sense.
 3. Console: Audio I/O > **add port** > A168D > conform. Gain, pad and 48V are now on the channel strip.
 
-![A168D transmit → DMI receive](/figures/gs-p056-1.png)
+![A168D transmit → DMI receive](/figures/gs-p056-4.png)
+*A168D (transmitter) routed 1:1 into DMI 64@96 receive channels on the console — Getting Started Guide p.56.*
 
 ## Firmware
 

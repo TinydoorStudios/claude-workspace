@@ -6,8 +6,9 @@ Setup > **Audio Sync**. The session sample rate (48 or 96 kHz) is set in Session
 *Setup > Audio Sync — Quantum 2 offline software, V22.*
 
 ![Audio Sync panel](/figures/ref-p157-2.png)
+*Audio Sync panel — Reference Manual, p.157.*
 
-Default is **Master** (internal). The Q225 can also lock to Word Clock, AES, MADI, the Waves card, and DMI cards (Dante, MADI). A green **OK** beside a source means a valid clock is present there, whether or not it's selected. The setting is saved in the session.
+Default is **Master** (internal). The Q225 can also lock to Word Clock, Optocore, MADI, the Waves card, and DMI cards (Dante, MADI). A green **OK** beside a source means a valid clock is present there, whether or not it's selected. The setting is saved in the session.
 
 ## What we run
 
@@ -18,7 +19,7 @@ Default is **Master** (internal). The Q225 can also lock to Word Clock, AES, MAD
 
 ## Sample rate conversion
 
-The Dante 64@96 card has **Auto SRC** in Audio I/O: it turns on by itself when the Dante network and the console differ (48 vs 96 kHz) with no loss of channel count. DMI-MADI SRC (V167+) is manual: pick 48 kHz, 96 kHz smux or 96 kHz hi-speed to match the far end; the panel shows *SRC active* or *inactive*. SRC converts between 48 and 96 on the same base clock; it will not marry two free-running systems at the same nominal rate.
+The Dante 64@96 card has **Auto SRC** in Audio I/O: switch it on and it detects a sample-rate mismatch between the Dante network and the console (48 vs 96 kHz) and activates conversion by itself, with no loss of channel count. DMI-MADI SRC (V167+) is manual: pick 48 kHz, 96 kHz smux or 96 kHz hi-speed to match the far end; the panel shows *SRC active* or *inactive*. SRC converts between 48 and 96 on the same base clock; it will not marry two free-running systems at the same nominal rate.
 
 ## Symptoms of a clock problem
 

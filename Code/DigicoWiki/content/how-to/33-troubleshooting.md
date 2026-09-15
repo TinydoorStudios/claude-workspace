@@ -49,6 +49,6 @@ System > Diagnostics > **Console** > **Collect Diagnostics**. Choose D:\logs or 
 
 ## Startup files
 
-If the desk boots into a bad session, Master screen > System > **Quit To Windows** drops to Quantum Home; its Settings pane > **Delete Startup Sessions** removes `D:\Quantum2\startup.ses` and `D:\Quantum2\_session.ses`. Holding **Space** at startup boots straight to Quantum Home without launching the console app.
+If the desk boots into a bad session, Master screen > System > **Quit to Windows/Home** drops to Quantum Home; its Settings pane > **Delete Startup Sessions** removes `D:\Quantum2\startup.ses` and `D:\Quantum2\_session.ses`. Holding **Space** at startup boots straight to Quantum Home without launching the console app.
 
 Manual: [Reference 2.1 System Menu](/reference/2-1-system-menu), [2.5.10 Options > Status](/reference/2-5-options), [5.1 Quantum Home](/reference/5-1-quantum-home), [V22 release notes 1.9](/docs/v22-release-notes).

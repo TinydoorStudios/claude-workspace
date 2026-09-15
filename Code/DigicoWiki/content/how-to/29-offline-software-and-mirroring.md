@@ -24,6 +24,7 @@ Save on the laptop, copy the `.ses` to a USB stick, Files > Load Session > **Rem
 5. Press **Mirror**. Buttons turn green.
 
 ![Network panel](/figures/ref-p147-1.png)
+*Network panel — Reference Manual, p.147.*
 
 Set the **Mirroring Mode** (Options) to **Remote** for a laptop: it lets the laptop show different banks and panels than the desk. **Full Mirror** is for redundant engines; **One Way** lets the laptop watch without controlling.
 

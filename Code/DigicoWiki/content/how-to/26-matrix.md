@@ -5,8 +5,6 @@ Master screen > **Matrix** opens the Matrix Inputs panel. Columns are matrix inp
 ![Matrix panel](/figures/q2-matrix.png)
 *Matrix panel — Quantum 2 offline software, V22.*
 
-![Matrix panel](/figures/ref-p133-1.png)
-
 ## Feed it
 
 Touch the name box at the top of a column to open that input's Setup: rename it, and press the **routing** button to pick any source (a group, aux, console input, rack socket…). Matrix inputs auto-route from group outputs if you used auto-route in Session Structure. *copy settings from* copies a whole column's levels from another input.
@@ -14,6 +12,9 @@ Touch the name box at the top of a column to open that input's Setup: rename it,
 ## Set crosspoints
 
 Touch a pot to put it on the Touch-Turn encoder (it lightens and rings green). Modes: **multi** (touch several, turn once), **single**, **all**, and text entry with **Abs** (set every selected pot to the typed value, which defaults negative) or **Rel** (offset them).
+
+![Matrix panel](/figures/ref-p133-1.png)
+*Matrix Inputs panel — Reference Manual, p.133.*
 
 ## Matrix outputs
 

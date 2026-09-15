@@ -4,7 +4,7 @@
 
 A DMI-Dante 64@96 DMI card provides 64 input and 64 output channels at 48kHz or 96kHz, along with support for SRC (Sample Rate Conversion). This enables the desk to run at a different sample rate to the Dante network.
 
-![DMI - Dante Cards (manual p.232)](/figures/ref-p232-1.png)
+![DMI-Dante 64@96 card rear panel: Control RJ45, and Primary/Secondary Dante RJ45 ports](/figures/ref-p232-1.png)
 
 Sample rate conversion can be enabled in the Audio IO panel by enabling ‘Auto SRC’. This will automatically switch on when necessary to convert the sample rate of the desk inputs and outputs to match the Dante network’s sample rate e.g. the Dante network at 96kHz and console structured at 48kHz. SRC will not affect the number of input and output channels that can be routed.
 
@@ -24,9 +24,7 @@ In the Dante Clock Status tab, the QUANTUM 8 DMI-Dante card is set to Sync To Ex
 
 This setup enables the DMI-Dante in the QUANTUM 8 to take its Audio Sync Source from the console itself and in turn provide sync to the rest of the Dante network. The console would typically be set as Audio Master in the Main Menu > Audio Sync panel
 
-![DMI - Dante Cards (manual p.232)](/figures/ref-p232-2.png)
-
-![DMI - Dante Cards (manual p.232)](/figures/ref-p226-1.png)
+![Dante Controller Clock Status tab, and the console's Audio Synchronisation panel, showing Display/Set Preferred Master and Sync To External](/figures/ref-p232-2.png)
 
 **Example 2 - Dante Network is Master clock for console**
 
@@ -34,12 +32,6 @@ If the console is required to use the Dante network as its sync source the follo
 
 Enable Sync to External = OFF
 
-![DMI - Dante Cards (manual p.233)](/figures/ref-p233-1.png)
+![Dante Controller Clock Status tab with Enable Sync To External circled](/figures/ref-p233-1.png)
 
-![DMI - Dante Cards (manual p.233)](/figures/ref-p233-2.png)
-
-Sync To External = OFF
-
-Console External DMI Sync
-
-6.4 DMI - ADC - DAC - MIC - AES Cards
+![Console Audio Synchronisation panel with DMI 1 selected as the primary sync source](/figures/ref-p233-2.png)

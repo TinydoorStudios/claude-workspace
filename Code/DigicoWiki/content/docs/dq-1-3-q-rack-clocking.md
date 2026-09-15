@@ -1,6 +1,6 @@
 # 1.3 Q-Rack Clocking
 
-* — manual pages 9–9*
+*DQ & MQ-Rack User Guide — manual page 9*
 
 The Q-Rack will receive clock sync from the connected console in normal operation. It can run at 48KHz or 96KHz when clocked by the console.
 

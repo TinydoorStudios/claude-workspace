@@ -15,9 +15,10 @@ A stereo bus takes two graphics; they're ganged automatically when inserted on a
 
 ## Edit it
 
-Master screen > **Graphic EQ**. Touch any of the miniature EQs to bring it into the expanded view at the bottom. The 32 faders are on the surface faders while the panel is open; gain trim (±18 dB), **on** (ringed red) and in/out meters are on the left.
+Master screen > **Graphic EQ**. Touch any of the miniature EQs to bring it into the expanded view at the bottom. The 32 faders are on the surface faders while the panel is open; gain trim pot, **on** (ringed red) and in/out meters are on the left.
 
 ![Graphic EQ panel](/figures/ref-p137-1.png)
+*Manual figure: Graphic EQ panel — miniature EQs and one expanded — SD Quantum Software Reference, Issue H, p.137.*
 
 - **GANG / build gang**: press build gang on one EQ, then touch other miniature EQs to add them. Ganged EQs move relatively. Hold a band's mute button while moving it to isolate that band from the gang for one move.
 - **all** makes every EQ jump to the band you move (absolute, so differences between EQs vanish).

@@ -3,6 +3,7 @@
 64 channels in and 64 out to a Dante network at 48 kHz or 96 kHz, with sample rate conversion. Two EtherCON ports (Primary, Secondary) for the Dante network and an RJ45 **Control** port for a laptop running Dante Controller. Two hardware generations exist: the original Summit HC module (green PCB) and the current **Zynq** module (black); the Zynq version takes firmware updates through a web browser at the card's IP.
 
 ![DMI-Dante 64@96](/figures/ref-p232-1.png)
+*DMI-Dante 64@96 card rear panel: Control RJ45, and Primary/Secondary Dante RJ45 ports — Reference Manual p.232.*
 
 ## How the console sees it
 
@@ -10,7 +11,8 @@ Setup > Audio I/O lists the card as a port with 64 inputs and 64 outputs. The co
 
 The logical setup, and the one to keep to: route rack input socket *n* to DMI channel *n*, and DMI output *n* to rack output socket *n*. Then "DMI Dante 1" on the console means "DQ-Rack Mic 1" and nobody has to think.
 
-![Dante Controller routing: rack inputs to DMI channels](/figures/ref-p199-1.png)
+![Dante Controller routing: rack inputs to DMI channels](/figures/ref-p203-3.png)
+*Dante Controller & Routing — subscribing rack inputs to DMI 64@96 receive channels, Reference Manual p.203.*
 
 ## Set up from scratch
 
@@ -24,7 +26,8 @@ The logical setup, and the one to keep to: route rack input socket *n* to DMI ch
 
 In Audio I/O, the card's port has an **Auto SRC** toggle. On, the card converts automatically when the Dante network runs at a different rate from the console (48 vs 96). Channel count doesn't change. The panel shows both rates and the SRC state.
 
-![Auto SRC in Audio I/O](/figures/ref-p198-1.png)
+![Auto SRC in Audio I/O](/figures/ref-p199-1.png)
+*Auto SRC in Audio I/O — Reference Manual p.199.*
 
 ## Firmware notes (from DiGiCo tech notes)
 
