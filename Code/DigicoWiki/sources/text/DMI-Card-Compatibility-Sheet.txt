@@ -1,0 +1,45 @@
+                                DATASHEET
+
+
+
+
+                                                                                             DMI Card Compatibility
+
+
+              DMI                                        S-Series                    SD12     Quantum   OrangeBox     4REA4
+
+              DMI-A3232                                    Yes                       No        No       No             No
+              DMI-ADC                                      Yes                       Yes       Yes      Yes            Yes
+              DMI-AES                                      Yes                       Yes       Yes      Yes            Yes
+              DMI-AMM                                      Yes                       Yes       Yes      No             No
+              DMI-AVIOM                                    Yes                       Yes       Yes      Yes            Yes
+              DMI-DAC                                      Yes                       Yes       Yes      Yes            Yes
+              DMI-DANTE                                    Yes                       Yes       Yes      Yes            Yes
+              DMI-DANTE64@96                               Yes                       Yes       Yes      Yes[2]         Yes
+              DMI-HYDRA2                                   Yes                       Yes       Yes      Yes            No
+              DMI-KLANG                                    Yes[1]                    Yes       Yes      Yes            No
+              DMI-MADI-B                                   Yes                       Yes       Yes      Yes            Yes
+              DMI-MADI-C                                   Yes                       Yes       Yes      Yes            Yes
+              DMI-ME                                       Yes                       Yes       Yes      Yes            No
+              DMI-MIC                                      Yes                       Yes       Yes      No             Yes
+              DMI-OPTO                                     No                        No        No       Yes            Yes
+              DMI-WAVES                                    Yes                       Yes       Yes      Yes            Yes
+              True as of version:                          v2.6                      v1280     v1280    v2.8           v1.4
+
+          [1] Audio only - no integrated control
+          [2] Audio only - no control over A168D and A164D preamps
+
+
+
+
+DiGiCo HQ
+Unit 10 Silverglade Business Park Leatherhead Road, Chessington,
+Surrey, KT9 2QL, United Kingdom
+info@digiconsoles.com
+
+©DiGiCo 2020. All brand and product names are copyright to their respective owners                                        www.digico.biz
+E&OE
+
+
+www.digico.biz                                                                                                 DiGiCo DMI Compatibility
+

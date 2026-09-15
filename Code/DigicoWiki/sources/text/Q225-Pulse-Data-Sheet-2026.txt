@@ -1,0 +1,362 @@
+                       DATASHEET
+
+
+
+
+                                                                Quantum 225 / Pulse
+                                                                Own the room with the compact and robust Quantum
+
+
+
+OVERVIEW
+The DiGiCo Quantum 225 / 225 Pulse is a 72/96 channel
+mixing console with 25 physical faders and 1 x 17” LCD
+high-resolution touchscreen. Like its larger counterpart, the
+Quantum 338, the Quantum 225 offers all of the Quantum
+features plus new design features and enhancements in a
+smaller format console.
+
+  KEY FEATURES
+
+  72/96 Input Channels with full processing
+
+  36/48 Aux/Sub-Group busses with full processing
+
+  12 x 12 Matrix with full processing
+
+  24/36 Insertable Mustard processing strips
+
+  32/48 Nodal processing instances
+
+  True Solo function
+
+  41 TFT LCD displays
+
+  1 x 17” high-brightness, high-resolution touchscreen
+
+  Mounting bracket for customisation of the left worksurface
+
+  Assignable channel layout
+
+  User programmable macros
+  Capable of redundantly mirroring with another Quantum 225
+  console                                                         DiGiCo Quantum
+  Redundant PSUs as standard
+                                                                  Quantum is developed with seventh-generation FPGA
+  2 DMI Slots to expand the I/O as desired                        devices that further expand audio processing power
+                                                                  and ultimately allows DiGiCo to provide its users with
+  Integrated UB MADI
+                                                                  an unrivalled amount of additional flexibility.
+  Offline software
+                                                                  Quantum. Power. Connectivity. Flexibility
+  iPad control
+
+  Mix Minus
+
+
+
+www.digico.biz                                                                      DiGiCo Quantum 225 Datasheet           1
+    TECHNICAL SPECIFICATIONS
+
+
+     WORKSURFACE                                                  REAR
+
+      25 x 100mm touch-sensitive, motorised faders                2 x Redundant PSUs
+      1 x 17” LCD high-brightness, high-resolution touchscreens   8 x XLR Mic/Line Inputs
+      41 x Full Colour TFT LCD Displays                           8 x XLR Line Outputs
+      1 x ¼” Headphone socket                                     2 x XLR AES/EBU Inputs (4 x channels)
+      1 x 3.5mm Headphone socket                                  2 x XLR AES/EBU Outputs (4 x channels)
+      1 x USB 2.0 slot                                            4 x MADI BNC I/O @ 48k, 2 interfaces at 96k
+      Keyboard Light Bar                                          2 x MultiMode Optocore Interfaces (Optional)
+      Integrated Light Bar                                        1 x Waves port (Optional)
+      1 x Mounting Bracket                                        2 x DMI Slots (up to 64 I/O per slot)
+                                                                  1 x UB MADI (USB Type B Audio I/O interface for recording
+                                                                  and playback of up to 48 channels)
+                                                                  4 x Ethernet ports (switched together)
+     OPTIONS
+                                                                  3 x USB 2.0 slots
+
+      Single or Dual Loop Optocore (HMA, OpticalCon or ST)        2 x GPI 1/4” Jacks
+
+      Upgrade to SingleMode Optocore                              2 x GPO 1/4” Jacks
+
+      Waves Soundgrid Interface                                   1 x MIDI In/Thru/Out (5 pin DIN)
+
+      Flightcase                                                  1 x Word Clock I/O BNC
+                                                                  2 x DisplayPort Outputs
+      Compatible DMI Cards: ADC / AES / AMM / Aviom / DAC /
+      Dante / Dante 64@96 / Hydra 2 / KLANG / MADI B / MADI C     1 x Quantum Lighting Bar
+      / ME / Mic / Waves
+
+
+
+
+2   www.digico.biz
+TECHNICAL SPECIFICATIONS
+
+
+SIGNAL PROCESSING
+
+                                                       24/36 x Mustard Processing Strips
+ 72/96 Input Channels (Mono)                           •   Tube
+ •   Main & Alternative input                          •   Tube Emulation
+ •   Analogue Gain                                     •   HPF/LPF (-24dB/Oct)
+ •   Phase Inversion Control                           •   4 Band EQ: 2 Band Parametric EQ and 2 Band
+ •   Gain Tracking                                         Parametric EQ or All Pass Filters
+ •   Digital Trim (-40dB to +40dB)                     •   DYN 1: Classic RMS/Peak Compressor, Vintage VCA
+ •   Variable Delay (0ms to 1.3s)                          Compressor, Optical Compressor, FET Limiter
+ •   DiGiTube                                          •   DYN 2: Gate, Ducker
+ •   HPF/LPF (-24dB/Oct)
+ •   4 Band Parametric EQ / Dynamic EQ                 32/48 x Nodal Processing
+ •   DYN 1: Compressor, Multiband Compressor, Desser   •   4 Band Parametric EQ / Dynamic EQ
+ •   DYN 2: Gate, Duck, External Input Compressor      •   DYN 1: Compressor, Multiband Compressor, Desser
+ •   EQ/Dyn Order Control                              •   DYN 2: Gate, Duck, External Input Compressor
+ •   2 Insert Points per Channel                       Multiband Compressors available on every channel, Buss
+ •   Channel Mute & Hard Mute                          and Nodal Processor
+ •   Channel Direct Outputs
+                                                       Dynamic EQs available on every channel, Buss and Nodal
+                                                       Processor
+ 36/48 Aux/Sub-Group Busses
+ •   Phase Inversion Control                           DiGiTuBes available on every channel & Buss
+ •   Digital Trim (-40dB to +40dB)                     Virtual Soundcheck
+ •   Variable Delay (0ms to 1.3s)
+ •   DiGiTube                                          True Solo function
+ •   Merge Input
+ •   Tone Generator
+ •   HPF/LPF (-24dB/Oct)
+ •   8 Band EQ: 4 Band Parametric EQ and 4 Band
+     Parametric or Dynamic EQ
+ •   DYN 1: Compressor, Multiband Compressor, Desser
+ •   DYN 2: Gate, Duck, External Input Compressor
+ •   EQ/Dyn Order Control
+ •   2 Insert Points per Channel
+ •   Channel Mute & Hard Mute
+
+ 1 LR/LCR Master Buss (with full processing)
+ 12 Input x 12 Output Full Processing Matrix
+ 12 Control Groups (CGs)
+ 2 Solo Busses
+ 16 x 32-band GEQs
+ 12 x Internal Stereo FX Processors
+ •    Delays
+ •    Audio Enhancer
+ •    Choruses
+ •    Pitch Shifters
+ •    Reverbs
+                                                          In a world as competitive for engineers as it is for console
+ 6 x Internal Spice Rack Slots                            owners, you want the best tools you can lay your hands on.
+ •     6 band Dynamic Multiband Compressor/Expander       You also want a console and audio tools as well thought out
+ •     6 band Dynamic EQ                                  for every major application as they are designed for the art
+                                                          and science of sound engineering.
+
+
+
+
+                                                                             DiGiCo Quantum 225 Datasheet                3
+    QUANTUM 225 MOUNTING
+    BRACKET
+
+
+
+
+4   www.digico.biz
+A&E SPECIFICATION
+
+
+The DiGiCo Quantum225 shall have 25 faders split into 2 worksurface sections of 12 faders, plus a master fader. Both of the two sections
+shall have 3 layers of 4 banks. All faders can be assigned to control any of the channel types. The console shall be capable of 72/96 input
+channels, 36/48 Aux/Sub-group Busses, a LR/LCR Master Buss, 12 VCA style or mute group style Control Group channels, 2 Solo Busses, and
+a 12 input x 12 output full processing Matrix. All processing paths shall have full processing including Tube emulation, Dynamic EQ and
+Multiband Compression. Tube emulation, Dynamic EQ and Multiband Compression shall be available on every channel and Buss on the
+console. All processing shall be internal and FPGA-Based.
+
+An internal FX rack shall allow users to pick from 34 different FX. Up to 12 stereo FX can be added, and shall be chosen from a selection
+of floating point reverbs, delay, chorus, pitch and enhancer effects. An internal set of 16 32-band GEQs shall also be accessible. There
+shall be an additional processing Rack called the Spice Rack, allowing up to 6 mono effects. There shall also be 24/36 insertable Mustard
+Processing Strips. The position of these, and of inserts, shall be chosen from pre-processing, pre-EQ/dynamics, mid-EQ/dynamics, pre-
+fader or post-fader. 32/48 instances of Nodal Processing shall also be available. These shall allow EQ and dynamics to be applied to the
+aux node of a channel.
+
+One 17” (42cm) high-resolution, high-brightness TFT-LCD touch screen shall be provided to show the left or right bank of channel strips
+or the master view. This view shall be controlled by physical buttons on the worksurface. The screen shall have a dedicated hardware
+channel strip, allowing control over filters, EQ, dynamics and insert points. When viewing channels, the screen shall also have a built in
+meter bridge and 7 integrated quick select buttons for reassigning the underscreen rotary encoders. The screen shall have a row of rotary
+encoders underneath it to control various channel parameters.
+
+The master section to the right of the screen shall have physical controls to allow control over some snapshot functions and control over
+basic Solo functions. There shall also be 4 layers of 4 user-assignable LCD macro buttons on the master section of the worksurface. The
+user shall also be able to program macros that can be triggered with fader movements, GPI, MIDI and keyboard functions. This master
+section shall also have a USB port. The console shall also have 41 full colour TFT displays including one for each fader and 4 macro displays.
+The front of the console shall have a pair of headphone outputs, with one 3.5mm and one ¼” jack. The left worksurface shall have a
+mounting bracket. This shall be a standard 75mm and 100mm VESA monitor mount. It shall be used for mounting either a second screen
+for the console, a KLANG:kontroller or a laptop/script tray. The recommended screen shall be the Planar® Helium™ PCT2235. There shall be
+options to mount the bracket at 2 different angles and at 2 different heights. There shall be a duct behind the mounting bracket through
+the console to allow neat cable runs.
+
+The rear panel shall have 8 Mic/Line inputs and 8 line outputs. It shall also have 2 AES/EBU inputs (4 channels) and 2 AES/EBU outputs (4
+channels), 4 sets of MADI I/O, giving up to 4 MADI interfaces or up to 2 redundant MADI interfaces at 48kHz or 2 interfaces at 96kHz, 2
+DMI slots and inbuilt UB MADI (USB Type B audio I/O interface for recording and playback of up to 48 channels). It shall also have MIDI In,
+Thru and Out, 2 1/4” GPIs and 2 1/4” GPOs, external Wordclock I/O, 4 switched ethernet ports, 3 USB ports, 2 DisplayPorts, and 2 redundant
+power supplies.
+
+There shall be an Optocore option, providing either single or dual loop. Each loop shall give 504 additional audio paths at 48kHz and
+96kHz. The Optocore connector type shall be chosen from HMA, OpticalCON or ST. The Optocore Mode shall be chosen from MultiMode
+or SingleMode. There shall also be a Waves Soundgrid option providing 64 inputs and 64 outputs to the SoundGrid Network at 48kHz and
+96kHz.
+
+                                                               The dimensions of the Quantum 225 shall be: 1124 (w) x 801 (d) x 436 (h) mm
+                                                                                           The weight of the Quantum 225 shall be: 43kg
+                                                                             The DiGiCo Quantum 225 shall be supplied with a dust cover.
+
+
+
+
+                                                                             In a world as competitive for engineers as it is for console
+                                                                             owners, you want the best tools you can lay your hands on.
+                                                                             You also want a console and audio tools as well thought out
+                                                                             for every major application as they are designed for the art
+                                                                             and science of sound engineering.
+
+
+
+
+                                                                                                  DiGiCo Quantum 225 Datasheet                   5
+                                                                                           D
+
+
+
+
+LINE DRAWING
+All dimensions in mm
+
+
+
+
+                                                                                           C
+
+
+
+
+                                                                                                              436mm/17.17”
+
+
+
+
+                                                                                                                                                        801mm/31.54”
+                                                                                           B
+
+
+                                                                                                                      AUDIO SPECIFICATIONS
+
+                                                                                                                         Sample Rate: 48kHz or 96kHz
+
+                                                                                                                         Processing Delay: 2ms @ 48kHz, 1ms @ 96kHz
+
+                                                                                                                         Internal Processing: Up to 40-bit, Floating Point
+                                                                                                                         A>D & D>A: 24-bit Converter Bit Depth
+
+                                                                                                                         Frequency Response: (Mic In to Line Out): +/-0.25dB
+                                                                                                                         (20Hz -20kHz)
+                                      1124mm/44.25”                                                                                                                        1123,7
+
+                                                                                           A                             THD+N: Mic In to AES Out): <0.003% (-10dBFS out, 0dB gain,
+   PHYSICAL                                                                                                              22Hz-20kHz)
+
+                                                                                                                         THD+N: (AES In to Line Out): <0.003% (+16dBu out, 22Hz -
+    Dimensions: 1124mm (w) x 801mm (d) x 436mm (h)                                                                       20kHz)
+                                              W/ O MONITOR                                      Q2- 25 WEIGHT:  42 KG (ESTIMATED)                                                           WITH 22" MONITOR
+    Weight: 43kg (138kg with optional flightcase)                                               MONITOR WEIGHT: 3.4 KG
+                                                                                                                         Channel Separation (Mic In to Line Out): >100dB @ 10kHz
+    Flightcase: 1260mm (w)1124mm/44.25”                                                                                      8                                                                          7
+                                                                                                                                                                                                       1123,7
+                          x 601mm (d) x 1141mm (h) (Optional)                                                            Residual Output Noise: <-94dBu (22Hz-20kHz, A-weighted)
+    Power Requirements: 100-240V, ~5A, 50-60Hz, 300W, 255VA                                                                            DESIGN STATE
+                                                                                                                                                                   3rd                         IF IN DOUBT ASK!                 WEB LINK:
+                                                                                                                         Equivalent Input Noise (EIN): <-127dBu (22Hz-20kHz,
+                                                                                                                                       WorkInProgress                   DO NOT SCALE                                            COMPANY: DIG
+    Redundancy: Internal PSUs x 2                                                                                        A-weighted) STATUS:                             INSPECTION                                             DiGiCo STOCK
+
+    Product Code: X-Q225-WS
+                                                                                                                                        PRODUCTION
+                                                                                                                         Maximum Input Level: +22dBu
+                                                                                                                                                                                                       N/ A                     N/ A
+                                                                                                                                       MFG. APP. BY        MFG. APP. DATE ENG. APP. BY             ENG. APP. DATE               DWG FILE NUM
+                                              W/ O MONITOR                                                                                                                                  WITH 22" MONITOR                    188- 00180.iam
+                                                                                                                         Maximum Output Level: +22dBu                                                                           SUBJECT
+                                                                                                                                                                                                  ®
+                                                                                                                                                                                                                                ASSEMBLY
+                                                                                                                                                                                                                                CATEGORY
+                                                                                                                                                                                           ®
+                                                                                                                                        DiGiCo    STATE SOLUTIONS
+                                                                                                                                       DESIGN
+                                                                                                                                                                              ®       3rd      IF IN INTERNATIONAL
+                                                                                                                                                                                                      DOUBT       ASK!
+                                                                                                                                                                                                       THE QUEENS AWARDS
+                                                                                                                                                                                                                                WEB LINK:
+                                                                                                                                                                                                                                UNLESS STATED
+                                                                                                                                        SOUNDTRACS
+                                                                                                                                                                                                         FOR ENTERPRISE
+
+DiGiCo HQ                                                                                                                               WorkInProgress                                           DO NOT 2011 SCALE
+                                                                                                                                                                                                                    TRADE
+                                                                                                                                                                                                                                COMPANY:
+                                                                                                                                                                                                                                         TOLERA
+                                                                                                                                                                                                                                            DIG
+                                                                    OUTLINE DRAWING NOTES                                               DiGiGrid
+                                                                                                                                       STATUS:
+                                                                                                                                                               ®
+                                                                                                                                                                                                    INSPECTION
+                                                                                                                                                                                                                                     DIMENSION
+                                                                                                                                                                                                                                 NO DECIMAL +-0.5
+                                                                                                                                                                                                                                DiGiCo  STOCK
+No.5 The Distillery, Silverglade Business Park Leatherhead Road,                                                                                                                                                                 ONE DECIMAL +-0
+                                                              1. THIS IS UNCONTROLLED DOCUMENT.       PRODUCTION                                                                                                                N/ A
+                                                                                                                                        email: info@digiconsoles.com. web site: www.digiconsoles.biz
+
+Chessington, Surrey, KT9 2QL, United Kingdom                                                          COPYRIGHT.                                                             N/ A                                               TWO DECIMAL +-0
+                                                                                                                                                                                                                                ANGULAR +-30'
+                                                        2. DIMENSION CORRECT AT TIME OF PUBLICATION. MFG.
+                                                                                                      THIS DRAWING IS THE PROPERTY OF DIGICO (UK) LTD. THE INFORMATION IS CONFIDENTIAL & MAY NOT BE
+                                                                                                            APP. BY
+                                                                                                      USED WITHOUT          MFG.CONSENT
+                                                                                                                    PRIOR WRITTEN  APP. DATEF DIGICOENG.    APP.
+                                                                                                                                                      (UK) LTD. THE BY
+                                                                                                                                                                    CONTENTSENG.   APP.
+                                                                                                                                                                            DETAILED      DATE AT
+                                                                                                                                                                                     ARE CORRECT
+                                                                                                                                                                                                                                LIMITS APPLY AFT
+                                                                                                                                                                                                                                DWG   FILE NUM
+info@digiconsoles.com                                      3. GRAPHICAL DETAILS RERESENTIVE ONLY.
+                                                                                                      THE TIME OF PUBLICATION. AS AN INNOVATIVE DESIGN MANUFACTURER DiGiCo UK Ltd. RESERVES THE
+                                                                                                      RIGHT TO MAKE CHANGES WITHOUT NOTICE IN COLOURS MATERIALS SPECIFICATION AND MODELS.
+                                                                                                      DIGICO AND SOUNDTRACS ARE REGISTERED TRADEMARKS.
+                                                                                                                                                                                                                                 STATED
+                                                                                                                                                                                                                                MACHINED
+                                                                                                                                                                                                                                188-
+                                                                                                                                                                                                                                        OTHERW
+                                                                                                                                                                                                                                     00180.iamWHER
+                                                                                                                                                                                                                © 2017 DiGiCo     REMOVE ALL
+                                                                                                                                                                                                                                SUBJECT
+                                                                                                                                                                                                  ®
+                          6
+©DiGiCo 2024. All brand and product names are copyright to their respective owners     5                                                                   4                         www.digico.biz                             ASSEMBLY3
+E&OE                                                                                                                                                                                                                            CATEGORY
+                                                                                                                                        DiGiCo SOLUTIONS ®                                                THE QUEENS AWARDS
+                                                                                                                                                                                                                                UNLESS STATED
+                                                                                                                                        SOUNDTRACS ®
+                                                                                                                                                                                                            FOR ENTERPRISE
+
+
+www.digico.biz                                                                      OUTLINE DRAWING NOTES                                DiGiCo Quantum 2 Datasheet
+                                                                                                                                        DiGiGrid ®
+                                                                                                                                                         25                                              INTERNATIONAL TRADE
+                                                                                                                                                                                                                 2011
+                                                                                                                                                                                                                                     6TOLERA
+                                                                                                                                                                                                                                    DIMENSION
+                                                                                                                                                                                                                                NO DECIMAL +-0.5
+                                                                                                                                                                                                                                ONE DECIMAL +-0
+                                                                              1. THIS IS UNCONTROLLED DOCUMENT.                         email: info@digiconsoles.com. web site: www.digiconsoles.biz
+                                                                                                                                        COPYRIGHT.
+                                                                                                                                                                                                                                TWO DECIMAL +-0
+                                                                                                                                                                                                                                ANGULAR +-30'
+

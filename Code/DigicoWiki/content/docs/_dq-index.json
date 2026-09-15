@@ -1,0 +1,58 @@
+[
+ {
+  "file": "dq-1-1-introduction.md",
+  "num": "1.1",
+  "title": "Introduction",
+  "chapter": null,
+  "chapter_title": "",
+  "subs": []
+ },
+ {
+  "file": "dq-1-2-q-rack-power.md",
+  "num": "1.2",
+  "title": "Q-Rack Power",
+  "chapter": null,
+  "chapter_title": "",
+  "subs": []
+ },
+ {
+  "file": "dq-1-3-q-rack-clocking.md",
+  "num": "1.3",
+  "title": "Q-Rack Clocking",
+  "chapter": null,
+  "chapter_title": "",
+  "subs": []
+ },
+ {
+  "file": "dq-1-4-q-rack-sockets.md",
+  "num": "1.4",
+  "title": "Q-Rack Sockets",
+  "chapter": null,
+  "chapter_title": "",
+  "subs": []
+ },
+ {
+  "file": "dq-1-5-using-the-q-rack-menu-system.md",
+  "num": "1.5",
+  "title": "Using the Q-Rack Menu System",
+  "chapter": null,
+  "chapter_title": "",
+  "subs": []
+ },
+ {
+  "file": "dq-1-6-connecting-a-dante-rack.md",
+  "num": "1.6",
+  "title": "Connecting a DANTE rack",
+  "chapter": null,
+  "chapter_title": "",
+  "subs": []
+ },
+ {
+  "file": "dq-1-7-rack-connections-with-madi.md",
+  "num": "1.7",
+  "title": "Rack Connections with MADI",
+  "chapter": null,
+  "chapter_title": "",
+  "subs": []
+ }
+]

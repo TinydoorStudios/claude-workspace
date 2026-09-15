@@ -1,0 +1,399 @@
+[
+ {
+  "file": "gs-1-1-manual-overview.md",
+  "num": "1.1",
+  "title": "Manual Overview",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": []
+ },
+ {
+  "file": "gs-1-2-before-you-start.md",
+  "num": "1.2",
+  "title": "Before You Start",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": [
+   [
+    "1.2.1",
+    "Worksurface Layout"
+   ],
+   [
+    "1.2.2",
+    "Layers and Banks"
+   ],
+   [
+    "1.2.3",
+    "Using the Control Surface"
+   ],
+   [
+    "1.2.4",
+    "The Assigned Channel"
+   ],
+   [
+    "1.2.5",
+    "The Master Fader"
+   ],
+   [
+    "1.2.6",
+    "Channel Types"
+   ]
+  ]
+ },
+ {
+  "file": "gs-1-3-hardware-configuration.md",
+  "num": "1.3",
+  "title": "Hardware Configuration",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": [
+   [
+    "1.3.1",
+    "Connections"
+   ]
+  ]
+ },
+ {
+  "file": "gs-1-4-software-configuration.md",
+  "num": "1.4",
+  "title": "Software Configuration",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": [
+   [
+    "1.4.1",
+    "Templates"
+   ],
+   [
+    "1.4.2",
+    "Session Structure Overview"
+   ],
+   [
+    "1.4.3",
+    "Audio I/O Overview"
+   ],
+   [
+    "1.4.4",
+    "Opto V221 (SD Racks)"
+   ],
+   [
+    "1.4.5",
+    "Single SD Console System"
+   ],
+   [
+    "1.4.6",
+    "Automatic Conforming"
+   ],
+   [
+    "1.4.7",
+    "Manual Conforming of Racks"
+   ],
+   [
+    "1.4.8",
+    "Rack Sharing"
+   ],
+   [
+    "1.4.9",
+    "Assigning Faders to the Worksurface"
+   ]
+  ]
+ },
+ {
+  "file": "gs-1-5-saving-and-loading-sessions.md",
+  "num": "1.5",
+  "title": "Saving and Loading Sessions",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": [
+   [
+    "1.5.1",
+    "Save As New File"
+   ],
+   [
+    "1.5.2",
+    "Save Session"
+   ],
+   [
+    "1.5.3",
+    "Load Session"
+   ]
+  ]
+ },
+ {
+  "file": "gs-1-6-audio-sync.md",
+  "num": "1.6",
+  "title": "Audio Sync",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": []
+ },
+ {
+  "file": "gs-1-7-routing-basics.md",
+  "num": "1.7",
+  "title": "Routing Basics",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": [
+   [
+    "1.7.1",
+    "Selecting Inputs & Outputs"
+   ],
+   [
+    "1.7.2",
+    "Ripple Channels"
+   ],
+   [
+    "1.7.3",
+    "Channel Names"
+   ]
+  ]
+ },
+ {
+  "file": "gs-1-8-channel-processing.md",
+  "num": "1.8",
+  "title": "Channel Processing",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": [
+   [
+    "1.8.1",
+    "Dynamic EQ"
+   ],
+   [
+    "1.8.2",
+    "Dynamics"
+   ]
+  ]
+ },
+ {
+  "file": "gs-1-9-mustard-channels.md",
+  "num": "1.9",
+  "title": "Mustard Channels",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": [
+   [
+    "1.9.1",
+    "Mustard Channel Strip"
+   ],
+   [
+    "1.9.2",
+    "Insert Position"
+   ],
+   [
+    "1.9.3",
+    "Safes/Scopes"
+   ],
+   [
+    "1.9.4",
+    "Presets"
+   ],
+   [
+    "1.9.5",
+    "Pre-amplifier Modelling"
+   ],
+   [
+    "1.9.6",
+    "Equaliser"
+   ],
+   [
+    "1.9.7",
+    "Compressor"
+   ],
+   [
+    "1.9.8",
+    "Gate/Ducker"
+   ]
+  ]
+ },
+ {
+  "file": "gs-1-10-spice-rack.md",
+  "num": "1.10",
+  "title": "Spice Rack",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": [
+   [
+    "1.10.1",
+    "Chilli & Naga 6 Overview"
+   ],
+   [
+    "1.10.2",
+    "User interaction options"
+   ],
+   [
+    "1.10.3",
+    "Presets"
+   ]
+  ]
+ },
+ {
+  "file": "gs-1-11-auxiliaries.md",
+  "num": "1.11",
+  "title": "Auxiliaries",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": []
+ },
+ {
+  "file": "gs-1-12-the-matrix.md",
+  "num": "1.12",
+  "title": "The Matrix",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": []
+ },
+ {
+  "file": "gs-1-13-control-groups.md",
+  "num": "1.13",
+  "title": "Control Groups",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": []
+ },
+ {
+  "file": "gs-1-14-multi-channel-formats.md",
+  "num": "1.14",
+  "title": "Multi-channel formats",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": []
+ },
+ {
+  "file": "gs-1-15-solo-setup.md",
+  "num": "1.15",
+  "title": "Solo Setup",
+  "chapter": null,
+  "chapter_title": "The Console",
+  "subs": []
+ },
+ {
+  "file": "gs-2-1-fitting-dmi-cards.md",
+  "num": "2.1",
+  "title": "Fitting DMI Cards",
+  "chapter": null,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "gs-2-2-dmi-madi-cards.md",
+  "num": "2.2",
+  "title": "DMI-MADI Cards",
+  "chapter": null,
+  "chapter_title": "DMI Cards",
+  "subs": [
+   [
+    "2.2.1",
+    "Connecting DMI-MADI"
+   ],
+   [
+    "2.2.2",
+    "Sharing Racks with DMI-MADI"
+   ]
+  ]
+ },
+ {
+  "file": "gs-2-3-dmi-dante-cards.md",
+  "num": "2.3",
+  "title": "DMI - Dante Cards",
+  "chapter": null,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "gs-2-4-dmi-adc-dac-mic-aes-cards.md",
+  "num": "2.4",
+  "title": "DMI - ADC - DAC - MIC - AES Cards",
+  "chapter": null,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "gs-2-5-dmi-waves-hydra-cards.md",
+  "num": "2.5",
+  "title": "DMI - Waves - Hydra Cards",
+  "chapter": null,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "gs-2-6-dmi-me-a3232-cards.md",
+  "num": "2.6",
+  "title": "DMI - ME - A3232 Cards",
+  "chapter": null,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "gs-2-7-dmi-amm.md",
+  "num": "2.7",
+  "title": "DMI \u2013 AMM",
+  "chapter": null,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "gs-2-8-dmi-klang.md",
+  "num": "2.8",
+  "title": "DMI-KLANG",
+  "chapter": null,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "gs-2-9-dmi-dante-64-96-dante-io-control.md",
+  "num": "2.9",
+  "title": "DMI-Dante 64@96  & Dante IO Control",
+  "chapter": null,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "gs-3-1-main-shortcuts.md",
+  "num": "3.1",
+  "title": "Main Shortcuts",
+  "chapter": null,
+  "chapter_title": "Quantum Home",
+  "subs": []
+ },
+ {
+  "file": "gs-3-2-settings-pane.md",
+  "num": "3.2",
+  "title": "Settings Pane",
+  "chapter": null,
+  "chapter_title": "Quantum Home",
+  "subs": []
+ },
+ {
+  "file": "gs-3-3-system-information.md",
+  "num": "3.3",
+  "title": "System Information",
+  "chapter": null,
+  "chapter_title": "Quantum Home",
+  "subs": []
+ },
+ {
+  "file": "gs-3-4-advanced-settings.md",
+  "num": "3.4",
+  "title": "Advanced Settings",
+  "chapter": null,
+  "chapter_title": "Quantum Home",
+  "subs": []
+ },
+ {
+  "file": "gs-3-5-network-settings.md",
+  "num": "3.5",
+  "title": "Network Settings",
+  "chapter": null,
+  "chapter_title": "Quantum Home",
+  "subs": []
+ },
+ {
+  "file": "gs-3-6-keyboard-shortcuts.md",
+  "num": "3.6",
+  "title": "Keyboard Shortcuts",
+  "chapter": null,
+  "chapter_title": "Quantum Home",
+  "subs": []
+ }
+]

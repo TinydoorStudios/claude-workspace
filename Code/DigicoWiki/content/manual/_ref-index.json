@@ -1,0 +1,1127 @@
+[
+ {
+  "file": "ref-1-1-introduction-to-channel-strip.md",
+  "num": "1.1",
+  "title": "Introduction to Channel Strip",
+  "chapter": 1,
+  "chapter_title": "Channel Types & Function",
+  "subs": []
+ },
+ {
+  "file": "ref-1-2-channel-input-common-elements.md",
+  "num": "1.2",
+  "title": "Channel Input - Common Elements",
+  "chapter": 1,
+  "chapter_title": "Channel Types & Function",
+  "subs": [
+   [
+    "1.2.1",
+    "Channel Strip Input Area"
+   ],
+   [
+    "1.2.2",
+    "Channel Delay"
+   ],
+   [
+    "1.2.3",
+    "DiGiTube"
+   ],
+   [
+    "1.2.4",
+    "Naming Channels & Busses"
+   ],
+   [
+    "1.2.5",
+    "Channel Safes"
+   ],
+   [
+    "1.2.6",
+    "Copy Channels"
+   ],
+   [
+    "1.2.7",
+    "Channel Presets"
+   ],
+   [
+    "1.2.8",
+    "Channel Solos"
+   ]
+  ]
+ },
+ {
+  "file": "ref-1-3-channel-output-and-inserts-common-elements.md",
+  "num": "1.3",
+  "title": "Channel Output and Inserts - Common Elements",
+  "chapter": 1,
+  "chapter_title": "Channel Types & Function",
+  "subs": [
+   [
+    "1.3.1",
+    "Channel Strip Output Area"
+   ],
+   [
+    "1.3.2",
+    "Channel Strip Insert Area"
+   ],
+   [
+    "1.3.3",
+    "Console Output and Insert Routing"
+   ],
+   [
+    "1.3.4",
+    "FX Presets"
+   ]
+  ]
+ },
+ {
+  "file": "ref-1-4-input-channel-specific-functions.md",
+  "num": "1.4",
+  "title": "Input Channel \u2013 Specific Functions",
+  "chapter": 1,
+  "chapter_title": "Channel Types & Function",
+  "subs": [
+   [
+    "1.4.1",
+    "Gain Tracking"
+   ],
+   [
+    "1.4.2",
+    "Relative Gain-Tracking - Snapshot Recalls Total Gain"
+   ],
+   [
+    "1.4.3",
+    "Input Routing"
+   ],
+   [
+    "1.4.4",
+    "Input Configuration"
+   ],
+   [
+    "1.4.5",
+    "Channel Metering"
+   ],
+   [
+    "1.4.6",
+    "CG/HARD mute indicators on the Meterbridge (Q7/SD7/Q5/SD5)"
+   ],
+   [
+    "1.4.7",
+    "Output Routing"
+   ],
+   [
+    "1.4.8",
+    "Pan Controls"
+   ],
+   [
+    "1.4.9",
+    "Aux Buses & Assignable Controls"
+   ],
+   [
+    "1.4.10",
+    "Aux Nodes Panel (all consoles) and Nodal Processing (Quantum only)"
+   ],
+   [
+    "1.4.11",
+    "KLANG Nodes"
+   ],
+   [
+    "1.4.12",
+    "True Solo (Quantum only)"
+   ],
+   [
+    "1.4.13",
+    "Insert Point Locations (Quantum only)"
+   ],
+   [
+    "1.4.14",
+    "Group Outputs"
+   ],
+   [
+    "1.4.15",
+    "Mix Minus function on Quantum Consoles"
+   ],
+   [
+    "1.4.16",
+    "Direct Outputs"
+   ]
+  ]
+ },
+ {
+  "file": "ref-1-5-output-channel-specific-functions.md",
+  "num": "1.5",
+  "title": "Output Channel Specific Functions",
+  "chapter": 1,
+  "chapter_title": "Channel Types & Function",
+  "subs": [
+   [
+    "1.5.1",
+    "Unfolding Channels"
+   ],
+   [
+    "1.5.2",
+    "Group Channels Specific Functions"
+   ],
+   [
+    "1.5.3",
+    "Aux Specific Functions"
+   ],
+   [
+    "1.5.4",
+    "Buss EQ \u2013 SD5, SD7, SD10 & Quantum consoles"
+   ],
+   [
+    "1.5.5",
+    "Addition Buss Features \u2013 Input Merge & Ident"
+   ]
+  ]
+ },
+ {
+  "file": "ref-1-6-channel-signal-processing.md",
+  "num": "1.6",
+  "title": "Channel Signal Processing",
+  "chapter": 1,
+  "chapter_title": "Channel Types & Function",
+  "subs": [
+   [
+    "1.6.2",
+    "Input Channel EQ"
+   ],
+   [
+    "1.6.3",
+    "Dynamic EQ"
+   ],
+   [
+    "1.6.4",
+    "Output Channel EQ"
+   ],
+   [
+    "1.6.5",
+    "Channel Dynamics"
+   ]
+  ]
+ },
+ {
+  "file": "ref-1-7-mustard-channels-quantum-only.md",
+  "num": "1.7",
+  "title": "Mustard Channels (Quantum only)",
+  "chapter": 1,
+  "chapter_title": "Channel Types & Function",
+  "subs": [
+   [
+    "1.7.1",
+    "Mustard Channel Strip"
+   ],
+   [
+    "1.7.2",
+    "Insert Position"
+   ],
+   [
+    "1.7.3",
+    "Safes/Scopes"
+   ],
+   [
+    "1.7.4",
+    "Presets"
+   ],
+   [
+    "1.7.5",
+    "Pre-amplifier Modelling"
+   ],
+   [
+    "1.7.6",
+    "Mustard Equaliser"
+   ],
+   [
+    "1.7.7",
+    "Mustard DYN1 & DYN2"
+   ]
+  ]
+ },
+ {
+  "file": "ref-1-8-lcd-functions.md",
+  "num": "1.8",
+  "title": "LCD Functions",
+  "chapter": 1,
+  "chapter_title": "Channel Types & Function",
+  "subs": [
+   [
+    "1.8.1",
+    "Solo"
+   ],
+   [
+    "1.8.2",
+    "Solo Choice"
+   ],
+   [
+    "1.8.3",
+    "Gang"
+   ],
+   [
+    "1.8.4",
+    "Join CG (Control Group)"
+   ],
+   [
+    "1.8.5",
+    "Assign Faders"
+   ],
+   [
+    "1.8.6",
+    "Unassign Faders"
+   ],
+   [
+    "1.8.7",
+    "Swap Faders"
+   ],
+   [
+    "1.8.8",
+    "Move Faders"
+   ],
+   [
+    "1.8.9",
+    "Copy Bank From"
+   ],
+   [
+    "1.8.10",
+    "Copy Bank To"
+   ],
+   [
+    "1.8.11",
+    "Clear Bank"
+   ],
+   [
+    "1.8.12",
+    "Create Multi"
+   ]
+  ]
+ },
+ {
+  "file": "ref-1-9-multi-channels.md",
+  "num": "1.9",
+  "title": "Multi Channels",
+  "chapter": 1,
+  "chapter_title": "Channel Types & Function",
+  "subs": [
+   [
+    "1.9.1",
+    "Creating a Multi"
+   ],
+   [
+    "1.9.2",
+    "Edit Multi"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-1-system-menu.md",
+  "num": "2.1",
+  "title": "System Menu",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.1.1",
+    "Diagnostics"
+   ],
+   [
+    "2.1.2",
+    "Oscillator"
+   ],
+   [
+    "2.1.3",
+    "GPIO Relays"
+   ],
+   [
+    "2.1.4",
+    "Security"
+   ],
+   [
+    "2.1.5",
+    "Signal Over Indicators"
+   ],
+   [
+    "2.1.6",
+    "Overview Clear Screen"
+   ],
+   [
+    "2.1.7",
+    "Clear Master screen"
+   ],
+   [
+    "2.1.8",
+    "Keyboard Help"
+   ],
+   [
+    "2.1.9",
+    "F10: Reset FX"
+   ],
+   [
+    "2.1.10",
+    "F11: Reset Engine"
+   ],
+   [
+    "2.1.11",
+    "F12: Reset Surfaces"
+   ],
+   [
+    "2.1.12",
+    "Reset Computer"
+   ],
+   [
+    "2.1.13",
+    "Set Date & Time"
+   ],
+   [
+    "2.1.14",
+    "Enable Extensions"
+   ],
+   [
+    "2.1.15",
+    "Quit to Windows/Home"
+   ],
+   [
+    "2.1.16",
+    "Shutdown"
+   ],
+   [
+    "2.1.17",
+    "Shutdown All"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-2-files-menu.md",
+  "num": "2.2",
+  "title": "Files Menu",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.2.1",
+    "Templates"
+   ],
+   [
+    "2.2.2",
+    "Session Structure"
+   ],
+   [
+    "2.2.3",
+    "Load Session"
+   ],
+   [
+    "2.2.4",
+    "Save Session"
+   ],
+   [
+    "2.2.5",
+    "Save As New File"
+   ],
+   [
+    "2.2.6",
+    "Load Presets"
+   ],
+   [
+    "2.2.7",
+    "Save Presets"
+   ],
+   [
+    "2.2.8",
+    "Global Set to Defaults"
+   ],
+   [
+    "2.2.9",
+    "Session Notes"
+   ],
+   [
+    "2.2.10",
+    "Session Report"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-3-layout-menu.md",
+  "num": "2.3",
+  "title": "Layout Menu",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.3.1",
+    "Fader Banks"
+   ],
+   [
+    "2.3.2",
+    "The Overview Display"
+   ],
+   [
+    "2.3.3",
+    "Channel List"
+   ],
+   [
+    "2.3.4",
+    "Set Spill"
+   ],
+   [
+    "2.3.5",
+    "Aux to Faders"
+   ],
+   [
+    "2.3.6",
+    "Aux Nodes"
+   ],
+   [
+    "2.3.7",
+    "Join Groups"
+   ],
+   [
+    "2.3.8",
+    "AMM Control (Consoles with DMI slots)"
+   ],
+   [
+    "2.3.9",
+    "Transport Control"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-4-snapshots-menu.md",
+  "num": "2.4",
+  "title": "Snapshots Menu",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.4.1",
+    "Storing a Snapshot"
+   ],
+   [
+    "2.4.2",
+    "Recalling a Snapshot"
+   ],
+   [
+    "2.4.3",
+    "Replacing a Snapshot"
+   ],
+   [
+    "2.4.4",
+    "Editing Multiple Snapshots"
+   ],
+   [
+    "2.4.5",
+    "Moving a Snapshot"
+   ],
+   [
+    "2.4.6",
+    "Renaming a Snapshot"
+   ],
+   [
+    "2.4.7",
+    "Renumbering Snapshots"
+   ],
+   [
+    "2.4.8",
+    "Deleting a Snapshot"
+   ],
+   [
+    "2.4.9",
+    "Snapshot Undo"
+   ],
+   [
+    "2.4.10",
+    "Snapshot Groups"
+   ],
+   [
+    "2.4.11",
+    "Global Recall Scope"
+   ],
+   [
+    "2.4.12",
+    "Individual Snapshot Recall Scope"
+   ],
+   [
+    "2.4.13",
+    "Snapshot Recall Times"
+   ],
+   [
+    "2.4.14",
+    "Snapshot Crossfades"
+   ],
+   [
+    "2.4.15",
+    "Snapshots and MIDI"
+   ],
+   [
+    "2.4.16",
+    "MIDI Devices"
+   ],
+   [
+    "2.4.17",
+    "MIDI Program and MIDI List"
+   ],
+   [
+    "2.4.18",
+    "Snapshot GPO Relays"
+   ],
+   [
+    "2.4.19",
+    "Surface Offline & Snapshot Editing (Not SD11)"
+   ],
+   [
+    "2.4.20",
+    "Auto Update"
+   ],
+   [
+    "2.4.21",
+    "Snapshots & MTC ................................................................"
+   ],
+   [
+    "2.4.21",
+    "Snapshot Notes"
+   ],
+   [
+    "2.4.22",
+    "Snapshot Locked"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-5-options.md",
+  "num": "2.5",
+  "title": "Options",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.5.1",
+    "Surface"
+   ],
+   [
+    "2.5.2",
+    "Faders"
+   ],
+   [
+    "2.5.3",
+    "Solo"
+   ],
+   [
+    "2.5.4",
+    "Gangs"
+   ],
+   [
+    "2.5.5",
+    "Delays"
+   ],
+   [
+    "2.5.6",
+    "Disable"
+   ],
+   [
+    "2.5.7",
+    "Brightness"
+   ],
+   [
+    "2.5.8",
+    "Meters"
+   ],
+   [
+    "2.5.9",
+    "Console"
+   ],
+   [
+    "2.5.10",
+    "Status"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-6-fx-processors.md",
+  "num": "2.6",
+  "title": "FX & Processors",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.6.1",
+    "The Master FX Display"
+   ],
+   [
+    "2.6.2",
+    "The Spice Rack (Quantum Engines only)"
+   ],
+   [
+    "2.6.3",
+    "Chilli & Naga 6 Overview"
+   ],
+   [
+    "2.6.4",
+    "User interaction options"
+   ],
+   [
+    "2.6.5",
+    "Presets"
+   ],
+   [
+    "2.6.6",
+    "Fourier transform.engine - Control Integration (V20xx)"
+   ],
+   [
+    "2.6.7",
+    "Fourier transform.engine - Session and Snapshot integration (V20xx)"
+   ],
+   [
+    "2.6.8",
+    "Adjusting plugin parameters from the console interface"
+   ],
+   [
+    "2.6.9",
+    "Sharing a transform.engine between multiple consoles"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-7-matrix-menu.md",
+  "num": "2.7",
+  "title": "Matrix Menu",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.7.1",
+    "The Matrix Panel"
+   ],
+   [
+    "2.7.2",
+    "Matrix Output Copy"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-8-graphic-eq-panel.md",
+  "num": "2.8",
+  "title": "Graphic EQ Panel",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.8.1",
+    "A Ganging Graphic EQs"
+   ],
+   [
+    "2.8.2",
+    "Graphic EQ ALL Button"
+   ],
+   [
+    "2.8.3",
+    "Graphic EQ Presets"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-9-control-groups.md",
+  "num": "2.9",
+  "title": "Control Groups",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.9.1",
+    "The Master Control Groups Display"
+   ],
+   [
+    "2.9.2",
+    "Control Group Fader Modes"
+   ],
+   [
+    "2.9.3",
+    "Control Group Mute Functions"
+   ],
+   [
+    "2.9.4",
+    "Control Group Spill (1272+)"
+   ],
+   [
+    "2.9.5",
+    "Control Group Aux Send Enable (v1445+)"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-10-solos-menu.md",
+  "num": "2.10",
+  "title": "Solos Menu",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.10.1",
+    "The Solo Panel"
+   ],
+   [
+    "2.10.2",
+    "The No Solo Setup Display"
+   ],
+   [
+    "2.10.3",
+    "Assigning Solo Busses to Faders"
+   ],
+   [
+    "2.10.4",
+    "Solo Outputs Routing"
+   ],
+   [
+    "2.10.5",
+    "Headphone Outputs"
+   ],
+   [
+    "2.10.6",
+    "Solo Meters"
+   ],
+   [
+    "2.10.7",
+    "Solo as an Input Source"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-11-network-and-mirroring.md",
+  "num": "2.11",
+  "title": "Network and Mirroring",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.11.1",
+    "Network Configuration"
+   ],
+   [
+    "2.11.2",
+    "Mirroring for the first time"
+   ],
+   [
+    "2.11.3",
+    "Mirroring Mode"
+   ],
+   [
+    "2.11.4",
+    "Mirroring with a laptop PC"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-12-setup-menu.md",
+  "num": "2.12",
+  "title": "Setup Menu",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.12.1",
+    "Audio I/O"
+   ],
+   [
+    "2.12.2",
+    "Port Selection"
+   ],
+   [
+    "2.12.3",
+    "Port Hardware Configuration"
+   ],
+   [
+    "2.12.4",
+    "Port Control"
+   ],
+   [
+    "2.12.5",
+    "The Socket Display"
+   ],
+   [
+    "2.12.6",
+    "Socket Conforming"
+   ],
+   [
+    "2.12.7",
+    "Group and Socket Names"
+   ],
+   [
+    "2.12.8",
+    "Socket Options"
+   ],
+   [
+    "2.12.9",
+    "Copy Audio"
+   ],
+   [
+    "2.12.10",
+    "Audio Sync"
+   ],
+   [
+    "2.12.11",
+    "Timecode & Transport"
+   ],
+   [
+    "2.12.12",
+    "Macros"
+   ],
+   [
+    "2.12.13",
+    "The Macro Editor"
+   ],
+   [
+    "2.12.14",
+    "Advanced Macro Triggers (V19xx+)"
+   ],
+   [
+    "2.12.15",
+    "Talkback"
+   ],
+   [
+    "2.12.16",
+    "Text Chat"
+   ],
+   [
+    "2.12.17",
+    "Video Link (SD7 & Quantum 7 Only)"
+   ]
+  ]
+ },
+ {
+  "file": "ref-2-13-external-control.md",
+  "num": "2.13",
+  "title": "External Control",
+  "chapter": 2,
+  "chapter_title": "The Master Screen",
+  "subs": [
+   [
+    "2.13.1",
+    "iPad Control"
+   ],
+   [
+    "2.13.2",
+    "Generic OSC"
+   ],
+   [
+    "2.13.3",
+    "L\u2019Acoustics L-ISA"
+   ],
+   [
+    "2.13.4",
+    "d&b Soundscape Control"
+   ],
+   [
+    "2.13.5",
+    "KLANG Control"
+   ],
+   [
+    "2.13.6",
+    "Spacemap Go control (V17xx+)"
+   ],
+   [
+    "2.13.7",
+    "Adamson AFM control (V17xx+)"
+   ],
+   [
+    "2.13.8",
+    "Sound Devices Astral Control (V20xx+)"
+   ],
+   [
+    "2.13.9",
+    "Additional Buttons"
+   ]
+  ]
+ },
+ {
+  "file": "ref-3-1-console-audio-connections.md",
+  "num": "3.1",
+  "title": "Console Audio Connections",
+  "chapter": 3,
+  "chapter_title": "Connections & Multiple Console Setups",
+  "subs": [
+   [
+    "3.1.1",
+    "Optocore V221"
+   ],
+   [
+    "3.1.2",
+    "FOH & Mons sharing a Stage Rack (MADI)"
+   ],
+   [
+    "3.1.3",
+    "FOH & Mons sharing a stage SD Series Rack (MADI)"
+   ],
+   [
+    "3.1.4",
+    "FOH & Mons sharing DiGiRacks (Optocore V220)"
+   ],
+   [
+    "3.1.5",
+    "FOH & Mons sharing SD Series Racks (Optocore V221)"
+   ],
+   [
+    "3.1.6",
+    "4REA4 I/O Control (Optocore V221 and MADI)"
+   ],
+   [
+    "3.1.7",
+    "MADI DMI (SRC) (for consoles with DMI slots)"
+   ],
+   [
+    "3.1.8",
+    "Dante 64@96 (for consoles with DMI slots)"
+   ],
+   [
+    "3.1.9",
+    "DQ-Rack (for consoles with DMI cards) [V1455+]"
+   ],
+   [
+    "3.1.10",
+    "MQ-Rack [V1528+]"
+   ]
+  ]
+ },
+ {
+  "file": "ref-4-2-q8-specific-features.md",
+  "num": "4.2",
+  "title": "Q8 Specific Features",
+  "chapter": 4,
+  "chapter_title": "Q8 Specific Features",
+  "subs": [
+   [
+    "4.2.1",
+    "Channel Macros (Q8 Only)"
+   ],
+   [
+    "4.2.2",
+    "Expanded Channel Control Area (Q8 Only)"
+   ],
+   [
+    "4.2.3",
+    "The Master Faders (Q8 Only)"
+   ],
+   [
+    "4.2.4",
+    "Macroders (Q8 Only)"
+   ],
+   [
+    "4.2.5",
+    "Meterbridge Displays (Q8 Only)"
+   ],
+   [
+    "4.2.6",
+    "Layers and Banks (Q8 Only)"
+   ]
+  ]
+ },
+ {
+  "file": "ref-5-1-quantum-home.md",
+  "num": "5.1",
+  "title": "Quantum Home",
+  "chapter": 5,
+  "chapter_title": "Quantum Home",
+  "subs": [
+   [
+    "5.1.6",
+    "Main Shortcuts"
+   ],
+   [
+    "5.1.7",
+    "Settings Pane"
+   ],
+   [
+    "5.1.8",
+    "System Information"
+   ],
+   [
+    "5.1.9",
+    "Advanced Settings"
+   ],
+   [
+    "5.1.10",
+    "Network Settings"
+   ],
+   [
+    "5.1.11",
+    "Keyboard Shortcuts"
+   ]
+  ]
+ },
+ {
+  "file": "ref-6-1-fitting-dmi-cards.md",
+  "num": "6.1",
+  "title": "Fitting DMI Cards",
+  "chapter": 6,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "ref-6-2-dmi-madi-cards.md",
+  "num": "6.2",
+  "title": "DMI-MADI Cards",
+  "chapter": 6,
+  "chapter_title": "DMI Cards",
+  "subs": [
+   [
+    "6.2.1",
+    "Connecting DMI-MADI"
+   ],
+   [
+    "6.2.2",
+    "Sharing Racks with DMI-MADI"
+   ]
+  ]
+ },
+ {
+  "file": "ref-6-3-dmi-dante-cards.md",
+  "num": "6.3",
+  "title": "DMI - Dante Cards",
+  "chapter": 6,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "ref-6-4-dmi-adc-dac-mic-aes-cards.md",
+  "num": "6.4",
+  "title": "DMI - ADC - DAC - MIC - AES Cards",
+  "chapter": 6,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "ref-6-5-dmi-waves-hydra-cards.md",
+  "num": "6.5",
+  "title": "DMI - Waves - Hydra Cards",
+  "chapter": 6,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "ref-6-6-dmi-me-a3232-cards.md",
+  "num": "6.6",
+  "title": "DMI - ME - A3232 Cards",
+  "chapter": 6,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "ref-6-7-dmi-amm.md",
+  "num": "6.7",
+  "title": "DMI \u2013 AMM",
+  "chapter": 6,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "ref-6-8-dmi-klang.md",
+  "num": "6.8",
+  "title": "DMI KLANG",
+  "chapter": 6,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ },
+ {
+  "file": "ref-6-9-dmi-avb.md",
+  "num": "6.9",
+  "title": "DMI AVB",
+  "chapter": 6,
+  "chapter_title": "DMI Cards",
+  "subs": []
+ }
+]

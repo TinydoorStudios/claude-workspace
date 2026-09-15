@@ -1,0 +1,164 @@
+                         DATASHEET
+
+
+
+
+                                                         DMI-DANTE 64@96
+
+
+
+KEY FEATURES
+The DiGiCo DMI-DANTE 64@96 is an option card to
+expand the I/O of selected DiGiCo products. The DMI-
+DANTE 64@96 provides 64 inputs and 64 outputs at both
+48kHz and 96kHz.
+
+
+■      64 inputs and 64 outputs at 48kHz and 96kHz
+■      1 RJ45 port
+■      2 Ethercon ports
+■      Two port modes - switched and redundant
+■      Inbuilt SRC
+
+
+
+CONNECTIONS
+
+    1 x RJ45 port
+    2 x Ethercon ports
+
+
+
+
+SIGNAL PROCESSING
+
+    64 Inputs and 64 Outputs at 48kHz and 96kHz
+                                                         DiGiCo Multichannel Interface
+    Inbuilt SRC between 48kHz and 96kHz
+
+                                                         DiGiCo DMI cards are perfect for expanding your
+                                                         console I/O, providing interfaces with industry formats
+                                                         be it Analogue expansion, MADI, Dante, Waves
+OPTIONS                                                  Soundgrid or Calrec’s Hydra 2 Network.
+
+    Compatible With: S-Series / SD12 / Quantum Range /   All bases are covered
+    Orange Box / 4REA4
+
+
+
+
+www.digico.biz                                                     DiGiCo DMI-DANTE 64@96 Datasheet                1
+                                                                                              E
+
+
+                   8                                                       7                      6                                       5                                                4
+                               REVISION HISTORY
+    ZONE REV     DESCRIPTION        DATE        DCN/ ECN/PRN   MOD RECORD MOD RECORD DATE
+          1     NEW DRAWING      18/ 09/ 2019
+
+
+
+F
+                                                                         100,0
+
+
+                                                                                              D
+
+
+
+
+E        A&E SPECIFICATION
+
+
+         The DiGiCo DMI-DANTE 64@96 shall allow 64 inputs and 64 C
+         outputs at both 48kHz and 96kHz.
+                                                                                                                                                 126.4mm/4.98”
+         The front plate of the DMI-DANTE 64@96 shall have one RJ45
+         port and two Ethercon ports. There shall be two modes that
+         the ports can use. In Switched mode, the three ports shall be
+D        switched together. In Redundant mode, the Control and Primary
+         ports shall be switched together and work as a redundant pair
+
+
+                                                                                                                                                                                                                                       58mm/2.28”
+         with the Secondary port, with each having separate IP addresses
+         so that if the primary connection fails, the secondary connection
+         shall take over. The user shall be able to change the mode in
+         Dante Controller.
+                                                                                              B
+         The dimensions of the DMI-DANTE 64@96 shall be: 126.4 (w) x
+         176.3 (d) x 58 (h) mm
+
+         The weight of the DMI-DANTE 64@96 shall be: 261g
+C
+
+                                                                126.4mm/4.98”
+                                                                                                                                                      176.3mm/6.94”
+               PHYSICAL
+
+               Dimensions: 126.4mm (w) x 176.3mm (d) x 58mm (h)                               A
+
+
+                                                                                                  58mm/2.28”
+                                                                                                              OUTLINE DRAWING NOTES
+               Weight: 260g                                                                             1. THIS IS UNCONTROLLED DOCUMENT.
+                                                                                                  2. DIMENSION CORRECT AT TIME OF PUBLICATION.
+               Product Code: MOD-DMI-DANTE2                                                          3. GRAPHICAL DETAILS RERESENTIVE ONLY.
+
+B                                                                                                              8                                       7                                                                             6
+
+
+
+
+               AUDIO SPECIFICATIONS
+                                                                                                                                                                  DESIGN STATE
+                                                                                                                                                                                                                          3rd       IF IN DOUBT ASK! WEB LINK:
+                                                                                                                                                                      Released                                                       DO NOT SCALE COMPANY:
+               Sample Rate: 48kHz or 96kHz                                                                                                                        STATUS:                                                                 INSPECTION                  DiGiCo STO
+                                                                                                                                                                      PRODUCTION
+                                                                                                                                                                  MFG. APP. BY             MFG. APP. DATE ENG. APP. BY                    ENG. APP. DATE              DWG FILE N
+                                                                                                                                                                                                                                                                      188- 00157.iam
+
+                                                                                                                                                                                                                                        ®                             SUBJECT
+                                                                                                                                                                                                                                                                      ASSEMBL
+                                                                                                                                                                                                                                                                      CATEGORY
+A                                                                                                                                                                     D iG i C o S O L U T I O N S ®                                             THE QUEENS AWARDS
+                                                                                                                                                                                                                                                                      UNLESS STA
+                  OUTLINE DRAWING NOTES                                                                                                                               S OUN D TR AC S ®
+                                                                                                                                                                                                                                                   FOR ENTERPRISE
+                                                                                                                                                                                                                                                INTERNATIONAL TRADE
+                                                                                                                                                                                                                                                        2011
+                                                                                                                                                                                                                                                                            TOL
+
+                                                                                                                                                                      D iG i G r id ®
+                                                                                                                                                                                                                                                                           DIMENS
+            1. THIS IS UNCONTROLLED DOCUMENT.                                                                                                                                                                                                                         NO DECIMAL
+                                                                                                                                                                                                                                                                      ONE DECIMA
+                                                                                                                                                                      email: info@digiconsoles.com. web site: www.digiconsoles.biz
+      2. DIMENSION CORRECT AT TIME OF PUBLICATION.                                                                                                                    COPYRIGHT.
+                                                                                                                                                                                                                                                                      TWO DECIMA
+                                                                                                                                                                                                                                                                      ANGULAR +-3
+         3. GRAPHICAL DETAILS RERESENTIVE ONLY.                                                                                                                       THIS DRAWING IS THE PROPERTY OF DIGICO (UK) LTD. THE INFORMATION IS CONFIDENTIAL & MAY NOT BE
+                                                                                                                                                                      USED WITHOUT PRIOR WRITTEN CONSENT F DIGICO (UK) LTD. THE CONTENTS DETAILED ARE CORRECT AT
+                                                                                                                                                                      THE IME OF PUBLICATION. AS AN INNOVATIVE DESIGN MANUFACTURER DiGiCo UK Ltd. RESERVES THE
+                                                                                                                                                                                                                                                                      LIMITS APPLY
+                                                                                                                                                                                                                                                                      STATED OTH
+                                                                                                                                                                      RIGHT TO MAKE CHANGES WITHOUT NOTICE IN COLOURS MATERIALS SPECIFICATION AND MODELS.             MACHINED W
+                                                                                                                                                                      DIGICO AND SOUNDTRACS ARE REGISTERED TRADEMARKS.
+                                                                                                                                                                                                                                                      © 2017 DiGiCo      REMOVE
+                   8                                                       7                      6                                       5                                                4
+
+
+
+
+         DiGiCo HQ
+         Unit 10 Silverglade Business Park Leatherhead Road, Chessington,
+         Surrey, KT9 2QL, United Kingdom
+         info@digiconsoles.com
+
+         ©DiGiCo 2019. All brand and product names are copyright to their respective owners                                                                                        www.digico.biz
+         E&OE
+
+
+         www.digico.biz                                                                                                          DiGiCo DMI-DANTE 64@96 Datasheet                                                                                                2
+

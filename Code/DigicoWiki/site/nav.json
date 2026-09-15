@@ -1,0 +1,530 @@
+[
+ [
+  "How do I\u2026",
+  "mdi-lightbulb-on-outline",
+  [
+   [
+    "Power up and shut down",
+    "/how-to/01-power-up-and-shut-down"
+   ],
+   [
+    "Load a session",
+    "/how-to/02-load-a-session"
+   ],
+   [
+    "Save a session (and back it up to USB)",
+    "/how-to/03-save-a-session"
+   ],
+   [
+    "Start a new session (templates and Session Structure)",
+    "/how-to/04-new-session-from-template"
+   ],
+   [
+    "Patch an input to a channel",
+    "/how-to/05-patch-an-input-to-a-channel"
+   ],
+   [
+    "Set gain, phantom power and pad",
+    "/how-to/06-gain-phantom-pad-and-line-check"
+   ],
+   [
+    "Route a channel to groups, auxes and direct outs",
+    "/how-to/07-route-a-channel-to-outputs"
+   ],
+   [
+    "Route an aux, group or matrix to a physical output",
+    "/how-to/08-route-a-bus-to-a-physical-output"
+   ],
+   [
+    "Conform the I/O racks (Audio I/O)",
+    "/how-to/09-conform-the-io-racks"
+   ],
+   [
+    "Name channels and sockets",
+    "/how-to/10-name-channels-and-sockets"
+   ],
+   [
+    "Put channels on faders (layers, banks, assign, swap)",
+    "/how-to/11-assign-channels-to-faders"
+   ],
+   [
+    "Solo, PFL/AFL and headphones",
+    "/how-to/12-solo-pfl-afl-and-headphones"
+   ],
+   [
+    "Talkback",
+    "/how-to/13-talkback"
+   ],
+   [
+    "EQ, filters and dynamic EQ",
+    "/how-to/14-eq-and-filters"
+   ],
+   [
+    "Compressor, gate, ducker and de-esser",
+    "/how-to/15-dynamics-compressor-gate-de-esser"
+   ],
+   [
+    "Mustard processing (tube, EQ, modelled compressors, gate)",
+    "/how-to/16-mustard-processing"
+   ],
+   [
+    "Spice Rack: Chilli 6 multiband and Naga 6 dynamic EQ",
+    "/how-to/17-spice-rack-chilli-6-and-naga-6"
+   ],
+   [
+    "Add a reverb or delay (internal FX)",
+    "/how-to/18-insert-an-fx-reverb-or-delay"
+   ],
+   [
+    "Put a graphic EQ on an output",
+    "/how-to/19-graphic-eq-on-an-output"
+   ],
+   [
+    "Snapshots: store, recall, scope, safe, setlists",
+    "/how-to/20-snapshots"
+   ],
+   [
+    "Control groups (VCA-style masters)",
+    "/how-to/21-control-groups-vca"
+   ],
+   [
+    "Gang channels together",
+    "/how-to/22-gangs"
+   ],
+   [
+    "Mix a monitor send on the faders (Aux to Faders)",
+    "/how-to/23-aux-to-faders-mix-a-monitor"
+   ],
+   [
+    "Copy channel settings, and use presets",
+    "/how-to/24-copy-channels-and-presets"
+   ],
+   [
+    "Macros and smart keys",
+    "/how-to/25-macros"
+   ],
+   [
+    "The matrix",
+    "/how-to/26-matrix"
+   ],
+   [
+    "Audio sync and clocking",
+    "/how-to/27-audio-sync-and-clocking"
+   ],
+   [
+    "Send inputs to a multitrack recorder (Copy Audio)",
+    "/how-to/28-copy-audio-to-a-recorder"
+   ],
+   [
+    "The offline software, and mirroring a laptop to the console",
+    "/how-to/29-offline-software-and-mirroring"
+   ],
+   [
+    "Lock the console (security modes)",
+    "/how-to/30-lock-the-console-security"
+   ],
+   [
+    "Options worth knowing",
+    "/how-to/31-options-worth-knowing"
+   ],
+   [
+    "Session notes and the session report",
+    "/how-to/32-session-notes-and-report"
+   ],
+   [
+    "Troubleshooting",
+    "/how-to/33-troubleshooting"
+   ],
+   [
+    "Multi channels (stereo pairs, LCR, 5.1 as one strip)",
+    "/how-to/34-multi-channels"
+   ],
+   [
+    "iPad app, OSC and other external control",
+    "/how-to/35-ipad-app-and-external-control"
+   ]
+  ]
+ ],
+ [
+  "I/O, racks & DMI cards",
+  "mdi-server-network",
+  [
+   [
+    "I/O overview: what plugs into the Q225",
+    "/hardware/01-io-overview"
+   ],
+   [
+    "DMI-Dante 64@96",
+    "/hardware/02-dmi-dante-64-96"
+   ],
+   [
+    "DQ-Rack (Dante stage rack)",
+    "/hardware/03-dq-rack"
+   ],
+   [
+    "MQ-Rack (MADI stage rack)",
+    "/hardware/04-mq-rack"
+   ],
+   [
+    "A168D Stage (Dante 16\u00d78 box)",
+    "/hardware/05-a168d-stage"
+   ],
+   [
+    "DMI-KLANG (immersive IEM mixing in the console)",
+    "/hardware/06-dmi-klang"
+   ],
+   [
+    "DMI-Waves (SoundGrid)",
+    "/hardware/07-dmi-waves"
+   ],
+   [
+    "DMI-MADI (BNC and Cat5e)",
+    "/hardware/08-dmi-madi"
+   ],
+   [
+    "Fitting or swapping a DMI card",
+    "/hardware/09-fitting-dmi-cards"
+   ],
+   [
+    "Dante Controller basics (for the DQ-Rack and A168D)",
+    "/hardware/10-dante-controller-basics"
+   ]
+  ]
+ ],
+ [
+  "Our venues",
+  "mdi-map-marker",
+  [
+   [
+    "Fountain Square: how the Q225 is set up",
+    "/venue/01-fountain-square-console"
+   ],
+   [
+    "Memorial Hall: how the Q225 is set up",
+    "/venue/02-memorial-hall-console"
+   ]
+  ]
+ ],
+ [
+  "Console: Getting Started",
+  "mdi-console",
+  [
+   [
+    "1.1 Manual Overview",
+    "/console/1-1-manual-overview"
+   ],
+   [
+    "1.2 Before You Start",
+    "/console/1-2-before-you-start"
+   ],
+   [
+    "1.3 Hardware Configuration",
+    "/console/1-3-hardware-configuration"
+   ],
+   [
+    "1.4 Software Configuration",
+    "/console/1-4-software-configuration"
+   ],
+   [
+    "1.5 Saving and Loading Sessions",
+    "/console/1-5-saving-and-loading-sessions"
+   ],
+   [
+    "1.6 Audio Sync",
+    "/console/1-6-audio-sync"
+   ],
+   [
+    "1.7 Routing Basics",
+    "/console/1-7-routing-basics"
+   ],
+   [
+    "1.8 Channel Processing",
+    "/console/1-8-channel-processing"
+   ],
+   [
+    "1.9 Mustard Channels",
+    "/console/1-9-mustard-channels"
+   ],
+   [
+    "1.10 Spice Rack",
+    "/console/1-10-spice-rack"
+   ],
+   [
+    "1.11 Auxiliaries",
+    "/console/1-11-auxiliaries"
+   ],
+   [
+    "1.12 The Matrix",
+    "/console/1-12-the-matrix"
+   ],
+   [
+    "1.13 Control Groups",
+    "/console/1-13-control-groups"
+   ],
+   [
+    "1.14 Multi-channel formats",
+    "/console/1-14-multi-channel-formats"
+   ],
+   [
+    "1.15 Solo Setup",
+    "/console/1-15-solo-setup"
+   ],
+   [
+    "2.1 Fitting DMI Cards",
+    "/console/2-1-fitting-dmi-cards"
+   ],
+   [
+    "2.2 DMI-MADI Cards",
+    "/console/2-2-dmi-madi-cards"
+   ],
+   [
+    "2.3 DMI - Dante Cards",
+    "/console/2-3-dmi-dante-cards"
+   ],
+   [
+    "2.4 DMI - ADC - DAC - MIC - AES Cards",
+    "/console/2-4-dmi-adc-dac-mic-aes-cards"
+   ],
+   [
+    "2.5 DMI - Waves - Hydra Cards",
+    "/console/2-5-dmi-waves-hydra-cards"
+   ],
+   [
+    "2.6 DMI - ME - A3232 Cards",
+    "/console/2-6-dmi-me-a3232-cards"
+   ],
+   [
+    "2.7 DMI \u2013 AMM",
+    "/console/2-7-dmi-amm"
+   ],
+   [
+    "2.8 DMI-KLANG",
+    "/console/2-8-dmi-klang"
+   ],
+   [
+    "2.9 DMI-Dante 64@96  & Dante IO Control",
+    "/console/2-9-dmi-dante-64-96-dante-io-control"
+   ],
+   [
+    "3.1 Main Shortcuts",
+    "/console/3-1-main-shortcuts"
+   ],
+   [
+    "3.2 Settings Pane",
+    "/console/3-2-settings-pane"
+   ],
+   [
+    "3.3 System Information",
+    "/console/3-3-system-information"
+   ],
+   [
+    "3.4 Advanced Settings",
+    "/console/3-4-advanced-settings"
+   ],
+   [
+    "3.5 Network Settings",
+    "/console/3-5-network-settings"
+   ],
+   [
+    "3.6 Keyboard Shortcuts",
+    "/console/3-6-keyboard-shortcuts"
+   ]
+  ]
+ ],
+ [
+  "Software Reference (manual)",
+  "mdi-book-open-page-variant",
+  [
+   [
+    "1.1 Introduction to Channel Strip",
+    "/reference/1-1-introduction-to-channel-strip"
+   ],
+   [
+    "1.2 Channel Input - Common Elements",
+    "/reference/1-2-channel-input-common-elements"
+   ],
+   [
+    "1.3 Channel Output and Inserts - Common Elements",
+    "/reference/1-3-channel-output-and-inserts-common-elements"
+   ],
+   [
+    "1.4 Input Channel \u2013 Specific Functions",
+    "/reference/1-4-input-channel-specific-functions"
+   ],
+   [
+    "1.5 Output Channel Specific Functions",
+    "/reference/1-5-output-channel-specific-functions"
+   ],
+   [
+    "1.6 Channel Signal Processing",
+    "/reference/1-6-channel-signal-processing"
+   ],
+   [
+    "1.7 Mustard Channels (Quantum only)",
+    "/reference/1-7-mustard-channels-quantum-only"
+   ],
+   [
+    "1.8 LCD Functions",
+    "/reference/1-8-lcd-functions"
+   ],
+   [
+    "1.9 Multi Channels",
+    "/reference/1-9-multi-channels"
+   ],
+   [
+    "2.1 System Menu",
+    "/reference/2-1-system-menu"
+   ],
+   [
+    "2.2 Files Menu",
+    "/reference/2-2-files-menu"
+   ],
+   [
+    "2.3 Layout Menu",
+    "/reference/2-3-layout-menu"
+   ],
+   [
+    "2.4 Snapshots Menu",
+    "/reference/2-4-snapshots-menu"
+   ],
+   [
+    "2.5 Options",
+    "/reference/2-5-options"
+   ],
+   [
+    "2.6 FX & Processors",
+    "/reference/2-6-fx-processors"
+   ],
+   [
+    "2.7 Matrix Menu",
+    "/reference/2-7-matrix-menu"
+   ],
+   [
+    "2.8 Graphic EQ Panel",
+    "/reference/2-8-graphic-eq-panel"
+   ],
+   [
+    "2.9 Control Groups",
+    "/reference/2-9-control-groups"
+   ],
+   [
+    "2.10 Solos Menu",
+    "/reference/2-10-solos-menu"
+   ],
+   [
+    "2.11 Network and Mirroring",
+    "/reference/2-11-network-and-mirroring"
+   ],
+   [
+    "2.12 Setup Menu",
+    "/reference/2-12-setup-menu"
+   ],
+   [
+    "2.13 External Control",
+    "/reference/2-13-external-control"
+   ],
+   [
+    "3.1 Console Audio Connections",
+    "/reference/3-1-console-audio-connections"
+   ],
+   [
+    "4.2 Q8 Specific Features",
+    "/reference/4-2-q8-specific-features"
+   ],
+   [
+    "5.1 Quantum Home",
+    "/reference/5-1-quantum-home"
+   ],
+   [
+    "6.1 Fitting DMI Cards",
+    "/reference/6-1-fitting-dmi-cards"
+   ],
+   [
+    "6.2 DMI-MADI Cards",
+    "/reference/6-2-dmi-madi-cards"
+   ],
+   [
+    "6.3 DMI - Dante Cards",
+    "/reference/6-3-dmi-dante-cards"
+   ],
+   [
+    "6.4 DMI - ADC - DAC - MIC - AES Cards",
+    "/reference/6-4-dmi-adc-dac-mic-aes-cards"
+   ],
+   [
+    "6.5 DMI - Waves - Hydra Cards",
+    "/reference/6-5-dmi-waves-hydra-cards"
+   ],
+   [
+    "6.6 DMI - ME - A3232 Cards",
+    "/reference/6-6-dmi-me-a3232-cards"
+   ],
+   [
+    "6.7 DMI \u2013 AMM",
+    "/reference/6-7-dmi-amm"
+   ],
+   [
+    "6.8 DMI KLANG",
+    "/reference/6-8-dmi-klang"
+   ],
+   [
+    "6.9 DMI AVB",
+    "/reference/6-9-dmi-avb"
+   ]
+  ]
+ ],
+ [
+  "DiGiCo documents",
+  "mdi-file-document-multiple",
+  [
+   [
+    "A168 Stage \u2014 Quick Guide",
+    "/docs/a168-guide"
+   ],
+   [
+    "DMI-Waves User Guide (Waves)",
+    "/docs/dmi-waves-guide"
+   ],
+   [
+    "1.1 Introduction",
+    "/docs/dq-1-1-introduction"
+   ],
+   [
+    "1.2 Q-Rack Power",
+    "/docs/dq-1-2-q-rack-power"
+   ],
+   [
+    "1.3 Q-Rack Clocking",
+    "/docs/dq-1-3-q-rack-clocking"
+   ],
+   [
+    "1.4 Q-Rack Sockets",
+    "/docs/dq-1-4-q-rack-sockets"
+   ],
+   [
+    "1.5 Using the Q-Rack Menu System",
+    "/docs/dq-1-5-using-the-q-rack-menu-system"
+   ],
+   [
+    "1.6 Connecting a DANTE rack",
+    "/docs/dq-1-6-connecting-a-dante-rack"
+   ],
+   [
+    "1.7 Rack Connections with MADI",
+    "/docs/dq-1-7-rack-connections-with-madi"
+   ],
+   [
+    "Orange Box + Orange Box Controller V3.0 (DMI card reference)",
+    "/docs/orange-box-guide"
+   ],
+   [
+    "TN339 \u2014 DMI connections and setup",
+    "/docs/tn339-dmi-setup"
+   ],
+   [
+    "V22 (v2242) Release Notes \u2014 June 2026",
+    "/docs/v22-release-notes"
+   ]
+  ]
+ ]
+]

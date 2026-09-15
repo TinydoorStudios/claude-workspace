@@ -1,0 +1,264 @@
+                        DATASHEET
+
+
+
+
+                                                          MQ-Rack
+                                                          Compact. Reliable. MADI.
+
+
+
+
+OVERVIEW
+The DiGiCo MQ-Rack is a 48 input, 24 output rack with
+BNC MADI connectivity. It also features 4 switchable
+XLR outputs that can either be analogue outputs or AES
+outputs, giving a maximum of 28 output channels.
+
+
+
+
+  KEY FEATURES
+
+  48 Mic Inputs
+
+  Up to 24 Line Outputs
+
+  4 Switchable AES Outputs
+
+  BNC MADI Connectivity
+
+  Rack sharing or digital splits at 48kHz
+
+  6U Rack Mountable
+
+  Gain Tracking™
+
+  Redundant PSUs                                             DiGiCo Quantum
+
+  Flashing screen to indicate system OK from a distance      Quantum is developed with seventh-generation FPGA
+                                                             devices that further expand audio processing power
+  Locked controls to prevent accidental setting changes      and ultimately allows DiGiCo to provide its users with
+                                                             an unrivalled amount of additional flexibility.
+  Internal Oscillator
+                                                             Quantum. Power. Connectivity. Flexibility
+
+
+
+
+www.digico.biz                                                                       DiGiCo MQ-Rack Datasheet         1
+    TECHNICAL SPECIFICATIONS
+
+
+     CONNECTIONS                            SIGNAL PROCESSING
+
+      48 x XLR Mic Inputs                   Internal Oscillator
+      20 x XLR Line Outputs                 Gain Tracking™
+      4 x XLR Switchable AES/Line Outputs
+      1 x TFT LCD Menu Screen
+      4 x Menu Buttons
+      1 x MADI Main I/O BNC
+      1 x MADI Aux I/O BNC
+      2 x Redundant PSUs
+      1 x USB 2.0 Type B port
+
+
+
+
+2   www.digico.biz
+A&E SPECIFICATION
+
+
+The DiGico MQ-Rack shall have 48 inputs and 20 line outputs. It shall have an additional 4 outputs shall be configurable as either
+analogue line outputs or AES digtal outputs. The rear panel shall have 2 sets of BNC MADI I/O ports. At 48kHz, this shall allow sharing of
+the rack between any two DiGiCo consoles or digital splits for recording. At 96kHz, this shall allow all inputs and outputs to be accessed
+by the console with the use of both MADI ports. There shall also be a USB Type B port, and two redundant PSUs.
+
+The MQ-Rack shall have a TFT LCD menu screen on the rear. When the rack is receiving a valid sync source, the screen shall flash
+between white and green so that it can be seen from a distance that the rack is syncing correctly. The screen shall be locked until the left
+and right buttons are both pressed and held for 2 seconds. The left and right buttons shall allow the user to scroll through the different
+menu items. There shall be a set of menu items that display system information, showing the PSU info and rack firmwares. There shall
+also be menu items to switch the end 4 outputs between analogue and AES, select the sync source and if the sync source is set to
+internal, the internal sample rate of the rack, and defaulting the rack. There shall also be a menu option that allows an oscillator signal to
+be sent to all rack outputs. The signal level shall be chosen between -96dB and 0dB and the signal frequency shall be chosen between
+20Hz and 22kHz.
+
+                                                                The dimensions of the MQ-Rack shall be: 482.7 (w) x 253 (d) x 265.9 (h) mm
+                                                                                               The weight of the MQ-Rack shall be: 11kg
+
+
+
+
+  AUDIO SPECIFICATIONS
+
+   Sample Rate: 48kHz or 96kHz
+   Crosstalk: TBC
+   Analogue Input Frequency Response: TBC
+   Analogue EIN: TBC
+   Dynamic Range: TBC
+   Input Impedance: TBC
+   CMRR: TBC
+   AES Distortion: TBC
+   Analogue Distortion: TBC
+   AES Cable Length: TBC
+   Phantom Power: TBC
+   Oscillator Level: -96dB to 0dB
+   Oscillator Frequency: 20Hz to 22kHz
+   Gain Range: TBC
+                                                                              In a world as competitive for engineers as it is for console
+   System Delay: TBC
+                                                                              owners, you want the best tools you can lay your hands on.
+   Maximum Input Level: TBC                                                   You also want a console and audio tools as well thought out
+   Maximum Output Level: TBC                                                  for every major application as they are designed for the art
+                                                                              and science of sound engineering.
+
+
+
+
+                                                                                                       DiGiCo MQ-Rack Datasheet                  3
+                               E
+
+                                                                                 3                                                          2                                                1
+
+
+
+
+                                                                                                                                                                                                                F
+
+
+
+
+                               D       LINE DRAWING
+                                       All dimensions in mm
+
+
+
+
+                                                                                                                          482.7mm/19.00”                                                                        E
+                                                                                                                                                                                                                        253mm/9.96”
+
+
+
+                               C
+
+
+
+
+                                           265.9mm/10.47”                                                                                                                                                       D
+
+
+
+
+                               B
+                                                                                                                                     443,5
+
+
+
+
+                                                                                                                                                                                                                                                                                                           SEE SHEET 2 FOR E
+                                                                                                                                                                                                                C               DESIGN STATE
+                                                                                                                                                                                                                                                                                     3rd IF IN DOUBT ASK!
+                                                                                                                                                                                                                                                                                                                                 WEB LINK
+                                                                                                                                                                                                                                 Released                                                 DO NOT SCALE
+                                                                                                                                                                                                                                STATUS:                                                              INSPECTION                  DiGiCo STOCK NUMBER:
+                                                                                                                                                                                                                                 PRODUCTION                                                            NA
+                                                                                                                                                                                                                                MFG. APP. BY          MFG. APP. DATE ENG. APP. BY                    ENG. APP. DATE              DWG FILE NUMBER:
+                                                                                                                                                                                                                                 R&D                    09/ 10/ 2020            R&D                    09/ 10/ 2020              115- 00108.iam
+
+                                                                                                                                                                                                                                                                                                   ®                             SUBJECT
+                                                                                                                                                                                                                                                                                                                                 MAIN ASSEMBLY
+                                                                                                                                                                                                                                                                                                                                 CATEGORY
+                               A                                                                                                                                                                                                 DiGiCo SOLUTIONS ®                                                       THE QUEENS AWARDS
+                                                                                                                                                                                                                                                                                                                                 HARDWARE
+                                                                                                                                                                                                                                                                                                                                 UNLESS STATED DIMENSIONS IN MILLIM
+                                                                                                                                                                                                                                 SOUNDTRACS ®
+                                                                                                                                                                                                                                                                                                            FOR ENTERPRISE
+                                                                                                                                                                                                                                                                                                         INTERNATIONAL TRADE           TOLERANCES UNLESS STATED
+                                                                                                                                                                                                                                                                                                                 2011
+
+                                                                                                                                                                                                                                 DiGiGrid ®    ®                                                                                      DIMENSION                    HOLES
+                                                                                                                                                                                                                                                                                                                                 NO DECIMAL +-0.50              UP TO DIA 6
+                                                                                                                                                                                                                                 email: info@digiconsoles.com. web site: www.digiconsoles.biz                                    ONE DECIMAL +-0.20             DIA 6 TO 12
+                                                                                                                                                                                                                                                                                                                                 TWO DECIMAL +-0.10            DIA 12 TO 24
+                                                                                                                                                                                                                                 COPYRIGHT.                                                                                      ANGULAR +-30'           ABOVE DIA 24 AS S
+                                                                                                                                                                                                                                 THIS DRAWING IS THE PROPERTY OF DIGICO (UK) LTD. THE INFORMATION IS CONFIDENTIAL & MAY NOT BE   LIMITS APPLY AFTER FINISHING, UNLESS
+                                                                                                                                                                                                                                 USED WITHOUT PRIOR WRITTEN CONSENT OF DIGICO (UK) LTD. THE CONTENTS DETAILED ARE CORRECT AT
+                                                                                                                                                                                                                                 THE TIME OF PUBLICATION AND AS AN INNOVATIVE DESIGN MANUFACTURER DiGiCo UK Ltd. RESERVES THE    STATED OTHERWISE
+                                                                                                                                                                                                                                 RIGHT TO MAKE CHANGES WITHOUT NOTICE IN COLOURS MATERIALS SPECIFICATION AND MODELS.             MACHINED WHERE MARKED THUS:
+                                                                                                                                                                                                                                 DIGICO AND SOUNDTRACS ARE REGISTERED TRADEMARKS.
+                                                                                                                                                                                                                                                                                                               © 2020               REMOVE ALL BURRS AND SHARP EDG
+                                                                             8                                                   7                                                    6                             5                                         4                                                                                     3
+
+                                                                                                                                                                                                                B
+
+                                                                                                                                                                                    OUTLINE DRAWING NOTES
+                                                                                                                                                                        1. THIS IS UNCONTROLLED DOCUMENT.
+                                                                                                                                                            2. DIMENSION CORRECT AT TIME OF PUBLICATION.
+                                 PHYSICAL                                                                                                                         3. GRAPHICAL DETAILS RERESENTIVE ONLY.
+
+                              SEE SHEET 2 FOR EXPLODED VIEW & SHEET 3 FOR GRAPHICS VIEW
+         3rd IF IN DOUBT ASK!
+                                                            WEB LINK                                                      PART INTERFACES WITH:
+              DO NOT SCALE                     Dimensions: 482.7mm (w) x 253mm (d) x 265.9mm (h)
+                        INSPECTION                          DiGiCo STOCK NUMBER:                      DRAWN BY:
+                          NA
+ ENG. APP. BY           ENG. APP. DATE
+                                               Weight: 11kg DWG FILE NUMBER:
+                                                                                                       BlueLine
+                                                                                                         DATE:
+    R&D                   09/ 10/ 2020                      115- 00108.iam                                29/ 04/2020
+                      ®
+                                               Power Requirements: 100-240V~,
+                                                            SUBJECT
+                                                            MAIN ASSEMBLY TITLE: 50-60Hz, 2.0A
+                                                                                                         CHECKED:
+                                                                                                          R&D
+                                                            CATEGORY                                     DATE:             OUTLINE DRAWING
+ONS ®                                                        HARDWARE                                     09/ 10/ 2020
+                                                                                                                           MQ RACK MAIN ASSEMBLY (6U)                                              EST MASS:    A
+®
+                             THE QUEENS AWARDS
+                               FOR ENTERPRISE
+                            INTERNATIONAL TRADE
+                                    2011
+                                               Redundancy: PSUs x 2
+                                                            UNLESS STATED DIMENSIONS IN MILLIMETERS FIRST USED ON:
+                                                                    TOLERANCES UNLESS STATED              NA
+                                                                                                                                                                                                    10.666 kg
+                                                                                                                                                                                                   SCALE:
+    ®                                                            DIMENSION               HOLES
+                                                                                      UP TO DIA 6 +0.1-0 PRODUCT:
+                                                             NO DECIMAL +-0.50
+                                                                                                                                                                                                    1: 3
+                                               Product Code: X-MQ-RACK                                    MOONRACK
+ www.digiconsoles.biz                                        ONE DECIMAL +-0.20       DIA 6 TO 12 +0.2-0
+                                                             TWO DECIMAL +-0.10      DIA 12 TO 24 +0.3-0
+                                                             ANGULAR +-30'      ABOVE DIA 24 AS STATED PART NUMBER:       DRAWING NUMBER:
+                                                                 115- 00108
+                                                                                                                                        A2 OL                        188- 00168 1
+TD. THE INFORMATION IS CONFIDENTIAL & MAY NOT BE            LIMITS APPLY AFTER FINISHING, UNLESS
+CO (UK) LTD. THE CONTENTS DETAILED ARE CORRECT AT
+E DESIGN MANUFACTURER DiGiCo UK Ltd. RESERVES THE           STATED OTHERWISE                                                                                                                       SHEET
+                                                                                                      DEVELOPMENT CODE:
+LOURS MATERIALS SPECIFICATION AND MODELS.
+EMARKS.
+                                  © 2020
+                                                            MACHINED WHERE MARKED THUS:
+                                                               REMOVE ALL BURRS AND SHARP EDGES        MOONRACK                             SIZE   SUFFIX              IDENT NUMBER       ISSUE
+                                                                                                                                                                                                       1
+                                                                                 3                                                          2                                                1
+
+
+
+
+                                        DiGiCo HQ
+                                        Unit 10 Silverglade Business Park Leatherhead Road, Chessington,
+                                        Surrey, KT9 2QL, United Kingdom
+                                        info@digiconsoles.com
+
+                                        ©DiGiCo 2021. All brand and product names are copyright to their respective owners                                                                                                                                                  www.digico.biz
+                                        E&OE
+
+
+                                        www.digico.biz                                                                                                                                                                      DiGiCo MQ-Rack Datasheet                                                                                                   4
+

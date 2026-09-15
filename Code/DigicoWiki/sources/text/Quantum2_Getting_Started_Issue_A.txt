@@ -1,0 +1,2759 @@
+       Quantum 2 - Getting Started – Issue A
+
+                    Issue A for Software Version 1400+
+To be read in conjunction with the SD/QUANTUM Series Software Reference
+Quantum 2 - Getting Started – Issue A
+Quantum 2 - Getting Started – Issue A
+
+Copyright © 2021 Digico UK Ltd
+All rights reserved.
+No part of this publication may be reproduced, transmitted, transcribed, stored in a retrieval system, or translated into any language in any form by any
+means without the written permission of Digico UK Ltd. Information in this manual is subject to change without notice and does not represent a
+commitment on the part of the vendor. Digico UK Ltd shall not be liable for any loss or damage whatsoever arising from the use of information or any
+error contained in this manual.
+
+All repair and service of the QUANTUM 2 product should be undertaken by Digico UK Ltd or its authorised agents. Digico UK Ltd cannot accept any liability
+whatsoever for any loss or damage caused by service, maintenance, or repair by unauthorised personnel.
+
+Software Licence Notice
+Your license agreement with Digico UK Ltd, which is included with the QUANTUM 2 product, specifies the permitted and prohibited uses of the product.
+Any unauthorised duplication or use of Digico UK Ltd software, in whole or in part, in print or in any other storage and retrieval system is prohibited.
+
+
+Licences and Trademarks
+The QUANTUM 2 logo and QUANTUM 2 name are trademarks, and Digico UK Ltd and the Digico UK Ltd logo are registered trademarks of Digico UK Ltd.
+Microsoft is a registered trademark and Windows is a trademark of Microsoft Corp.
+
+Digico (UK) Ltd
+Unit 10
+Silverglade Business Park
+Leatherhead Road
+Chessington
+Surrey
+KT9 2QL
+England
+Telephone: +44 (0)1372 845600
+Fax: +44 (0)1372 845656
+Email: sales@digiconsoles.com
+WWW: http://www.digico.biz
+Manual Issue and Date: Issue A – March 2021 – For Version 1400+
+
+Licence Agreement
+"Product": QUANTUM 2 software product produced by Digico UK Ltd is intended for use on Target Platform identified below.
+"Target Platform": Digico QUANTUM 2 Digital Console system.
+
+In return for the payment of the one-time fee, the Customer (identified at the end of this Agreement) receives from Digico UK Ltd a licence to use the
+Product subject to the following terms and conditions.
+1. The Product may be used without time limit by the Customer on the Target Platform.
+2. The Customer must register the Product with Digico UK Ltd. Registering the Product is deemed an acceptance of the terms and conditions in this
+agreement.
+3. The Product and its licence are not transferable, and the Customer is not permitted to onward-license to any third party. The Customer indemnifies
+Digico UK Ltd against any and all claims and actions arising from third party use of copies of the Product made by the Customer.
+4. The Customer agrees not to attempt to decompile the object code of the Product otherwise than in circumstances specifically provided for by law, and
+then only after consultation with Digico UK Ltd.
+5. The Customer agrees not to use, or licence the Product for use, with equipment other than the Target Platform.
+6. The Customer agrees not to modify the Product without the prior written consent of Digico UK Ltd.
+7. This Agreement applies to any enhancement or upgrades that may become available for the Product.
+8. This Agreement does not transfer any right, title, or interest in the Product to Customer except as specifically set forth herein.
+9. Digico UK Ltd reserves the right to terminate this Agreement upon breach, in which event Customer shall thereafter only be authorised to use the
+Product to the extent that its contractual commitments to third parties require and then only where such commitments relate to use of the Product as
+authorised in the foregoing provisions of the Agreement.
+
+LIMITED WARRANTY - Digico UK Ltd warrants for a period of 1 year from the date of purchase of the Product, the Product will reasonably execute its
+programming instructions when properly installed on the Target Platform. In the event that this Product fails to execute its programming instructions
+during the warranty period, the Customer's remedy shall be to return the Product to Digico UK Ltd for replacement or repair at Digico UK Ltd option.
+Digico UK Ltd makes no other express warranty, whether written or oral with respect of this Product.
+
+LIMITATION OF LIABILITY - Except as otherwise expressly provided by law, (a) the remedies provided above are the Customer's sole and exclusive remedies
+and (b) Digico UK Ltd shall not be liable for any direct, indirect, special, incidental, or consequential damages (including lost profit whether based on
+warranty, contract, tort, or any other legal theory.)
+This agreement is made under the Laws of England.
+
+LICENCE NO:     ..........................................................
+REGISTRATION DATE:             ..........................................................
+Quantum 2 - Getting Started – Issue A
+
+                                                       Contents
+The Console ...............................................................................................1
+     1.1   Manual Overview ............................................................................................................ 1
+     1.2   Before You Start .............................................................................................................. 2
+       1.2.1     Worksurface Layout ............................................................................................................ 2
+       1.2.2     Layers and Banks ................................................................................................................. 4
+       1.2.3     Using the Control Surface .................................................................................................... 5
+       1.2.4     The Assigned Channel.......................................................................................................... 6
+       1.2.5     The Master Fader ................................................................................................................ 8
+       1.2.6     Channel Types ..................................................................................................................... 9
+     1.3   Hardware Configuration ................................................................................................ 10
+       1.3.1     Connections ...................................................................................................................... 10
+     1.4   Software Configuration ................................................................................................. 11
+       1.4.1     Templates ......................................................................................................................... 11
+       1.4.2     Session Structure Overview ............................................................................................... 11
+       1.4.3     Audio I/O Overview........................................................................................................... 12
+       1.4.4     Opto V221 (SD Racks) ........................................................................................................ 13
+       1.4.5     Single SD Console System .................................................................................................. 13
+       1.4.6     Automatic Conforming ...................................................................................................... 13
+       1.4.7     Manual Conforming of Racks ............................................................................................. 14
+       1.4.8     Rack Sharing ...................................................................................................................... 15
+       1.4.9     Assigning Faders to the Worksurface ................................................................................. 15
+     1.5   Saving and Loading Sessions.......................................................................................... 16
+       1.5.1     Save As New File ............................................................................................................... 16
+       1.5.2     Save Session ...................................................................................................................... 16
+       1.5.3     Load Session...................................................................................................................... 16
+     1.6   Audio Sync .................................................................................................................... 17
+     1.7   Routing Basics ............................................................................................................... 18
+       1.7.1     Selecting Inputs & Outputs ................................................................................................ 18
+       1.7.2     Ripple Channels ................................................................................................................. 19
+       1.7.3     Channel Names ................................................................................................................. 20
+     1.8   Channel Processing ....................................................................................................... 20
+       1.8.1     Dynamic EQ ....................................................................................................................... 20
+       1.8.2     Dynamics .......................................................................................................................... 21
+     1.9   Mustard Channels ......................................................................................................... 22
+       1.9.1     Mustard Channel Strip....................................................................................................... 22
+Quantum 2 - Getting Started – Issue A
+       1.9.2       Insert Position ................................................................................................................... 22
+       1.9.3       Safes/Scopes ..................................................................................................................... 23
+       1.9.4       Presets .............................................................................................................................. 23
+       1.9.5       Pre-amplifier Modelling .................................................................................................... 23
+       1.9.6       Equaliser ........................................................................................................................... 24
+       1.9.7       Compressor ....................................................................................................................... 24
+       1.9.8       Gate/Ducker ..................................................................................................................... 25
+     1.10       Spice Rack .................................................................................................................. 26
+       1.10.1      Chilli & Naga 6 Overview ................................................................................................... 26
+       1.10.2      User interaction options .................................................................................................... 28
+       1.10.3      Presets .............................................................................................................................. 29
+     1.11       Auxiliaries .................................................................................................................. 30
+     1.12       The Matrix ................................................................................................................. 31
+     1.13       Control Groups .......................................................................................................... 32
+     1.14       Multi-channel formats ............................................................................................... 33
+     1.15       Solo Setup ................................................................................................................. 34
+DMI Cards ................................................................................................ 35
+     2.1    Fitting DMI Cards .......................................................................................................... 35
+     2.2    DMI-MADI Cards ........................................................................................................... 37
+       2.2.1       Connecting DMI-MADI ...................................................................................................... 37
+       2.2.2       Sharing Racks with DMI-MADI ........................................................................................... 40
+     2.3    DMI - Dante Cards ......................................................................................................... 42
+     2.4    DMI - ADC - DAC - MIC - AES Cards ................................................................................ 44
+     2.5    DMI - Waves - Hydra Cards ............................................................................................ 45
+     2.6    DMI - ME - A3232 Cards................................................................................................. 46
+     2.7    DMI – AMM .................................................................................................................. 46
+     2.8    DMI-KLANG ................................................................................................................... 50
+     2.9    DMI-Dante 64@96 & Dante IO Control ......................................................................... 50
+Quantum Home ....................................................................................... 53
+     3.1    Main Shortcuts .............................................................................................................. 53
+     3.2    Settings Pane ................................................................................................................ 54
+     3.3    System Information....................................................................................................... 55
+     3.4    Advanced Settings ......................................................................................................... 56
+     3.5    Network Settings........................................................................................................... 58
+     3.6    Keyboard Shortcuts ....................................................................................................... 58
+Quantum 2 - Getting Started – Issue A                                                                            1.1 Manual Overview
+
+
+
+ The Console
+The Digico QUANTUM 2 consists of a worksurface, an audio engine and a range of onboard inputs and outputs. This can be connected to
+multiple Input/Output Rack Units by optical fibre and/or MADI links, which carry all the audio input and output signals.
+
+It also provides two DMI slots for the fitting of optional I/O cards and a "UBMADI" port.
+
+   NOTE: The UBMADI (USB AUDIO) port provides up to 48 I/O channels of audio when the console is running at either 48kHz or 96kHz
+   via a USB connection. "UBMADI" runs at 48kHz irrespective of the console sample rate.
+
+The console worksurface consists of 2 sections that can be configured to control up to 72 input channels, 12 Control Groups, 36 busses
+plus a Master buss (Stereo/LCR) and a 12 x 12 Matrix.
+Each of the sections has 12 assignable faders and a set of assignable channel controls, the right section has an additional fader which is
+fully assignable but defaults to being assigned to the Master Buss.
+The console's buss architecture is dynamic, and can support mono, stereo and LCR configurations.
+Multiple console setups can provide:
+Front of House and Monitoring with shared stage racks and gain tracking.
+Remote control of one console from another console or from a laptop computer.
+
+
+1.1 Manual Overview
+This manual provides an overview of the desk and describes some of the basic operating principles which the user will need to understand
+in order to run the desk.
+
+For full details on all Quantum/SD software functionality please refer to the Quantum/SD Series Software Reference Manual available
+for download at www.digico.biz
+
+
+
+
+                                                                                                                                        1
+Quantum 2 - Getting Started – Issue A                                                                             1.2 Before You Start
+
+1.2 Before You Start
+There are certain general operating principles and terms that should be understood before continuing to use this manual.
+Please read this chapter carefully before proceeding.
+
+1.2.1 Worksurface Layout
+
+Channel processing
+
+
+                                                                                      Alt Input
+                                                                                       switch
+                    High and low
+                     pass filter
+
+
+
+
+                                                                                        4-band Dynamic
+                                                                                         Parametric EQ
+
+
+
+
+                                                                                              Multiband Dynamics
+                                                                                              Thresholds & on/off
+
+
+
+
+Master Section
+                                                                  Headphones       USB port
+
+
+
+
+                                                                                                  Macro control
+          Master screen
+
+                                                                                                   Solo
+                                                                                                   s
+                                                                                                     Snapshot control
+  Assignable rotaries                                                                               Touch turn and talkback control
+     and switches
+                                                                                                     Snapshot previous
+        Mute, solo and                                                                                   and next
+         TFT displays
+                                                                                                        Assignable master fader
+        Channel faders                                                                                  and master screen assign
+
+
+
+
+                                                                                                                                      2
+Quantum 2 - Getting Started – Issue A                                                                               1.2 Before You Start
+Rear Panel
+
+                                            World            Optocore
+                   Ethernet ports                            (optional)   MADI I/O     Ethernet port       Display port
+                                           Clock I/O
+
+
+
+
+                                                                                                                                    Waves I/O port
+                                                                                                                                     (optional)
+
+                                                                                                                                     Console USB
+    USB Audio
+                                                                                                                                    MIDI In/Out/Thru
+
+
+                                                                                                                                         GPIO
+  DMI Slots 1&2
+
+
+                                                                                                                                     Dual PSU
+
+
+                                                                                                  4 AES I/O
+                                                        8 mic/line in
+                                                       and 8 line out
+
+
+IP Addresses on a QUANTUM 2
+The QUANTUM 2 Engine board contains 2 devices that require an IP address. The Console PC and the Host Interface controller.
+Both devices' IP addresses are displayed in the console diagnostics tab.
+
+
+
+
+   NOTE: This IP address will be set to appropriate values when the console is shipped and they should not be changed in normal
+   operation.
+
+The IP Addresses for these devices can however be set using Network Settings in the Quantum Home interface. Quantum Home can be
+accessed using the Master screen > System > Quit To Windows function.
+
+This program allows the user to enter a single IP and subnet mask. This is the IP for the Console PC and the application will automatically
+set the Host Interface controller's IP to the correct sequential Address.
+Once the required IP or Subnet has been entered, a console power cycle is required for the change to take effect. Pressing the OK and
+Shut Down button will initiate the Shut Down Procedure.
+
+
+
+
+                                                                                                                                         3
+Quantum 2 - Getting Started – Issue A                                                                                  1.2 Before You Start
+
+1.2.2 Layers and Banks
+The QUANTUM 2's worksurface is divided into Layers and Banks. Each Bank contains twelve channels, and the channels which are
+currently active on the control surface are defined using the fader bank and bank layer buttons to the right of the Channel Strip section’s
+fader.
+
+    NOTE: There is also a Master Screen Assign button above the master fader on the centre section which is used to switch the right
+    section to display the Master Screen.
+
+
+
+
+A ‘bank’ is a set of twelve faders, and a ‘layer’ contains up to four ‘banks’. There are up to 3 ‘layers’ in each section of the desk
+Pressing the bank layer button, located above the fader bank buttons, toggles between layers.
+
+To access a bank of faders within that layer, press the appropriate fader bank button. To switch both sections of the console to the same
+bank level, press and hold one of the fader bank buttons.
+
+The specific channels which are contained within each Bank are defined in the Layout > Fader Banks display. By default, the Input
+channels will be assigned to Layer 1 of the console. The different output channels will be assigned to Layer 2. Control Groups will be
+assigned to Layer 2. These bank assignments can be customised by the user and saved in a session at any time.
+
+
+
+
+                                                                                                                                         4
+Quantum 2 - Getting Started – Issue A                                                                               1.2 Before You Start
+
+1.2.3 Using the Control Surface
+There are two main ways in which all of the functions of the QUANTUM 2 are accessed:
+
+1. The touchscreen display, which can be controlled directly using a finger, or by using the keyboard and mouse
+2. The physical encoders, switches and faders.
+
+A number of functions can be accessed in different ways, allowing users to operate the console using whichever interface they prefer.
+This manual will describe accessing on-screen functions by touching the screen directly and not by using the mouse.
+
+All of the physical controls are described in full within the relevant section of the manual and many require no further introduction.
+
+The Master screen has a row of grey buttons across the top, which are used to access a range of configuration displays. Pressing these
+buttons opens either a further drop-down sub-menu or a pop-up display. If a drop-down menu is opened, pressing on one of its entries
+will open a pop-up display. The buttons lighten to indicate that their sub-menu or pop-up display is open. A number of the buttons within
+each pop-up display generate further pop-ups.
+
+Generally, buttons within the pop-ups are coloured grey when their function is inactive, switching to a colour when their function is
+active. Pressing on a text box opens a numeric or QWERTY keypad which can be operated directly by pressing the screen or via the
+console’s external keyboard.
+Pop-ups are closed by pressing the box in the top right-hand corner of the pop-up, marked CLOSE or CANCEL (or by pressing CAN on
+keypad pop-ups).
+On the Right-hand panel is a single encoder marked Touch-Turn (shown below). This is used to access any rotary controls within the
+Master Screen. To assign the Touch-Turn encoder to a particular on-screen pot, touch the pot to be assigned. You will notice that a
+coloured ring appears around the on-screen pot, indicating that it is assigned to the Touch-Turn encoder. The colour of this ring is unique
+to that control and is also reflected in the base of the Touch-Turn encoder, providing further indication of which pot is currently assigned
+to it.
+
+
+
+
+The Master Screen button on the right-hand section switches the right screen view from the Master Screen to the bank of channels which
+are selected in the right-hand section.
+
+
+
+
+                                                                                                                                          5
+Quantum 2 - Getting Started – Issue A                                                                                1.2 Before You Start
+
+1.2.4 The Assigned Channel
+One of the channels in the Channel Strip panel is displayed in gold, indicating that it is currently the Assigned Channel. This means that it
+has been assigned to the worksurface controls and can be configured in detail, as described below. To Assign a channel, touch anywhere
+in the channel on the screen (except the Aux Send area or the meters at the top of the screen).
+Alternatively, use the ch left and right buttons at the bottom of the channel worksurface controls to scroll through the channels in the
+panel:
+
+
+
+
+    Note that these left and right arrows are duplicated in the channel Setup and Output displays.
+    Note also that the Channel List display provides another method for assigning a channel to the worksurface controls.
+
+Once a channel is assigned, all of the controls for that channel which are not displayed within the channel strip itself can be accessed via
+secondary pop-ups, displayed by touching inside the relevant area of the channel. These pop-ups include controls such as input and
+output routing and signal processing parameters.
+
+A number of the physical rotary encoders on the control surface can be assigned to different on-screen pots. In order to ensure that it is
+clear which function is assigned to which encoder, the assigned on-screen pot will have a coloured ring around it which will be reflected
+in the colour of the light around the base of the encoder on the control surface
+
+
+
+
+The row of twelve encoders and buttons immediately below the touchscreen (shown above) refer to the channels with which they are
+aligned.
+
+
+
+                                                                                                                                           6
+Quantum 2 - Getting Started – Issue A                                                                               1.2 Before You Start
+Pressing one of the Quick Select buttons on the left of the screen will assign the selected function to the row of these controls below the
+screen. Five aux sends can be displayed in the Channel Strip panel at any one time. If more than six aux sends have been created in the
+session, the scroll button outside the bottom left-hand corner of the screen can be used to scroll the display through the remaining
+auxilaries.
+
+
+
+
+The controls to the right of the Channel Strip panel allow the Assigned channel to be adjusted:
+
+
+
+
+The top half of the channel worksurface controls (down as far as the insert a, insert b and direct buttons, as shown above) control the
+signal processing parameters which are displayed in the pop-ups accessed by touching in the appropriate section of the active channel.
+The bottom half of the channel worksurface controls is concerned with output routing.
+To the left of the screen are more channel controls: When pressed, the 2nd function button allows access to different parameters:
+          1) Stereo Aux Pan and Pre/Post switching
+          2) Hard Mute of a channel
+          3) Switching of LR or LCR panning
+2nd function is indicated by a green 2nd Function display appearing in the bottom left-hand corner of the screen, as well as by the 2nd
+function button lighting with a ring of green.
+
+
+
+
+The Option/All button has 2 main functions:
+
+     1)   When pressed and released, any channel that is a member of a gang or Multi will be temporarily isolated from that gang or
+          Multi.
+     2)   When pressed and held, any parameter that is adjusted on a single channel will also be adjusted in the same way on all of the
+          channels in that bank
+
+
+
+                                                                                                                                         7
+Quantum 2 - Getting Started – Issue A                                                                          1.2 Before You Start
+
+1.2.5 The Master Fader
+By default, the fader in the bottom right corner of the right worksurface is assigned to the Master buss, which is the lowest numbered
+stereo group output by default.
+In addition, this fader can be reassigned to control any input channel or buss of your choice using the Layout>Fader Banks panel
+Press the Assign master fader button and the Channel List will be displayed.
+Select a channel by touching its entry in the Channel List and it will be assigned to the Master Fader
+The fader can also be unassigned (set to empty) by pressing the Unassign master fader button
+
+
+
+  Layout> fader banks
+
+
+
+
+                                                                                                                  Assign master fader
+
+
+
+
+      Select channel
+
+
+
+
+                                                                                                                                    8
+Quantum 2 - Getting Started – Issue A                                                                              1.2 Before You Start
+
+1.2.6 Channel Types
+The QUANTUM 2 has 4 different channel types which are laid out in banks of 12 on the console worksurface and can be identified by
+their colour.
+By default, the Input Channels will be assigned to Layer 1 on the left and right sections of the console.
+The output channels (Groups, Auxes and Matrices) will be assigned to Layer 2.
+Control Groups will be assigned to Layer 2. These bank assignments can be customised by the user and saved in a session at any time.
+Holding any left or right section bank or layer button down for a couple of seconds will switch the left and right worksurface sections to
+the same bank level or layer.
+The controls on each different type of output channel are identical but an input channel has a number of additional of features.
+
+
+                                                                   Inputs           Groups           Auxes            Matrix
+            Input Module - Touch to Expand
+                 Analogue Gain/Digital Trim
+                     Phase - Gain Tracking
+                      Main/Alt Input Select
+                                     Delay
+
+                                      HPF/LPF
+
+                   Insert A Routing & On/Off
+
+
+                         4 Band Dynamic EQ
+                            Touch To Expand
+
+
+
+                         Multiband Dynamics
+                           Touch To Expand
+
+
+                  Insert B Routing & On/Off
+
+                  SD/Mustard Display Switch
+
+
+
+
+                                 Aux Sends
+                       Touch to Assign Row
+
+
+
+
+                                Channel Pan
+                               Mute Indicators
+
+                          Channel Label
+        Routing Module - Touch to Expand
+                 Gang & Safe Indicators
+
+
+
+
+                                                                                                                                        9
+Quantum 2 - Getting Started – Issue A                                                                                           1.3 Hardware Configuration
+
+1.3 Hardware Configuration
+1.3.1 Connections
+Detailed information on the various systems of connection is provided in the relevant chapter of this and the "Software Reference"
+manual but the following diagram provides an overview of a single console/single rack setup
+
+                                                          CONNECTION WITH MADI
+
+                                                          SD Rack /                             DiGiRack
+                                                               MAIN MADI IN                                   MAIN MADI OUT
+
+
+
+
+                                                                                                PO RT 1 I N
+
+
+                                                                          M ADI P ORT 1 O U T
+                                                                                                M A DI
+
+
+
+
+                                                 CONNECTION WITH OPTICAL FIBRE
+
+
+
+
+                                              OPTO A                                            OPTO A
+                                                          OPTO B                                                       OPTO B
+
+                                                          OPTIONAL
+                                                          REDUNDANT
+                                                          LOOP
+
+
+
+
+                                                 OPTO A                                                              OPTO B
+
+
+
+
+All connections should be made before switching on the console and racks.
+The console and rack each have dual redundant power supplies and both should be switched on at all times. After switching on the
+console the software will be launched automatically and the state of the worksurface and settings should be the same as when it was
+last Shut Down.
+To Shut Down the console press the System > Shut Down button and wait until you receive a message saying that it is safe to switch the
+power off.
+
+The QUANTUM 2 worksurface has 8 analogue I/O and 4 AES Inputs (2 pairs) and 4 AES Outputs (2 pairs) on its rear panel (referred to as
+Local I/O) and additional I/O is supplied in the form of remote Racks which can each accommodate up to 56 inputs and 56 outputs in
+different formats. These racks are connected to the worksurface by either 100M high specification 75 Ohm coaxial cables fitted with BNC
+connectors or optical fibre. The Racks have two pairs of MADI connectors - Main MADI IN & OUT and AUX MADI IN & OUT.
+In normal operation the MADI connections should be as follows (see diagram above):
+Rack MAIN MADI IN connected to the console MADI 1 OUT
+Rack MAIN MADI OUT connected to the console MADI 1 IN
+
+Any of the console's other MADI Ports can be connected to a MADI recorder (See Audio I/O Panel for setup details) or a second DiGiCo
+Rack or console.
+
+
+
+
+                                                                                                                                                       10
+Quantum 2 - Getting Started – Issue A                                                                        1.4 Software Configuration
+
+1.4 Software Configuration
+The QUANTUM 2 has a default setup which means that the new user need not get involved in configuring the desk at this stage. However,
+here is a brief overview of how the different displays are used in putting together a session. Each of the master displays introduced below
+are described fully within the rest of the manual.
+
+The Files > Templates display is used for loading pre-configured session templates.
+The Files > Session Structure display is used for configuring how the console’s audio channels are to be divided between channel types,
+and where the format of the channels is defined
+The Session Structure display can be used to automatically assign the channels to the worksurface. However, channels can also be
+manually added to the worksurface using the Layout > Channel List display.
+The Setup > Audio IO display is used to configure the physical I/O connected to the QUANTUM 2, including configuring and naming the
+sockets of the option cards installed in racks, and the setting of pads and phantom power.
+
+1.4.1 Templates
+If any templates have been created, they provide an easy starting point for sessions which are already customised to your context. To
+load a session template, open the Session Templates display by selecting the Templates option at the top of the Files menu. Now touch
+the template you wish to load from the list shown and press OK.
+
+1.4.2 Session Structure Overview
+When starting a new session from scratch, it is important to decide how many of each type of channel is required. While changes to
+session structure can be made once a session has been started, it is best to try and set these parameters before configuring the session.
+The structure will set items such as the number of input channels, the number and type of aux channels and group channels available
+
+                                                                                Select session sample rate
+
+
+
+
+      Enter session title
+
+
+         Set number of input
+         channels
+
+    Set number of Aux busses
+
+
+  Set number of group busses
+
+
+
+
+                               Total number of unallocated         Total number of spare busses
+                               processing
+
+
+Begin by setting the sample rate at the top of the panel. There is a total of 72 input channels available and 36 busses (plus a Master buss
+which can be stereo or LCR).
+
+Channel resources can be split into input or output channels in almost any configuration. The default configuration is :
+48 input channels (Input channel formats are defined within each channel, not within the Session Structure)
+
+
+                                                                                                                                       11
+Quantum 2 - Getting Started – Issue A                                                                         1.4 Software Configuration
+6 Mono Aux busses & 6 Stereo Aux busses
+6 Mono Group busses & 6 Stereo Group busses
+12 Matrix Inputs and 12 Matrix Outputs
+12 Control Groups
+
+    Note that a Talkback channel is also assigned to the control surface, though it isn't configurable within the Session Structure and is
+    therefore not displayed there.
+
+To adjust any of the channel allocations, touch on the associated channel count box, and either enter a number using the pop-up number
+keypad, or adjust using the assigned touch turn controller.
+Clear All Buttons : When changing routing, you have the option of clearing any non-default routing or processing (EQ, dynamics etc) from
+the channels in the session. This is especially useful when restructuring an existing session to make a new session. The other 'clear'
+buttons in the display perform similar operations.
+Aux Sends and Direct Sends : By toggling the state of the Aux Sends and Direct Sends Buttons in the Input Channels section, it is possible
+to change the default operation of the Aux Sends and Direct Sends. These functions toggle between “Post Fader”, “Pre-Fader” and “Pre-
+Mute”.
+Aux Order and Group Order : The Aux Order and Group Order buttons open a second window, providing you with the ability to change
+the order of auxes and groups. By default, mono busses come first, followed by stereo busses. The Master buss is the first stereo buss,
+regardless of the order you place the busses in.
+Auto-Route : The Auto-route functions automatically routes consecutive inputs for input channels, and consecutive outputs for busses.
+For example, auto-routing 72 inputs will route the first physical input (eg 1:Mic 1) to input channel 1, the second physical input (1:Mic 2)
+to input channel 2… until you either run out of inputs or channels. Auto-routes are as follows :
+Input Channels auto-route with physical inputs
+Aux, Group and Matrix Channels auto route to physical outputs
+Matrix Inputs auto-route with group outputs
+
+    NOTE : Auto-Routing can only be used in conjunction with the “Clear All” button.
+
+Rebuild Banks : When changing the number of allocated channels in any section (input channels, busses etc), you can restructure the
+session without rebuilding banks, meaning that any additional channels you have allocated will not be “placed” on the worksurface, and
+need to be manually assigned to faders. If however, you restructure a session with Rebuild Banks (either Horizontally or Vertically)
+enabled, the worksurface will be built with all channels available on the worksurface in a default layout. Rebuilding horizontally will result
+in input channels being spread across the top layer of both sides of the console, using as many banks as required, with output channels
+being assigned to Layer 2. Rebuilding vertically will result in input channels being assigned to Layer 1 on the left side of the console, and
+output channels to Layer 1 on the right.
+
+1.4.3 Audio I/O Overview
+The Audio I/O window is used to configure the physical I/O connected to the QUANTUM 2, including configuring and naming the sockets
+of the option cards installed in racks, and the setting of Pads and phantom power.
+Local I/O : The QUANTUM 2 provides local audio I/O on the rear of the console. These operate independently of connected racks,
+providing additional audio I/O.
+To access the QUANTUM 2 Audio I/O Setup Touch “Setup” on the Master Screen, followed by “Audio I/O”
+The Audio I/O window that opens is divided up into the following sections
+
+                                                                                                              Selected Port’s
+                                                                                                              Properties
+                    Port Selection
+                    and Status
+
+
+
+
+                                                                                                              Graphic
+                                                                                                              Representation of
+                                                                                                              Selected Rack
+
+
+
+
+                                                                                                              Configuration of
+                     Management                                                                               Cards & Sockets
+                     Global Port                                                                              Splits & Sharing,
+                                                                                                              Or Optocore,
+                                                                                                              as defined by
+                                                                                                              buttons to the left
+
+
+
+
+                                                                                                                                          12
+Quantum 2 - Getting Started – Issue A                                                                       1.4 Software Configuration
+The top-left corner of the window shows the ports. Each port relates to an available physical audio connection (Local IO, IO Rack, or MADI
+Port, USB Audio (UBMADI), DMI cards). Ports can be added and removed using the buttons towards the bottom-left corner of the window.
+
+   NOTE: Please refer to the DMI card section of this document for more details on the use of DMI cards in the system
+
+The top-right area contains the controls relating to specific ports. When a port is selected, this section changes to reflect the status of
+the selected port and allows its configuration to be changed as required.
+
+Most of the right-hand section of the panel consists of a graphical representation of the rack configuration connected to the selected
+port. Depending on the port selected, the graphic will change, showing the available physical I/O. Each small “square” on the image
+represents a single physical audio connection or socket, with these arranged in columns or rows, representing I/O cards in racks, or the
+local I/O on the back of the console.
+The section below the graphical rack picture allows configuration of either the cards or slots and sockets (including custom naming,
+phantom power and pad selection), or card splits and control sharing. The Cards & Sockets and Splits & Sharing buttons define which
+elements are displayed for configuration.
+The local I/O configuration is fixed, so no hardware changes are possible. You can, however, change the Port Name, the Group Names
+(relating to the name of each physical card) and the Socket Names (the name of each physical connector on a card).
+
+1.4.4 Opto V221 (SD Racks)
+
+   IMPORTANT NOTE: The QUANTUM 2 can only use Optocore via the optional Optocore connections on the console itself.
+   The QUANTUM 2 cannot use an Optocore DMI card to connect to an Optocore system
+
+SD Series consoles can operate with either one of two different Optocore firmware versions - V220 and V221.
+The Quantum Series can only operate with Optocore firmware version V221.
+V220 is compatible with DiGiRacks and MiNiRacks and cannot be used with SD Racks or DRacks.
+V221 is compatible with SD Racks, SD MiNiRacks, NaNoRacks and DRacks, and cannot be used with DiGiRacks and MiNiRacks.
+
+   Note: Any type of rack can be used with a Quantum Series console if it is connected with Coaxial BNC MADI irrespective of the Optocore
+   version that the console is using.
+
+Sessions that have been created using Optocore connected DiGiRacks and MiNiRacks can be used with SD Racks and DRacks but a
+procedure must be followed to achieve this.
+Sessions created using Optocore connected SD Racks and DRacks can also be used with DiGiRacks and MiNiRacks but this also involves a
+“conversion” procedure.
+
+   Note: For detailed information on Optocore system setup please refer to the SD/Quantum Software Reference manual Appendix -
+   DiGiCo Optocore V221 - For SD Rack Optocore Operation
+
+1.4.5 Single SD Console System
+On a QUANTUM 2, go to Setup > Audio I/O. Press the Setup Optocore button and the Single Console button will be shown with a bright
+red background. Press this button, press Yes at the confirmation stage and the console will create ports for all connected racks, allocate
+all output cards to your console and create the Optocore map. The system is now ready to use.
+
+
+                                        Audio I/O Panel
+                                        Optocore Setup
+                                        Single Console
+
+
+
+
+1.4.6 Automatic Conforming
+Once all hardware is connected, go to System/Diagnostics/Optocore. This will list all connected Optocore devices either SDeng (console
+engines) to SDRack (SD Rack or D Rack) by ID. If any expected devices are not listed, please check all physical connections, Optocore ID’s
+and Fibre Speeds. Once all devices are present, close the Diagnostics panel.
+Irrespective of the type of rack being used, the system needs to be conformed. This involves the console checking the type of racks
+connected and their I/O capability
+There are three levels of automatic conforming:
+-         globally, using the red Conform All Ports button in the bottom left of the window;
+-         on a rack-by-rack basis, using the conform rack button just below the rack view section of the window;
+
+
+
+                                                                                                                                       13
+Quantum 2 - Getting Started – Issue A                                                                                                                1.4 Software Configuration
+-         on a card-by-card basis, by selecting a socket from the card in the graphical display and using the conform card button next to
+the Card/Slot type button selector in the lower section of the window. (Note that the Cards & Sockets button towards the bottom-left
+should be selected)
+Pressing any of these buttons will correctly select the card types for the range in question. Once complete, all of the Card Labels beneath
+each slot should turn green.
+
+1.4.7 Manual Conforming of Racks
+With a Rack selected in the left-hand port selection list, the window will look something like the image below, depending on the cards
+installed in the connected rack. The graphic shows the 14 available card slots, 7 input & 7 output.
+                                                                                      Edit the Port Name here.
+                                     Select the port to be configured                 Eg. Stage Rack, Local Rack etc...                       Copy Rack Audio to another port
+
+
+
+
+    Auto Conforming for all ports,
+    individual racks,
+    or individual cards
+
+
+
+
+                                                               Select the contents of the bottom-right        Select Card Type manually or   Selected Socket Properties
+                                                               corner of the Audio IO window                  using Auto-Conform function,       Edit Name and Socket options.
+                                                                                                                   and edit Group Name
+
+
+
+In order to use the rack, the on-screen contents of the rack must match the cards physically installed in the rack connected. This is
+normally achieved by pressing the Conform All Ports button but can also be achieved manually if necessary.
+Select each card (column) and manually select the appropriate card in the Card/Slot Type drop down menu in the lower section of the
+window (displayed when the Cards & Sockets button towards the bottom-left is selected). Once the correct card type is selected, the
+Label at the bottom the selected card will turn green, indicating the card type matches the card installed in the rack. If the Card Type
+name is Red, then there is a mismatch, and the error should be corrected by selecting the correct card type.
+
+Copying Audio and Listening to Copied Audio (MADI Recorder Setup)
+Audio from a Rack can be copied to the MADI Port Output by selecting the incoming Port in the Ports list and using the Copy Audio To
+drop down menu. For example, if you want to copy the Rack Audio Inputs to a recorder connected over MADI, select Rack 1 in the ports
+list and then select MADI from the Copy Audio To drop down menu. The 56 inputs on Rack 1 will be copied to the QUANTUM 2 MADI
+output.
+In addition, by connecting the recorder's MADI Output to the QUANTUM 2 MADI Input, the playback can be monitored in the same
+channels as the original source material. Just press the Listen To Copied Audio button to monitor playback and press it again to return
+to monitoring the live sources from the rack
+
+Standard MADI Connections
+If you have a standard MADI connection (not a DiGiCo Rack) to your QUANTUM 2, you can set the console to display the MADI with
+generic signal names, i.e. MADI 1, MADI 2.. etc. through to MADI 56 (or 64) instead of the usual rack style names. The naming does not
+affect the signal, but makes routing signals easier.
+
+
+
+                                                                                                                                                                                 14
+Quantum 2 - Getting Started – Issue A                                                                         1.4 Software Configuration
+Unrouting All Outputs
+All outputs to the selected port can be unrouted at once by pressing the unroute all outputs button below the cards graphic and selecting
+yes in the warning pop-up which appears. "Copied" audio is not unrouted by this action.
+
+    Note that this will cancel all routing created in the channel screens and cannot be undone.
+
+1.4.8 Rack Sharing
+In a multi-console system where Racks are connected with MADI and shared between two DiGiCo Consoles, only one of the consoles can
+take control of the rack, with respect to Gain, Phantom Power and Pads. To overcome this, it is possible to place the QUANTUM 2 into
+one of 3 states of operation:
+Isolate : The QUANTUM 2 will not communicate with the rack and therefore any adjustment of input gain or +48V switch will have no
+effect on the rack settings
+Receive Only : The QUANTUM 2 will receive the rack’s existing settings but will not be able to control the gain etc on the racks.
+Full Control : The QUANTUM 2 will send its settings to the racks and change them accordingly.
+
+Sharing is configured in the Rack Sharing area, found in bottom right-hand corner of the window when the Splits & Sharing button is
+selected:
+
+
+
+
+These three states can be set on a per-rack basis (right column), or globally for all shared racks (left column).
+
+1.4.9 Assigning Faders to the Worksurface
+If, after a Session Restructure, you find that newly created channels do not appear on the worksurface, open the Layout/Channel List
+panel on the Master screen and you will see a full list of all input and output channels that are present in the session.
+To assign channels to the worksurface, select a bank and press the LCD Function button.
+Then press the LCD button labelled Assign Faders to enter that mode and press each of the LCD buttons for the channels that you wish
+to assign.
+Now press the first channel that you wish to assign on the Layout > Channel List on the Master screen.
+Consecutive channels will be assigned to the worksurface for each LCD button that is in Assign mode.
+Now press the LCD Function button again and return to the standard mode by pressing the LCD button labelled Solo
+
+    Note that column widths can be adjusted by dragging their borders within the title row. To return all columns to their default widths,
+    press RESET WIDTHS, in the top left-hand corner of the window.
+
+
+
+
+                                                                                                                                      15
+Quantum 2 - Getting Started – Issue A                                                                 1.5 Saving and Loading Sessions
+
+1.5 Saving and Loading Sessions
+1.5.1 Save As New File
+When you change the configuration of a session you should save it to the console's flash drive under a new filename.
+If the Save Session panel has not appeared automatically after a session restructure then touch the Files button on the Master screen
+and then press Save As New File.
+Select the destination drive (Internal or Removable) and file path and then enter a new file name and description for the file - then press
+the Save button.
+
+   Note: If you touch a session name on the existing list, this name will automatically be selected as the new file name and touching Save
+   will overwrite the old file.
+
+                                         Enter a Filename                Enter a Description
+
+
+   Select Internal or
+   Removable USB
+Internal Files saved
+      in D:\Projects
+
+
+
+
+                                                                                                                             To create a new folder
+                                                                                                                             in D:\Projects
+
+
+
+
+   Note that column widths can be adjusted by dragging their borders within the title row. To return all columns to their default widths,
+   press RESET WIDTHS, in the top left-hand corner of the window.
+
+1.5.2 Save Session
+This button which is found above the Save As New File button will save the existing session in the same location and under the same file
+name as it was previously saved or loaded from. It therefore serves as a "Quick Save" option to update an existing session.
+Remember that this function will overwrite your last saved version.
+If you wish to save the session under a new name use the Files menu button and select Save As New File (See above).
+
+1.5.3 Load Session
+To load a previously saved session:
+Touch the Files button on the Master screen and then press Load Session.
+Select the source drive (Internal or Removable) and the required file from the list - then press the Load button.
+
+                                                  Select a File             File Details
+
+                   Select Internal or
+                   Removable USB
+                Internal Files saved
+                      in D:\Projects
+
+
+
+
+                                                                                                                Press Load
+
+
+
+
+                                                                                                                                        16
+Quantum 2 - Getting Started – Issue A                                                                                      1.6 Audio Sync
+
+1.6 Audio Sync
+To access the Audio Sync Panel, touch the Setup Menu button, followed by Audio Sync. The following window will open…
+
+
+
+
+The QUANTUM 2 will operate at Sample Rates of either 48000Hz (48kHz) or 96000Hz (96kHz), as configured in the Session Structure
+panel.
+By default, it is set to clock internally but, if Optocore is fitted, the standard Audio Sync method is Optocore when the entire system uses
+the device with the lowest Optocore ID (usually ID1) as its sync source.
+This setting is saved within the session file so if any console(s) are connected to racks with optical fibre then all console engines should
+be set to Optocore as their sync source
+
+
+
+
+                                                Example Clocking from Optocore@ 96kHz
+
+There are also times when the QUANTUM 2 needs to be clocked externally. The Audio Sync panel allows you to control external
+synchronisation.
+The QUANTUM 2 will clock from the following sources : Word Clock, Waves, MADI, Optocore and relevant DMI cards
+In this situation one Optocore device should be set to clock to the external source and all other Optocore devices should be set to sync
+to Optocore.
+
+    Note : When a valid clock is detected on an external sync input, the corresponding Green OK box will light, even if that input is not
+    selected as the clock source for the QUANTUM 2.
+
+
+                                                                                                                                        17
+Quantum 2 - Getting Started – Issue A                                                                                    1.7 Routing Basics
+
+1.7 Routing Basics
+1.7.1 Selecting Inputs & Outputs
+All channel input, output, insert send and insert return routing is done via routing displays, accessed via the dark grey routing buttons in
+the channel Setup and Output displays (shown below for an Input channel’s input).
+
+    Note that multi-channel signals are routed individually, and then collected together as a "Multi Channel" as described in the
+    SD/Quantum Software Reference Manual
+
+To access Channel Input Setup, touch the top of an input channel display on the touchscreen.
+To access Channel Output Setup, touch the bottom of any channel type's display on the touchscreen.
+
+It is also possible to configure channel input and output routing directly from the Channel List display: Activate the Edit button at the
+bottom of the display, then touch the input route box for a channel. A standard Setup display will then appear, from which a Routing
+display can be opened. Inserts and Outputs can also be routed from this display by touching in the appropriate column.
+
+                                                                        Touch top of           Select or type
+                                                                       Input Channel          Number of Inputs
+                                                                                              to Ripple Route
+
+
+
+
+                      Select a Layer
+                                                            Select Format
+
+                                                          Press Main Input
+                       Select a Bank
+
+
+
+
+                                                                                         Select
+                                                           Label Channel                  Rack    Select
+                                                                                                  Card
+                                                                                                            Select
+                                                                                                            Socket
+
+
+
+
+Within each display, there are three columns containing three levels of routing selection:
+
+-         The left-hand column contains the available ports within which the desired input or output might be located;
+-         The middle column, signal groups, then shows the available groups of inputs or outputs within that port;
+-         The right-hand column, signals, then displays the individual inputs or outputs available within that signal group.
+
+The boxes in each column are lit blue to indicate that they are currently selected. If there is already a routing assigned within the display,
+the port and signal group columns containing the current assignment will be half-lit.
+
+Each output can only have one channel routed to it. The outputs that are currently in use by another channel display in blue text. If you
+attempt to route a different channel to an output which is already in use, a confirmation box appears, indicating which channel is already
+using it, and warning that continuing with the action will cause the old channel to be unrouted from this output. Press Yes to proceed,
+No to cancel.
+
+    Note that when routing direct outs from Input channels or outputs from output channels, any number of available signals can be
+    selected. A new route selection will therefore be added to previous selections in these cases. However, inputs, insert sends and insert
+    returns can only route to/from one signal (in the case of mono channels) or two signals (in the case of stereo channels). A new route
+    selection will therefore result in the previous selection being lost for inputs and insert sends and returns.
+
+For stereo channels, left and right routes are presumed to be consecutive: When routing stereo signals, select the left route, and the
+next signal in the list will be automatically selected as the right route. If the last signal in a signal group or port is selected as the left
+route, the first signal in the following signal group or port will selected as the right route.
+
+
+
+
+                                                                                                                                           18
+Quantum 2 - Getting Started – Issue A                                                                                         1.7 Routing Basics
+For input and insert return routing, the INTERNAL port provides the following signal groups:
+
+
+Misc:                The oscillator, white and pink noise generators.
+Graphic EQs:         The outputs of the QUANTUM 2’s internal graphic EQs.
+Effects:             The outputs of any effects sends that have been created
+Channels:            The direct outputs from the other input channels
+Groups:              The outputs of the group busses
+Auxes:               The outputs of the auxiliary busses
+Matrix:              The outputs of the matrix busses.
+Solos:               The outputs of the Solo busses
+
+
+    Note: The outputs for the channel being routed are locked out of the signal list
+
+    Note also that the console views all routes as a single list. Therefore, if the left signal is connected to the last signal in a port, the right
+    signal, will be automatically connected to the first signal of the next port, regardless of port type.
+
+For output and insert send routing, the INTERNAL port provides access to the inputs of the QUANTUM 2’s Graphic EQs, and the inputs to
+any effects that have been created.
+The 0:Local I/O port contains a list of the inputs or outputs found directly on the QUANTUM 2’s back panel.
+The Rack ports contain all of the inputs or outputs available within the remote I/O racks, as defined in the Audio I/O display
+Once a route has been selected, its name will appear below the routing button in the Setup or Outputs display.
+
+
+Whenever a route is created, metering and additional controls are made available below the routing button. These controls are dependent
+on the type of route created.
+
+
+Line input routed to an input or insert return:      an analogue gain control.
+Mic pre-amp routed to a mono input:                  an analogue gain control and a 48V button for remote control of rack functions.
+Mic pre-amp routed to a stereo input:                an analogue gain control and a 48V button for remote control of rack functions.
+Mic pre-amp routed to an insert return:              an analogue gain control, a 48V button and a phase reverse button.
+Output routed to a console output:                   a -10db pad (rack out only), on button for switching the send on and off, gain trim
+                                                     and send point selector which toggles the place within the channel from which the
+                                                     direct output is fed:
+                                                                           pre-F     Pre-fader,
+                                                                           post      Post-fader
+                                                                           pre-M     Pre-mute (and pre-fader)
+Insert send routed to a console output:              a -10db pad (rack out only), on button for switching the send on and off, and trim.
+Insert send routed to a graphic EQ:                  an on button for switching the send on and off
+Output routed to a graphic EQ:                       no additional control.
+
+
+Buttons become ringed in either red or green to indicate that they are on.
+
+
+1.7.2 Ripple Channels
+The ripple channels function, located at the top of the route display, allows consecutive channel routes to follow the routing of the
+current display incrementally. For example, Channels 1 to 8 direct outputs can be routed to Rack 1 > Line outs 1 to 8 respectively by
+routing Channel 1’s direct out to Rack 1 > Line out 1 and allowing the ripple channels function to route Channels 2-8 automatically.
+
+The number of channels to be rippled is defined either by selecting the appropriate grey numbered button, or by selecting the keyboard
+button to the right of the numbered buttons, typing the required number of channels (8 in the example above) into the numeric keypad
+which appears, and pressing OK. Once you have configured the ripple channels function, any routing action will also effect the
+appropriate number of channels above the channel being routed.
+
+The ripple channels function treats stereo channels as two channels. In other words, if Channel 2 in the above example is stereo, the
+ripple channels function will route Channel 1 to Line out 1, Channel 2 Left and Right to Line outs 2 and 3, Channel 3 to Line out 4 etc.
+
+The Ripple by bank/ channel number function changes how the channels are rippled, Ripple by bank ripples the channels by their
+position in the bank irrespective of channel number, Ripple by Channel number routes the rippled channels by channel number
+irrespective of position within the bank.
+
+
+
+
+                                                                                                                                                19
+Quantum 2 - Getting Started – Issue A                                                                           1.8 Channel Processing
+
+1.7.3 Channel Names
+The black and white text box in the Setup display is used for naming the channel. Channel names are displayed in the scribble strip at the
+bottom of the screen. By default, the channel is given the same name as the selected input signal.
+Note that if no input signal is selected, the scribble strip simply displays the channel number, prefixed by ch for Input channels, and
+prefixed by Aux, Grp or Matrix in the case of output channels.
+The following notes are specific to naming channels:
+The Next button moves the entire Setup display to the next channel.
+At the very top of the channel, the channel number and input signal name are displayed for Input channels, and the channel type and
+number are displayed for output channels. These labels remain unchanged, regardless of any channel naming.
+
+   For Input channels, note that if the channel input signal is changed once a channel has been manually named, the channel name will
+   no longer follow the input signal name. To reactivate the automatic channel naming function, clear the name and re-select the channel
+   input.
+   Note also that the channel Output display also provides access to this channel naming facility.
+
+Channels can also be named directly in the Channel List display (in the Layout menu). Open the display, activate the Edit function below
+the list, and expand the required channel type list by touching its row. Touching the channel name column for any channel in the list will
+cause a keyboard pop-up to appear, where a name can be typed in the usual way.
+
+
+1.8 Channel Processing
+1.8.1 Dynamic EQ
+The EQ section comprises four user-configurable parametric filters with Dynamic Control on all Channels and a pair of swept High-pass
+and Low-pass filters.
+The EQ is accessed by touching the on screen display to Assign the channel (the colour changes to yellow) and then using the controls
+on the right hand side of the input module.
+When a control is adjusted the expanded view seen below appears on the screen. This view can be seen at any time by touching the EQ
+response graph on the screen.
+
+   NOTE: If the expanded view does not appear when a control is adjusted open the Options panel and set the Auto Expand EQ option to
+   Yes
+
+Each band's response can have one of two characters – precision and classic. These can be switched for all bands using the precision and
+classic buttons.
+To access the Dynamic control, touch the left arrow symbol on any EQ band.
+Touching the normal EQ response graph will show an expanded view in a separate panel.
+The order of EQ and Dynamics in the channel signal path can be changed using the worksurface button at the bottom of the EQ section.
+
+
+
+                                          HPF/LPF
+
+
+
+
+                                          EQ Type
+
+
+
+
+                                           4 Bands
+                                                                                                          Dynamic EQ
+
+
+
+
+                                                                        EQ Presets
+                                                                      Copy EQ Settings
+                                                            Undo EQ Changes
+
+
+
+
+   Note: The type of filter used on the top and bottom bands can be changed by successive presses of the Curve button for that band.
+
+
+
+                                                                                                                                      20
+Quantum 2 - Getting Started – Issue A                                                                         1.8 Channel Processing
+
+1.8.2 Dynamics
+The dynamics are accessed by touching the words Comp or Gate just below the EQ graph on screen to open the dynamics panel.
+There are two dynamics modules, the first of which can function as a simple compressor, a 3 way multiband compressor, or a de-esser,
+according to the comp/multi/desser button to its left. The second (lower) module can function as a gate, a ducker or a compressor with
+an external sidechain, according to the gate/duck/comp button to its left.
+The worksurface controls beneath the screen control the various parameters. Touching the Close button in the top right corner of the
+panel will close it.
+The Graph button will display user configurable parameters that can be adjusted by screen touch and are shown in a graphical format
+Dedicated Threshold, Gain controls and In/Out switches can be found on the right hand side of that section's worksurface. These can
+control the Assigned channel's dynamics whether the on-screen dynamics panel is open or not.
+
+
+
+
+                                                              Dynamics Undo            Dynamics Copy
+                                                                              Dynamics Presets
+
+
+
+
+The Assignable encoders and switches beneath the screen can be assigned to any of the main dynamics controls. Hold the Assign Switch
+button on the right of the input section and touch the dynamics control required on the screen. The selected control is shown by the
+Status Display.
+
+Multiband Compression is available on all channel dynamics modules. Click on the dynamics mode select button on the left of the display
+to access the 3 dynamics bands
+
+Each band includes all of the parameters as those found in the single band compressor. The link function remains available for the whole
+compressor and is not assigned to any band. The bands can be switched on individually using the on buttons in the left-hand side of each
+band, or together using the all on button to the display’s right.
+
+The crossover frequency between bands is controlled using the purple and red pots to the left of the hi and lo bands. Each crossover has
+a range of 20Hz to 20kHz, and the crossover frequencies are displayed below each pot. Each band can be auditioned by pressing the
+listen button below each gain pot which solo’s that band to the mix (not the solo buss), in effect temporarily switching off the other
+bands.
+
+The channel strip’s compressor threshold and gain controls adjustment all three bands’ controls, maintaining any relative offsets. The
+individual controls are mapped to the assignable rotaries below the screen.
+
+   Note: Beyond the link function, the single and multi-band compressors have completely separate settings: No settings are copied
+   between them, and the settings of each remain unchanged when the other is active.
+
+
+
+
+                                                                                                                                    21
+Quantum 2 - Getting Started – Issue A                                                                             1.9 Mustard Channels
+
+1.9 Mustard Channels
+Mustard channels are a feature of Quantum engines and work alongside standard SD channel strip processing, with both being available
+at once.
+
+Mustard provides a tube/preamp modelling section, an EQ, a compressor with four different models and a gate/ducker.
+
+Up to 24 Mustard channel strips (Software V1400+) can be used across the console at any one time. A channel is counted as having
+Mustard processing active once any one of the Mustard modules are turned on.
+When this is the case, the channel will display the ‘Active’ icon above the Mustard processing icon, as shown below.
+
+                                                                   Mustard processing enabled
+
+
+
+1.9.1 Mustard Channel Strip
+The Mustard channel strip layout and operation is similar to that of the SD channel strip, as shown below.
+
+
+                                                                                             Mustard Tube section
+
+
+
+                                Mustard EQ
+
+
+
+
+                                                                                             Mustard Compressor
+
+
+
+                      Mustard Gate/Ducker
+                                   section
+                                                                                             Mustard Processing
+                                                                                             Insert Position
+                     Switch between viewing
+                           SD processing and
+                         Mustard processing
+
+
+1.9.2 Insert Position
+There are 5 selectable positions to choose from when enabling Mustard processing on a channel.
+
+The default position for Mustard processing is between the EQ & Dynamics module (depending on the EQ/Dynamics order).
+
+Two options will be unavailable as these are the locations of the channel’s Insert A and Insert B. These insert positions can be selected
+for the Mustard processing by changing the location of Insert A/B, at which point they become available.
+
+                                           This comes after channel trim and before channel delay/DiGiTube
+
+                                           This comes after filters and before EQ/dynamics
+
+                                           This comes in between EQ & Dynamics
+
+                                           This comes after processing and before the mute & fader
+
+                                           This comes after the channel’s fader
+
+
+
+
+                                                                                                                                     22
+Quantum 2 - Getting Started – Issue A                                                                             1.9 Mustard Channels
+
+1.9.3 Safes/Scopes
+Each Mustard module (tube, EQ, dynamics) can be safed individually with the tube safe including the insert position of the Mustard
+processing.
+
+The global scopes follow SD processing with tube under input/trim, EQ under EQ and the compressor and gate under dynamics.
+Input/trim scope also includes the insert position of Mustard processing.
+
+1.9.4 Presets
+Channel presets can be created as normal and each Mustard module can be included or excluded in the recall scope.
+
+Recalling a preset from within the view of a particular module will include only that module in the recall scope by default.
+
+Similarly to channel safes, the insert position of the Mustard processing is included within the pre-amp scope.
+
+
+
+
+1.9.5 Pre-amplifier Modelling
+The Mustard pre-amp modelling section provides the user with a choice of either a simple tube model or a more advanced pre-amp
+model. This is chosen by selecting type, where a menu will display with the two options.
+
+
+
+
+Mustard Tubes
+Mustard Tubes has a drive control, an output gain control, an on/off button and six selectable preset options.
+
+
+
+
+Odd harm – This is a modern sounding, low gain distortion preset
+Even harm – This is a vintage sounding, medium gain distortion preset
+Overdrive – This is modern sounding, medium gain distortion preset
+Distortion - This is modern sounding, compressed, high gain distortion preset
+Crunch – This is a vintage sounding, high gain distortion preset
+High distortion – This is a modern, heavy sounding, very high gain distortion preset
+
+
+
+
+                                                                                                                                   23
+Quantum 2 - Getting Started – Issue A                                                                              1.9 Mustard Channels
+Mustard Amp Model
+The Mustard Amp Model is a two-stage, highly customisable distortion & overdrive processor.
+
+Both stages can be switched to odd or even harmonics independently of each other. Even harmonics can create a triode-style distortion
+whereas odd harmonics can create a pentode-style distortion.
+
+The drive control alters the input level to the first stage of distortion.
+
+A bias control between the two stages can create asymmetrical distortion if desired. The midpoint value of 11 is the most transparent.
+Turning on the ‘saturate’ option increases the effect of the bias setting.
+There is a high frequency boost after both stages which applies a shelving boost above 6kHz. This is followed by the output gain.
+
+
+
+
+               Input meter      First stage     Saturate       Second stage    High frequency                  Output meter
+                                harmonics       control        harmonics       boost
+                         Drive            Bias                                               Output gain
+                         control          control
+
+
+1.9.6 Equaliser
+Mustard EQ operates in a similar manner to the standard SD channel EQ, with four fully parametric bands.
+
+When used on a channel alongside the standard SD processing, this allows the user to have double the amount of fully parametric bands.
+The top and bottom bands can be switched to act as high and low shelf filters respectively, rather than bell.
+The middle two bands can be switched from bell filters to all-pass filters.
+
+There are also high-pass and low-pass filters (both 24dB/8ve).
+
+1.9.7 Compressor
+The Mustard channel strip gives the user a choice of four different compressor models, which are modelled on classic analogue
+compressors.
+
+All of the compressor types give the user an on/off button, a wet/dry mix knob, and an output gain control. Other controls vary depending
+on the type selected.
+The mix knob controls the balance between the wet (compressed) audio and the dry (uncompressed) audio. If it is set to 100%, there will
+only be the compressed signal at the output.
+
+On all but the Green FET Limiter, there is a threshold control, along with high and lowpass filters in the compressor’s side chain controlled
+by the low and high rotaries. The effect of the filters on the sidechain signal can be monitored by pressing the s/c listen button.
+
+An external sidechain, that is shared with the gate/ducker, can be used with the compressor by selecting a sidechain source in the box
+underneath the gate/ducker controls and then selecting to send it to the compressor sidechain.
+
+Classic
+The Mustard classic compressor is a general-purpose feed-forward compressor design with multiple controls allowing flexibility.
+The threshold, attack time, release time, and ratio can be all controlled by the user.
+
+A hard or soft knee can also be selected, and the sidechain’s amplitude sensing can be changed between RMS (Root Mean Squared) level
+and peak (instantaneous) level.
+
+
+
+
+                                                                                                                                         24
+Quantum 2 - Getting Started – Issue A                                                                           1.9 Mustard Channels
+Vintage VCA
+The Vintage VCA compressor models classic VCA compressors, with a fixed attack time and an auto-release time. The user can set the
+threshold and ratio.
+
+
+
+
+Optical
+The optical compressor models classic opto-compressors, with a unique release characteristic that models the gain reduction provided
+by an optical compressor circuit. It has three options for attack time and recovery time, along with a ratio control.
+
+The gain reduction also behaves uniquely by having a ratio-dependent maximum gain reduction value, with the compressor continuing
+to be linear above this value.
+
+
+
+
+FET Limiter
+The FET limiter has a fixed threshold like many classic FET limiters, however the input and output gain knobs can be adjusted accordingly
+in order to achieve the desired output level and gain reduction. The attack and release values can be adjusted and the ratio can be set
+at either 4:1, 8:1, 12:1 or 20:1.
+
+
+
+
+1.9.8 Gate/Ducker
+The gate/ducker works functions similarly to the gate and ducker found in the standard SD channel strip, however it has different attack
+and release shape characteristics.
+
+An external sidechain source can be selected, which can then be sent to the sidechain of the compressor and/or gate/ducker.
+
+
+
+
+                                                                                                                                     25
+Quantum 2 - Getting Started – Issue A                                                                             1.10 Spice Rack
+
+1.10 Spice Rack
+Spice Rack is the new audio processing rack on Quantum engines. It was released with the Chilli 6 Multiband Compressor and also now
+includes a 6 band Dynamic EQ called Naga 6.
+The Spice Rack can be accessed by touching the Master Screen > Processors then Spice Rack.
+Soloing a channel with a Spice Rack processor inserted will bring up the Spice Rack and the relevant slot.
+
+1.10.1 Chilli & Naga 6 Overview
+
+                                                                                      Open the
+                                                     Safe the current                  presets
+
+                   The channel and insert where
+                                                     Spice Rack             The user window Link two Chilli 6     Select the Spice Rack
+                                                     processor          interaction type       units together
+                        the device is routed                                                                      device type
+
+        List of                                                                                                              The current
+      current                                                                                                                frequency
+  units in the                                                                                                               response of
+   Spice Rack                                                                                                                the
+         slots.                                                                                                              processed
+     Inserted                                                                                                                signal
+         units
+  display the                                                                                                                The dB range
+      channel                                                                                                                that the
+       name.                                                                                                                 compressor
+                                                                                                                             will act over
+
+
+
+                                                                                                                             These set the
+                                                                                                                             side chain
+                                                                                                                             source and
+                                                                                                                             type
+
+      This sets
+     the global
+           Solo
+        Mode.
+                                           This sets the solo
+                                                      source
+
+
+
+
+                                                                                                                                26
+Quantum 2 - Getting Started – Issue A                                                                                    1.10 Spice Rack
+The Naga 6 can be accessed by selecting a Chilli 6 unit and pressing the type button, then choosing Naga 6.
+                                                                                         Open the
+                                                      Safe the current                   presets
+                                                                                                                      Select the Spice
+                    The channel and insert            Spice Rack           The user             Link two Naga 6       Rack device type
+                    where the device is routed        processor            interaction          units together
+                                                                           type
+                                                                                                                                 The current
+                                                                                                                                 frequency
+         List of                                                                                                                 response of
+       current                                                                                                                   the processed
+   units in the                                                                                                                  signal
+    Spice Rack
+          slots.
+                                                                                                                                 The dB range
+      Inserted
+                                                                                                                                 that the
+          units
+                                                                                                                                 compressor
+   display the
+                                                                                                                                 will act over
+       channel
+         name
+
+                                                                                                                                 Select Side
+                                                                                                                                 Chain route
+                                                                                                                                These set the
+                                                                                                                                side chain
+                                                                                                                                source and
+                                                                                                                                type
+  This sets the
+   global Solo
+         Mode
+
+                                        This sets the solo
+                                                   source
+Chilli 6 is a classic multiband compressor with four flat top filter type bands with shared crossover slope and two separate parametric
+bands. The Naga 6 is a Multiband Dynamic EQ with six parametric bands and no flat top filters. They both allow frequency specific
+dynamic control with compression or expansion applied to audio above a set threshold. When stereo channels are routed to the Spice
+Rack, two consecutive slots are automatically set to stereo, therefore ganged together. They can be set back to mono to allow the units
+to have different parameters. Before units can be stereo linked the pair of units have to be set to the same type Chilli 6 or Naga 6. Pairs
+have to be neighbouring units such as 1 and 2 ,3 and 4, 5 and 6 etc. Note that 2 and 3, 4 and 5 etc cannot be made into a stereo pair.
+
+The green line represents the frequency response of the processed audio and reflects the compression or expansion applied in real time.
+
+The Release Shape is used to alter the release characteristic with curve type exponential (0) through linear (0.5) to inverse exponential
+(1). Inverse exponential is a new feature which reduces sharp decays between peaks in signal, whilst maintaining the same overall decay
+time.
+
+
+
+
+Dynamic Angle affects how far above the threshold the signal needs to be before the full range of EQ is applied, similar to a ratio with a
+smooth transition through the threshold. This can be set anywhere between 1 (default) equivalent to a higher ratio and 0, a lower ratio.
+Also similar to a knee, when the Dynamic Angle is set to a value less than 1, gain reduction will be applied to signal below the threshold
+however will always maintain a soft curve.
+
+
+
+
+                                                                                                                                       27
+Quantum 2 - Getting Started – Issue A                                                                                           1.10 Spice Rack
+Parametric (Bell) Filters. The six bands on the Naga 6 and two of the bands (P1 and P2) on the Chilli 6, are parametric EQ type filters,
+which have a centre frequency range of 20Hz – 20kHz and Q of 0.35 – 60. When the band is set to “Split” mode, these bands also have
+their own independent flat top filter bands, which are used only on the side chain dynamic control and as isolating filters when soloing
+the band. The centre frequency of these bands follow the frequency control of their main parametric filter, and the width adjusts in
+sympathy with the main ”Q” control. Setting the band to “Wide” bypasses the flat top filter in the dynamic side chain control such that
+the side chain is fed directly from the input signal, although these filters remain active as isolating filter when soloing.
+
+Flat top filters. On the Chilli 6 only, bands 1 – 4 have three crossover filters which are used to position the bands over the desired
+spectrum. A global Crossover Slope adjusts the filter slope between second order (0) and true fourth order (1). When a band is set to
+split mode, the side chain control signal is fed post the filter and will respond only to audio within the band, but when set to “Wide” the
+side chain is fed directly from the input and will respond to the whole spectrum. Soloed signals will always pass through the filter
+regardless of the “Split”/”Wide” state.
+
+Gain acts as a level adjustment for each band.
+
+Range determines the limits of compression or expansion applied to a particular band. When activated, the dynamic range is shown by
+a blue highlight either above (expansion) or below (compression) the current gain in the graphical display.
+
+External Side Chain. Pressing the “Side Chain Source Route” will allow you to select an external source to be used as a side chain. Each
+band can be set to use this one signal as it’s side chain source independently by pressing the “Int” / “Ext” buttons. Any band not using
+Ext reverts to using self (the input signal) as it’s source. “Ext” cannot be selected if no externally route has been set up.
+
+Soloing Bands. Only one band can be soloed at a time, by pressing the “listen” button in the band. With listen Source set to “Band” the
+solo will monitor the input signal passing through the bands filter controlled by the dynamics, and in the case of parametric filter bands,
+the signal will also be passed through a side chain isolating flat top filter. This is so that when notch filters (Bell cut) are used, the effected
+audio region will be isolated. When Listen source is set to “S/C Listen” the external S/C signal (if set to external) or the input signal, will
+be passed through its own flat top side chain filter. This filter will not be controlled by the dynamics as it is monitoring the source that is
+controlling the dynamics.
+
+Listen/Solo Destination. The soloed band can be sent to the “Solo 1”buss , the “Solo2” buss, or both, without altering the normal signal
+going through the spice rack (non-destructive). Alternatively, Pressing the “Destructive” button will make the soloed band replace the
+spice racks normal output with the soloed signal. These controls are global to all the units in the spice rack.
+
+Attack and Release determine the speed at which the compression or expansion acts on the signal.
+
+Threshold sets the point where compression or expansion is applied.
+
+There is an overall Output fader which can be used to make-up or reduce a post-effect gain difference.
+
+Any of the bands can be set to Bypass which sets the gain and range for that band to 0dB, maintaining the overall phase. Bypass All
+applies a blanket bypass across all bands which keeps the state of the individual bypasses.
+
+1.10.2 User interaction options
+    1. Faders
+Parameters can be touched on screen to determine which row of controls are assigned to the Quantum 2 faders. Mute buttons act as
+bypass and solos act as listen in this option.
+
+    2. Touch turn
+Each parameter can be pressed individually to be controlled by the touch turn rotary. The touch turn button toggles the bypass state
+when on-screen rotaries for that band are selected and listen state when the on-screen faders are selected.
+
+
+
+
+                                                                                                                                               28
+Quantum 2 - Getting Started – Issue A                                                                                    1.10 Spice Rack
+
+1.10.3 Presets
+
+
+
+
+Presets allow the ability to recall and save parameters for a particular setup of a Spice Rack effect. New will create a preset with the
+current parameters in the effect, this will be stored under a group. Default will recall the default settings for the effect in the current
+slot.
+When edit name is selected, the group name, preset name and notes can be altered. Factory presets are locked and cannot be altered
+or deleted.
+A variety of factory presets are available as starting points for use on different audio sources.
+
+The Naga 6 has the addition of six static gain curves (Band Gains), colour coded to the appropriate band, and as such there are three
+display option buttons which allow you to mix and match the graphic display. The live animated spectral gain indicator (the green line)
+remains visible at all times.
+
+Band Gain Filters only
+
+
+
+
+Side Chain/isolating Filters only
+
+
+
+
+Range only
+
+
+
+
+                                                                                                                                       29
+Quantum 2 - Getting Started – Issue A                                                                                       1.11 Auxiliaries
+
+1.11 Auxiliaries
+The auxiliaries can be accessed by pressing the Quick Select Aux button and touching the auxiliary row on screen or using the Screen
+Scroll buttons on the left of the worksurface
+Using either of these methods, the highlighted auxiliaries on the input screen will change. The rotary controls and switches beneath the
+screen are used as auxiliary sends, pans (with 2nd Function ON), On/Off and pre/post switches (with 2nd Function ON).
+
+
+
+
+                                                                                                                        Assigned
+                                                                                                                        Control LCD
+
+
+
+
+         Assignable Aux Send Controls
+         Touch screen to select
+
+                                                                                                                 Hold & touch screen
+                                                                                                                           to Assign
+
+
+
+
+It is also possible to show all of the aux sends for a channel in a single display and assign them to the 12 rotaries beneath the screen. This
+is done by touching the currently assigned aux row on the screen for the channel that you want to display. The layout of the display
+indicates which encoder each aux is assigned to; if there are more than 24 sends, the assignments becomes scrollable using the Screen
+Scroll function.
+
+
+
+
+Once you have adjusted the auxes in this display, you need to close it manually before opening any other channel detail display.
+
+
+
+
+                                                                                                                                          30
+Quantum 2 - Getting Started – Issue A                                                                                  1.12 The Matrix
+
+1.12 The Matrix
+To open the Matrix Inputs panel, touch the Matrix button on the Master Screen. The window that opens allow you to route inputs to
+the Matrix Output Channels and set the Matrix crosspoint levels.
+To route an input, touch the top of the appropriate Matrix column. This opens a standard QUANTUM 2 input routing page.
+
+
+      Matrix input
+      routing
+
+      Matrix
+      Crosspoint
+      level control
+
+
+
+
+                      Matrix                 Matrix presets                Touch turn                Enter desired gain
+                      snapshot safe                                        assignment                value via text
+                                                                           s
+
+
+There are five modes of level adjustment: multi, single, all, absolute text and relative text.
+
+Multi (active when no other mode is selected): Touch one or more level “knob” on screen, then adjust using the Touch Turn control.
+Single : Touch any level “knob” and adjust. Touching another “knob” will deselect the first.
+All : All “knobs” are adjusted at the same time.
+When adjusting more than one crosspoint, their relative levels are maintained.
+Abs Text: enter the numerical value in the box using a keyboard or the on-screen numpad, all selected “knobs” will have their gain set to
+that value.
+Rel Text: the value entered in the text box changes all selected “knobs” by the entered amount.
+The clear button cancels all active Touch Turn assignments.
+
+
+
+
+                                                                                                                                     31
+Quantum 2 - Getting Started – Issue A                                                                                       1.13 Control Groups
+
+1.13 Control Groups
+Any number of input channels and output channels can be connected to one or more of the 12 possible Control Groups. They can then
+all be operated from a single worksurface control. Changes to the Control Group fader, mute or solo or controls will affect all channels
+connected to the group.
+
+There are 2 methods to set up Control Groups:
+
+1) Press the LCD Function button on the CG fader bank followed by the JOIN CG button;
+Press the channel select button for the CG that you want to use;
+Press the channel select buttons for each of the channels to be included in the CG;
+Deselect the JOIN CG button:
+
+
+
+
+           Press LCD                    Select Control                        Press Channel LCD Buttons to assign members
+           Function Button              Group to join
+           then JOIN CG
+
+
+2) Press the on screen JOIN/LEAVE button for the required CG channel;
+Press the channel select buttons for each of the channels that you want to make members of the CG;
+Release the JOIN/LEAVE button:
+
+                                           List of members
+
+
+
+
+                                                                       Press Channel LCD buttons to assign members
+
+
+
+
+         Press Join/Leave button on required CG channel
+
+
+A list of all the connected channels and their names is displayed above each Control Group display.
+
+You can also clear all the channels from a Control Group by pressing Clear.
+
+When a channel is a member of a Control Group, its own controls can still be adjusted independently of the other CG members.
+Adjustments to fader levels are transmitted to the CG members as dB changes, so that a level increase of 2dB on the CG fader will increase
+all the member levels by 2dB, irrespective of the relative levels of the individual channel faders.
+
+CG Mutes are treated as “in series” where a channel is a member of more than one group. All CG mutes must be off for a channel to be
+unmuted; any CG muted always mutes all of its members.
+If a channel is CG muted by single or multiple CGs, the worksurface channel mute button will override all CG mutes for that channel. The
+channel will not however be removed from CG membership so if the relevant CG is muted again, the channel will also be muted.
+
+
+
+                                                                                                                                            32
+Quantum 2 - Getting Started – Issue A                                                                      1.14 Multi-channel formats
+
+1.14 Multi-channel formats
+Multi-channel inputs are controlled by routing each component through a mono channel and then linking those channels via a 'Multi'
+channel. To start with, use the normal input and output routing procedures to route each component through a channel. Then open the
+Setup display for the first component, and select Multi at the top, to open the Setup Multi Channels display. Select the format – LCR,
+LCRS, 5.1 or multi-input (which allows you up to 11 components) – and then press the LCD buttons for the remaining component
+channels, working down the displayed list in order. Channel names will appear against each component. Each channel can then be left
+on the worksurface or removed using the buttons towards the base of the display. Finally, touch OK to close the display to link the
+channels together.
+
+Note that you can also create Multis on a blank layer by selecting the Create Multi LCD function on the Layer you wish to use, then
+pressing the LCD button for the required channel strip.
+
+The included channels are shown in the Multi-channel strip. Touching the Folded Controls button allows you to control which channel
+elements are displayed in the folded channel strip – each element affects all linked components.
+
+                                                             Folded View
+                                                                 Channel
+
+
+
+
+                                                            Link Control
+
+   Multi    Select        Leave or Remove
+  Button     Type             Channels
+                                                                Settings
+
+
+
+
+                                                       Unfold
+
+
+                                                                   Fold
+
+
+                                                                                                 Link Indicators
+
+
+
+If the Unfold button in the Multi or in a multi-channel buss channel strip is pressed, the component channels will be displayed, and more
+detailed configuration can be made.
+
+   See the SD/Quantum Series Software Reference Manual for more information on Multi Channel formats
+
+
+
+
+                                                                                                                                     33
+Quantum 2 - Getting Started – Issue A                                                                                  1.15 Solo Setup
+
+1.15 Solo Setup
+The QUANTUM 2 Solo panel is accessed from a button at the top of the Master Screen. Some of the controls on this panel are duplicated
+on the worksurface master section
+
+
+
+
+There are two solo busses and each solo button on the console can be independently assigned to use Solo1, Solo2 or Solo 1+2. Therefore,
+if the console was being used for Stage monitors, the first solo buss could feed “In-Ear” monitors, and the second solo buss could feed a
+wedge.
+
+                                                                             pfl / afl solo mode
+
+                                                                                     multi / single solo mode
+
+                                                                                           Clear
+
+
+
+
+      Solo Level Meter
+                                                                                                                        Solo Trim
+
+
+   Buss Format Switch
+
+                                                                                                                        Solo Delay
+
+  No solo source select
+
+           Insert routing
+                                                                                                                        Floating Meter
+                                                                                                                        activation
+      Direct Out routing
+
+  Headphones On / Off
+
+
+
+                                        Direct Out Level                           True Solo
+
+The following functions are available independently for each solo buss :
+
+- Mono / Stereo Switch
+- No Solo source routing: The source for solo buss when no channel is in solo mode.
+Note that the No Solo source does not show on Solo meters
+- Insert Point with both internal and external routing capability
+- Direct Out routing (eg. for feeding a wedge)
+- Assignment of Direct Out level control to master fader or speaker volume pot
+- afl or pfl mode
+- single or multi solo mode
+- Delay
+- Level Trim
+- Auto solo mode: If a channel is set to Auto Solo, it will automatically solo when another channel is soloed. The Auto Solo function of
+each solo buss can be enabled and disabled as required.
+- Solo meters can be displayed on the Master or Overview screen by pressing the floating meters button below the solo delay area in
+either side of the Solo panel.
+
+
+
+
+                                                                                                                                     34
+Quantum 2 - Getting Started – Issue A                                                                            2.1 Fitting DMI Cards
+
+
+DMI Cards
+The DiGiCo QUANTUM 2 has two option slots on its rear panel for the installation of DMI cards (see below).
+These cards come in a variety of I/O types.
+
+
+
+
+                                     DMI Slot 1        DMI Slot 2
+
+
+2.1 Fitting DMI Cards
+    NOTE: DMI cards are NOT hot swappable and therefore they should NEVER be fitted or removed from the console while the console
+    is powered on.
+
+To fit a DMI card:
+
+     1)   Remove the four screws from the console blanking plate and this will expose a hole in the rear panel with an internal connector
+          and a white slider on each side of the hole. Keep the four screws safe in order to secure the card in place.
+
+
+
+
+                                 DMI Internal Socket                              Card fits in slider grooves
+
+
+    NOTE: Before fitting the DMI card, carefully examine the internal connector as in some cases this may have a protective cover that
+    must be removed before fitting the card. If the cover is present, please remove it before proceeding
+
+    NOTE: With the DMI-MADI C there are 2 internal switches that must be set to the A position for use in the console. Please check these
+    switch positions (as picture below) before fitting the card.
+
+
+
+
+                                                                                                                                     35
+Quantum 2 - Getting Started – Issue A                                                                             2.1 Fitting DMI Cards
+
+
+
+
+                                               Position A for          DMI-MADI C internal
+                                                console use                 switches
+
+   2)   Carefully slide the DMI card in the hole using the while slider grooves as a guide and then ensure that it pushes into the internal
+        connector correctly with a click.
+
+   3)   Replace the 4 fitting screws.
+
+
+
+
+                                                                                                                                       36
+Quantum 2 - Getting Started – Issue A                                                                              2.2 DMI-MADI Cards
+
+2.2 DMI-MADI Cards
+There are 2 types of DMI-MADI Card:
+
+MADI B has 2 pairs of BNC connectors
+MADI C has 2 bi-directional Cat5e connectors
+
+Both of these cards can be used to connect a Standard MADI stream at 48KHz or 96KHz or an SD-Series DiGiCo Rack with the appropriate
+connector (D-Rack, D2-Rack, SD-Rack, SD-MiNiRack).
+
+   NOTE: Only one DiGiCo Rack can be connected to a single DMI-MADI card at one time.
+
+   NOTE: With QUANTUM 2 software V14.0.1400+, cable redundancy at 48KHz using both the Main and Aux MADI ports on a D2-Rack,
+   SD-Rack or SD-MINIRack is not implemented
+
+2.2.1 Connecting DMI-MADI
+External audio connections can be made using either BNC MADI (AES10) or the DiGiCo Cat5e Connection.
+
+There are 2 types of MADI connection available. A DiGiCo Stage rack can be connected to a console via a bi-directional MADI connection
+will have up to 112 channels (56 in, 56 out) of audio plus the control data for the Rack (located on CH57). A bi-directional standard MADI
+stream will contain up to 128 channels of Audio (64 in, 64 out) and can be connected to any 3rd party device that has MADI connectivity.
+
+A DiGiCo Cat5e connection is a bi-directional up to 64 Channel interface that uses STP Cat5e Cable with interference suppressors fitted
+on each end used to connect D-Racks and D2-Racks.
+
+Please carefully note the following connection requirements:
+
+DMI-MADI C to D-Rack at 48KHz
+Connect DMI card Cat5e socket A to D-Rack Cat5e socket.
+
+DMI-MADI C to D-Rack at 96KHz
+Connect DMI card Cat5e socket A to D-Rack Cat5e socket.
+
+   NOTE: This setup provides one 28 channel 96kHz MADI stream therefore D-Rack input sockets 29-32 will not pass audio.
+
+                             Single Console to D-Rack with DMI MADI C Card
+
+
+
+                                         D-Rack
+
+                                    SINGLE CAT5e
+                                    CONNECTION
+
+                                                     At 48Khz - all D-Rack I/O available
+
+                                                     At 96KHz - only D-Rack inputs 1-28 & outputs 1-16 available
+                               DMI MADI C PORT A
+                                           IN/OUT
+
+
+                                          Console
+
+                                 Audio Sync = MASTER
+
+
+
+
+                                                                                                                                      37
+Quantum 2 - Getting Started – Issue A                                                                            2.2 DMI-MADI Cards
+DMI-MADI C to D2-Rack at 48kHz
+Connect DMI card Cat5e socket A to D2-Rack Cat5e Main socket.
+
+                             Single Console to D-Rack with DMI MADI C Card
+
+
+                                       D-Rack
+
+                                   SINGLE CAT5e
+                                   CONNECTION
+                                                   At 48Khz - all D-Rack I/O available
+
+                                                   At 96KHz - only D-Rack inputs 1-28 & outputs 1-16 available
+                               DMI MADI C PORT A
+                                          IN/OUT
+
+
+                                        Console
+
+                                 Audio Sync = MASTER
+
+
+
+
+DMI-MADI C to D2-Rack at 96kHz
+Connect DMI card Cat5e socket A to D2-Rack Cat5e MAIN socket.
+Connect DMI card Cat5e socket B to D2-Rack Cat5e AUX socket.
+
+                        Single Console to D2-Rack with DMI MADI C Card at 96KHz
+
+
+                                                       D2-Rack
+
+                                                  CAT5e         CAT5e
+                                               MAIN MADI        AUX MADI
+                                             CONNECTION         CONNECTION
+
+
+
+                                        DMI MADI C PORT A       DMI MADI C PORT B
+                                                   IN/OUT       IN/OUT
+
+
+
+
+                                                Audio Sync = MASTER
+
+
+
+
+                                                                                                                                38
+Quantum 2 - Getting Started – Issue A                                                     2.2 DMI-MADI Cards
+DMI-MADI B to D2-Rack, SD-Rack or SD-MiNiRack at 48kHz
+Connect DMI card BNC IN socket A to D2-Rack BNC OUT MAIN socket.
+Connect DMI card BNC OUT socket A to D2-Rack BNC IN MAIN socket.
+
+                               Single Console to D2-Rack with DMI MADI B Card at 48KHz
+
+
+                                                              D2-Rack
+
+                                                     BNC MAIN MADI
+                                                          IN & OUT
+                                                     CONNECTIONS
+
+
+
+                                                  DMI MADI B PORT A
+                                                             IN/OUT
+
+
+                                                          Console
+
+                                                   Audio Sync = MASTER
+
+
+
+
+DMI-MADI B to D2-Rack, SD-Rack or SD-MiNiRack at 96kHz
+Connect DMI card BNC IN socket A to D2-Rack BNC OUT MAIN socket.
+Connect DMI card BNC OUT socket A to D2-Rack BNC IN MAIN socket.
+Connect DMI card BNC IN socket B to D2-Rack BNC OUT AUX socket.
+Connect DMI card BNC OUT socket B to D2-Rack BNC IN AUX socket.
+
+                               Single Console to D2-Rack with DMI MADI B Card at 96KHz
+
+
+                                                              D2-Rack
+
+                                                       BNC            BNC
+                                                 MAIN MADI            AUX MADI
+                                            INPUT & OUTPUT            INPUT & OUTPUT
+                                              CONNECTIONS             CONNECTIONS
+
+
+                                          DMI MADI B PORT A           DMI MADI B PORT B
+                                                     IN/OUT           IN/OUT
+
+
+                                                              Console
+
+
+                                                    Audio Sync = MASTER
+
+
+
+
+DMI-MADI B to a Standard MADI device at 48kHz
+Connect DMI card BNC IN socket A to Standard MADI device BNC OUT.
+Connect DMI card BNC OUT socket A to Standard MADI device BNC IN.
+
+DMI-MADI B to a Standard MADI device at 96kHz
+Connect DMI card BNC IN socket A to Standard MADI device CH 1-32 BNC OUT.
+Connect DMI card BNC OUT socket A to Standard MADI device CH 1-32 BNC IN.
+Connect DMI card BNC IN socket B to Standard MADI device CH 33-64 BNC OUT.
+Connect DMI card BNC OUT socket B to Standard MADI device CH 33-64 BNC IN.
+
+
+
+
+                                                                                                         39
+Quantum 2 - Getting Started – Issue A                                                                                       2.2 DMI-MADI Cards
+
+2.2.2 Sharing Racks with DMI-MADI
+If the system is running at a sample rate of 48KHz a D2-Rack, SD-Rack or SD-MINIRack can be shared between 2 consoles (Two QUANTUM
+2s or an QUANTUM 2 and another S or SD-Series console) with the connection system shown below.
+
+In this setup:
+1) All inputs can be shared by the two consoles but only one console controls the rack analogue gains (the "Master" console)
+2) The console which is not controlling the gains (the "Slave" console) can automatically adjust its digital trims to compensate for the gain
+changes using a system known as "Gain Tracking" (see below)
+3) Only the "Master" console can use the outputs of the shared rack
+
+The recommended connection between the Monitor (Slave) console and Stage Rack is a single MADI OUT from the Shared Rack's AUX
+MADI connected to the console's MADI A IN
+The FOH (Master console) is connected via MADI A IN and OUT to the stage rack.
+
+A similar method can be used if the Monitor console requires gain control and the FOH console will track the gain changes.
+MADI OUT from the Shared Rack's AUX MADI connected to the FOH console's MADI A IN.
+The Monitor (Master console) is connected via MADI A IN and OUT to the stage rack.
+
+    Note: The "Master" console should be set to provide "Master Sync" (Setup>Audio Sync menu - see diagram below) to the Shared rack
+    The "Slave" console should be set to receive its Audio Sync from the MADI DMI slot that is connected to the Shared Rack.
+
+1) The operators should agree on and set a level of analogue gain that provides enough headroom for the required application.
+2) The second console should connect to the Shared rack in Receive Only mode (only MADI Input cable connected)
+3) Gain Tracking (the GT ON/OFF button at the top of the Input channel setup view) can be switched on for the console that is in
+"Receive Only" mode for all the channels that are being shared.
+4) When an analogue gain control is changed on the "Master" console, the "Slave" console's analogue gain should reflect the changes
+and the digital trim control should compensate for this change by moving by the same amount in the opposite direction.
+
+    IMPORTANT Note: If Gain Tracking is active on a channel, the digital trim control will still respond to the local gain adjustment by
+    compensating locally for the displayed gain change.
+    If the "Slave" console loads a session where the Analogue Gain and +48V settings do not match the current state of the racks, the
+    Master console should then reload its session to update the state of these controls on the "Slave" console
+
+                            FOH & MONITORS WITH SHARED RACK at 48KHz USING MADI
+
+                                                                                       Uni-Directional Gain Tracking
+                                                                     AUX MADI       FOH has control of the Analogue Gains
+                                                  Shared Rack          OUT
+                                                                                         and Monitors can track this
+
+
+                                                    MAIN MADI
+                                                     IN/OUT
+                                                                                        Connection can be:
+                                                                                A single Cat5e cable for DMI MADI C
+                                                                                                OR
+                                    Connection can be:                              1 BNC cable for DMI MADI B
+                            A single Cat5e cable for DMI MADI C
+                                            OR
+                               2 BNC cables for DMI MADI B
+
+                                                                                 DMI MADI
+                                                                                 PORT A IN
+
+
+                                                                                                 Console 2
+                                             DMI MADI PORT A
+                                                  IN/OUT
+
+                                                                                              MONITORS
+                                                         Console 1                     Audio Sync = DMI MADI IN
+
+
+
+                                                         FOH
+                                                 Audio Sync = MASTER
+
+
+
+
+                                                                                                                                           40
+Quantum 2 - Getting Started – Issue A                                                                       2.2 DMI-MADI Cards
+If the system is running at a sample rate of 48KHz, a D-Rack can also be shared between 2 consoles (Two QUANTUM 2s or a QUANTUM
+2 and another SD-Series console with Cat5e connections eg SD9 or SD11) with the connection system shown below.
+
+This setup is similar to the one previously described but requires a DiGiCo Little Red Box.
+The Little Red Box has separate Cat5e connections for:
+The D-Rack itself
+The FULL CONNECT " Master" console
+The RECEIVE ONLY "Slave" console
+
+In all other respects the setup is the same as that for the D2-Rack and SD-Rack
+
+                                  SHARING A D-RACK at 48KHz USING MADI
+
+                                                                      Uni-Directional Gain Tracking
+                                                                   FOH has control of the Analogue Gains
+                                             Shared
+                                                                        and Monitors can track this
+                                             D-Rack
+
+                                                          Cat5e
+                                                          MADI IN/OUT
+
+
+
+                                         D-RACK PORT
+
+                                                                          DMI MADI C
+                                              Little                    PORT A IN/OUT
+                                                                                        Console 2
+                                             Red Box         RECEIVE
+                                                             ONLY
+                                                             PORT
+                                        FULL CONNECT                                    MONITORS
+                                                PORT
+                                                                                 Audio Sync = DMI MADI IN
+
+
+
+                             DMI MADI C - PORT A IN/OUT
+
+
+                                            Console 1
+
+
+
+                                            FOH
+                                    Audio Sync = MASTER
+
+
+
+
+                                                                                                                            41
+Quantum 2 - Getting Started – Issue A                                                                            2.3 DMI - Dante Cards
+
+2.3 DMI - Dante Cards
+A DMI-Dante card in a QUANTUM 2 console provides 64 input and 64 output channels at 48kHz and 32 input and 32 output channels at
+96kHz. It is provided with Primary and Secondary (backup) Gigabit Ethernet ports for connection to the Dante network.
+
+
+
+
+A DMI-Dante 64@96 DMI card provides 64 input and 64 output channels at 48kHz or 96kHz, along with support for SRC (Sample Rate
+Conversion). This enables the desk to run at a different sample rate to the Dante network.
+
+
+
+
+Sample rate conversion can be enabled in the Audio IO panel by enabling ‘Auto SRC’. This will automatically switch on when necessary
+to convert the sample rate of the desk inputs and outputs to match the Dante network’s sample rate e.g. the Dante network at 96kHz
+and console structured at 48kHz. SRC will not affect the number of input and output channels that can be routed.
+
+For both Dante cards, all control and configuration of the Dante interface is done externally by the Dante controller software. A separate
+control computer must be provided to do this.
+In S-Series, the Dante network can be set to use the console as the network system clock (in the Dante Controller software) or the Dante
+card can be selected as the console clock source.
+
+In the picture below, the Dante Controller software displays two DiGiCo DMI Dante devices.
+The second device in the list is installed in an QUANTUM 2 and has been manually labelled "DiGiCo QUANTUM 2".
+In the Dante Device Config tab the QUANTUM 2 DMI-Dante card must be set to match the QUANTUM 3 sample rate at 48KHz or 96KHz
+
+Example 1 - Console is Master clock for Dante Network
+In the Dante Clock Status tab, the QUANTUM 2 DMI-Dante card is set to Sync To External and Preferred Master.
+This setup enables the DMI-Dante in the QUANTUM 2 to take its Audio Sync Source from the console itself and in turn provide sync to
+the rest of the Dante network. The console would typically be set as Audio Master in the Main Menu > Audio Sync panel
+
+
+
+
+Sample Rate                                                              Display Preferred Master                   Set Preferred Master
+                                                                                    &                                        &
+                                                                             Sync To External                        Sync To External
+
+
+
+
+                                                                       Console Master Audio Sync
+
+
+
+
+                                                                                                                                           42
+Quantum 2 - Getting Started – Issue A                                                                              2.3 DMI - Dante Cards
+Example 2 - Dante Network is Master clock for console
+If the console is required to use the Dante network as its sync source the following settings should be applied.
+Enable Sync to External = OFF
+
+
+
+
+                                                                                              Sync To External = OFF
+
+
+
+
+                                                                                   Console External DMI Sync
+
+
+
+
+                                                                                                                                     43
+Quantum 2 - Getting Started – Issue A                                                         2.4 DMI - ADC - DAC - MIC - AES Cards
+
+2.4 DMI - ADC - DAC - MIC - AES Cards
+
+
+
+
+The DMI-ADC card provides 16 analogue inputs on 2 x 25 way "D" connectors.
+The ADC card is a line card only. There is no microphone amplifier or phantom power available.
+The S-series consoles have no gain control function for these inputs (only digital trim). Maximum input level +22dBu.
+
+The DMI-DAC card provides 16 analogue outputs on 2 x 25 way "D" connectors.
+DAC card is line level only. Maximum output level +22dBu (Digital Full Scale).
+
+The DMI-MIC card provides 8 microphone pre-amps on 1 x 25 way “D” connector.
+The S-Series consoles have control over phantom power, gain and pad on the card.
+
+The DMI-AES card provides 16 Inputs (8 pairs) and 16 outputs (8 pairs) on 2 x 25 way "D" connectors.
+All AES inputs are provided with sample rate conversion (SRC) by default.
+All AES outputs are synchronised to the mixer system clock.
+
+Multi-Pin Connector Pinouts
+The DMI module range use 25 way “D” connectors, Female on the module (Male required on the connecting cable). The pins connections
+are as follows.
+                 Analogue inputs and outputs                                           AES-EBU combined in/out
+       Sorted by pin                  Sorted by function                    Sorted by pin                  Sorted by function
+ Function       Pin                Function      Pin                   Function     Pin                 Function       Pin
+ 8+             1                  0             2                     4out+        1                   0              2
+ 0              2                  0             5                     0            2                   0              5
+ 7-             3                  0             8                     3out-        3                   0              8
+ 6+             4                  0             11                    2out+        4                   0              11
+ 0              5                  0             16                    0            5                   0              16
+ 5-             6                  0             19                    1out-        6                   0              19
+ 4+             7                  0             22                    4in+         7                   0              22
+ 0              8                  0             25                    0            8                   0              25
+ 3-             9                  1-            12                    3in-         9                   1in-           12
+ 2+             10                 1+            24                    2in+         10                  1in+           24
+ 0              11                 2-            23                    0            11                  1out-          6
+ 1-             12                 2+            10                    1in-         12                  1out+          18
+ nc             13                 3-            9                     nc           13                  2in-           23
+ 8-             14                 3+            21                    4out-        14                  2in+           10
+ 7+             15                 4-            20                    3out+        15                  2out-          17
+ 0              16                 4+            7                     0            16                  2out+          4
+ 6-             17                 5-            6                     2out-        17                  3in-           9
+ 5+             18                 5+            18                    1out+        18                  3in+           21
+ 0              19                 6-            17                    0            19                  3out-          3
+ 4-             20                 6+            4                     4in-         20                  3out+          15
+ 3+             21                 7-            3                     3in+         21                  4in-           20
+ 0              22                 7+            15                    0            22                  4in+           7
+ 2-             23                 8-            14                    2in-         23                  4out-          14
+ 1+             24                 8+            1                     1in+         24                  4out+          1
+ 0              25                 nc            13                    0            25                  nc             13
+
+Pinout and connection notes:
+0 = earth/ground or screen/shield      nc = not connected            + = phase/hot       - = antiphase/cold
+
+Analogue connections for input and output are connected in the same way, as shown.
+Analogue connections for channels 1-8 shown, channels 9-16 follow the same pattern (1 = 9, 2 = 10 etc.).
+
+AES connections are shown as 4 stereo (2 channel) connections, equivalent to channels 1-8.
+AES connections for stereo connections 1-4 (ch 1-8) shown, connections stereo 5-8 (ch 9-16) follow the same pattern (1 = 5, 2 = 6 etc.).
+
+
+                                                                                                                                     44
+Quantum 2 - Getting Started – Issue A                                                               2.5 DMI - Waves - Hydra Cards
+
+2.5 DMI - Waves - Hydra Cards
+
+
+
+
+DMI-Waves has 64 Inputs and 64 Outputs at both 48kHz and 96kHz - there is no control from the console, just simple routing of audio
+inputs and outputs.
+Configuration of this card on the Waves network is done with Waves own software and Control Panels - please refer to Waves own
+documentation for SoundGrid Studio, Waves MultiRack or Waves SuperRack.
+
+DMI-Hydra has 56 inputs and 56 Outputs and only functions when the console is at a sample rate of 48kHz - there is no control from the
+console, just simple routing of audio inputs and outputs.
+The ID of the card on the Hydra network can be changed from the console by touching the Set Network ID button, entering a new number
+using the on screen keyboard and the power cycling the console.
+Configuration of this card on the Hydra network is done with Calrec's own software and Control Panels - please refer to Calrec's own
+documentation for details.
+
+   IMPORTANT NOTE: If a DMI Hydra card is used in the QUANTUM console, the console MUST be set to Clock Master.
+   The Hydra DMI cannot be used as a clock source for the console itself.
+
+
+
+
+                 Select Hydra DMI
+
+
+
+
+                                                                 Set Hydra ID
+
+
+
+
+                                                                                                                                  45
+Quantum 2 - Getting Started – Issue A                                                                     2.6 DMI - ME - A3232 Cards
+
+2.6 DMI - ME - A3232 Cards
+
+
+
+
+The DMI-ME provides 40 outputs at 48kHz and 96kHz to Allen & Heath ME-1 or ME-500 Personal Mixers. There are no controls on the
+card.
+
+The DMI-A3232 (NOT COMPATIBLE WITH Q2) allows connection to A168 STAGE Racks. Each Cat5 port supports up to 32 I/O, for a
+total channel count of 64 I/O. The rack can be run in two different modes. In Cascade Mode, up to two A168 racks can be connected to
+each port. In redundant mode, one A168 rack can be connected with redundant cabling to both ports on the card. When a DMI-A3232
+is connected, each rack connected will be shown in a different view. The mode is changed by touching the desired mode in the Port
+Control Mode section.
+QUANTUM consoles have control over gain, phantom power and pads of the rack.
+
+   NOTE: When changing the Port Control Mode, there is a physical switch on the A168 STAGE racks that must also be changed.
+
+   NOTE: The primary and secondary ports on the racks are not interchangeable. The primary port must be used as the main connection.
+
+
+2.7 DMI – AMM
+Quantum 338, Quantum 225, Quantum 7 and SD12 are compatible with the DMI-AMM card. The DMI-AMM card automatically manages
+live microphones in unpredictable dialogue situations. When one person speaks, that microphone’s gain level fades up instantly, while
+the other microphone gains are reduced. When the speaker pauses, all microphone levels will adjust to medium gain to collectively match
+the level of one microphone at full gain. The resulting effect will be as if all speakers are sharing one microphone. When several people
+talk at once, the gain is shared. The AMM Controls (Figure 1) can be found in the Audio I/O window after conforming the DMI card (Figure
+2 & 3).
+
+
+
+
+                                                         Figure 1: AMM Control Window
+
+
+
+                                                                                                                                     46
+Quantum 2 - Getting Started – Issue A                                                                                 2.7 DMI – AMM
+Each of the 64 slots within the AMM control panel include a group assign (Group A & Group B) and a weight control. The Floor control of
+each group imposes a lower limit on the level detector for all microphones assigned to that group, this prevents a noisy microphone from
+receiving a disproportionate share of gain. The Floor should be left at the default value of -130dB for normal operation.
+
+
+
+
+                                                         Figure 2: Conform AMM
+
+
+
+
+                                                       Figure 3: Open AMM Control
+
+
+There are two ways to route channels to the AMM. The first is from within the AMM Control window itself. Touch the white box below
+each of the slots, this will open the AMM Routing window (Figure 4). Here you can ripple route channels to the AMM, using touch turn
+to select the desired number of channels. The AMM is automatically assigned a post-fader Insert B. Therefore, AMM can also be assigned
+in a way that DiGiCo users will be more familiar with, via the Insert B routing window at the bottom of a channel strip (Figure 5).
+
+
+
+
+                                                                                                                                    47
+Quantum 2 - Getting Started – Issue A                                       2.7 DMI – AMM
+
+
+
+
+                                Figure 4: Routing Within AMM Control
+
+
+
+
+                              Figure 5: Routing via Insert B Routing Menu
+
+
+
+
+                                                                                      48
+Quantum 2 - Getting Started – Issue A                                                                                    2.7 DMI – AMM
+When channels are routed to the AMM and assigned to a group, a Share % bar is seen in yellow on the right side of an AMM slot. This
+represents the gain Share that the channel is getting when the AMM is active. This meter is shown in terms of percentage, meaning that
+if 2 speakers stop talking at the same time then they will both get 50% of the gain share. The Weight control allows adjustment of the
+relative sensitivity on a per channel basis. When weighting controls are balanced (equal), each microphone has an equal opportunity to
+“take over” the system. Changing the weight will not have an effect on the overall level of the channel, just how easily it can take a share
+of the gain. Adding weight to one primary microphone ensure that the particular microphone (e.g. a chairperson) will get more of the
+share of gain (Figure 6).
+
+
+
+
+                                                Figure 6: AMM Share Percentage and Weights
+
+
+There are a set of master controls available at the bottom of the AMM Control window. These include a Floor control for each AMM
+group within the card and a safe control. The Floor control imposes a lower limit on the level detector for all microphones assigned to
+the relevant AMM group. This prevents a noisy microphone from receiving a disproportionate share of gain. The Floor should be left at
+the default value of -130dB for normal operation. The safe option excludes these floor controls from snapshots.
+
+
+
+
+                                                       Figure 7: AMM Master Controls
+
+
+All AMM parameters (both master and channel specific) are saved on a per snapshot basis and can be safed or removed from the global
+scope. Only input channels can be added to the AMM. It can be saved globally via the Input Devices option in the Global Scope menu on
+the Snapshots window. This is NOT enabled by default.
+
+
+
+
+                                                    Figure 8: Global Scope > Input Devices
+
+
+
+
+                                                                                                                                        49
+Quantum 2 - Getting Started – Issue A                                                                                      2.8 DMI-KLANG
+
+2.8 DMI-KLANG
+With the DMI-KLANG card, 64 signals can be routed to the card and up to 16 immersive monitor mixes plus solo routed back to the
+console. The DMI card can be configured in the KLANG Control panel, found under the Cards & Sockets tab of the card’s port in Audio
+I/O.
+
+
+                                               Set the Device Name          Configure the IP Address and Subnet Mask
+
+
+
+
+                                                                                                                           Set the Control
+                                                                                                                           Ports
+
+
+
+
+                              Open the KLANG Control panel                  Apply the changes to the DMI Card
+
+
+The DMI-KLANG card can be controlled from the console after being connected to the consoles network and setup in the External Control
+panel.
+
+
+2.9 DMI-Dante 64@96 & Dante IO Control
+    PLEASE NOTE that for the connection and use of the A168D & A164D Dante IO boxes, there is a requirement for the following firmware
+    updates to the Dante 64@96 DMI card:
+    1. DMI Dante 64@96 firmware update (v103) which is included in the update package.
+    2. A Dante firmware update (4.0.19) for the DMI card which can be updated using Dante Updater in Dante Controller.
+
+Socket parameters on A168D and A164D IO racks can be controlled in the same way as other DiGiCo I/O racks when connected to a Dante
+64@96 DMI card and routed in Audinate’s “Dante Controller” software.
+
+With a DMI Dante 64@96 card installed in a console, access to 64 channels of IO to/from the Dante network is provided.
+A Dante IO box can provide a specific number of IO on the Dante network according to the rack’s capability.
+168D = 16 analogue In and 8 Analogue Out
+
+Any Dante network may have many more devices on it than just a single console and rack.
+There might be multiple Dante equipped consoles, multiple racks and other Dante devices.
+When a console has a DMI Dante fitted, it “sees” that DMI as a 64 channel interface device to/from the Dante network.
+The source device of the audio signals it is receiving across that interface and the destination device of any signals that it is sending out
+across that interface are generally “unknown” to the console.
+
+
+
+
+                                                                                                                                         50
+Quantum 2 - Getting Started – Issue A                                                    2.9 DMI-Dante 64@96 & Dante IO Control
+The critical component in determining where the audio is going to/from is the Dante network controller which is responsible for setting
+up audio paths (routing) on the network.
+
+As an example, using just a single console and a single rack, the console could use its DMI Dante channel 1 as an input signal to its own
+console Input Channel 1 but the audio signal which appeared on that DMI Dante channel could be any signal from the Dante IO rack and
+is determined by the routing in the Dante Controller.
+With the following routing in place, a console that selects any of the DMI card channels 1-16 as an input source will receive the signal
+from the same numbered Rack Input socket – this is a logical setup.
+
+                                                                                                        Dante Rack Inputs
+
+
+     A168D Rack is a Transmitter in this case.
+     Each of the 16 Rack input sockets are routed to the same numbered DMI 64@96
+     channel
+
+
+
+
+     Dante Controller & Routing
+
+
+
+
+                                                     Network Switch
+
+
+
+                 Console 1                                              DMI 64@96 is a Receiver in this case.
+                                                                        Each channel receives the same numbered input socket
+                                                                        from the rack.
+
+
+
+
+                                                                                                                                     51
+Quantum 2 - Getting Started – Issue A                                                2.9 DMI-Dante 64@96 & Dante IO Control
+In this example, a console that routes signal to DMI card output channels 1-8 will be sending them to the same numbered Rack Output
+socket.
+
+  Console 1 DMI is a Transmitter in this case.
+  Each of the DMI 64@96 outputs 1-8 are routed to same numbered Rack output sockets
+
+
+
+
+       Network Switch                                  Console 1 – DMI Outputs
+
+
+
+
+                                      Dante Controller & Routing
+
+
+
+
+         Dante Rack Outputs
+
+
+
+
+                                                                                                                                52
+Quantum 2 - Getting Started – Issue A                                                                      3.1 Main Shortcuts
+
+
+Quantum Home
+When the Master screen > System > Quit To Windows button is pressed, the console application is closed and the Quantum Home
+interface can be used to adjust various system settings.
+
+When the system is locked, Quantum Home automatically launches the Quantum 2 application on start-up. When unlocked, the system
+can be configured.
+
+
+3.1 Main Shortcuts
+    •    Quantum 2: launches the Quantum 2 application.
+    •    Quantum Upgrade: launches the Quantum Upgrade application.
+    •    Network Settings: see section on network settings.
+    •    Quantum Test: launches the Quantum Test application.
+
+
+
+
+                                                                                                                            53
+Quantum 2 - Getting Started – Issue A                                                               3.2 Settings Pane
+
+3.2 Settings Pane
+Click the bottom Settings pane to expand it.
+      •    File Browser: opens a standard File Explorer
+      •    Delete Startup Sessions: deletes the following start-up files:
+                 o “D:\Quantum2\startup.ses"
+                 o "D:\Quantum2\_session.ses"
+      •    Show All Windows: restores all open windows that have been minimised.
+           System Information: see section on system information.
+      •    Advanced Settings: see section on advanced settings.
+      •    Power: opens a window with three buttons:
+                 o Power Off: turns the console PC off.
+                 o Restart: reboots the console PC (does not reboot the engine or work-surfaces).
+                 o Cancel: closes the Power windows and returns to the main Quantum Home view.
+
+
+
+
+                                                                                                                  54
+Quantum 2 - Getting Started – Issue A                                                                           3.3 System Information
+
+3.3 System Information
+Opens a window displaying general information about the system:
+    •    General:
+              o PC Name: name of the console PC – the factory default name should contain the serial number of the console.
+              o IP Address: static IP address of the console PC.
+              o App Version: version number of the Quantum 2 application.
+              o Home Version: version number of Quantum Home.
+              o System Version: version number of the overall system.
+    •    Disks:
+              o C Drive: amount of free disk space on the C:\ drive.
+              o D Drive: amount of free disk space on the D:\ drive.
+              o Memory: amount of RAM on the console PC.
+    •    BIOS:
+              o BIOS: version number of the console PC’s BIOS.
+              o Firmware: version number of the console PC’s board controller firmware.
+    •    Save to File: click to save the system information to a text file. The saved file also contains the “locked/unlocked” state of the
+         PC and a timestamp.
+
+
+
+
+                                                                                                                                        55
+Quantum 2 - Getting Started – Issue A                                                                           3.4 Advanced Settings
+
+3.4 Advanced Settings
+
+
+
+
+   •   Lock System Settings/Unlock System Settings: locks/unlocks the system and triggers a console PC reboot.
+            o Locked state: this is the “console mode” in which Quantum Home automatically launches the Quantum 2
+                 application at start-up.
+            o Unlocked state: “configuration mode” in which advanced settings and network settings are enabled.
+   •   Display Settings:
+            o External Screen: settings for the external monitor.
+                      ▪    Resolution: drop-down list of available screen resolutions for the external screen.
+                      ▪    Orientation: drop-down list of screen orientations:
+                                 •    Landscape.
+                                 •    Portrait.
+                                 •    Landscape (inverted).
+                                 •    Portrait (inverted).
+                                 •    Disconnected: disables the external screen.
+                      ▪    Position: drop-down list of available positions for external screen
+                                 •    Left screen (acts as a channel view for the left fader bank, the screen follows bank selection).
+                                 •    Overview (acts as an external overview screen).
+            o Configure All: applies the external screen settings and reconfigures the master, left and right screens. Once
+                 configured, Quantum Home identifies the screens, allowing for a visual confirmation of the new display
+                 configuration.
+                 Note that Quantum Home will require a restart after displays configuration, either by locking and rebooting the
+                 console or by a forced restart of Quantum Home when exiting the Advanced Settings menu.
+
+
+
+
+                                                                                                                                         56
+Quantum 2 - Getting Started – Issue A                                                                            3.4 Advanced Settings
+             o    Identify Displays: pops up the display identification view on each screen highlighting the current screen position.
+
+
+
+
+  Note: To switch between left and Overview screen as selections for the external screen, first unlock the system settings, and wait for
+  the console to reboot, then switch the position in: display settings> external screen> position and then press configure all, this should
+  display the new position of the screens relative to the master screen and lock and restart the console.
+
+   •    Quantum Home Update:
+            o Select File: opens a file dialog window to browse and open a new QuantumHome.exe file.
+            o Update: applies the update by replacing the current Quantum Home with the selected file. Triggers a restart of
+               Quantum Home.
+
+
+
+
+                                                                                                                                        57
+Quantum 2 - Getting Started – Issue A                                                                              3.5 Network Settings
+
+3.5 Network Settings
+Requires the system to be unlocked to apply new setting. If the system is locked, the current settings are displayed but cannot be changed.
+
+
+
+
+     •    Console IP Address: shows the current IP address of the console, can be edited to apply a new console IP address.
+     •    Engine IP Address: queries and shows the current engine IP address. When the console IP address is edited, the displayed
+          engine IP address changes accordingly. This is because the console and engine IP addresses are required to be consecutive.
+     •    Subnet Mask: shows the current subnet mask of the console, can be edited to apply a new console subnet mask.
+     •    Apply: applies the network settings (console and engine IP addresses and subnet mask).
+     •    Lock & Restart: is enabled after network settings have been applied. Causes the console PC to restart and locks the system.
+
+
+3.6 Keyboard Shortcuts
+     •    Hold “Space” at start-up: boots to Quantum Home without launching the Quantum 2 application.
+
+
+
+
+                                                                                                                                       58
+
