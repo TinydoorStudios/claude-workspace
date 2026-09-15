@@ -37,6 +37,11 @@ def ensure_folder(slug):
 def sync_assets(local_dir, slug):
     if not os.path.isdir(local_dir): return
     fid = ensure_folder(slug)
+    if '--replace-q2' in sys.argv:
+        for a in gql('query($f:Int!){assets{list(folderId:$f,kind:ALL){id filename}}}', {'f': fid})['assets']['list']:
+            if a['filename'].startswith('q2-'):
+                gql('mutation($id:Int!){assets{deleteAsset(id:$id){responseResult{succeeded message}}}}', {'id': a['id']})
+        print('  removed old q2-* assets')
     have = {a['filename'] for a in gql('query($f:Int!){assets{list(folderId:$f,kind:ALL){id filename}}}', {'f': fid})['assets']['list']}
     files = sorted(glob.glob(os.path.join(local_dir, '*')))
     n = 0
