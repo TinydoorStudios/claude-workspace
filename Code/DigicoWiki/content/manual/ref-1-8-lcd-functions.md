@@ -50,15 +50,11 @@ When an LCD function button is pressed, the fourth LCD display from the left is 
 
 To assign channels to the worksurface, enter ASSIGNFADERS mode. The LCD displays will turn dark green and their lower halves will read ASSIGN. Press the LCD/select buttons for each of the channel strips to which you wish to assign new channels.
 
-![LCD Functions (manual p.61)](/figures/ref-p061-1.png)
-
 Press the LCD
 
 **function**
 
 button then
-
-![LCD Functions (manual p.61)](/figures/ref-p061-2.png)
 
 Press the LCD buttons for assignment
 
@@ -66,9 +62,7 @@ Press the LCD buttons for assignment
 
 **FADERS**
 
-![LCD Functions (manual p.61)](/figures/ref-p061-3.png)
-
-![LCD Functions (manual p.61)](/figures/ref-p061-4.png)
+![LCD Functions (manual p.61)](/figures/ref-p061-1.png)
 
 Go to Layout >
 
@@ -76,7 +70,7 @@ Go to Layout >
 
 Master Screen and expand the group of channels you want to assign and then click on the first channel you want to apply
 
-![LCD Functions (manual p.61)](/figures/ref-p061-5.png)
+![LCD Functions (manual p.61)](/figures/ref-p061-2.png)
 
 To select the channels you wish to assign to those channel strips, open up the Channel List display, accessed by going to the master screen and touching Layout > Channel List. There you will find a list of all input, output and control channels that are present in the session structure, grouped by channel type. Open up the channel list for the channel type of the first channel to be assigned by touching the appropriate down arrow in the left- hand column.
 

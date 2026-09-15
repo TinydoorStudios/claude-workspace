@@ -18,8 +18,6 @@ In the Dante Clock Status tab, the QUANTUM 2 DMI-Dante card is set to Sync To Ex
 
 ![DMI - Dante Cards (manual p.47)](/figures/gs-p047-3.png)
 
-![DMI - Dante Cards (manual p.47)](/figures/gs-p047-4.png)
-
 ![DMI - Dante Cards (manual p.47)](/figures/gs-p044-1.png)
 
 **Example 2 - Dante Network is Master clock for console**
@@ -28,7 +26,7 @@ If the console is required to use the Dante network as its sync source the follo
 
 ![DMI - Dante Cards (manual p.48)](/figures/gs-p048-1.png)
 
-![DMI - Dante Cards (manual p.48)](/figures/gs-p045-1.png)
+![DMI - Dante Cards (manual p.48)](/figures/gs-p048-2.png)
 
 Sync To External = OFF
 

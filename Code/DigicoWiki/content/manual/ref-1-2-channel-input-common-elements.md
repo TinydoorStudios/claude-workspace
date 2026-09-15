@@ -58,8 +58,6 @@ The Channel Name display enables commonly used words to be inserted quickly with
 
 ![Channel Input - Common Elements (manual p.16)](/figures/ref-p016-2.png)
 
-![Channel Input - Common Elements (manual p.16)](/figures/ref-p016-3.png)
-
 Other commonly used words can be added and accessed by touching the Custom button. To add a new word to the custom set, touch an empty slot, press Edit, enter the word followed by OK (Enter). The Next button saves any text inserted in the current slot and moves the keyboard to the next slot in the custom list.
 
 Note: that Channel names can also be edited in quick succession within the Channel List as described in Chapter 2 (2.2.3)
@@ -94,22 +92,16 @@ Pressing Copy From opens the Copy Channels Display (Figure 5). The segments of c
 
 Press the LCD/channel select button (Figure 6) on the left-most source channel in order to action the channel copy. If more than one source channel has been selected, the settings of appropriate number of channels to the right of the source channel will copy to the channels to the right of the destination channel (the currently assigned channel).
 
-![Channel Input - Common Elements (manual p.18)](/figures/ref-p018-1.png)
+![LCD Copy Functions](/figures/ref-p018-1.png)
+*LCD Copy Functions*
 
 4 Copied Channels
 
-![Channel Input - Common Elements (manual p.18)](/figures/ref-p018-2.png)
-
-4 Source Channels
-
-![LCD Copy Functions](/figures/ref-p018-3.png)
-*LCD Copy Functions*
-
-Labels: Selected · Select the · Source
+4 Source Labels: Channels · Selected · Select the · Source
 
 Channel Labels: Using the LCD · Channel · / Select · Button
 
-![Copy Channel Display](/figures/ref-p018-4.png)
+![Copy Channel Display](/figures/ref-p018-2.png)
 *Copy Channel Display*
 
 The Copy To function allows settings to be copied from one selected channel to either one or multiple channels. Pressing Copy To opens a slightly different Copy Channels Display (Figure 7). This also includes a Stay Open button on the top left of the display. This means that the display isn’t closed when a user presses Copy using the

@@ -22,7 +22,7 @@ The DMI-KLANG takes 64 channels from the console and returns **16 stereo mixes**
 5. External Control > KLANG Interface > **Enable Mapped Channels**. Aux nodes whose sockets are named KLANG 1… become KLANG nodes.
 6. Fire a snapshot, then **Enable all channels** (macro available) and **Import Levels / Pans**: the aux mix becomes the starting KLANG mix, sounding the same. Update the snapshot.
 
-![KLANG control in External Control](/figures/ref-p179-1.png)
+![KLANG control in External Control](/figures/ref-p179-2.png)
 
 ## Mixing
 

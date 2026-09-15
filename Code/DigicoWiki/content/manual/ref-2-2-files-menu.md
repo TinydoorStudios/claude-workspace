@@ -32,23 +32,13 @@ For specific console model information, please refer to Configuring Session page
 
 Note: That processing channels are reserved for the master buss, talkback channel and stereo solos.
 
-![Files Menu (manual p.73)](/figures/ref-p073-1.png)
+Labels: Touch numbers to · edit with pop-up · Select session · keypad or
 
-Touch numbers to
-
-edit with pop-up
-
-![Files Menu (manual p.73)](/figures/ref-p073-2.png)
-
-Select session
-
-keypad or TouchTurn
+TouchTurn
 
 sample rate
 
-![Files Menu (manual p.73)](/figures/ref-p073-3.png)
-
-![Files Menu (manual p.73)](/figures/ref-p073-4.png)
+![Files Menu (manual p.73)](/figures/ref-p073-1.png)
 
 Enter Session title
 
@@ -58,21 +48,13 @@ Set number and type of Aux
 
 Set number and type of Group
 
-![Files Menu (manual p.73)](/figures/ref-p073-5.png)
-
 Set number of Matrix Inputs
 
 Set number of Matrix Outputs
 
 Set number of Control Groups
 
-![Files Menu (manual p.73)](/figures/ref-p073-6.png)
-
-Total number of unallocated
-
-![Files Menu (manual p.73)](/figures/ref-p073-7.png)
-
-Labels: Total number · of spare · busses · processing
+Total number of Labels: unallocated · Total number · of spare · busses · processing
 
 The above figure shows the SD7 Session Structure Panel. Pressing the Default All button followed by the Restructure button will automatically configure a new session where the inputs from Audio I/O Port 1 are routed to input channels and the Master Buss is routed to Local outputs 1 & 2, also to Port 1 rack outputs 1 &
 
@@ -144,15 +126,13 @@ Note: If any of the buttons in the right-hand column of the window are active, s
 
 2.2 Files Menu
 
-![Files Menu (manual p.76)](/figures/ref-p076-1.png)
-
 Select Internal or removable USB, Internal files saved in D:\Projects
 
 Select a file
 
 File details
 
-![Files Menu (manual p.76)](/figures/ref-p076-2.png)
+![Files Menu (manual p.76)](/figures/ref-p076-1.png)
 
 Note: that column widths can be adjusted by dragging their borders within the title row. To return all columns to their default widths, press RESET WIDTHS, in the top left-hand corner of the window.
 
@@ -212,15 +192,13 @@ To delete files, select the folder containing the files to be deleted and touch 
 
 [V1455+] A Save as template option allows the user to save the entire session as a single template, the session template is saved into the templates folder, subsequent saves using the save session button or macro will save changes into the sessions folder not the templates folder.
 
-![Files Menu (manual p.79)](/figures/ref-p079-1.png)
-
 Select Internal or removable USB, Internal files saved in D:\Projects
 
 Enter file name
 
 Enter description
 
-![Files Menu (manual p.79)](/figures/ref-p079-2.png)
+![Files Menu (manual p.79)](/figures/ref-p079-1.png)
 
 Save As Template
 

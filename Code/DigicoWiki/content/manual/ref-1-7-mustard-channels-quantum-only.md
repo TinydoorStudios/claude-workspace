@@ -16,23 +16,13 @@ Mustard processing enabled
 
 The Mustard channel strip layout and operation is similar to that of the SD channel strip, as shown below.
 
-Labels: Mustard Tube · Mustard EQ · Mustard Compressor
+Labels: Mustard Tube · Mustard EQ · Mustard Compressor · Mustard
 
-![Mustard Channels (Quantum only) (manual p.54)](/figures/ref-p054-1.png)
+Labels: Gate/Ducker · ti · Mustard Processing
 
-Mustard Gate/Ducker
+Labels: Insert Position · Switch between · viewing SD
 
-ti
-
-![Mustard Channels (Quantum only) (manual p.54)](/figures/ref-p054-2.png)
-
-Mustard Processing Insert Position
-
-![Mustard Channels (Quantum only) (manual p.54)](/figures/ref-p054-3.png)
-
-Switch between
-
-viewing SD processing and Mustard processing
+processing and Mustard processing
 
 1.7 Mustard Channels (Quantum only)
 
@@ -114,19 +104,11 @@ First stage harmonics
 
 Saturate control
 
-![Mustard Channels (Quantum only) (manual p.56)](/figures/ref-p056-3.png)
-
 Second stage harmonics
-
-![Mustard Channels (Quantum only) (manual p.56)](/figures/ref-p056-4.png)
 
 High frequency boost
 
-![Mustard Channels (Quantum only) (manual p.56)](/figures/ref-p056-5.png)
-
 Output meter
-
-![Mustard Channels (Quantum only) (manual p.56)](/figures/ref-p056-6.png)
 
 Drive Labels: control · Output gain · Bias
 

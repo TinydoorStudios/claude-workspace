@@ -14,8 +14,6 @@ Using either of these methods, the highlighted auxiliaries on the input screen w
 
 It is also possible to show all of the aux sends for a channel in a single display and assign them to the 12 rotaries beneath the screen. This is done by touching the currently assigned aux row on the screen for the channel that you want to display. The layout of the display indicates which encoder each aux is assigned to; if there are more than 24 sends, the assignments becomes scrollable using the Screen Scroll function.
 
-![Auxiliaries (manual p.35)](/figures/gs-p035-3.png)
-
 Once you have adjusted the auxes in this display, you need to close it manually before opening any other channel detail display.
 
 1.12 The Matrix

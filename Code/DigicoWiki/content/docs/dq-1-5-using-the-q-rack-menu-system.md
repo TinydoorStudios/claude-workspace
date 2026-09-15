@@ -182,8 +182,6 @@ This is only possible to sync from the internal clock if the MADI Sync Active is
 
 Available options are 48K and 96K
 
-![Using the Q-Rack Menu System (manual p.16)](/figures/dq-p016-3.png)
-
 DQ & MQ-Rack User Guide
 
 Network Menu (DQ-Rack only) ...........................................................

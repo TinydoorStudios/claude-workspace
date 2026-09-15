@@ -88,11 +88,9 @@ When this option is turned on, after the set amount of time the LCD function men
 
 This option concerns the Engine button in the top left-hand corner of the SD7's master section, shown below, which is used for switching the SD7 to the redundant engine. When this function is inactive, the Engine button switches just the console controls; when this function is active, the Engine button also switches the audio processing. This function is inactive by default.
 
-![Options (manual p.113)](/figures/ref-p113-1.png)
-
 ### 2.5.2 Faders
 
-![Options (manual p.113)](/figures/ref-p113-2.png)
+![Options (manual p.113)](/figures/ref-p113-1.png)
 
 Note: Function replaced in v1445+ - see below
 
@@ -121,8 +119,6 @@ If this option is set to Yes, whenever 'Aux to Faders' is activated (by any mean
 A new option has been added in Options>Fader tab called Fader Response During Snapshot Recall. The option has a Standard and a Fast setting. When set to Fast the console avoids delaying the fader input when recalling snapshots/cues.
 
 ![Options (manual p.114)](/figures/ref-p114-1.png)
-
-![Options (manual p.114)](/figures/ref-p114-2.png)
 
 To avoid delaying fader input when recalling Snapshots/Cues select Fast option.
 

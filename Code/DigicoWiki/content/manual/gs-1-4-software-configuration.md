@@ -16,8 +16,6 @@ Select session sample rate
 
 ![Software Configuration (manual p.16)](/figures/gs-p016-1.png)
 
-![Software Configuration (manual p.16)](/figures/gs-p016-2.png)
-
 Enter session title
 
 Set number of input channels
@@ -26,7 +24,7 @@ Set number of Aux busses
 
 Set number of group busses
 
-![Software Configuration (manual p.16)](/figures/gs-p016-3.png)
+![Software Configuration (manual p.16)](/figures/gs-p016-2.png)
 
 Total number of spare busses
 

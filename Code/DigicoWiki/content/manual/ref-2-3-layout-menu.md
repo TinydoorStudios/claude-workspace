@@ -40,8 +40,6 @@ Fader layer names can be customised on SD12, Q2, Q3, and Q7.  These names will b
 
 ![Layout Menu (manual p.85)](/figures/ref-p085-1.png)
 
-![Layout Menu (manual p.85)](/figures/ref-p085-2.png)
-
 Type custom name in text box for each layer
 
 **SD5, SD12 & Q3 re-assignable master faders**
@@ -56,7 +54,7 @@ A miniature graphic of each fader set can be displayed on the master screen, or 
 
 All banks can be displayed on an overview screen at either small or large size by pressing the respective buttons next to “all:”. Note that this will remove all bank overviews from the master screen. The small overview or large overview buttons will be lit red to indicate that all the banks are displayed in this size on an overview screen. To remove all bank overviews from an overview screen, press this button again.
 
-![Layout Menu (manual p.85)](/figures/ref-p085-3.png)
+![Layout Menu (manual p.85)](/figures/ref-p085-2.png)
 
 2.3 Layout Menu
 
@@ -107,8 +105,6 @@ The Set Spill Direction entry in the Faders tab of the Options menu defines how 
 This panel displays every aux buss in the current session and touching the buss will activate aux to faders. Macros are available for the additional panel controls.
 
 (1272+) The Aux selection can be cleared when this panel is closed by pressing the clear on close button.
-
-![Layout Menu (manual p.88)](/figures/ref-p088-2.png)
 
 ### 2.3.6 Aux Nodes
 

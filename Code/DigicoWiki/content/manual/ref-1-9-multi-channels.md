@@ -16,27 +16,13 @@ Whichever procedure you use to create the Multi and assign it to a fader, you wi
 
 ![Multi Channels (manual p.63)](/figures/ref-p063-3.png)
 
-Press Multi on the Channel Setup Panel
-
-**OR**
-
-![Multi Channels (manual p.63)](/figures/ref-p063-4.png)
-
-Select the type of
+Press Multi on the Labels: Channel Setup Panel · OR · Select the type of
 
 Select channels to join the
 
-multi
+Labels: multi · multi · Press LCD function and · Only unassigned
 
-multi
-
-![Multi Channels (manual p.63)](/figures/ref-p063-5.png)
-
-![Multi Channels (manual p.63)](/figures/ref-p063-6.png)
-
-Press LCD function and
-
-Only unassigned channel strips can be Labels: used to create multis · Press JOIN · then CREATE MULTI · 1.9 Multi Channels
+channel strips can be Labels: used to create multis · Press JOIN · then CREATE MULTI · 1.9 Multi Channels
 
 Multi’s can be unfolded in order to access controls for each component. This is done by pressing the Unfold button in the channel strip. When unfolded, the normal channel assignments are hidden, each component is given its own channel strip, and a Multi master channel is displayed to their left.
 

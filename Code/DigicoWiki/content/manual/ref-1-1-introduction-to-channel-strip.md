@@ -6,43 +6,24 @@ This chapter describes all the functions available within an SD and Quantum seri
 
 Note: Most of the images in this manual reference the SD display style and the Quantum console version will probably differ slightly in appearance and have separate manual chapters to deal with relevant additional features.
 
-![Introduction to Channel Strip (manual p.13)](/figures/ref-p013-1.png)
+![Channel Setup](/figures/ref-p013-1.png)
+*Channel Setup*
 
-Input Area
+Input Labels: Area · Filter Section · Insert position A · (pre-
 
-Filter Section
-
-![Introduction to Channel Strip (manual p.13)](/figures/ref-p013-2.png)
-
-Insert position A
-
-(pre- EQ/dynamics)
-
-![Introduction to Channel Strip (manual p.13)](/figures/ref-p013-3.png)
+EQ/dynamics)
 
 4-Band EQ / Dynamic EQ
 
-![Introduction to Channel Strip (manual p.13)](/figures/ref-p013-4.png)
-
 Dynamics 1: Compressor,
 
-Multi-band Compressor
+Multi-band Labels: Compressor · or Desser · Dynamics 2:
 
-![Introduction to Channel Strip (manual p.13)](/figures/ref-p013-5.png)
+Gate, Ducker
 
-or Desser
+Insert position B Labels: (pre-fader) · or · Aux Sends · Pan
 
-Dynamics 2: Gate, Ducker
-
-![Channel Strip](/figures/ref-p013-6.png)
-*Channel Strip*
-
-Insert position B Labels: (pre-fader) · or · Aux Sends
-
-![Channel Setup](/figures/ref-p013-7.png)
-*Channel Setup*
-
-Pan Controls
+Controls
 
 Output Area
 

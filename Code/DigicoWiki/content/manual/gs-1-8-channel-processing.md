@@ -10,8 +10,6 @@ NOTE: If the expanded view does not appear when a control is adjusted open the O
 
 ![Channel Processing (manual p.25)](/figures/gs-p025-1.png)
 
-![Channel Processing (manual p.25)](/figures/gs-p025-2.png)
-
 Note: The type of filter used on the top and bottom bands can be changed by successive presses of the Curve button for that band.
 
 1.8 Channel Processing
@@ -23,8 +21,6 @@ The dynamics are accessed by touching the words Comp or Gate just below the EQ g
 ![Channel Processing (manual p.26)](/figures/gs-p026-1.png)
 
 ![Channel Processing (manual p.26)](/figures/gs-p026-2.png)
-
-![Channel Processing (manual p.26)](/figures/gs-p026-3.png)
 
 The Assignable encoders and switches beneath the screen can be assigned to any of the main dynamics controls. Hold the Assign Switch button on the right of the input section and touch the dynamics control required on the screen. The selected control is shown by the Status Display. Multiband Compression is available on all channel dynamics modules. Click on the dynamics mode select button on the left of the display to access the 3 dynamics bands Each band includes all of the parameters as those found in the single band compressor. The link function remains available for the whole compressor and is not assigned to any band. The bands can be switched on individually using the on buttons in the left-hand side of each band, or together using the all on button to the display’s right. The crossover frequency between bands is controlled using the purple and red pots to the left of the hi and lo bands. Each crossover has a range of 20Hz to 20kHz, and the crossover frequencies are displayed below each pot. Each band can be auditioned by pressing the listen button below each gain pot which solo’s that band to the mix (not the solo buss), in effect temporarily switching off the other bands. The channel strip’s compressor threshold and gain controls adjustment all three bands’ controls, maintaining any relative offsets. The individual controls are mapped to the assignable rotaries below the screen.
 

@@ -100,10 +100,6 @@ The aux sends button in the Control Group channel strip allows individual CG fad
 
 An Aux Send Enable macro is included in Setup>Macros under the Control Group command type.
 
-![Control Groups (manual p.142)](/figures/ref-p142-2.png)
-
-![Control Groups (manual p.142)](/figures/ref-p142-3.png)
-
 Include/exclude CG from CG controls Aux Sends.
 
 Note that the CG Fader Controls Aux Send global setting in Options>Faders has been removed in V1445.

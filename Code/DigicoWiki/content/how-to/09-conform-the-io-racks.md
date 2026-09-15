@@ -8,7 +8,7 @@
 ![The Setup menu](/figures/q2-m-setup.png)
 *The Setup menu — Quantum 2 offline software, V22.*
 
-![Audio I/O panel](/figures/ref-p150-2.png)
+![Audio I/O panel](/figures/ref-p150-1.png)
 
 ## Conform everything
 

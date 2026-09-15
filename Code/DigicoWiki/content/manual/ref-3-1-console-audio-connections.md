@@ -10,33 +10,17 @@ A DiGiCo Cat5e connection is a Bidirectional up to 64 Channel l/O interface that
 
 ![Console Audio Connections (manual p.187)](/figures/ref-p187-1.png)
 
-![Console Audio Connections (manual p.187)](/figures/ref-p187-2.png)
+Indicates card type and which Optocore ID has ownership of Labels: output cards. · Card status for Optocore: · Green tick = this console · Assign or disable all
 
-Indicates card type and which Optocore ID has ownership of output cards.
-
-![Console Audio Connections (manual p.187)](/figures/ref-p187-3.png)
-
-Card status for Optocore:
-
-Green tick = this console
-
-![Console Audio Connections (manual p.187)](/figures/ref-p187-4.png)
-
-Assign or disable all Optocore inputs or outputs on selected rack for this console
+Optocore inputs or outputs on selected rack for this console
 
 Red cross = available
 
 Red cross greyed out = unavailable
 
-![Console Audio Connections (manual p.187)](/figures/ref-p187-5.png)
-
 Remaps inputs to local console only
 
-![Console Audio Connections (manual p.187)](/figures/ref-p187-6.png)
-
 Prevents changes to Optocore settings on all consoles in the system
-
-![Console Audio Connections (manual p.187)](/figures/ref-p187-7.png)
 
 Optocore remap button- should be used if a message appears indicating “remap required”
 
@@ -110,8 +94,6 @@ MONITORS
 
 Audio Sync = MADI IN ON PORT 1
 
-![Console Audio Connections (manual p.189)](/figures/ref-p189-2.png)
-
 FOH
 
 Audio Sync = MASTER
@@ -168,8 +150,6 @@ Note: The console that is controlling the gains should be set to setup/audio syn
 
 If 2 SD7's and DiGiRacks are connected via optical fibre, a similar setup can be achieved in the following way:
 
-![Console Audio Connections (manual p.191)](/figures/ref-p191-1.png)
-
 **CONNECTION WITH OPTICAL FIBRE**
 
 **USING DiGiRacks on Optocore V220**
@@ -178,7 +158,7 @@ If 2 SD7's and DiGiRacks are connected via optical fibre, a similar setup can be
 
 **Audio Sync = Optocore**
 
-![Console Audio Connections (manual p.191)](/figures/ref-p191-2.png)
+![Console Audio Connections (manual p.191)](/figures/ref-p191-1.png)
 
 In this setup, you are limited by Optocore firmware Version 220 to four SD7 engines (2 consoles) and four Optocore connected racks. The system can only run at a sample rate of 48KHz.
 
@@ -216,13 +196,9 @@ To set racks to be in receive only mode: In the Audio IO Panel, select the appro
 
 ### 3.1.5 FOH & Mons sharing SD Series Racks (Optocore V221)
 
-![Console Audio Connections (manual p.193)](/figures/ref-p193-1.png)
-
 **CONNECTION WITH OPTICAL FIBRE using SD**
 
 **Racks on Optocore V221**
-
-![Console Audio Connections (manual p.193)](/figures/ref-p193-2.png)
 
 **MONITORS**
 
@@ -230,7 +206,7 @@ To set racks to be in receive only mode: In the Audio IO Panel, select the appro
 
 **Audio Sync = Optocore**
 
-![Console Audio Connections (manual p.193)](/figures/ref-p193-3.png)
+![Console Audio Connections (manual p.193)](/figures/ref-p193-1.png)
 
 It is possible for up to 5 DiGiCo consoles to share the inputs from remote stage SD Racks using optical fibre cables. It is also possible for the output cards in the SD Racks to be allocated to the consoles on a card by card basis.
 
@@ -302,8 +278,6 @@ Once the 4REA4 has been set up with the correct DMI card settings and Tie Lines 
 
 ![Console Audio Connections (manual p.197)](/figures/ref-p197-1.png)
 
-![Console Audio Connections (manual p.197)](/figures/ref-p197-2.png)
-
 Labels: Create a · 4REA4 · port
 
 This will populate that port with the relevant socket types that have been declared and “tie-lined” in the 4REA4.
@@ -332,15 +306,9 @@ The Dante 64@96 DMI card allows the console to route 64 channels to and 64 chann
 
 ![Console Audio Connections (manual p.199)](/figures/ref-p199-1.png)
 
-![Console Audio Connections (manual p.199)](/figures/ref-p199-2.png)
-
 The current sample rate of the Dante network and console
 
-![Console Audio Connections (manual p.199)](/figures/ref-p199-3.png)
-
 Toggle Auto SRC on and off
-
-![Console Audio Connections (manual p.199)](/figures/ref-p199-4.png)
 
 Sate of Sample Rate Conversion
 
@@ -362,23 +330,13 @@ In the Dante Clock Status tab, the Dante 64@96 DMI card is set to “Sync To Ext
 
 ![Console Audio Connections (manual p.200)](/figures/ref-p200-1.png)
 
-![Console Audio Connections (manual p.200)](/figures/ref-p200-2.png)
-
-![Console Audio Connections (manual p.200)](/figures/ref-p200-3.png)
-
-Display Preferred Master
-
-![Console Audio Connections (manual p.200)](/figures/ref-p200-4.png)
-
-Labels: Set Preferred Master · & · & · Sync To External · Sync To External · Sample · Rate
+Labels: Display Preferred Master · Set Preferred Master · & · & · Sync To External · Sync To External · Sample · Rate
 
 **Example 2 - Dante Network is Master clock for console**
 
 If the console is required to use the Dante network as its sync source the following settings should be applied.
 
 Enable Sync to External = OFF
-
-![Console Audio Connections (manual p.200)](/figures/ref-p200-5.png)
 
 Sync To External = OFF
 
@@ -440,37 +398,31 @@ Dante Rack Inputs
 
 ![Console Audio Connections (manual p.203)](/figures/ref-p203-1.png)
 
-![Console Audio Connections (manual p.203)](/figures/ref-p203-2.png)
-
 A168D Rack is a Transmitter in this case.
 
 Each of the 16 Rack input sockets are routed to the same numbered DMI 64@96 channel
 
-![Console Audio Connections (manual p.203)](/figures/ref-p203-3.png)
+![Console Audio Connections (manual p.203)](/figures/ref-p203-2.png)
 
 Dante Controller & Routing
 
-![Console Audio Connections (manual p.203)](/figures/ref-p203-4.png)
+![Console Audio Connections (manual p.203)](/figures/ref-p203-3.png)
 
 Network Switch
 
-![Console Audio Connections (manual p.203)](/figures/ref-p203-5.png)
+![Console Audio Connections (manual p.203)](/figures/ref-p203-4.png)
 
 Console 1
 
-![Console Audio Connections (manual p.203)](/figures/ref-p203-6.png)
-
 DMI 64@96 is a Receiver in this case.
 
-![Console Audio Connections (manual p.203)](/figures/ref-p203-7.png)
+![Console Audio Connections (manual p.203)](/figures/ref-p203-5.png)
 
 Each channel receives the same numbered input socket from the rack
 
 3.1 Console Audio Connections
 
 In this example, a console that routes signal to DMI card output channels 1-8 will be sending them to the same numbered Rack Output socket.
-
-![Console Audio Connections (manual p.204)](/figures/ref-p204-1.png)
 
 Console 1 DMI is a Transmitter in this case.
 
@@ -480,7 +432,7 @@ Network Switch
 
 Console 1 – DMI Outputs
 
-![Console Audio Connections (manual p.204)](/figures/ref-p204-2.png)
+![Console Audio Connections (manual p.204)](/figures/ref-p204-1.png)
 
 Dante Controller & Routing
 
@@ -509,8 +461,6 @@ Line Out/AES switch.
 Inactive outputs are blanked out.
 
 ![Console Audio Connections (manual p.205)](/figures/ref-p205-2.png)
-
-![Console Audio Connections (manual p.205)](/figures/ref-p205-3.png)
 
 Inactive outputs are “greyed out” in channel output routing view.
 

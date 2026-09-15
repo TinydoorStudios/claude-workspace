@@ -94,8 +94,6 @@ IMPORTANT Note: If Gain Tracking is active on a channel, the digital trim contro
 
 **FOH & MONITORS WITH SHARED RACK at 48KHz USING MADI**
 
-![DMI-MADI Cards (manual p.45)](/figures/gs-p045-1.png)
-
 ![DMI-MADI Cards (manual p.45)](/figures/gs-p044-1.png)
 
 2.2 DMI-MADI Cards
@@ -103,8 +101,6 @@ IMPORTANT Note: If Gain Tracking is active on a channel, the digital trim contro
 If the system is running at a sample rate of 48KHz, a D-Rack can also be shared between 2 consoles (Two QUANTUM 2s or a QUANTUM 2 and another SD-Series console with Cat5e connections eg SD9 or SD11) with the connection system shown below. This setup is similar to the one previously described but requires a DiGiCo Little Red Box. The Little Red Box has separate Cat5e connections for: The D-Rack itself The FULL CONNECT " Master" console The RECEIVE ONLY "Slave" console In all other respects the setup is the same as that for the D2-Rack and SD-Rack
 
 **SHARING A D-RACK at 48KHz USING MADI**
-
-![DMI-MADI Cards (manual p.46)](/figures/gs-p045-1.png)
 
 ![DMI-MADI Cards (manual p.46)](/figures/gs-p044-1.png)
 

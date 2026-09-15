@@ -8,8 +8,6 @@ To open the Matrix Inputs panel, touch the Matrix button on the Master Screen.  
 
 Matrix input routing
 
-![The Matrix (manual p.36)](/figures/gs-p036-2.png)
-
 Matrix Crosspoint level control
 
 Matrix Labels: snapshot safe · Matrix presets · Touch turn

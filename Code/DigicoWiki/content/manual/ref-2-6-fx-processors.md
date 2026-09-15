@@ -32,11 +32,9 @@ The global tap can be set using the new macro command type ‘Global Tap Tempo�
 
 ![FX & Processors (manual p.125)](/figures/ref-p125-1.png)
 
-![FX & Processors (manual p.125)](/figures/ref-p125-2.png)
-
 Press to cycle through the options for global tap at various scalers.
 
-![FX & Processors (manual p.125)](/figures/ref-p125-3.png)
+![FX & Processors (manual p.125)](/figures/ref-p125-2.png)
 
 The Global Tap value can be entered manually by touching the keypad icon in the Delay FX panel and typing a number.
 
@@ -44,7 +42,7 @@ The Global Tap value can be entered manually by touching the keypad icon in the 
 
 All reverbs are editable via a graphical display, with each of the coloured adjustable sliders on the graph representing the rotaries on the fx unit below.
 
-![FX & Processors (manual p.125)](/figures/ref-p125-4.png)
+![FX & Processors (manual p.125)](/figures/ref-p125-3.png)
 
 2.6 FX & Processors
 
@@ -58,93 +56,47 @@ Soloing a channel with a Spice Rack processor inserted will bring up the Spice R
 
 ### 2.6.3 Chilli & Naga 6 Overview
 
-Open the presets
-
-![FX & Processors (manual p.126)](/figures/ref-p126-1.png)
-
-Safe the current Spice
-
-window
+Labels: Open the presets · Safe the current Spice · window
 
 The channel and insert where the
 
 Labels: Link two Chilli 6 units · Rack processor · device is routed · The user interaction · together · Select the Spice Rack · type · device type
 
-![FX & Processors (manual p.126)](/figures/ref-p126-2.png)
+![FX & Processors (manual p.126)](/figures/ref-p126-1.png)
 
-![FX & Processors (manual p.126)](/figures/ref-p126-3.png)
+List of Labels: current units · The current · frequency
 
-List of current units
+response of Labels: the processed · in the Spice · Rack slots. · Inserted
 
-![FX & Processors (manual p.126)](/figures/ref-p126-4.png)
+Labels: units display · signal · the channel · name. · The dB range · that the
 
-The current
+compressor Labels: will act over · These set the · side chain
 
-frequency response of Labels: the processed · in the Spice · Rack slots. · Inserted
+Labels: source and · type · This sets
 
-Labels: units display · signal · the channel · name.
-
-![FX & Processors (manual p.126)](/figures/ref-p126-5.png)
-
-The dB range
-
-that the compressor will act over
-
-![FX & Processors (manual p.126)](/figures/ref-p126-6.png)
-
-These set the
-
-side chain source and
-
-type
-
-![FX & Processors (manual p.126)](/figures/ref-p126-7.png)
-
-This sets the global Labels: Solo Mode. · This sets the solo source · 2.6 FX & Processors
+the global Labels: Solo Mode. · This sets the solo source · 2.6 FX & Processors
 
 The Naga 6 can be accessed by selecting a Chilli 6 unit and pressing the type button, then choosing Naga 6.
 
-![FX & Processors (manual p.127)](/figures/ref-p127-1.png)
-
-Open the
-
-![FX & Processors (manual p.127)](/figures/ref-p127-2.png)
-
-Labels: Safe the current Spice · presets · Select the Spice Rack
-
-![FX & Processors (manual p.127)](/figures/ref-p127-3.png)
+Labels: Open the · Safe the current Spice · presets · Select the Spice Rack
 
 The channel and insert where
 
 Labels: Rack processor · Link two Naga 6 units · device type · The user
 
-Labels: interaction type · the device is routed · together
+Labels: interaction type · the device is routed · together · The current
 
-![FX & Processors (manual p.127)](/figures/ref-p127-4.png)
-
-The current
-
-![FX & Processors (manual p.127)](/figures/ref-p127-5.png)
+![FX & Processors (manual p.127)](/figures/ref-p127-1.png)
 
 frequency response of the
 
-![FX & Processors (manual p.127)](/figures/ref-p127-6.png)
-
 List of Labels: current units · processed · signal · in the Spice · Rack slots. · Inserted
 
-units display
+Labels: units display · The dB range · that the
 
-![FX & Processors (manual p.127)](/figures/ref-p127-7.png)
+Labels: compressor will · the channel · name · act over · Select Side Chain · route · These set the · side chain
 
-The dB range
-
-that the Labels: compressor will · the channel · name · act over · Select Side Chain · route
-
-![FX & Processors (manual p.127)](/figures/ref-p127-8.png)
-
-These set the
-
-side chain Labels: source and · type · This sets the · global Solo · Mode · This sets the solo source
+Labels: source and · type · This sets the · global Solo · Mode · This sets the solo source
 
 Chilli 6 is a classic multiband compressor with four flat top filter type bands with shared crossover slope and two separate parametric bands. The Naga 6 is a Multiband Dynamic EQ with six parametric bands and no flat top filters.  They both allow frequency specific dynamic control with compression or expansion applied to audio above a set threshold. When stereo channels are routed to the Spice Rack, two consecutive slots are automatically set to stereo, therefore ganged together. They can be set back to mono to allow the units to have different parameters. Before units can be stereo linked the pair of units have to be set to the same type, Chilli 6 or Naga 6. Pairs must be neighbouring units such as 1 and 2 ,3 and 4, 5 and 6 etc. Note that 2 and 3, 4 and 5 etc cannot be made into a stereo pair.
 
@@ -152,7 +104,7 @@ The green line represents the frequency response of the processed audio and refl
 
 The Release Shape is used to alter the release characteristic with curve type exponential (0) through linear (0.5) to inverse exponential (1). Inverse exponential is a new feature which reduces sharp decays between peaks in signal, whilst maintaining the same overall decay time.
 
-![FX & Processors (manual p.127)](/figures/ref-p127-9.png)
+![FX & Processors (manual p.127)](/figures/ref-p127-2.png)
 
 2.6 FX & Processors
 

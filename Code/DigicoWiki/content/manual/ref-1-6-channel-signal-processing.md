@@ -26,10 +26,6 @@ Touching the EQ area of the channel strip brings up the EQ/filters display. The 
 
 ![Channel Signal Processing (manual p.48)](/figures/ref-p048-1.png)
 
-![Channel Signal Processing (manual p.48)](/figures/ref-p048-2.png)
-
-![Channel Signal Processing (manual p.48)](/figures/ref-p048-3.png)
-
 In both the EQ/filters display and on the worksurface, each band has a ±18dB gain controller on the left, a frequency controller (ranging from 20Hz to 20kHz) top right and a Q control bottom right. Each rotary has its value displayed to its right.
 
 Bands can be switched between a bell curve (which is the default setting) and a Hi/Lowshelf using the bell button. On SD5, SD7 & Q3, the bell button's 2nd function allows each band to be switched between prec (precision, where the Q is narrower on the cut curve than the boost curve) and class (classic, where the cut and boost Q curves are identical in width). The active setting is shown in red to the right of the bell button. Pressing the precision or classic buttons above the EQ controls will switch all four visible bands to that shape. The active button goes blue – if different bands are employing different shapes, neither button will be lit. The EQ is switched on using the eq on button between the HMF and LMF controls which rings red to indicate that it is on.
@@ -110,13 +106,11 @@ At the top of the expanded display are buttons marked undo, safe, presets, copy 
 
 In Module 1's compressor, threshold, attack, release, ratio and gain controls are provided, each of which function in the normal way. The compressor has an auto gain function which is switched on by pressing the auto gain button below the ratio rotary. This function automatically adjusts the gain makeup when changes are made to the threshold, thus keeping the compressor output steady. The threshold knee can be switched between hard, mid and soft using the knee button in the right side of the module. The gain reduction (GR) meter is duplicated in this display.
 
-![Channel Signal Processing (manual p.52)](/figures/ref-p052-1.png)
-
 **Dynamics 1: Multiband Compressor**
 
 In Module 1's multiband compressor, each band includes all of the parameters found in the single band compressor. The link function remains available for the whole compressor and is not assigned to any band. The bands can be switched on individually using the on buttons in the left-hand side of each band, or together using the all on button in the display’s right.
 
-![Channel Signal Processing (manual p.52)](/figures/ref-p052-2.png)
+![Channel Signal Processing (manual p.52)](/figures/ref-p052-1.png)
 
 The crossover frequency between bands is controlled using the purple and red rotaries to the left of the hi and lo bands. Each crossover has a range of 20Hz to 20kHz, and the crossover frequencies are displayed below each rotary. Each band can be auditioned (destructively) by pressing the listen button below each gain rotary.
 
@@ -124,7 +118,7 @@ The crossover frequency between bands is controlled using the purple and red rot
 
 The de-esser's controls are similar to those of the compressor, with the following exceptions: In the right side of the module, there is a band-pass filter control for the de-esser sidechain, with rotaries provided for the centre frequency and filter width. The -3dB points for the hi-pass (hp) and lo-pass (lp) frequencies are shown. The filtered sidechain can be auditioned by pressing the listen button. Note that there is no makeup gain included.
 
-![Channel Signal Processing (manual p.52)](/figures/ref-p052-3.png)
+![Channel Signal Processing (manual p.52)](/figures/ref-p052-2.png)
 
 1.6 Channel Signal Processing
 

@@ -206,11 +206,9 @@ When OBC is started, it will check the DMI Firmware Codes are up to date with th
 
 In Update, the code the DMI card is currently running and the available code is displayed.  If an update is required, the tick in the Update column will be replaced by a Green arrow and Update Required! will be displayed.
 
-![Orange Box + Orange Box Controller V3.0 (DMI card reference) (manual p.8)](/figures/orange-box-guide-p008-1.png)
-
 The picture below shows the Update section for both DMI ports.  Both cards are running up to date codes.
 
-![Orange Box + Orange Box Controller V3.0 (DMI card reference) (manual p.8)](/figures/orange-box-guide-p008-2.png)
+![Orange Box + Orange Box Controller V3.0 (DMI card reference) (manual p.8)](/figures/orange-box-guide-p008-1.png)
 
 IMPORTANT:-  Remove ALL Audio connections from the DMI cards before beginning the update process.
 

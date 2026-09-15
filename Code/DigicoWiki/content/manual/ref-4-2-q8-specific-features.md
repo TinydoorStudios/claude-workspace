@@ -6,8 +6,6 @@
 
 ![Q8 Specific Features (manual p.207)](/figures/ref-p207-1.png)
 
-![Q8 Specific Features (manual p.207)](/figures/ref-p207-2.png)
-
 Above every channel LCD on the three lower sections of the console, there are two buttons labelled ‘a’ and ‘b’.
 
 These trigger channel macros, which are macros that can be triggered from specific channels. To create a channel macro, go to Master Screen > Setup > Channel Macros. This will open the ‘Channel Macro Editor’.
@@ -148,15 +146,11 @@ The left display can also show general console status indicators optionally by s
 
 ![Q8 Specific Features (manual p.214)](/figures/ref-p214-2.png)
 
-![Q8 Specific Features (manual p.214)](/figures/ref-p214-3.png)
-
 **Centre display**
 
 The centre display shows both upper and lower banks’ meters and also meters for the channels which are assigned to the right and left assignable master faders and both solo busses.
 
 There are also indicators for the Audio Master selection, the Mirroring State and the Mirroring Mode.
-
-![Q8 Specific Features (manual p.214)](/figures/ref-p214-4.png)
 
 4.2 Q8 Specific Features
 

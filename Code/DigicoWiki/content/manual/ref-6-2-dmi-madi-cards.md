@@ -154,8 +154,6 @@ If the "Slave" console loads a session where the Analogue Gain and +48V settings
 
 **FOH & MONITORS WITH SHARED RACK at 48KHz USING MADI**
 
-![DMI-MADI Cards (manual p.230)](/figures/ref-p230-1.png)
-
 ![DMI-MADI Cards (manual p.230)](/figures/ref-p226-1.png)
 
 If the system is running at a sample rate of 48KHz, a D-Rack can also be shared between 2 consoles (Two QUANTUM 8s or an QUANTUM 8 and another SD-Series console with Cat5e connections eg SD9 or SD11) with the connection system shown below.
@@ -180,13 +178,9 @@ Shared D-Rack
 
 Little Labels: Red Box · Console 2 · MONITORS
 
-Audio Sync = DMI MADI IN
+Labels: Audio Sync = DMI MADI IN · Console 1 · FOH
 
-![DMI-MADI Cards (manual p.231)](/figures/ref-p230-1.png)
-
-Console 1
-
-FOH Audio Sync = MASTER
+Audio Sync = MASTER
 
 ![DMI-MADI Cards (manual p.231)](/figures/ref-p226-1.png)
 

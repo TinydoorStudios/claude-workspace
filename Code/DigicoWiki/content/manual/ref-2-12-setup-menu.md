@@ -16,19 +16,13 @@ Stage Rack
 
 ![Setup Menu (manual p.150)](/figures/ref-p150-1.png)
 
-![Setup Menu (manual p.150)](/figures/ref-p150-2.png)
-
 Auto Conforming for all ports, individual racks, or
 
 individual cards.
 
 Select the contents of the
 
-![Setup Menu (manual p.150)](/figures/ref-p150-3.png)
-
 Select Card Type manually
-
-![Setup Menu (manual p.150)](/figures/ref-p150-4.png)
 
 Sets the selected racks gains, pads, SRCs and phantom power to default.
 
@@ -170,17 +164,11 @@ Indicates output socket
 
 ![Setup Menu (manual p.155)](/figures/ref-p155-1.png)
 
-Set Listen Source
+Labels: Set Listen Source · Expanded view of rack · Orange square indicates
 
-Expanded view of rack
-
-![Setup Menu (manual p.155)](/figures/ref-p155-2.png)
-
-Orange square indicates copied but not set as listen source
+copied but not set as listen source
 
 Red tick indicates socket is in listen
-
-![Setup Menu (manual p.155)](/figures/ref-p155-3.png)
 
 Red square indicates socket is set as the listen source
 
@@ -426,8 +414,6 @@ Multiple Macro OSC devices can be defined and each should have a unique DevID au
 
 ![Setup Menu (manual p.167)](/figures/ref-p167-1.png)
 
-![Setup Menu (manual p.167)](/figures/ref-p167-2.png)
-
 In the Macro Editor, there is a command type called MacroOSC which offers options of Integer, Float, String and Address Only (no data value required) OSC commands.
 
 Define the required OSC command and data value and then, using the value +/- buttons, specify a destination Device ID in the right-hand column.
@@ -492,13 +478,9 @@ The Setup>Video Link panel allows the routing of one of several different video 
 
 ![Setup Menu (manual p.171)](/figures/ref-p171-1.png)
 
-![Setup Menu (manual p.171)](/figures/ref-p171-2.png)
-
 Local video source selection
 
 Local to send to other consoles
-
-![Setup Menu (manual p.171)](/figures/ref-p171-3.png)
 
 Activate feed
 

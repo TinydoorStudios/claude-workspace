@@ -20,8 +20,6 @@ The logical setup, and the one to keep to: route rack input socket *n* to DMI ch
 4. Dante Controller > **Routing**: subscribe DMI receive channels 1–48 to the DQ-Rack transmit channels 1–48, and the rack's receive channels to the DMI transmit channels. DQ-Rack AES outputs, when active, are on Dante channels 49–56.
 5. Console: Setup > Audio I/O > **add port** > DQ-Rack (or A168D) and **conform**. Gain, 48V and pad control now works from the channel strip.
 
-![Clock status: Preferred Master + Sync To External](/figures/ref-p200-1.png)
-
 ## Auto SRC
 
 In Audio I/O, the card's port has an **Auto SRC** toggle. On, the card converts automatically when the Dante network runs at a different rate from the console (48 vs 96). Channel count doesn't change. The panel shows both rates and the SRC state.

@@ -242,15 +242,7 @@ Unmuted - RF Active             Muted                       RF inactive         
 
 ![V22 (v2242) Release Notes — June 2026 (manual p.8)](/figures/v22-release-notes-p008-4.png)
 
-![V22 (v2242) Release Notes — June 2026 (manual p.8)](/figures/v22-release-notes-p008-5.png)
-
 Labels: Lost Network · Assigned to Channel · 10% Battery · Connection · no network
-
-![V22 (v2242) Release Notes — June 2026 (manual p.8)](/figures/v22-release-notes-p008-6.png)
-
-![V22 (v2242) Release Notes — June 2026 (manual p.8)](/figures/v22-release-notes-p008-7.png)
-
-![V22 (v2242) Release Notes — June 2026 (manual p.8)](/figures/v22-release-notes-p008-8.png)
 
 To configure an Astral controller on the console, first navigate to external control, then select add device -> Astral
 
@@ -258,9 +250,9 @@ Check the IP addresses of the Sound Devices hardware and the console
 
 The console IP is seen in the External Control panel, and the Astral IP in the network menu, under the control IP header. In console External Control, input the Astral IP Address. Note that Send and Receive ports are fixed to 6500 when using Astral integration.
 
-![V22 (v2242) Release Notes — June 2026 (manual p.8)](/figures/v22-release-notes-p008-9.png)
+![V22 (v2242) Release Notes — June 2026 (manual p.8)](/figures/v22-release-notes-p008-5.png)
 
-![V22 (v2242) Release Notes — June 2026 (manual p.8)](/figures/v22-release-notes-p008-10.png)
+![V22 (v2242) Release Notes — June 2026 (manual p.8)](/figures/v22-release-notes-p008-6.png)
 
 Next navigate to the Audio IO panel. Note there is a new shortcut button located within the External Control panel to open the Audio IO panel.
 
@@ -269,8 +261,6 @@ In Audio IO, select Cards & Sockets. Within this panel, there is a new integrati
 ## DiGiCo v2242 Release Notes
 
 1.5 Sound Devices Integration
-
-![V22 (v2242) Release Notes — June 2026 (manual p.9)](/figures/v22-release-notes-p009-1.png)
 
 This opens the Sound Devices panel to assign Astral RF data to each socket. Any socket on any input port can be patched.
 
@@ -290,7 +280,7 @@ Ripple socket is also available.
 
 Refresh names will re-synchronise Astral RF channel names with the Console Sound Devices panel.
 
-![V22 (v2242) Release Notes — June 2026 (manual p.9)](/figures/v22-release-notes-p009-2.png)
+![V22 (v2242) Release Notes — June 2026 (manual p.9)](/figures/v22-release-notes-p009-1.png)
 
 At the bottom of the panel make sure Enable Astral Integration is selected. There is also a ‘Clear All Socket Assignments’ button which will clear all socket assignments on all ports.
 
@@ -416,8 +406,6 @@ If LiveTrax is not recording, when a DiGiCo Snapshot is fired it will locate to 
 
 When multiple snapshots share the same name within a single LiveTrax session, recalling a snapshot on the DiGiCo console will automatically move the playhead to the most recent take or recording.
 
-![V22 (v2242) Release Notes — June 2026 (manual p.12)](/figures/v22-release-notes-p012-4.png)
-
 ## DiGiCo v2242 Release Notes
 
 1.7 Move Snapshots and Macros
@@ -452,8 +440,6 @@ Macro search results are now filtered to only display command types that contain
 
 When using copy levels in Aux set up, the pan level is now also included in that data.
 
-![V22 (v2242) Release Notes — June 2026 (manual p.14)](/figures/v22-release-notes-p014-3.png)
-
 ## DiGiCo v2242 Release Notes
 
 1.8 Other Features and Changes
@@ -476,10 +462,6 @@ Mustard Dynamics gain reduction and gate meters have been added to small and lar
 
 When an Aux node has KLANG active, its pickoff point is hidden.
 
-![V22 (v2242) Release Notes — June 2026 (manual p.15)](/figures/v22-release-notes-p015-4.png)
-
-![V22 (v2242) Release Notes — June 2026 (manual p.15)](/figures/v22-release-notes-p015-5.png)
-
 **v21                                       v22**
 
 ## DiGiCo v2242 Release Notes
@@ -498,13 +480,11 @@ Snapshot panel view option settings for brightness and text size now mirror with
 
 ![V22 (v2242) Release Notes — June 2026 (manual p.16)](/figures/v22-release-notes-p016-2.png)
 
-![V22 (v2242) Release Notes — June 2026 (manual p.16)](/figures/v22-release-notes-p016-3.png)
-
 **Quantum 1 Surface Offline**
 
 Activating the Surface Offline Macro shows an indicator in the Infobar.
 
-![V22 (v2242) Release Notes — June 2026 (manual p.16)](/figures/v22-release-notes-p016-4.png)
+![V22 (v2242) Release Notes — June 2026 (manual p.16)](/figures/v22-release-notes-p016-3.png)
 
 ## DiGiCo v2242 Release Notes
 

@@ -46,11 +46,9 @@ There is a Copy Setting function in matrix output channels in Matrix Setup panel
 
 ![Matrix Menu (manual p.136)](/figures/ref-p136-1.png)
 
-![Matrix Menu (manual p.136)](/figures/ref-p136-2.png)
-
 Copy Settings button opens the Matrix list.
 
-![Matrix Menu (manual p.136)](/figures/ref-p136-3.png)
+![Matrix Menu (manual p.136)](/figures/ref-p136-2.png)
 
 Matrices list opens as a drop-down menu underneath the Copy Settings button.
 

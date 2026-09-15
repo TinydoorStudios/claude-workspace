@@ -6,8 +6,6 @@
 
 Date 15th Sept 15  (rev12, Dec 21) ref  339 Raised by:   TC Distributed to:   as required
 
-![TN339 — DMI connections and setup (manual p.1)](/figures/tn339-dmi-setup-p001-1.png)
-
 Digico(UK) Ltd. unit 10 Silverglade Business Park Chessington Surrey  KT9 2QL  England
 
 Tel: +44 1372 845600  email: support@digiconsoles.com

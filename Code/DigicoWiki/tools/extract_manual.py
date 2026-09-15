@@ -52,17 +52,30 @@ def main():
         blocks = page.get_text('dict')['blocks']
         blocks.sort(key=lambda b: (round(b['bbox'][1]/6), b['bbox'][0]))
         imgn = 0
+        # --- classify image blocks: big screenshots vs small masked callout labels/arrows ---
+        xref_of = {}; smask_of = {}
+        for img in page.get_images(full=True):
+            for r in page.get_image_rects(img[0]):
+                xref_of[(round(r.x0), round(r.y0))] = img[0]; smask_of[img[0]] = img[1]
+        ib = [b for b in blocks if b['type'] == 1]
+        def key(b): return (round(b['bbox'][0]), round(b['bbox'][1]))
+        big = [b for b in ib if (b['bbox'][2]-b['bbox'][0]) >= 110 and (b['bbox'][3]-b['bbox'][1]) >= 70]
+        small = [b for b in ib if b not in big]
+        merged_clip = {id(b): fitz.Rect(b['bbox']) for b in big}
+        skip = set()
+        for sb in small:
+            r = fitz.Rect(sb['bbox']); near = None
+            for bb in big:
+                if fitz.Rect(bb['bbox']).intersects(r + (-140, -140, 140, 140)): near = bb; break
+            if near is not None:
+                merged_clip[id(near)] |= r; skip.add(id(sb))          # callout joins its screenshot
+            elif smask_of.get(xref_of.get(key(sb))):                   # stray masked label with no screenshot: drop
+                skip.add(id(sb))
         for b in blocks:
             if b['type'] == 1:
                 w, h = b['width'], b['height']
-                if w < a.min_img or h < a.min_img or cur is None: continue
-                xref = None
-                # find the xref by matching bbox against page.get_images + get_image_rects
-                for img in page.get_images(full=True):
-                    for r in page.get_image_rects(img[0]):
-                        if abs(r.x0-b['bbox'][0])<2 and abs(r.y0-b['bbox'][1])<2:
-                            xref = img[0]; break
-                    if xref: break
+                if id(b) in skip or w < a.min_img or h < a.min_img or cur is None: continue
+                xref = xref_of.get(key(b))
                 if xref is None: continue
                 try:
                     pix = fitz.Pixmap(doc, xref)
@@ -77,7 +90,7 @@ def main():
                     imgn += 1; figcount += 1
                     fn = f"{a.prefix}-p{pg:03d}-{imgn}.png"
                     path = os.path.join(a.fig_dir, fn)
-                    clip = fitz.Rect(b['bbox']) + (-2, -2, 2, 2)
+                    clip = (merged_clip.get(id(b)) or fitz.Rect(b['bbox'])) + (-4, -4, 4, 4)
                     rendered = page.get_pixmap(clip=clip, dpi=220, alpha=False)
                     from PIL import Image as _I, ImageStat as _S
                     _im = _I.frombytes('RGB', (rendered.width, rendered.height), rendered.samples)

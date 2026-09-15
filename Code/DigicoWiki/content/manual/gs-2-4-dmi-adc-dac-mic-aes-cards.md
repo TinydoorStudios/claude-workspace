@@ -8,8 +8,6 @@
 
 ![DMI - ADC - DAC - MIC - AES Cards (manual p.49)](/figures/gs-p049-3.png)
 
-![DMI - ADC - DAC - MIC - AES Cards (manual p.49)](/figures/gs-p049-4.png)
-
 The DMI-ADC card provides 16 analogue inputs on 2 x 25 way "D" connectors. The ADC card is a line card only. There is no microphone amplifier or phantom power available. The S-series consoles have no gain control function for these inputs (only digital trim). Maximum input level +22dBu. The DMI-DAC card provides 16 analogue outputs on 2 x 25 way "D" connectors. DAC card is line level only. Maximum output level +22dBu (Digital Full Scale). The DMI-MIC card provides 8 microphone pre-amps on 1 x 25 way “D” connector. The S-Series consoles have control over phantom power, gain and pad on the card. The DMI-AES card provides 16 Inputs (8 pairs) and 16 outputs (8 pairs) on 2 x 25 way "D" connectors. All AES inputs are provided with sample rate conversion (SRC) by default. All AES outputs are synchronised to the mixer system clock.
 
 **Multi-Pin Connector Pinouts**

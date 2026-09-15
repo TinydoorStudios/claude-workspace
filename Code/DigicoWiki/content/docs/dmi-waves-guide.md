@@ -90,8 +90,6 @@ Search for the driver by name
 
 Choose the driver and click Install
 
-![DMI-Waves User Guide (Waves) (manual p.7)](/figures/dmi-waves-guide-p007-3.png)
-
 If you are new to Waves products, begin by downloading the Waves Central installer from the Waves Download Page. See the Waves Central User Guide for instructions on how to install drivers, plugins, and applications.
 
 LICENSES
@@ -136,8 +134,6 @@ SoundGrid Studio
 
 Automatic Device Configuration with SoundGrid Studio
 
-![DMI-Waves User Guide (Waves) (manual p.9)](/figures/dmi-waves-guide-p009-3.png)
-
 Certain SoundGrid hosts—including SoundGrid Studio, eMotion LV1 or SuperRack SoundGrid—offer an Auto- Config tool. Once your devices are connected and powered up, click Auto to start the configuration.
 
 Auto-config chooses the correct LAN port on the host computer and scans the SoundGrid network for devices. It then patches the devices to the host. We recommend that you let Auto-Config take care of things, at least when you are getting started. If later you add, remove, or swap a device; Auto-Config will reconfigure your inventory and re-patch.
@@ -149,8 +145,6 @@ DMI Waves / User Guide
 Device Firmware An I/O that is using outdated or incompatible firmware will not work properly in a SoundGrid network until its firmware is updated. The color of the FW button in a device slot indicates the current firmware status.
 
 ![DMI-Waves User Guide (Waves) (manual p.10)](/figures/dmi-waves-guide-p010-1.png)
-
-![DMI-Waves User Guide (Waves) (manual p.10)](/figures/dmi-waves-guide-p010-2.png)
 
 Grey Compatible firmware
 
@@ -164,9 +158,7 @@ If a device requires updated firmware, click on the FW button to start a hardwar
 
 Identify a Device on the SoundGrid Network
 
-![DMI-Waves User Guide (Waves) (manual p.10)](/figures/dmi-waves-guide-p010-3.png)
-
-![DMI-Waves User Guide (Waves) (manual p.10)](/figures/dmi-waves-guide-p010-4.png)
+![DMI-Waves User Guide (Waves) (manual p.10)](/figures/dmi-waves-guide-p010-2.png)
 
 When the ID button is pressed, the LEDs on the panel of the card change colors repeatedly to help identify the device.
 
@@ -182,15 +174,13 @@ FROM THE DEVICE RACK
 
 ![DMI-Waves User Guide (Waves) (manual p.11)](/figures/dmi-waves-guide-p011-1.png)
 
-![DMI-Waves User Guide (Waves) (manual p.11)](/figures/dmi-waves-guide-p011-2.png)
-
 Click on the Gear button on a device in the rack slot.
 
 SoundGrid Studio SoundGrid QRec
 
 FROM THE DRIVER CONTROL PANEL
 
-![DMI-Waves User Guide (Waves) (manual p.11)](/figures/dmi-waves-guide-p011-3.png)
+![DMI-Waves User Guide (Waves) (manual p.11)](/figures/dmi-waves-guide-p011-2.png)
 
 Open the driver control panel and then click the Hardware Control Panel button. The driver control panel is located here in the host computer:
 

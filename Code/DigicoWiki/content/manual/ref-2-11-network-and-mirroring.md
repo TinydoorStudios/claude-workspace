@@ -16,11 +16,7 @@ Optocore ID
 
 ![Network and Mirroring (manual p.147)](/figures/ref-p147-1.png)
 
-![Network and Mirroring (manual p.147)](/figures/ref-p147-2.png)
-
 When highlighted in orange the Audio Master button indicates this audio engine is currently active
-
-![Network and Mirroring (manual p.147)](/figures/ref-p147-3.png)
 
 Once synchronised, session details for both Engines will match
 

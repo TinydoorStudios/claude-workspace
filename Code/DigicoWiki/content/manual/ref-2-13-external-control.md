@@ -36,29 +36,17 @@ entered on the Connect page of the DiGiCo iPad App.
 
 2.13 External Control
 
+Enable External
+
 ![External Control (manual p.173)](/figures/ref-p173-1.png)
 
-Enable External
+Labels: Control · Add device type – · DiGiCo Pad
 
 ![External Control (manual p.173)](/figures/ref-p173-2.png)
 
-Control
-
-![External Control (manual p.173)](/figures/ref-p173-1.png)
-
-Add device type –
-
-DiGiCo Pad
-
-![External Control (manual p.173)](/figures/ref-p173-3.png)
-
-![External Control (manual p.173)](/figures/ref-p173-1.png)
-
 Enter iPad details
 
-![External Control (manual p.173)](/figures/ref-p173-4.png)
-
-![External Control (manual p.173)](/figures/ref-p173-5.png)
+![External Control (manual p.173)](/figures/ref-p173-3.png)
 
 Load iPad commands for relevant console Labels: (only required on · first setup) · 2.13 External Control
 
@@ -134,15 +122,9 @@ Stereo channels can also have L-ISA control, in which they gain another row of r
 
 ![External Control (manual p.176)](/figures/ref-p176-1.png)
 
-![External Control (manual p.176)](/figures/ref-p176-2.png)
+Control L-ISA groups from this Labels: panel · Adjust the · distance
 
-Control L-ISA groups from this panel
-
-![External Control (manual p.176)](/figures/ref-p176-3.png)
-
-Adjust the
-
-distance between Labels: the left and · right leg of · the
+between Labels: the left and · right leg of · the
 
 channel in
 
@@ -164,8 +146,6 @@ Channel faders can be linked with the L-ISA master fader so that the output of L
 
 ![External Control (manual p.177)](/figures/ref-p177-2.png)
 
-![External Control (manual p.177)](/figures/ref-p177-3.png)
-
 Select the fader to link to the L-ISA master fader
 
 2.13 External Control
@@ -178,11 +158,9 @@ There is a d&b button in Setup>External Control.  Adding an other osc device wil
 
 ![External Control (manual p.178)](/figures/ref-p178-1.png)
 
-![External Control (manual p.178)](/figures/ref-p178-2.png)
-
 Once enabled in the External Control panel, d&B Control and view buttons will appear in the bottom of Input Channel and Group Output Output Setup Panels.  When activated for a specific channel, the buttons will have a red background and a Soundscape control will replace the standard channel Pan controller.  When the Soundscape control on the channel strip or the d&b button on a group is pressed, the Soundscape Control panel will open.
 
-![External Control (manual p.178)](/figures/ref-p178-3.png)
+![External Control (manual p.178)](/figures/ref-p178-2.png)
 
 The controls are:-
 
@@ -224,25 +202,17 @@ Full details of the integration can be found at www.dbaudio.com
 
 ### 2.13.5 KLANG Control
 
-![External Control (manual p.179)](/figures/ref-p179-1.png)
-
 Transmit all stored KLANG parameters to the controller on session load
-
-![External Control (manual p.179)](/figures/ref-p179-2.png)
 
 Bypass all KLANG nodes – temporarily reverted to normal aux sends
 
-![External Control (manual p.179)](/figures/ref-p179-3.png)
+![External Control (manual p.179)](/figures/ref-p179-1.png)
 
 The KLANG level and aux send level will be stored as the same value (if KLANG is bypassed or disabled, the aux send level will be the KLANG level).
 
-![External Control (manual p.179)](/figures/ref-p179-4.png)
-
-![External Control (manual p.179)](/figures/ref-p179-5.png)
+![External Control (manual p.179)](/figures/ref-p179-2.png)
 
 Enable KLANG control and nodes
-
-![External Control (manual p.179)](/figures/ref-p179-6.png)
 
 Enter the details of the KLANG controller
 
@@ -280,15 +250,11 @@ Select Add device and other OSC, then enter the required IP Address and Send/Rcv
 
 Control of a Spacemap Go Channel can be enabled on any of the console’s Channel or Groups. Navigate to the channel and open the Controller view by tapping on CHANNEL > OUTPUT SETUP, at the bottom of the popover window enable Spacemap Controller, then View. Close the popover and touch on the 2D XY Panner, the external controls will appear.
 
-![External Control (manual p.180)](/figures/ref-p180-2.png)
-
 The assigned Spacemap Go channel can be changed by clicking on the blue box with the currently assigned Spacemap channel in white.
 
 2.13 External Control
 
 ![External Control (manual p.181)](/figures/ref-p181-1.png)
-
-![External Control (manual p.181)](/figures/ref-p181-2.png)
 
 Available Controls from the Console Channel or Group.
 
@@ -316,7 +282,7 @@ Trajectory Transport Controls
 
 A 2D panning interface is provided for touch control of the X/Y position of the Spacemap Panner for the assigned Spacemap Go Channel that can be expanded to reveal all of the details.
 
-![External Control (manual p.181)](/figures/ref-p181-3.png)
+![External Control (manual p.181)](/figures/ref-p181-2.png)
 
 For more information and connections details please visit https://spacemap-go- help.meyersound.com/digico/
 
@@ -331,8 +297,6 @@ Select AFM Channel Controller in Setup>External Control. Select XY (cartesian) o
 ![External Control (manual p.182)](/figures/ref-p182-1.png)
 
 When enabled, AFM Control and view buttons are available in the Channel and Group output setup panels.
-
-![External Control (manual p.182)](/figures/ref-p182-2.png)
 
 When activated, the FletcherMachine Controller will replace the regular pan controller. Touch the trackpad on a channel or the AFM button on a group to open the FletcherMachine Controller, with an expanded view available when touching the trackpad in the controller. The following controls are available:
 

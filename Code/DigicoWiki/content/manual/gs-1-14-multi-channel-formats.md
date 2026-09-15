@@ -8,8 +8,6 @@ Multi-channel inputs are controlled by routing each component through a mono cha
 
 ![Multi-channel formats (manual p.38)](/figures/gs-p038-2.png)
 
-![Multi-channel formats (manual p.38)](/figures/gs-p038-3.png)
-
 If the Unfold button in the Multi or in a multi-channel buss channel strip is pressed, the component channels will be displayed, and more detailed configuration can be made.
 
 See the SD/Quantum Series Software Reference Manual for more information on Multi Channel formats

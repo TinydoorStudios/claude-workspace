@@ -8,8 +8,6 @@ Spice Rack is the new audio processing rack on Quantum engines. It was released 
 
 Open the
 
-![Spice Rack (manual p.31)](/figures/gs-p031-1.png)
-
 Safe the current Spice Rack Labels: processor · presets · Link two Chilli 6 · The user
 
 interaction type
@@ -22,13 +20,9 @@ Select the Spice Rack device type
 
 the device is routed
 
-![Spice Rack (manual p.31)](/figures/gs-p031-2.png)
-
-![Spice Rack (manual p.31)](/figures/gs-p031-3.png)
+![Spice Rack (manual p.31)](/figures/gs-p031-1.png)
 
 List of current units in the
-
-![Spice Rack (manual p.31)](/figures/gs-p031-4.png)
 
 The current frequency response of the Labels: processed · Spice Rack · slots.
 
@@ -36,51 +30,33 @@ Inserted
 
 units display the
 
-![Spice Rack (manual p.31)](/figures/gs-p031-5.png)
+The dB range that the compressor Labels: will act over · channel · name. · These set the
 
-The dB range that the compressor Labels: will act over · channel · name.
-
-![Spice Rack (manual p.31)](/figures/gs-p031-6.png)
-
-These set the side chain source and type
+side chain source and type
 
 This sets Labels: the global · Solo · This sets the solo · 1.10 Spice Rack
 
 The Naga 6 can be accessed by selecting a Chilli 6 unit and pressing the type button, then choosing Naga 6.
 
-![Spice Rack (manual p.32)](/figures/gs-p032-1.png)
-
 Open the presets
-
-![Spice Rack (manual p.32)](/figures/gs-p032-2.png)
 
 Safe the current Spice Rack processor
 
 Select the Spice Rack device type
 
-![Spice Rack (manual p.32)](/figures/gs-p032-3.png)
-
 The channel and insert where the device is routed
-
-![Spice Rack (manual p.32)](/figures/gs-p032-4.png)
 
 The user interaction type
 
 Link two Naga 6 units together
 
-![Spice Rack (manual p.32)](/figures/gs-p032-5.png)
-
 The current frequency response of the processed signal
 
-![Spice Rack (manual p.32)](/figures/gs-p032-6.png)
-
-![Spice Rack (manual p.32)](/figures/gs-p032-7.png)
+![Spice Rack (manual p.32)](/figures/gs-p032-1.png)
 
 List of current Labels: units in the · Spice Rack · slots.
 
 Inserted
-
-![Spice Rack (manual p.32)](/figures/gs-p032-8.png)
 
 The dB range that the compressor will act over
 
@@ -88,13 +64,11 @@ units Labels: display the · channel · name · Select Side
 
 Chain route
 
-![Spice Rack (manual p.32)](/figures/gs-p032-9.png)
-
 These set the side chain source and Labels: type · This sets the · global Solo · Mode · This sets the solo
 
 Chilli 6 is a classic multiband compressor with four flat top filter type bands with shared crossover slope and two separate parametric bands. The Naga 6 is a Multiband Dynamic EQ with six parametric bands and no flat top filters.  They both allow frequency specific dynamic control with compression or expansion applied to audio above a set threshold. When stereo channels are routed to the Spice Rack, two consecutive slots are automatically set to stereo, therefore ganged together. They can be set back to mono to allow the units to have different parameters. Before units can be stereo linked the pair of units have to be set to the same type Chilli 6 or Naga 6. Pairs have to be neighbouring units such as 1 and 2 ,3 and 4, 5 and 6 etc. Note that 2 and 3, 4 and 5 etc cannot be made into a stereo pair. The green line represents the frequency response of the processed audio and reflects the compression or expansion applied in real time. The Release Shape is used to alter the release characteristic with curve type exponential (0) through linear (0.5) to inverse exponential (1). Inverse exponential is a new feature which reduces sharp decays between peaks in signal, whilst maintaining the same overall decay time.
 
-![Spice Rack (manual p.32)](/figures/gs-p032-10.png)
+![Spice Rack (manual p.32)](/figures/gs-p032-2.png)
 
 Dynamic Angle affects how far above the threshold the signal needs to be before the full range of EQ is applied, similar to a ratio with a smooth transition through the threshold. This can be set anywhere between 1 (default) equivalent to a higher ratio and 0, a lower ratio. Also similar to a knee, when the Dynamic Angle is set to a value less than 1, gain reduction will be applied to signal below the threshold however will always maintain a soft curve.
 

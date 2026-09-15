@@ -46,37 +46,31 @@ Labels: DQ & MQ-Rack User Guide · Dante Rack · Inputs
 
 ![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-1.png)
 
-![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-2.png)
-
 DANTE Rack is a Transmitter in this case.
 
 Each of the 16 Rack input sockets are routed to the same numbered DMI 64@96 channel
 
-![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-3.png)
+![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-2.png)
 
 Dante Controller & Routing
 
-![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-4.png)
+![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-3.png)
 
 Network Switch
 
-![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-5.png)
+![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-4.png)
 
 Console 1
 
-![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-6.png)
-
 DMI 64@96 is a Receiver in this case.
 
-![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-7.png)
+![Connecting a DANTE rack (manual p.19)](/figures/dq-p019-5.png)
 
 Each channel receives the same numbered input socket from the rack.
 
 In this example, a console that routes signal to DMI card output channels 1-8 will be sending them to the same numbered Rack Output socket.
 
 DQ & MQ-Rack User Guide
-
-![Connecting a DANTE rack (manual p.20)](/figures/dq-p020-1.png)
 
 Console 1 DMI is a Transmitter in this case.
 
@@ -86,7 +80,7 @@ Network Switch
 
 Console 1 – DMI Outputs
 
-![Connecting a DANTE rack (manual p.20)](/figures/dq-p020-2.png)
+![Connecting a DANTE rack (manual p.20)](/figures/dq-p020-1.png)
 
 Dante Controller & Routing
 

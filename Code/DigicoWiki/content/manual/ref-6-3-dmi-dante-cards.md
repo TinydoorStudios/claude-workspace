@@ -26,8 +26,6 @@ This setup enables the DMI-Dante in the QUANTUM 8 to take its Audio Sync Source 
 
 ![DMI - Dante Cards (manual p.232)](/figures/ref-p232-2.png)
 
-![DMI - Dante Cards (manual p.232)](/figures/ref-p232-3.png)
-
 ![DMI - Dante Cards (manual p.232)](/figures/ref-p226-1.png)
 
 **Example 2 - Dante Network is Master clock for console**
@@ -38,7 +36,7 @@ Enable Sync to External = OFF
 
 ![DMI - Dante Cards (manual p.233)](/figures/ref-p233-1.png)
 
-![DMI - Dante Cards (manual p.233)](/figures/ref-p230-1.png)
+![DMI - Dante Cards (manual p.233)](/figures/ref-p233-2.png)
 
 Sync To External = OFF
 

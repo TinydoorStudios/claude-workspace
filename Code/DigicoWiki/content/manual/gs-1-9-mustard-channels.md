@@ -12,13 +12,9 @@ The Mustard channel strip layout and operation is similar to that of the SD chan
 
 Labels: Mustard Tube section · Mustard EQ · Mustard Compressor · Mustard Gate/Ducker · Mustard Processing
 
-Insert Position
+Labels: Insert Position · Switch between viewing · SD processing and
 
-![Mustard Channels (manual p.27)](/figures/gs-p027-1.png)
-
-Switch between viewing
-
-SD processing and Mustard processing
+Mustard processing
 
 ### 1.9.2 Insert Position
 
@@ -53,8 +49,6 @@ The Mustard pre-amp modelling section provides the user with a choice of either 
 **Mustard Tubes**
 
 Mustard Tubes has a drive control, an output gain control, an on/off button and six selectable preset options.
-
-![Mustard Channels (manual p.28)](/figures/gs-p028-2.png)
 
 Odd harm – This is a modern sounding, low gain distortion preset Even harm – This is a vintage sounding, medium gain distortion preset Overdrive – This is modern sounding, medium gain distortion preset Distortion - This is modern sounding, compressed, high gain distortion preset Crunch – This is a vintage sounding, high gain distortion preset High distortion – This is a modern, heavy sounding, very high gain distortion preset
 

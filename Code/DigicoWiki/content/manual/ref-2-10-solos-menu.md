@@ -10,19 +10,7 @@ Labels: pfl / afl solo mode · multi / single solo mode · Clear
 
 ![Solos Menu (manual p.143)](/figures/ref-p143-1.png)
 
-Labels: Solo Level Meter · Solo Trim · Buss Format · Switch · Solo Delay · No solo source · select · Insert Routing
-
-![Solos Menu (manual p.143)](/figures/ref-p143-2.png)
-
-Floating Meter
-
-![Solos Menu (manual p.143)](/figures/ref-p143-3.png)
-
-Labels: Direct Out · activation · routing
-
-![Solos Menu (manual p.143)](/figures/ref-p143-4.png)
-
-Labels: Headphones · On / Off · Direct Out Level
+Labels: Solo Level Meter · Solo Trim · Buss Format · Switch · Solo Delay · No solo source · select · Insert Routing · Floating Meter · Direct Out · activation · routing · Headphones · On / Off · Direct Out Level
 
 Fader Assignment
 

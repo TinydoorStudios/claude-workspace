@@ -82,8 +82,6 @@ Note that these left and right arrows are duplicated in the channel Setup and Ou
 
 ![Before You Start (manual p.11)](/figures/gs-p011-3.png)
 
-![Before You Start (manual p.11)](/figures/gs-p011-4.png)
-
 The row of twelve encoders and buttons immediately below the touchscreen (shown above) refer to the channels with which they are aligned.
 
 1.2 Before You Start
@@ -93,8 +91,6 @@ Pressing one of the Quick Select buttons on the left of the screen will assign t
 ![Before You Start (manual p.12)](/figures/gs-p012-1.png)
 
 The controls to the right of the Channel Strip panel allow the Assigned channel to be adjusted:
-
-![Before You Start (manual p.12)](/figures/gs-p007-1.png)
 
 The top half of the channel worksurface controls (down as far as the insert a, insert b and direct buttons, as shown above) control the signal processing parameters which are displayed in the pop-ups accessed by touching in the appropriate section of the active channel. The bottom half of the channel worksurface controls is concerned with output routing. To the left of the screen are more channel controls: When pressed, the 2nd function button allows access to different parameters: 1) Stereo Aux Pan and Pre/Post switching 2) Hard Mute of a channel 3) Switching of LR or LCR panning 2nd function is indicated by a green 2nd Function display appearing in the bottom left-hand corner of the screen, as well as by the 2nd function button lighting with a ring of green.
 

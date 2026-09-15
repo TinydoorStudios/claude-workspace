@@ -14,7 +14,7 @@ Solo an aux and the channel faders become the sends to that aux. That's the defa
 
 Layout > **Aux to Faders** lists every aux; touching one activates aux-to-faders without soloing. **clear on close** drops the assignment when the panel closes. Macros exist for the same thing.
 
-![Aux to Faders panel](/figures/ref-p088-2.png)
+![Aux to Faders panel](/figures/ref-p088-1.png)
 
 ## Send points
 

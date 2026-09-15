@@ -14,9 +14,7 @@ Note: that if component channels have different settings when linked, changes in
 
 Below the link buttons in the master, there are buttons for each element in the components' channels - trim & delay, filters & EQ, dynamics and faders & mutes. Pressing one of these buttons will cause that element in all the channels to match those of the Folded channel. Once you have finished with the unfolded view, press the FOLD button to fold the channels back together (Figure 32)
 
-![Output Channel Specific Functions (manual p.43)](/figures/ref-p043-1.png)
-
-![Folded and Unfolded View](/figures/ref-p043-2.png)
+![Folded and Unfolded View](/figures/ref-p043-1.png)
 *Folded and Unfolded View*
 
 Folded
@@ -68,13 +66,11 @@ On selected SD/Quantum consoles, the option is provided to switch between either
 
 Pressing the curve button on Pre-Insert bands of output EQ will switch the top or bottom two bands to be 24dB/Oct filters rather than parametric filters. The filter points are controlled by the EQ Freq control.
 
-![Output Channel Specific Functions (manual p.46)](/figures/ref-p046-1.png)
-
 ### 1.5.5 Addition Buss Features – Input Merge & Ident
 
 The merge input function allows an additional signal to be mixed with a buss. Touch the top of the buss/output channel to open the setup panel (Figure 34).
 
-![Merge Input](/figures/ref-p046-2.png)
+![Merge Input](/figures/ref-p046-1.png)
 *Merge Input*
 
 Pressing the merge input button will open the input routing panel for source selection. The level control adjusts the level of the selected signal that is added to the buss and an On/Off switch activates the merge function. Below the merge input button there is a tone button. Pressing and holding this button will route the oscillator signal into the output buss. The level and frequency of the oscillator is set in the master screen oscillator panel.

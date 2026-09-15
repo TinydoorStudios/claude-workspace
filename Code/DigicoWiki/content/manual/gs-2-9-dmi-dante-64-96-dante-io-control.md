@@ -16,25 +16,23 @@ Dante Rack Inputs
 
 ![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-1.png)
 
-![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-2.png)
-
 A168D Rack is a Transmitter in this case. Each of the 16 Rack input sockets are routed to the same numbered DMI 64@96 channel
 
-![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-3.png)
+![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-2.png)
 
 Dante Controller & Routing
 
-![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-4.png)
+![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-3.png)
 
 Network Switch
 
-![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-5.png)
+![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-4.png)
 
 Console 1
 
 DMI 64@96 is a Receiver in this case. Each channel receives the same numbered input socket from the rack.
 
-![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-6.png)
+![DMI-Dante 64@96  & Dante IO Control (manual p.56)](/figures/gs-p056-5.png)
 
 In this example, a console that routes signal to DMI card output channels 1-8 will be sending them to the same numbered Rack Output socket.
 

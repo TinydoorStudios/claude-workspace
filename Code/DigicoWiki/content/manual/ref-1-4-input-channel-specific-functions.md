@@ -159,17 +159,11 @@ up to 5 rows of aux sends.
 
 Note that when folded the amount of auxes displayed in the Aux Expanded panel will depend on how many rows of assignable rotaries a console has.
 
-![Input Channel – Specific Functions (manual p.36)](/figures/ref-p036-2.png)
-
 Safe individual aux sends/nodes by pressing
 
 **node safe…**
 
-![Input Channel – Specific Functions (manual p.36)](/figures/ref-p036-3.png)
-
 Safe all aux sends/nodes in the channel
-
-![Input Channel – Specific Functions (manual p.36)](/figures/ref-p036-4.png)
 
 …then pressing an Aux send rotary
 
@@ -221,11 +215,9 @@ Each Aux node send can have SD Nodal EQ and Dynamics inserted in its audio path.
 
 If processing is active on a node, a purple P is displayed next to the node on/off button.
 
-![Input Channel – Specific Functions (manual p.38)](/figures/ref-p038-1.png)
-
 This status will also be visible in the channel strip aux display.  When the node is touched in the Aux Nodes panel, the processing controls will be displayed and assigned on the screen where that channel is located. Both the EQ and dynamics controls will be displayed at the same time.  There is also a control panel for aux node functions located in the bottom right-hand corner.
 
-![Input Channel – Specific Functions (manual p.38)](/figures/ref-p038-2.png)
+![Input Channel – Specific Functions (manual p.38)](/figures/ref-p038-1.png)
 
 1.4 Input Channel – Specific Functions
 
@@ -235,13 +227,11 @@ This status will also be visible in the channel strip aux display.  When the nod
 
 ![Input Channel – Specific Functions (manual p.39)](/figures/ref-p039-1.png)
 
-![Input Channel – Specific Functions (manual p.39)](/figures/ref-p039-2.png)
-
 The processing can be copied from the main channel strip or from other nodes
 
 ### 1.4.11 KLANG Nodes
 
-![Input Channel – Specific Functions (manual p.39)](/figures/ref-p039-3.png)
+![Input Channel – Specific Functions (manual p.39)](/figures/ref-p039-2.png)
 
 KLANG Nodes can be activated on aux send to allow control of the channel’s KLANG parameters. A KLANG button is displayed in expanded aux panel and the Aux Nodes panel after KLANG is enabled in the External Control panel (See Chapter 2 - 2.12.14).
 
@@ -298,7 +288,5 @@ When this channel’s Direct Output signal is now routed to a physical console o
 ### 1.4.16 Direct Outputs
 
 Basic routing is described in your console's Getting Started section. Once the direct output has been routed, it is switched on by pressing the grey on button next to the output level meter in the grey area below the direct outs routing button. The direct out is taken post-fader by default but can be switched to pre-fader or pre mute by pressing the button to the right of the on button. The current selection is displayed to the right of the button.
-
-![Input Channel – Specific Functions (manual p.42)](/figures/ref-p042-2.png)
 
 1.5 Output Channel Specific Functions

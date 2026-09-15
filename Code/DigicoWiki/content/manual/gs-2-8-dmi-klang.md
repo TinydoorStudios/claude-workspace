@@ -10,8 +10,6 @@ Configure the IP Address and Subnet Mask
 
 ![DMI-KLANG (manual p.55)](/figures/gs-p055-1.png)
 
-![DMI-KLANG (manual p.55)](/figures/gs-p055-2.png)
-
 Set the Control Ports
 
 Apply the changes to the DMI Card

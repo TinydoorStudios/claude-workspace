@@ -10,7 +10,7 @@ Dante Controller is Audinate's free app (Mac/Windows). Run it on a laptop plugge
 
 **Clock Status**: exactly one device should be **Preferred Master**: the DMI-Dante card, with **Sync To External** ticked so it follows the console. Everything else unticked. Two preferred masters or an external sync on the wrong box gives you a network that argues with itself, which you hear as clicks.
 
-![Dante Controller: Device Config and Clock Status](/figures/ref-p200-2.png)
+![Dante Controller: Device Config and Clock Status](/figures/ref-p199-1.png)
 
 ## Naming
 
