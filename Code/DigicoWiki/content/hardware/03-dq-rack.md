@@ -1,6 +1,6 @@
 # DQ-Rack (Dante stage rack)
 
-48 mic/line inputs, 24 line outputs of which sockets 6, 12, 18 and 24 can each become a pair of AES outputs, dual redundant PSUs (two separate mains feeds), Dante primary and secondary ports, and a small LCD menu on the top panel. 19" rack, 11 kg. Only works with SD and Quantum consoles running application software V1454 or later.
+48 mic/line inputs, 24 line outputs of which sockets 6, 12, 18 and 24 can each become a pair of AES outputs, dual redundant PSUs (two separate mains feeds), Dante primary and secondary ports, and a small LCD menu on the top panel. 19" rack, 11 kg. Only works with SD and Quantum consoles.
 
 ![DQ-Rack front](/figures/dq-p008-1.png)
 
@@ -29,6 +29,6 @@ The rack follows the Dante network clock, which follows the console via the DMI 
 
 ## Firmware
 
-Controlling a DQ-Rack needs DMI-Dante 64@96 firmware v103+ and Dante firmware 4.0.20 on the card, updated via Dante Updater in Dante Controller. Console application software must be V1454 or later.
+DQ-Rack updates use the DQ & MQ Rack Updater over USB-B (TN585); the DiGiCo Dante Rack Utility does not update DQ-Racks.
 
 Full guide: [DQ & MQ-Rack User Guide (PDF)](/downloads/digico-dq-mq-rack-user-guide-issue-a.pdf), mirrored under [DiGiCo documents](/docs/dq-1-1-introduction). Manual: [Reference 3.1.9 DQ-Rack](/reference/3-1-console-audio-connections).

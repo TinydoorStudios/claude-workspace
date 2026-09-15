@@ -14,7 +14,7 @@ A rugged 16-in / 8-out stage box: 16 remote-controlled mic/line XLR inputs with 
 
 ## Firmware
 
-Preamp control from a Quantum needs the A168D on DiGiCo firmware **V1.5+** (updated over IP with the DiGiCo Dante Rack Utility, TN515) and the DMI-Dante card on v103 with Dante firmware 4.0.20. On console software earlier than V1454, keep the A168D/A164D on Dante DMI firmware 4.0.19.
+Preamp control from a Quantum needs the A168D on DiGiCo firmware **V1.5+** (updated over IP with the DiGiCo Dante Rack Utility, TN515) and the DMI-Dante card on v103 with Dante firmware 4.0.20 (Summit) or the Zynq equivalent. On older console software (before V1454) the DMI should stay on Dante 4.0.19.
 
 ## Panel notes
 
