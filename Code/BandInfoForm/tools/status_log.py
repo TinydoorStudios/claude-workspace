@@ -22,6 +22,7 @@ here should never block the day-sheet/email pipeline). Can also run by hand:
     python3 status_log.py [--out PATH]
 """
 import argparse
+import datetime as dt
 import sys
 from pathlib import Path
 
@@ -180,7 +181,9 @@ def build(rows, manual_by_id):
         "Auto-generated from advance-db after every booking/submission. White columns "
         "refresh every run; amber columns (Owner, Advance Deadline, Basic Advance "
         "Complete?, Info Complete?, Feedback Survey Sent?, Notes) are yours to hand-type "
-        "here — they're preserved across regenerations, not overwritten.")
+        "here — they're preserved across regenerations, not overwritten. Shows whose date "
+        "has already passed are hidden rows, not deleted — unhide from the row headers on "
+        "the left if you need to look back.")
     sub.font = Font(italic=True, color="6B7280", size=9)
     sub.alignment = Alignment(horizontal="left", vertical="center", indent=1, wrap_text=True)
     ws.row_dimensions[2].height = 28
@@ -242,6 +245,12 @@ def build(rows, manual_by_id):
             elif r % 2 == 0:
                 cell.fill = PatternFill("solid", fgColor="F7FAFC")
         ws.cell(r, ID_COL, row["show_id"])
+        # Brian, 2026-09-15: a show whose date has already passed is a hidden
+        # row, not a dropped one — the data (and any manual cells) stays put,
+        # unhide from Excel's row headers to look back. "Today" still counts
+        # as not-yet-passed.
+        if row["show_date"] and row["show_date"] < dt.date.today():
+            ws.row_dimensions[r].hidden = True
         r += 1
     last_row = max(r - 1, hrow + 1)
 
@@ -299,7 +308,6 @@ def _failures(update=None):
 
 
 def main():
-    import datetime as dt
     import shutil
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
