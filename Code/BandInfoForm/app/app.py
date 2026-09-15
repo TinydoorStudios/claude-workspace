@@ -59,6 +59,10 @@ INTERNAL_SEND_URL = os.environ.get("ADVANCE_INTERNAL_SEND_URL",
 CREATE_DRAFT_URL = os.environ.get("ADVANCE_CREATE_DRAFT_URL",
                                   "http://localhost:5678/webhook/internal-create-outlook-draft")
 UNRESPONDED_ALERT_TO = os.environ.get("ADVANCE_UNRESPONDED_ALERT_TO", "blloyd@3cdc.org")
+# FSQ regular-vehicle parking notice (Brian, 2026-09-15): drafted, never
+# sent, to whoever handles garage validations. A mirror workflow for large
+# vehicles, to a different recipient, is a separate later build.
+FSQ_PARKING_NOTICE_TO = os.environ.get("ADVANCE_FSQ_PARKING_NOTICE_TO", "Mtully@3cdc.org")
 TOOLS_DIR = BASE / "tools"
 
 app = Flask(__name__)
@@ -403,6 +407,8 @@ def submit():
     if not staff_edit:
         _notify_submission(rec)
         _notify_email("submission", rec)
+        if rec.get("venue") == "Fountain Square":
+            _draft_fsq_parking_notice(rec)
     if result and result.get("match"):
         _email_submission_match(result, rec)
 
@@ -1350,6 +1356,63 @@ def _recap_for_draft(sub):
         ("Changed since last time", d.get("changed_notes")),
     ]
     return "\n".join(f"  {k}: {v}" for k, v in rows if v not in (None, "", "None"))
+
+
+def _draft_fsq_parking_notice(rec):
+    """Draft (never sends) the Fountain Square regular-vehicle parking
+    validation request, fired right when a band's own form comes in (Brian,
+    2026-09-15). FSQ only — call site gates on venue. The count is
+    vehicle_count minus large_vehicle_count: the regular-size subset, not
+    the large-vehicle allotment (see schema.sql's vehicle_count comment and
+    fieldspec.BAND_FIELDS for why the form asks it split that way). A
+    mirror workflow for large-vehicle counts, to a different recipient, is
+    a separate later build — this one only ever reports the regular count.
+
+    Uses the same internal-create-outlook-draft path as the 'Email band'
+    button (CREATE_DRAFT_URL) so it lands as a real Outlook draft in
+    Production@3cdc.org for Brian to review and send by hand — nothing here
+    ever sends on its own. Best-effort, same pattern as _notify_email:
+    never blocks or breaks the submission it came from."""
+    try:
+        vehicles = int(rec.get("vehicle_count") or 0)
+    except (TypeError, ValueError):
+        vehicles = 0
+    try:
+        large = int(rec.get("large_vehicle_count") or 0)
+    except (TypeError, ValueError):
+        large = 0
+    regular = max(vehicles - large, 0)
+
+    when = ""
+    sd = (rec.get("show_date") or "").strip()
+    if sd:
+        try:
+            when = us_date(dt.date.fromisoformat(sd))
+        except ValueError:
+            when = sd
+
+    band = rec.get("band_name") or "(no band name given)"
+    subject = f"FSQ Parking Validations — {band}" + (f" — {when}" if when else "")
+    body = (
+        f"Band: {band}\n"
+        f"Venue: Fountain Square\n"
+        f"Show date: {when or '(not given)'}\n\n"
+        f"Contact: {rec.get('contact_name') or '(none given)'}\n"
+        f"Email: {rec.get('contact_email') or '(none given)'}\n"
+        f"Phone: {rec.get('contact_phone') or '(none given)'}\n\n"
+        f"Regular vehicle validations needed: {regular}\n"
+        f"(Total vehicles {vehicles}, of which {large} need large-vehicle "
+        "parking — handled by the separate large-vehicle workflow.)\n"
+    )
+    try:
+        import urllib.request
+        req = urllib.request.Request(
+            CREATE_DRAFT_URL,
+            data=json.dumps({"to": FSQ_PARKING_NOTICE_TO, "subject": subject, "body": body}).encode(),
+            headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN})
+        urllib.request.urlopen(req, timeout=15)
+    except Exception as e:  # noqa: BLE001
+        _log_db_error("fsq_parking_draft", e)
 
 
 def _build_reply_draft(show, artist, sub):
