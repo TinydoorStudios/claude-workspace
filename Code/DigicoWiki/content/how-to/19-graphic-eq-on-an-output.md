@@ -1,5 +1,7 @@
 # Put a graphic EQ on an output
 
+![Graphic Eq — Quantum 2](/figures/q2-graphic-eq.png)
+
 The console has a bank of 32-band graphic EQs. They're internal devices, inserted on a bus like an FX unit.
 
 ## Insert it

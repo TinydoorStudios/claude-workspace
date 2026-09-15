@@ -1,5 +1,7 @@
 # Start a new session (templates and Session Structure)
 
+![Templates — Quantum 2](/figures/q2-templates.png)
+
 Don't build from nothing on show day. Load the house template, then rename and save it as the show. Building from scratch is for when the channel count or bus layout has to change.
 
 ## From a template

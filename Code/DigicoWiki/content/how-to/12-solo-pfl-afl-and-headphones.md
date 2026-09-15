@@ -1,5 +1,7 @@
 # Solo, PFL/AFL and headphones
 
+![Solos — Quantum 2](/figures/q2-solos.png)
+
 There are two solo busses. Every channel can be assigned to solo 1, solo 2 or both, so one bus can feed the headphones and the other a wedge or a cue send.
 
 ## The Solo panel

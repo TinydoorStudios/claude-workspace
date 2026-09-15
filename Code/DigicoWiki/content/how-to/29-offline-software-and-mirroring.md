@@ -1,5 +1,7 @@
 # The offline software, and mirroring a laptop to the console
 
+![Master Screen — Quantum 2](/figures/q2-master-screen.png)
+
 The Quantum offline software is the console application running on a Windows PC. Use it to build a session at home, then load it on the desk, or mirror it to the desk for remote control.
 
 ## Get it

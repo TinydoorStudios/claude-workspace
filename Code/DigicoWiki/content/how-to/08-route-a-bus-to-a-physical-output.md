@@ -1,5 +1,7 @@
 # Route an aux, group or matrix to a physical output
 
+![Channel Output — Quantum 2](/figures/q2-channel-output.png)
+
 Output channels (aux, group, matrix) route from their **Output** panel to a socket on the console or a rack.
 
 1. Go to the layer/bank with the bus (outputs live on layer 2 by default). Touch the **bottom** of the bus strip.

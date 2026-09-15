@@ -1,5 +1,7 @@
 # Send inputs to a multitrack recorder (Copy Audio)
 
+![Copy Audio — Quantum 2](/figures/q2-copy-audio.png)
+
 You don't need a direct out per channel to record a show. **Copy Audio** duplicates any input socket to any output port (MADI, USB audio, Dante) without using console processing, and can flip the console to play the recording back for a virtual soundcheck.
 
 ## The quick way: whole rack to one port

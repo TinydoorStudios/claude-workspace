@@ -2,6 +2,8 @@
 
 The route from a stage-box socket to a fader is set in the channel's **Setup** panel.
 
+![Channel Setup panel — Quantum 2](/figures/q2-channel-setup.png)
+
 1. Touch the **top** of the channel strip (the input/filters area) to open Channel Setup. Or Layout > Channel List > **Edit** on, expand *Input Channels*, touch the *main input* box for that channel.
 2. Pick **mono** or **stereo** at the top before anything else; it changes what the panel offers.
 3. Press the **main input** routing button (grey). The Input Route panel opens with three columns: **ports** on the left (Local I/O, each rack, DMI cards, internal sources), **signal groups** in the middle, **signals** on the right.

@@ -1,5 +1,7 @@
 # Control groups (VCA-style masters)
 
+![Control Groups — Quantum 2](/figures/q2-control-groups.png)
+
 A Control Group (CG) moves the faders and mutes of its members. It carries no audio, unlike a Group bus. The Q225 has 12; the count is set in Session Structure. CGs live on layer 2 by default.
 
 ## Make one

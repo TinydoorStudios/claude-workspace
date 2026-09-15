@@ -1,5 +1,7 @@
 # Audio sync and clocking
 
+![Audio Sync — Quantum 2](/figures/q2-audio-sync.png)
+
 Setup > **Audio Sync**. The session sample rate (48 or 96 kHz) is set in Session Structure; this panel only chooses where the clock comes from.
 
 ![Audio Sync panel](/figures/ref-p157-2.png)

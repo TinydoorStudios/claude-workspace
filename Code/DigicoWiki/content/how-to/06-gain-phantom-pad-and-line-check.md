@@ -1,5 +1,7 @@
 # Set gain, phantom power and pad
 
+![Channel Setup — Quantum 2](/figures/q2-channel-setup.png)
+
 ## From the channel strip
 
 The **input area** at the top of the strip shows analogue gain (big rotary), digital trim (small rotary), polarity, 48V and, on the Q225, the main/alt selector.

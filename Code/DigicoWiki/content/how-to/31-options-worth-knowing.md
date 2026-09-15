@@ -1,5 +1,7 @@
 # Options worth knowing
 
+![Options Surface — Quantum 2](/figures/q2-options-surface.png)
+
 Master screen > **Options**. Ten tabs; purple = on. These are the ones that change how the desk feels.
 
 ## Surface
