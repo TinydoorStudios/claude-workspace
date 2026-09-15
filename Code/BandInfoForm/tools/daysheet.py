@@ -659,9 +659,14 @@ def fill_engineer(grid, event, n, acts=None):
     names = {}
     if venue and date:
         try:
+            det = event.get("details") or {}
             names = staffing.engineers_for(
                 venue, date.isoformat(),
-                series=event.get("series"), event_name=event.get("name"))
+                series=event.get("series"), event_name=event.get("name"),
+                artist_name=next((a["artist"]["name"] for a in (acts or [])
+                                  if a.get("artist") and not a.get("_cancelled")),
+                                 None),
+                event_start=det.get("event_start"))
         except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the fill
             print(f"[daysheet] engineer lookup failed: {e!r}", file=sys.stderr)
             names = {}

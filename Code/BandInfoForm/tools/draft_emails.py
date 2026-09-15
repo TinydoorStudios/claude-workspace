@@ -268,7 +268,9 @@ def main():
             engineer_contact = False
             eng = (staffing.engineer_for(venue, show_date,
                                          series=r.get("series"),
-                                         event_name=r.get("event_name"))
+                                         event_name=r.get("event_name"),
+                                         artist_name=r.get("artist_name"),
+                                         event_start=r.get("event_start"))
                    if venue in ("Fountain Square", "Washington Park") else None)
             if eng:
                 day_of_contact = eng

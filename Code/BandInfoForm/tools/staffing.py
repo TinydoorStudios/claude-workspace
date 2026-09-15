@@ -161,12 +161,92 @@ def _format_row(row, with_cell=False):
     return name
 
 
-def _mix_tokens(venue, show_date, series=None, event_name=None):
+def _clock_minutes(text, assume_pm=True):
+    """'6:00pm' / '6:00p' / '11am' / '7' -> minutes since midnight, or None.
+    With no am/pm the sheet convention applies (PM unless assume_pm=False):
+    evening shows are the norm (Brian, 2026-09-11). 12am/12pm handled."""
+    if not text:
+        return None
+    m = re.match(r"^\s*\*{0,2}(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?\b",
+                 str(text).strip().lower())
+    if not m:
+        return None
+    h, mn = int(m.group(1)), int(m.group(2) or 0)
+    if not (0 <= h <= 12 and 0 <= mn < 60) or h == 0:
+        return None
+    suf = m.group(3)
+    pm = suf.startswith("p") if suf else assume_pm
+    if h == 12:
+        h = 0
+    return (h + (12 if pm else 0)) * 60 + mn
+
+
+def _event_cell_range(cell):
+    """(start_min, end_min) from the '(<start>-<end>)' part of an Event cell
+    like 'Kidney Walk (7a-1p)' or 'OTR Performs (2-8)', else None. A range
+    whose end lands before its start (e.g. '(11-2)' meaning 11am-2pm) is
+    corrected by reading the start as AM."""
+    line = (cell or "").strip().splitlines()[0] if (cell or "").strip() else ""
+    paren = re.search(r"\(([^)]*)\)", line)
+    if not paren:
+        return None
+    rng = re.search(
+        r"(\*{0,2}\d{1,2}(?::\d{2})?\s*(?:am|pm|a|p)?)\s*-\s*"
+        r"(\*{0,2}\d{1,2}(?::\d{2})?\s*(?:am|pm|a|p)?)", paren.group(1), re.I)
+    if not rng:
+        return None
+    a, b = _clock_minutes(rng.group(1)), _clock_minutes(rng.group(2))
+    if a is None or b is None:
+        return None
+    if b <= a:
+        a2 = _clock_minutes(rng.group(1), assume_pm=False)
+        if a2 is not None and a2 < b:
+            a = a2
+        else:
+            return None
+    return a, b
+
+
+def _pick_staffed_row(staffed, series=None, event_name=None, artist_name=None,
+                      event_start=None):
+    """The mix cell for THIS show from [(event_cell, mix), ...] — see the
+    rules in _mix_tokens(). None when the day is double-booked and nothing
+    singles a row out."""
+    if len(staffed) == 1:
+        return staffed[0][1]
+    hints = [h.strip().lower() for h in (series, event_name, artist_name)
+             if h and str(h).strip()]
+    if hints:
+        hit = [mix for ev, mix in staffed
+               if any(h in ev.lower() for h in hints)]
+        if len(hit) == 1:
+            return hit[0]
+        if len(hit) > 1 and len(set(hit)) == 1:
+            return hit[0]
+    start = _clock_minutes(event_start)
+    if start is not None:
+        hit = []
+        for ev, mix in staffed:
+            rng = _event_cell_range(ev)
+            if rng and rng[0] <= start < rng[1]:
+                hit.append(mix)
+        if len(hit) == 1:
+            return hit[0]
+        if len(hit) > 1 and len(set(hit)) == 1:
+            return hit[0]
+    if len({mix for _, mix in staffed}) == 1:
+        return staffed[0][1]  # same crew on every row — no ambiguity
+    return None
+
+
+def _mix_tokens(venue, show_date, series=None, event_name=None,
+                artist_name=None, event_start=None):
     """(tokens, codes_rows) for the show staffed on show_date at venue, or
     None if the venue isn't wired, the sheet is unreachable, or the date
     isn't staffed yet. tokens may be empty, or 3+ long for a messy cell —
-    callers decide what counts as resolvable. `series` / `event_name` are
-    hints for a double-booked day (see below); either may be None."""
+    callers decide what counts as resolvable. `series` / `event_name` /
+    `artist_name` / `event_start` are hints for a double-booked day (see
+    below); any may be None."""
     cols = SCHEDULE_COLUMNS.get(venue)
     if not cols or not show_date:
         return None
@@ -186,35 +266,39 @@ def _mix_tokens(venue, show_date, series=None, event_name=None):
     # A date can have several grid rows: blank filler rows for an unstaffed
     # day, and/or more than one real event. Blank rows sort ahead of a real
     # one often enough (confirmed 2026-09-08, WP) that stopping at the first
-    # date match misses real data entirely — so scan every matching row and
-    # take the first with an actual mix value.
+    # date match misses real data entirely — so only rows with an actual mix
+    # value count.
     #
-    # Two real events on one date (the 2026-09-07 gap, real example: WP
-    # 9/13/26 had both "Kidney Walk" and an evening show): when more than
-    # one row for the date HAS a mix value, prefer the row whose Event cell
-    # names this show's series or event — the same rule event_times_for()
-    # already uses for crew call/curfew. With no hint, or no row matching
-    # it, this falls back to the first staffed row exactly as before, so a
-    # single-event day is unchanged.
+    # Two real events on one date (the 2026-09-07 gap; real example WP
+    # 9/13/26: "Kidney Walk (7a-1p)" GH and "OTR Performs - CCM Movies (2-8)"
+    # JM): pick the row for THIS show, never guess. In order —
+    #   1. one staffed row on the date -> that's it (single-event day,
+    #      unchanged behaviour);
+    #   2. a row whose Event cell names the show's series, event name or
+    #      band name (same rule event_times_for() uses);
+    #   3. the row whose Event-cell time range contains the booking's event
+    #      start ("(7a-1p)" holds an 11:00am show, "(2-8)" a 6:00pm one);
+    #   4. still ambiguous -> None, so the Engineer row / day-of contact is
+    #      left for a human rather than filled with the wrong person
+    #      (Brian, 2026-09-15: the old "take the first row" fallback was the
+    #      remaining hole).
     need = max(cols.values())
-    hints = [h.strip().lower() for h in (series, event_name) if h and h.strip()]
     ev_col = cols.get("event")
-    raw_mix = None
+    staffed = []  # (event_cell_text, mix)
     for row in schedule_rows:
         if len(row) <= need:
             continue
         if _parse_date(row[cols["date"]]) != show_date:
             continue
-        candidate = (row[cols["mix"]] or "").strip()
-        if not candidate:
+        mix = (row[cols["mix"]] or "").strip()
+        if not mix:
             continue
-        if raw_mix is None:
-            raw_mix = candidate
-        if hints and ev_col is not None:
-            ev = (row[ev_col] or "").lower()
-            if any(h in ev for h in hints):
-                raw_mix = candidate
-                break
+        staffed.append(((row[ev_col] or "") if ev_col is not None else "", mix))
+    if not staffed:
+        return None
+
+    raw_mix = _pick_staffed_row(staffed, series, event_name, artist_name,
+                                event_start)
     if not raw_mix:
         return None
 
@@ -292,15 +376,18 @@ def event_times_for(venue, show_date, series=None):
     return first
 
 
-def engineer_for(venue, show_date, series=None, event_name=None):
+def engineer_for(venue, show_date, series=None, event_name=None,
+                 artist_name=None, event_start=None):
     """'Gyasi Henderson (513-313-2431)' for the FOH engineer staffed on
     show_date at venue — or None if the venue isn't wired, the sheet is
     unreachable, the date isn't staffed yet, or the mix cell doesn't cleanly
     resolve to 1 or 2 codes (a 3+-name staggered-shift cell isn't guessed at
     here either — same rule as engineers_for()). When the cell has two codes
     (FOH/Mon), this is the first (FOH) one; see engineers_for() for both.
-    `series` / `event_name` pick the right row on a double-booked day."""
-    found = _mix_tokens(venue, show_date, series, event_name)
+    `series` / `event_name` / `artist_name` / `event_start` pick the right
+    row on a double-booked day; if none does, None rather than a guess."""
+    found = _mix_tokens(venue, show_date, series, event_name,
+                        artist_name, event_start)
     if not found:
         return None
     tokens, codes_rows = found
@@ -309,16 +396,19 @@ def engineer_for(venue, show_date, series=None, event_name=None):
     return _format_row(_resolve_row(tokens[0], codes_rows), with_cell=True)
 
 
-def engineers_for(venue, show_date, series=None, event_name=None):
+def engineers_for(venue, show_date, series=None, event_name=None,
+                  artist_name=None, event_start=None):
     """{'foh': 'First Last', 'mon': 'First Last'} (either may be None) for the
     show staffed on show_date at venue. One set of initials in the Mix column
     is FOH only — Mon stays None, for staff to fill by hand (Brian,
     2026-09-08); two is FOH then Mon. A cell with zero, three-plus, or an
     unconfirmed ('?') token resolves to nothing rather than guess. Never
-    raises. `series` / `event_name` pick the right row on a double-booked
-    day (two staffed events, one date)."""
+    raises. `series` / `event_name` / `artist_name` / `event_start` pick the
+    right row on a double-booked day; if none does, empty rather than a
+    guess."""
     empty = {"foh": None, "mon": None}
-    found = _mix_tokens(venue, show_date, series, event_name)
+    found = _mix_tokens(venue, show_date, series, event_name,
+                        artist_name, event_start)
     if not found:
         return empty
     tokens, codes_rows = found
