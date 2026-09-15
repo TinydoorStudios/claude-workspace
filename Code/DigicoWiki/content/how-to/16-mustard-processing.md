@@ -8,8 +8,6 @@ Mustard is a second channel strip that runs alongside the standard SD strip on e
 ![Mustard EQ panel](/figures/q2-mustard-panel.png)
 *Mustard EQ panel — Quantum 2 offline software, V22.*
 
-![Mustard channel strip](/figures/ref-p054-1.png)
-
 ## Switch the strip view
 
 The **SD / Mustard** button in the strip flips the on-screen strip (and the big meters at the top) between the two processors. A small *SD* or *M* shows which is active; an *Active* icon appears above the Mustard icon when Mustard is on.
