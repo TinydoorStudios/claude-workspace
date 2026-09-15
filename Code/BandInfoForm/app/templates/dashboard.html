@@ -43,6 +43,12 @@
   .bill{background:#161b22;border:1px solid #2a323d;border-radius:12px;padding:16px 18px;
     transition:border-color .15s;}
   .bill:hover{border-color:#3a4453;}
+  /* Venue color-coding (Brian, 2026-09-15): dark blue for Fountain Square,
+     dark green for Washington Park, both at 50% so the card still reads as
+     dark-theme background rather than a solid color block. Any other venue
+     (Memorial Hall, Elm Street Plaza, etc.) keeps the plain .bill gray. */
+  .bill.venue-fsq{background:rgba(26,58,92,.5);}
+  .bill.venue-wp{background:rgba(20,83,45,.5);}
   .bill-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;}
   .venue{font-size:14px;font-weight:700;color:#4da3ff;}
   .series{font-size:12px;color:#8b97a6;margin-top:2px;}
@@ -237,7 +243,9 @@ function render(bills){
     grid.className = "bills";
     dayBills.forEach(b => {
       const card = document.createElement("div");
-      card.className = "bill";
+      const venueClass = b.venue === "Fountain Square" ? " venue-fsq"
+        : b.venue === "Washington Park" ? " venue-wp" : "";
+      card.className = "bill" + venueClass;
       const actsHtml = b.acts.map(a => {
         // Mark Finalized right here (Brian, 2026-09-13: "I don't want to go
         // searching for bands") — only offered once a response is on file
