@@ -2146,7 +2146,10 @@ def daily_digest():
     except Exception as e:
         _log_db_error("daily_digest", e)
         return {"error": e.__class__.__name__}, 500
-    return {"subject": subject, "html": html, "to": "blloyd@3cdc.org"}
+    # comma-separated — internal_send_outlook.json's Send via Graph node
+    # splits b.to on "," into one Graph recipient per address (Brian,
+    # 2026-09-15: add aschultes@3cdc.org).
+    return {"subject": subject, "html": html, "to": "blloyd@3cdc.org,aschultes@3cdc.org"}
 
 
 @app.post("/internal/crew-report")
