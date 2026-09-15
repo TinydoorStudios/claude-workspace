@@ -1566,6 +1566,39 @@ def uncancel_show(cur, show_id):
     return cur.fetchone() is not None
 
 
+def queue_fsq_parking(cur, *, artist_id, show_id, band, venue, show_date,
+                       contact_name, contact_email, contact_phone,
+                       vehicle_count, large_vehicle_count):
+    """Hold one Fountain Square band's parking numbers for the next daily
+    digest (Brian, 2026-09-15 — step 2: no more per-submission draft,
+    everything overnight batches into one email, sent only when non-empty).
+    A full snapshot is stored, not just the ids, so a later edit or purge of
+    the show can't change what already went out, or silently drop a pending
+    item. Returns the new row's id."""
+    cur.execute(
+        """INSERT INTO fsq_parking_queue
+               (artist_id, show_id, band, venue, show_date, contact_name,
+                contact_email, contact_phone, vehicle_count, large_vehicle_count)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+        (artist_id, show_id, band, venue, show_date, contact_name,
+         contact_email, contact_phone, vehicle_count, large_vehicle_count))
+    return cur.fetchone()["id"]
+
+
+def undelivered_fsq_parking(cur):
+    """Every queued FSQ parking item not yet folded into a digest, oldest
+    first — carries forward untouched across any number of empty days
+    (Brian: 'if no new submissions have come in, do not send') until a run
+    finally has something to report, so nothing is ever silently dropped."""
+    cur.execute("SELECT * FROM fsq_parking_queue WHERE digested_at IS NULL ORDER BY created_at")
+    return cur.fetchall()
+
+
+def mark_fsq_parking_delivered(cur, ids):
+    if ids:
+        cur.execute("UPDATE fsq_parking_queue SET digested_at = now() WHERE id = ANY(%s)", (list(ids),))
+
+
 def purge_show(cur, show_id):
     """Irreversibly delete every DATABASE trace of ONE show (Brian,
     2026-09-15 — the 'complete removal' option on the dashboard's cancel

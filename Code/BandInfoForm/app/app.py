@@ -408,7 +408,7 @@ def submit():
         _notify_submission(rec)
         _notify_email("submission", rec)
         if rec.get("venue") == "Fountain Square":
-            _draft_fsq_parking_notice(rec)
+            _queue_fsq_parking(rec)
     if result and result.get("match"):
         _email_submission_match(result, rec)
 
@@ -1358,21 +1358,18 @@ def _recap_for_draft(sub):
     return "\n".join(f"  {k}: {v}" for k, v in rows if v not in (None, "", "None"))
 
 
-def _draft_fsq_parking_notice(rec):
-    """Draft (never sends) the Fountain Square regular-vehicle parking
-    validation request, fired right when a band's own form comes in (Brian,
-    2026-09-15). FSQ only — call site gates on venue. The count is
-    vehicle_count minus large_vehicle_count: the regular-size subset, not
-    the large-vehicle allotment (see schema.sql's vehicle_count comment and
-    fieldspec.BAND_FIELDS for why the form asks it split that way). A
-    mirror workflow for large-vehicle counts, to a different recipient, is
-    a separate later build — this one only ever reports the regular count.
-
-    Uses the same internal-create-outlook-draft path as the 'Email band'
-    button (CREATE_DRAFT_URL) so it lands as a real Outlook draft in
-    Production@3cdc.org for Brian to review and send by hand — nothing here
-    ever sends on its own. Best-effort, same pattern as _notify_email:
-    never blocks or breaks the submission it came from."""
+def _queue_fsq_parking(rec):
+    """Hold this Fountain Square submission's parking numbers for tomorrow's
+    digest instead of drafting/sending anything now (Brian, 2026-09-15 —
+    step 2, supersedes the per-submission draft built and live-tested
+    earlier the same day: 'from this point forward... hold that information
+    until the next day'). Best-effort, same pattern as _notify_email: never
+    blocks or breaks the submission it came from. No-ops if the submission
+    was never recorded to the DB (rec["_db"] unset) — there'd be nowhere to
+    hold it."""
+    db_ids = rec.get("_db")
+    if not DB_OK or not db_ids:
+        return
     try:
         vehicles = int(rec.get("vehicle_count") or 0)
     except (TypeError, ValueError):
@@ -1381,38 +1378,87 @@ def _draft_fsq_parking_notice(rec):
         large = int(rec.get("large_vehicle_count") or 0)
     except (TypeError, ValueError):
         large = 0
-    regular = max(vehicles - large, 0)
-
-    when = ""
+    show_date = None
     sd = (rec.get("show_date") or "").strip()
     if sd:
         try:
-            when = us_date(dt.date.fromisoformat(sd))
+            show_date = dt.date.fromisoformat(sd)
         except ValueError:
-            when = sd
-
-    band = rec.get("band_name") or "(no band name given)"
-    subject = f"FSQ Parking Validations — {band}" + (f" — {when}" if when else "")
-    body = (
-        f"Band: {band}\n"
-        f"Venue: Fountain Square\n"
-        f"Show date: {when or '(not given)'}\n\n"
-        f"Contact: {rec.get('contact_name') or '(none given)'}\n"
-        f"Email: {rec.get('contact_email') or '(none given)'}\n"
-        f"Phone: {rec.get('contact_phone') or '(none given)'}\n\n"
-        f"Regular vehicle validations needed: {regular}\n"
-        f"(Total vehicles {vehicles}, of which {large} need large-vehicle "
-        "parking — handled by the separate large-vehicle workflow.)\n"
-    )
+            show_date = None
     try:
-        import urllib.request
-        req = urllib.request.Request(
-            CREATE_DRAFT_URL,
-            data=json.dumps({"to": FSQ_PARKING_NOTICE_TO, "subject": subject, "body": body}).encode(),
-            headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN})
-        urllib.request.urlopen(req, timeout=15)
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            advance_db.queue_fsq_parking(
+                cur,
+                artist_id=db_ids.get("artist_id"), show_id=db_ids.get("show_id"),
+                band=rec.get("band_name") or "(no band name given)",
+                venue="Fountain Square", show_date=show_date,
+                contact_name=rec.get("contact_name"), contact_email=rec.get("contact_email"),
+                contact_phone=rec.get("contact_phone"),
+                vehicle_count=vehicles, large_vehicle_count=large)
+            conn.commit()
     except Exception as e:  # noqa: BLE001
-        _log_db_error("fsq_parking_draft", e)
+        _log_db_error("fsq_parking_queue", e)
+
+
+@app.post("/internal/fsq-parking-digest")
+def fsq_parking_digest():
+    """Called once a day by n8n's 'FSQ Parking Digest' workflow. One email,
+    only when there's something to report (Brian, 2026-09-15, step 2: 'if
+    no new submissions have come in the night before, do not send the
+    digest') — every FSQ band queued since the last run, broken out
+    individually with its own contact info and regular-vehicle count, never
+    just a grand total. Auto-sent for real to Mtully@3cdc.org, same
+    real-send path as the ops Daily Digest — not a draft.
+
+    Returns {"send": false} when the queue is empty so the workflow's own
+    IF node skips the send step; this endpoint never sends anything
+    itself, only says what to send. Marks every included item delivered
+    before returning, same convention as the general digest_items queue
+    (tools/daily_digest.py) — a downstream send failure would need a manual
+    resend, not a silent duplicate tomorrow. Token-protected, same as
+    /internal/daily-digest."""
+    _internal_auth()
+    if not DB_OK:
+        return {"error": "db-unavailable"}, 503
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        items = advance_db.undelivered_fsq_parking(cur)
+        if not items:
+            return {"send": False}
+        rows_html = []
+        for it in items:
+            regular = max((it.get("vehicle_count") or 0) - (it.get("large_vehicle_count") or 0), 0)
+            when = us_date(it["show_date"]) if it.get("show_date") else "(not given)"
+            rows_html.append(
+                "<tr>"
+                "<td style='padding:8px 14px 8px 0;border-top:1px solid #ddd'>"
+                f"<b>{mailer.esc(it['band'])}</b><br>"
+                f"<span style='color:#666;font-size:12px'>{mailer.esc(when)}</span></td>"
+                "<td style='padding:8px 14px;border-top:1px solid #ddd;font-size:13px'>"
+                f"{mailer.esc(it.get('contact_name') or '(none given)')}<br>"
+                f"{mailer.esc(it.get('contact_email') or '')}<br>"
+                f"{mailer.esc(it.get('contact_phone') or '')}</td>"
+                "<td style='padding:8px 0 8px 14px;border-top:1px solid #ddd;"
+                "text-align:right;font-size:14px;font-weight:700'>"
+                f"{regular}"
+                "<div style='font-weight:400;color:#666;font-size:11px'>"
+                f"of {it.get('vehicle_count') or 0} total, "
+                f"{it.get('large_vehicle_count') or 0} large</div></td>"
+                "</tr>")
+        count = len(items)
+        subject = f"FSQ Parking Validations — {count} band{'s' if count != 1 else ''}"
+        html = (
+            "<div style='font-family:-apple-system,sans-serif'>"
+            f"<p>{count} Fountain Square band{'s' if count != 1 else ''} "
+            "submitted since the last check:</p>"
+            "<table style='border-collapse:collapse;width:100%'>"
+            "<tr style='text-align:left;font-size:11px;color:#888;text-transform:uppercase'>"
+            "<th style='padding:0 14px 6px 0'>Band / Date</th>"
+            "<th style='padding:0 14px 6px'>Contact</th>"
+            "<th style='padding:0 0 6px 14px;text-align:right'>Regular validations</th>"
+            "</tr>" + "".join(rows_html) + "</table></div>")
+        advance_db.mark_fsq_parking_delivered(cur, [it["id"] for it in items])
+        conn.commit()
+    return {"send": True, "subject": subject, "html": html, "to": FSQ_PARKING_NOTICE_TO}
 
 
 def _build_reply_draft(show, artist, sub):

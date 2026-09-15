@@ -1,0 +1,201 @@
+{
+  "id": "fsq-parking-digest",
+  "name": "FSQ Parking Digest",
+  "active": true,
+  "settings": {},
+  "nodes": [
+    {
+      "id": "sched-1",
+      "name": "Daily 7:05am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "5 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "http-1",
+      "name": "Fetch Parking Digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "url": "http://192.168.200.84:8097/internal/fsq-parking-digest",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Advance-Token",
+              "value": "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "if-1",
+      "name": "Has Content",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-send",
+              "leftValue": "={{ $json.send }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "http-2",
+      "name": "Send Digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        220
+      ],
+      "parameters": {
+        "url": "http://localhost:5678/webhook/internal-send-outlook",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Advance-Token",
+              "value": "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ subject: $json.subject, html: $json.html, to: $json.to }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "webhook-1",
+      "name": "On-Demand Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        480
+      ],
+      "webhookId": "fsq-parking-digest-now",
+      "parameters": {
+        "path": "fsq-parking-digest-now",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-1",
+      "name": "Check Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        480
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const EXPECTED_TOKEN = 'REPLACE_WITH_ADVANCE_INTERNAL_TOKEN';\nconst headers = $input.first().json.headers || {};\nconst token = headers['x-advance-token'];\nif (token !== EXPECTED_TOKEN) {\n  return [];\n}\nreturn [{ json: {} }];"
+      }
+    }
+  ],
+  "connections": {
+    "Daily 7:05am": {
+      "main": [
+        [
+          {
+            "node": "Fetch Parking Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Parking Digest": {
+      "main": [
+        [
+          {
+            "node": "Has Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Content": {
+      "main": [
+        [
+          {
+            "node": "Send Digest",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "On-Demand Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Token": {
+      "main": [
+        [
+          {
+            "node": "Fetch Parking Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
