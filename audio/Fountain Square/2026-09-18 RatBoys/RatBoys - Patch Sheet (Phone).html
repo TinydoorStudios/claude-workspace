@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1A3A5C" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+<title>RatBoys — Patch Sheet</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f6f7f9; --fg:#111827; --dim:#6b7280; --card:#fff; --line:#e5e7eb;
+  --nav:#1A3A5C; --accent:#2E6DA4; --ok:#065F46;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#0b1220; --fg:#e9edf3; --dim:#94a3b8; --card:#151d2b; --line:#243247;
+          --nav:#0e1729; --accent:#5b9bd5; --ok:#34D399; }
+}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font:400 17px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:20;background:var(--nav);color:#fff;
+  padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+header h1{margin:0;font-size:21px;font-weight:700;letter-spacing:.2px}
+header .sub{margin-top:3px;font-size:13px;opacity:.85}
+.bar{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.bar button{flex:1 1 auto;min-height:40px;min-width:76px;border:0;border-radius:9px;
+  background:rgba(255,255,255,.14);color:#fff;font:600 14px/1 inherit;padding:0 10px}
+.bar button[aria-pressed="true"]{background:#fff;color:var(--nav)}
+.prog{margin-top:8px;font-size:13px;opacity:.9;display:flex;align-items:center;gap:8px}
+.prog .track{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
+.prog .fill{height:100%;width:0;background:#fff;transition:width .2s}
+.zones{padding:10px 14px;font-size:13px;color:var(--dim);border-bottom:1px solid var(--line)}
+.alerts{padding:12px 12px 2px;display:grid;gap:8px}
+.alert{border-radius:11px;padding:10px 12px;font-size:14.5px;display:grid;gap:2px;
+  border-left:5px solid currentColor}
+.alert b{font-size:13px;letter-spacing:.5px}
+.alert span{color:var(--fg);opacity:.9}
+.alert.danger{color:#B91C1C;background:#FEE2E2}
+.alert.power{color:#065F46;background:#D1FAE5}
+.alert.tour{color:#92400E;background:#FFF3CD}
+@media (prefers-color-scheme:dark){
+  .alert.danger{color:#FCA5A5;background:#2a1416} .alert.power{color:#6EE7B7;background:#0e2620}
+  .alert.tour{color:#FCD34D;background:#2a2110}
+}
+main{padding:8px 12px calc(env(safe-area-inset-bottom) + 28px)}
+.s-DRUMS { --tint:#FEF3C7; --head:#FDE68A; --ink:#92400E; --dk:#FBBF24; }
+.s-BASS { --tint:#DCFCE7; --head:#BBF7D0; --ink:#065F46; --dk:#34D399; }
+.s-RHYTHM { --tint:#DCFCE7; --head:#BBF7D0; --ink:#065F46; --dk:#34D399; }
+.s-GUITAR { --tint:#D1FAE5; --head:#A7F3D0; --ink:#047857; --dk:#6EE7B7; }
+.s-PIANO { --tint:#FCE7F3; --head:#FBCFE8; --ink:#9D174D; --dk:#F472B6; }
+.s-KEYS { --tint:#EDE9FE; --head:#DDD6FE; --ink:#5B21B6; --dk:#A78BFA; }
+.s-STRINGS { --tint:#DBEAFE; --head:#BFDBFE; --ink:#1E40AF; --dk:#60A5FA; }
+.s-HORNS { --tint:#FFEDD5; --head:#FCD9B4; --ink:#9A3412; --dk:#FB923C; }
+.s-VOCALS { --tint:#EDE9FE; --head:#DDD6FE; --ink:#4338CA; --dk:#818CF8; }
+.s-AMBIENT { --tint:#E0E7FF; --head:#C7D2FE; --ink:#3730A3; --dk:#818CF8; }
+.s-SPARE { --tint:#F3F4F6; --head:#E5E7EB; --ink:#374151; --dk:#9CA3AF; }
+.sechead{position:sticky;top:0;z-index:10;margin:16px 0 8px;padding:8px 12px;border-radius:9px;
+  font-size:13.5px;font-weight:800;letter-spacing:1px;background:var(--head);color:var(--ink)}
+@media (prefers-color-scheme:dark){ .sechead{background:#1c2942;color:var(--dk)} }
+.card{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+  border-left:6px solid var(--head);border-radius:13px;padding:12px;margin:0 0 8px;min-height:76px;
+  -webkit-tap-highlight-color:transparent;cursor:pointer}
+@media (prefers-color-scheme:dark){ .card{border-left-color:var(--dk)} }
+.num{flex:0 0 46px;text-align:center;font:800 27px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color:var(--ink);padding-top:2px}
+@media (prefers-color-scheme:dark){ .num{color:var(--dk)} }
+.main{flex:1;min-width:0}
+.inst{font-weight:700;font-size:18px;line-height:1.25}
+.sub{margin-top:1px;font-size:14.5px;color:var(--dim)}
+.mic{margin-top:3px;font-size:16px;color:var(--fg);opacity:.92}
+.meta{margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--dim)}
+.meta .patch{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:600;color:var(--accent)}
+.chips{margin-top:7px;display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-style:normal;font-size:11.5px;font-weight:800;letter-spacing:.5px;padding:4px 8px;border-radius:99px;white-space:nowrap}
+.c-power{background:#D1FAE5;color:#065F46} .c-danger{background:#FEE2E2;color:#B91C1C}
+.c-tour{background:#FFF3CD;color:#92400E} .c-info{background:#E0E7FF;color:#3730A3}
+@media (prefers-color-scheme:dark){
+  .c-power{background:#0e2620;color:#6EE7B7} .c-danger{background:#2a1416;color:#FCA5A5}
+  .c-tour{background:#2a2110;color:#FCD34D} .c-info{background:#18213a;color:#A5B4FC}
+}
+.note{margin-top:7px;font-size:13.5px;color:var(--dim);line-height:1.35}
+.tick{flex:0 0 30px;height:30px;border-radius:50%;border:2px solid var(--line);margin-top:2px;position:relative}
+.card.done{opacity:.5}
+.card.done .tick{background:var(--ok);border-color:var(--ok)}
+.card.done .tick:after{content:"";position:absolute;left:9px;top:4px;width:8px;height:15px;
+  border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
+.card.hide{display:none}
+footer{padding:6px 14px 30px;font-size:12.5px;color:var(--dim);text-align:center}
+</style></head><body>
+<header>
+  <h1>RatBoys — Patch</h1>
+  <div class="sub">Fountain Square (outdoor) · 2026-09-18 · 8:00pm · 20 ch</div>
+  <div class="bar">
+    <button id="f-all" aria-pressed="true">All</button>
+    <button id="f-todo" aria-pressed="false">To do</button>
+    <button id="f-48v" aria-pressed="false">48V only</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="prog"><span id="count">0 / 20</span><span class="track"><span class="fill" id="fill"></span></span></div>
+</header>
+<div class="zones">Split patch zones: <b>R-1…R-16</b> red · <b>G-1…G-12</b> green · <b>B-1…B-12</b> blue · <b>O-1…O-12</b> orange · <b>WIRELESS</b> for the handhelds.</div>
+<section class="alerts">
+<div class="alert power"><b>48V ON THESE ONLY</b><span>Ch 1, 4, 7, 8, 13. Everything else is a dynamic or a line feed — leave phantom off.</span></div>
+<div class="alert tour"><b>ARTIST-PROVIDED GEAR</b><span>Ch 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20. Confirm at load-in.</span></div>
+</section>
+<main id="list">
+<h2 class="sechead s-DRUMS">DRUMS / PERC</h2>
+<article class="card s-DRUMS" data-ch="1" data-phantom="1">
+  <div class="num">1</div>
+  <div class="main">
+    <div class="inst">Kick In</div>
+    <div class="sub">Kick (in)</div>
+    <div class="mic">Shure Beta 91A</div>
+    <div class="meta"><span class="patch">Local 1</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Two-mic kick with CH2 (NXN2). One signal: same VCA, blend fixed at soundcheck, sum to mono and flip one leg if it thins. Contour switch assumed OFF (flat) — if the band runs it ON, the 400 cut is already in the mic: back B3 off to −2.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="2" data-phantom="0">
+  <div class="num">2</div>
+  <div class="main">
+    <div class="inst">Kick Out</div>
+    <div class="sub">Kick (out)</div>
+    <div class="mic">Shure Nexadyne NXN2</div>
+    <div class="meta"><span class="patch">Local 2</span><span class="stand">Stand: Short</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Outside/port mic on the band&#x27;s short boom. Owns the BODY lane. Polarity vs CH1 checked in mono.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="3" data-phantom="0">
+  <div class="num">3</div>
+  <div class="main">
+    <div class="inst">Snare Top</div>
+    
+    <div class="mic">Shure Nexadyne NXN6</div>
+    <div class="meta"><span class="patch">Local 3</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Snare top only — no bottom mic on this list. Clip mount (band).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="4" data-phantom="1">
+  <div class="num">4</div>
+  <div class="main">
+    <div class="inst">Hat</div>
+    <div class="sub">Hi-hat</div>
+    <div class="mic">Karma K-Micro Silver Bullet</div>
+    <div class="meta"><span class="patch">Local 4</span><span class="stand">Stand: Short</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Band&#x27;s electret pencil, needs 48V. Aim the capsule away from the snare.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="5" data-phantom="0">
+  <div class="num">5</div>
+  <div class="main">
+    <div class="inst">Rack</div>
+    
+    <div class="mic">Shure Nexadyne NXN6</div>
+    <div class="meta"><span class="patch">Local 5</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Rim clip (band). No sizes notated — generic rack.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="6" data-phantom="0">
+  <div class="num">6</div>
+  <div class="main">
+    <div class="inst">Floor</div>
+    
+    <div class="mic">Shure Nexadyne NXN6</div>
+    <div class="meta"><span class="patch">Local 6</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Rim clip (band). Generic floor.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="7" data-phantom="1">
+  <div class="num">7</div>
+  <div class="main">
+    <div class="inst">Ride</div>
+    
+    <div class="mic">Audio-Technica PRO 37</div>
+    <div class="meta"><span class="patch">Local 7</span><span class="stand">Stand: Short</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Band mounts it UNDER the ride on a short boom, capsule facing the bell from below and away from the floor tom. Mono channel, its own fader.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="8" data-phantom="1">
+  <div class="num">8</div>
+  <div class="main">
+    <div class="inst">OH</div>
+    <div class="sub">Overhead (mono)</div>
+    <div class="mic">Shure SM27</div>
+    <div class="meta"><span class="patch">Local 8</span><span class="stand">Stand: Tall</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">ONE SM27 on a tall boom, mono, its own fader (band&#x27;s call: ride and overhead are separate mono channels). Mic switches assumed FLAT / no pad — confirm at load-in; the desk HPF does the low-cut work so leave the mic&#x27;s 80/115 Hz switch flat.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-KEYS">KEYS</h2>
+<article class="card s-KEYS" data-ch="9" data-phantom="0">
+  <div class="num">9</div>
+  <div class="main">
+    <div class="inst">SPD L</div>
+    <div class="sub">Roland SPD-SX (L)</div>
+    <div class="mic">Radial Pro D2 (passive DI)</div>
+    <div class="meta"><span class="patch">Local 9</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Roland SPD-SX stereo out, L leg, band&#x27;s passive Radial Pro D2 (green DI). Mono channel panned hard L. No 48V. FADER 9: the template&#x27;s stereo Overheads channel — Brian breaks the stereo link on the desk and runs it mono; the build only renames and EQs it.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-KEYS" data-ch="10" data-phantom="0">
+  <div class="num">10</div>
+  <div class="main">
+    <div class="inst">SPD R</div>
+    <div class="sub">Roland SPD-SX (R)</div>
+    <div class="mic">Radial Pro D2 (passive DI)</div>
+    <div class="meta"><span class="patch">Local 10</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Roland SPD-SX stereo out, R leg, band&#x27;s passive Radial Pro D2 (green DI). Mono channel panned hard R. No 48V. FADER 10: the template&#x27;s SNARE PL8 reverb return, repurposed as a mono input for this show on Brian&#x27;s explicit call (band runs their own reverbs).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-BASS">BASS</h2>
+<article class="card s-BASS" data-ch="11" data-phantom="0">
+  <div class="num">11</div>
+  <div class="main">
+    <div class="inst">Bass DI</div>
+    
+    <div class="mic">XLR line feed (band DI)</div>
+    <div class="meta"><span class="patch">Local 11</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">XLR out of the band&#x27;s rig / DI. Ask at load-in whether it is PRE or POST the amp EQ: if POST, drop the +3@800 (the amp already voiced it — KB post-EQ DI rule) and keep the cuts. No 48V unless it turns out to be a house J48.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-BASS" data-ch="12" data-phantom="0">
+  <div class="num">12</div>
+  <div class="main">
+    <div class="inst">Bass Mic</div>
+    <div class="sub">Bass cab (2×15)</div>
+    <div class="mic">Sennheiser MD 421-U</div>
+    <div class="meta"><span class="patch">Local 12</span><span class="stand">Stand: Short</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Band&#x27;s 421 on a short boom at the 215 rig, 1 in off the grille between dust-cap and cone edge. Bass roll-off at M (flat) assumed — if they run it at S the low-mid cut can ease to −4. Polarity vs CH11 checked in mono; the pair is ONE signal on one VCA.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-GUITAR">GUITAR</h2>
+<article class="card s-GUITAR" data-ch="13" data-phantom="1">
+  <div class="num">13</div>
+  <div class="main">
+    <div class="inst">J Gtr</div>
+    <div class="sub">Julia — 4×10 combo</div>
+    <div class="mic">Shure SM27</div>
+    <div class="meta"><span class="patch">Local 13</span><span class="stand">Stand: Short</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Julia&#x27;s 410 guitar combo, centre stage, band&#x27;s SM27 on a short boom. Switches flat, pad OFF unless the amp is cranked (148 dB SPL — it won&#x27;t be). 48V.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-GUITAR" data-ch="14" data-phantom="0">
+  <div class="num">14</div>
+  <div class="main">
+    <div class="inst">D Gtr Front</div>
+    <div class="sub">Dave — 2×12 combo, FRONT</div>
+    <div class="mic">Sennheiser MD 409</div>
+    <div class="meta"><span class="patch">Local 14</span><span class="stand">Stand: Short</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">FRONT of Dave&#x27;s 212 combo (stage left), band&#x27;s MD409 on a short boom, on the grille toward the cone edge. Partner is CH15 (rear 57): ONE signal, same VCA, blend set at soundcheck — the 409 leads, the 57 fills.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-GUITAR" data-ch="15" data-phantom="0">
+  <div class="num">15</div>
+  <div class="main">
+    <div class="inst">D Gtr Rear</div>
+    <div class="sub">Dave — 2×12 combo, REAR</div>
+    <div class="mic">Shure SM57</div>
+    <div class="meta"><span class="patch">Local 15</span><span class="stand">Stand: Short</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">REAR of Dave&#x27;s open-back 212, band&#x27;s SM57 on a short boom pointed at the back of the cone.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-GUITAR" data-ch="16" data-phantom="0">
+  <div class="num">16</div>
+  <div class="main">
+    <div class="inst">Acoustic</div>
+    
+    <div class="mic">XLR line feed (band DI)</div>
+    <div class="meta"><span class="patch">Local 16</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Andy&#x27;s acoustic on the riser, stage left, through the band&#x27;s DI box (plot: &#x27;acoustic (DI box)&#x27;). No 48V unless it turns out to be a house J48.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-DRUMS">DRUMS / PERC</h2>
+<article class="card s-DRUMS" data-ch="17" data-phantom="0">
+  <div class="num">17</div>
+  <div class="main">
+    <div class="inst">Cowbell</div>
+    
+    <div class="mic">Shure SM57</div>
+    <div class="meta"><span class="patch">Local 17</span><span class="stand">Stand: Tall</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Mounted stage left by Dave on a tall boom (plot). Band&#x27;s 57.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-STRINGS">STRINGS</h2>
+<article class="card s-STRINGS" data-ch="18" data-phantom="0">
+  <div class="num">18</div>
+  <div class="main">
+    <div class="inst">Steel</div>
+    <div class="sub">Pedal steel — 1×12 combo</div>
+    <div class="mic">Shure Nexadyne NXN5</div>
+    <div class="meta"><span class="patch">Local 18</span><span class="stand">Stand: Short</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Andy&#x27;s 112 guitar combo on the riser, stage left, band&#x27;s NXN5 on a short boom. Also his electric guitar when he switches (plot: &#x27;STEEL/GTR&#x27;) — same channel, same curve, the steel is the harder case so it sets the numbers.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-VOCALS">VOCALS</h2>
+<article class="card s-VOCALS" data-ch="19" data-phantom="0">
+  <div class="num">19</div>
+  <div class="main">
+    <div class="inst">Sean Vox</div>
+    <div class="sub">Vocal — male BV (bass player)</div>
+    <div class="mic">Shure SM58</div>
+    <div class="meta"><span class="patch">Local 19</span><span class="stand">Stand: Tall</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Sean, stage right, tall boom with clip (plot). Band&#x27;s SM58. Backing vocal under Julia; on ears.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="20" data-phantom="0">
+  <div class="num">20</div>
+  <div class="main">
+    <div class="inst">Julia Vox</div>
+    <div class="sub">Vocal — female lead</div>
+    <div class="mic">sE Electronics V7</div>
+    <div class="meta"><span class="patch">Local 20</span><span class="stand">Stand: Tall</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">Julia, centre, tall boom with clip (plot). Band&#x27;s sE V7. Lead vocal, plays guitar (CH13) at the same time; on ears.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+</main>
+<footer>Tap a channel to check it off — saved on this phone only.<br>
+Generated from RatBoys.spec.json · Rev 1.0 Deep Think</footer>
+<script>
+(function(){
+  var KEY = 'patch:' + "RatBoys";
+  var done = {};
+  try { done = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { done = {}; }
+  var cards = [].slice.call(document.querySelectorAll('.card'));
+  var total = cards.length, mode = 'all';
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(done)); } catch(e) {} }
+  function paint(){
+    var n = 0;
+    cards.forEach(function(c){
+      var id = c.dataset.ch, on = !!done[id];
+      c.classList.toggle('done', on);
+      if (on) n++;
+      var hide = (mode === 'todo' && on) || (mode === '48v' && c.dataset.phantom !== '1');
+      c.classList.toggle('hide', hide);
+    });
+    document.getElementById('count').textContent = n + ' / ' + total;
+    document.getElementById('fill').style.width = (total ? (n / total * 100) : 0) + '%';
+  }
+  cards.forEach(function(c){
+    c.addEventListener('click', function(){
+      var id = c.dataset.ch;
+      if (done[id]) { delete done[id]; } else { done[id] = 1; }
+      save(); paint();
+      if (navigator.vibrate) navigator.vibrate(8);
+    });
+  });
+  function setMode(m, btn){
+    mode = m;
+    ['f-all','f-todo','f-48v'].forEach(function(i){
+      document.getElementById(i).setAttribute('aria-pressed', i === btn ? 'true' : 'false');
+    });
+    paint();
+  }
+  document.getElementById('f-all').onclick  = function(){ setMode('all','f-all'); };
+  document.getElementById('f-todo').onclick = function(){ setMode('todo','f-todo'); };
+  document.getElementById('f-48v').onclick  = function(){ setMode('48v','f-48v'); };
+  document.getElementById('reset').onclick  = function(){
+    if (confirm('Clear every check mark?')) { done = {}; save(); paint(); }
+  };
+  paint();
+})();
+</script>
+</body></html>

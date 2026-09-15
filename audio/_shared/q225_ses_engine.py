@@ -802,6 +802,10 @@ def main_cli(cal, argv=None):
     ap.add_argument('--dest',  required=True, help="output .ses (show folder)")
     ap.add_argument('--md',    help="FOH Channel Processing .md (preferred)")
     ap.add_argument('--sheet', help="Patch Master Sheet .xlsx (names only)")
+    ap.add_argument('--allow-protected', type=int, action='append', default=[],
+                    help="lift the venue's protected-fader guard for this fader "
+                         "(per-show, Brian's explicit call; e.g. FSQ 10 as a mono "
+                         "input). Repeatable. Mirrors spec allow_reserved.")
     a = ap.parse_args(argv)
     if not (a.md or a.sheet):
         print("ERROR: provide --md (preferred) or --sheet"); return 2
@@ -848,7 +852,12 @@ def main_cli(cal, argv=None):
     # Protected faders (venue calibration): template channels that must never
     # be patched (FX returns living in the input range, e.g. FSQ fader 10 =
     # SNARE PL8). Hard abort — fix the MD / input-list mapping instead.
-    hit = [ch for ch in work if ch in cal.get('protected', {})]
+    hit = [ch for ch in work if ch in cal.get('protected', {})
+           and ch not in a.allow_protected]
+    for ch in a.allow_protected:
+        if ch in cal.get('protected', {}) and ch in work:
+            print(f"WARN: Ch {ch} protected-fader guard LIFTED by --allow-protected "
+                  f"— {cal['protected'][ch]}")
     if hit:
         for ch in hit:
             print(f"ERROR: Ch {ch} is PROTECTED on the {cal['venue']} "

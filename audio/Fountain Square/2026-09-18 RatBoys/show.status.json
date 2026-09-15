@@ -6,9 +6,21 @@
     "scaffolded": {
       "at": "2026-09-14T10:24:51",
       "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-09-14T21:49:36",
+      "note": "20 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-09-14T21:50:31",
+      "note": "fsq \u00b7 20 channels \u00b7 RatBoys.ses"
     }
   },
   "show_key": "fsq-2026-09-18-ratboys",
   "advance_show_id": 475,
-  "advance_event": null
+  "advance_event": null,
+  "rev": "Rev 1.0 Deep Think",
+  "spec_md5": "7b2205a61171507661a581901d77a5a5",
+  "md_md5": "cf8bed1cb2fe1008e353acce1cd36d21",
+  "ses_md5": "442d093547e2837a72815f4ae6dfcbe1"
 }

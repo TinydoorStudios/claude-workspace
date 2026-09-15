@@ -227,7 +227,22 @@ def validate_spec(spec):
     if not spec.get("channels"):
         errors.append("spec has no channels")
         return errors, warnings
-    reserved = RESERVED_CH.get(str(spec.get("venue", "")).lower(), {})
+    reserved = dict(RESERVED_CH.get(str(spec.get("venue", "")).lower(), {}))
+    # Per-show override (Brian, 2026-09-14, RatBoys): a spec may lift a reserved
+    # fader with "allow_reserved": {"10": "<reason>"} — the reason is required
+    # and lands in the packet notes. Pass the same faders to the patcher with
+    # --allow-protected. Never silent: a warning is always printed.
+    for k, why in (spec.get("allow_reserved") or {}).items():
+        try:
+            k = int(k)
+        except (TypeError, ValueError):
+            errors.append(f'allow_reserved key {k!r} is not a channel number'); continue
+        if not str(why or "").strip():
+            errors.append(f"allow_reserved {k}: a reason is required"); continue
+        if k in reserved:
+            warnings.append(f"ch {k} RESERVED override in force — {why} "
+                            f"(patcher needs --allow-protected {k})")
+            del reserved[k]
     # Reverb suggestions are a required deliverable, every show, FSQ included
     # (Brian, 2026-07-08): 3 complementary vocal options, 1-2 instrument, and
     # a general verb when warranted — Seventh Heaven Pro, presets verbatim

@@ -1,0 +1,1064 @@
+{
+ "venue": "fsq",
+ "venue_label": "Fountain Square (outdoor)",
+ "console_label": "DiGiCo Quantum 225",
+ "show_name": "RatBoys",
+ "artist": "Ratboys",
+ "genre": "Indie rock (Americana / alt-country edges)",
+ "show_date": "2026-09-18",
+ "foh_engineer": "Melissa Adams (tour) — house starting point by Brian Lloyd",
+ "mon_engineer": "Band IEM rack (self-mixed) · house wedge for Dave only",
+ "show_time": "8:00pm",
+ "rev": "Rev 1.0 Deep Think",
+ "app_version": "deep-think-1.0",
+ "eq_on": true,
+ "comp_on": false,
+ "artist_profile": "Chicago indie-rock five-piece on this tour: Julia Steiner (lead vocal + guitar, centre), Dave Sagan (lead guitar, stage left, on a wedge), Sean Neumann (bass + BVs, stage right), Marcus Nuccio (drums, on ears) and touring player Andy 'Red' PK (pedal steel + guitar + acoustic, riser stage left). Sixth record 'Singin' to an Empty Chair' (New West, Feb 2026) is the tour: Sagan's guitar 'from gently probing to outright inferno' (Paste), slide into thick distortion, fingerpicked acoustic openings that build to full band (DIY Mag), and a Sept 2026 Tiny Desk that spent a third of the set on one long song — the jam sections are real. Steiner's voice is light and sweet (NPR) and has to sit over a distorted lead and a steel. Mix priority: Julia intelligible over the wall, Dave's lead cutting in the 1k lane not the top, steel as colour, a kick/snare that drives.",
+ "room_context": "Open-air Fountain Square — no room gain, cuts at outdoor depth (−6 to −9), lows carried by the KS21 arch. Show window (Open-Meteo, 9/18): 85°F/59% RH at 6pm falling to 76°F/74% by 9pm and 75°F/76% by 10pm, wind 5–7 mph, rain chance 34% early dropping to 7% after 9pm. Humid but well under the 90% inversion line: HF carries, so baked peaks are trimmed but no channel needs an HF rescue and no channel gets an HF boost. Everyone but Dave is on the band's own IEM rack; one house wedge downstage left.",
+ "changes": [
+  "FADER 9/10 OVERRIDE (Brian, 2026-09-14): the template's stereo Overheads fader 9 runs MONO as SPD-SX L, and the protected SNARE PL8 return on fader 10 is repurposed as SPD-SX R — band's input list matched 1:1. Spec carries allow_reserved; the patcher runs with --allow-protected 10. On the desk: break fader 9's stereo link, re-patch fader 10's input to Local 10.",
+  "Ride and overhead are SEPARATE MONO channels (7 and 8) per the band's list — not the usual stereo OH pair on 9.",
+  "No reverb section: band runs their own effects (Brian's call) — no_reverb set.",
+  "Vocals land on Misc faders 19/20 (1:1 with the list), NOT the template's vocal faders 25+, so the FSQ wireless starting curve does not apply — full male/female cuts-only curves written here.",
+  "Every mic is the band's (⚑ TOUR, confirm at load-in) — no locker forks were run (R32 exempt).",
+  "Dave's cab is front (MD409) + rear (SM57) on an open-back 212: rear channel POLARITY FLIPPED, LPF 2k, body-only lane.",
+  "Nine units verdicted THIN (no KB row for the touring mics) — built from the web findings; mic-library rows queued in kb_writeback."
+ ],
+ "decisions": [
+  "Q: date 9/18 (advance DB) or 9/19 (xlsx)? -> Brian: 9/18.",
+  "Q: build purpose with tour FOH Melissa Adams? -> Brian: house starting point, full packet + .ses.",
+  "Q: ride/OH placement vs fader 9 stereo / 10 return? -> Brian: break the stereo channel; then, on the revised list, match 1:1.",
+  "Q: are the listed mics the band's? -> Brian: all TOUR, no locker forks.",
+  "Q: stage plot/rider? -> Brian: in the 3CDC Dropbox; guard hook allowlisted by Brian, plot copied in.",
+  "Q: genre spine — indie rock or Americana? -> Brian: indie rock, Americana refine.",
+  "Q: nine THIN units? -> Brian: research + add KB rows.",
+  "Q: fader map? -> Brian: exactly 1:1 with the (revised) input list incl. vocals on 19/20; write male/female vocal curves, cuts only.",
+  "Reverbs: Brian — none needed, band has their own."
+ ],
+ "monitors": [
+  {
+   "mix": "IEM",
+   "who": "Marcus, Sean, Julia, Andy",
+   "type": "IEM (band rack)",
+   "note": "artist provides IEMs and their own mixes from the split"
+  },
+  {
+   "mix": "WEDGE",
+   "who": "Dave (DSL)",
+   "type": "wedge (house)",
+   "note": "venue provides one wedge downstage left + routing; band sends 1 XLR for the guitar wedge mix"
+  },
+  {
+   "mix": "TB",
+   "who": "FOH talkback",
+   "type": "line",
+   "note": "tail 14 per the plot"
+  }
+ ],
+ "no_reverb": true,
+ "reverb_note": "None — the band runs their own reverbs/delays (Brian, 2026-09-14). Fader 10's snare plate return is repurposed as an input this show.",
+ "allow_reserved": {
+  "10": "Brian 2026-09-14: band input list matched 1:1 — fader 10 = SPD-SX R (mono); band runs their own reverbs so the snare plate return is unused"
+ },
+ "research": {
+  "genre_verified": "Indie rock with Americana / alt-country edges — verified against the band's own 2026 record on New West, Americana Highways' review and show coverage, the pedal steel on the input list, and NPR's Tiny Desk (Sept 2026) copy calling them 'an indie-rock mainstay'. Split evidence raised with Brian: indie rock is the spine, Americana refines the steel, acoustic and lead vocal.",
+  "gig": "Fountain Square, Fri 2026-09-18, 8pm, 513 Airwaves w/ Inhaler Radio series; touring FOH Melissa Adams mixes, this packet is the house starting point. Input list matched 1:1 (20 channels).",
+  "conditions": "Open-Meteo hourly forecast pulled 2026-09-14 for 2026-09-18: 6pm 85°F/59% RH, 7pm 82°F/67%, 8pm 78°F/73%, 9pm 76°F/74%, 10pm 75°F/76%, 11pm 74°F/77%; wind 5–7 mph; precipitation chance 34% until 8pm then 7%. Under the 90% saturation line — HF carries; baked peaks trimmed, no HF boosts anywhere.",
+  "units": [
+   {
+    "ch": "1",
+    "source": "Kick in",
+    "mic": "Shure Beta 91A",
+    "finding": "Boundary condenser, nominally flat; contour switch = −7 dB @ 400 Hz when engaged; shell box 300–500 is its known weakness.",
+    "sources": "Shure Beta 91A user guide; Mix real-world review; RecordingHacks",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "91A owns attack; box at 400 is the documented problem",
+     "equip": "no shell sizes notated — no change",
+     "genre": "indie rock outdoors wants beater snap: +3@3.5k, placed under the NXN2's baked 4.5k",
+     "artist": "driving eighth-note kick under long jams — shallow gate range, moderate click",
+     "venue": "FSQ: box cut to −7@400, HPF 40"
+    }
+   },
+   {
+    "ch": "2",
+    "source": "Kick out",
+    "mic": "Shure Nexadyne NXN2",
+    "finding": "Revonic dual-transducer supercardioid, 20 Hz–16 kHz; built-in passive filter scoops 450 Hz; broad boost centred at 4.5 kHz.",
+    "sources": "Mix 'Shure Nexadyne NXN2/NXN5/NXN6 real-world review'; Shure NXN2 user guide; Drum Helper review",
+    "verdict": "THIN",
+    "trace": {
+     "base": "body lane; 450 scoop and 4.5k lift are baked — no cut in the scoop, no click boost",
+     "equip": "no change",
+     "genre": "rock: keep the baked click but hand it to CH1 — −3@4.5k here",
+     "artist": "no change",
+     "venue": "FSQ subs: +3@60 cleared (no baked low peak); −4@250 low-mid; HPF 30"
+    }
+   },
+   {
+    "ch": "3/5/6",
+    "source": "Snare top, rack, floor",
+    "mic": "Shure Nexadyne NXN6",
+    "finding": "Supercardioid, 50 Hz–16 kHz; presence peak in the ~6 kHz zone 'much wider and smoother' than the NXN5's; full low end.",
+    "sources": "Mix Nexadyne review; Shure NXN6 user guide; B&H spec",
+    "verdict": "THIN",
+    "trace": {
+     "base": "crack/attack baked at 6k — no top boost on any of the three",
+     "equip": "no drum sizes — generic snare/rack/floor",
+     "genre": "rock: +3 body on each (180/120/80), box cuts",
+     "artist": "ghost notes in verses — shallow gate ranges",
+     "venue": "FSQ: box cuts to −6/−7/−8"
+    }
+   },
+   {
+    "ch": "4",
+    "source": "Hi-hat",
+    "mic": "Karma K-Micro Silver Bullet",
+    "finding": "Electret SDC, 20 Hz–20 kHz, response plot shows a dip ~2 kHz and a ~7 dB peak ~6–6.5 kHz.",
+    "sources": "Sound On Sound K-Micro review; RecordingHacks Karma K-Micro; Tape Op review",
+    "verdict": "THIN",
+    "trace": {
+     "base": "trim the baked 6.5k peak (−5); leave 2k alone (capsule dips there)",
+     "equip": "no change",
+     "genre": "rock hat: HPF 400, snare-bleed cut −6@500",
+     "artist": "no change",
+     "venue": "FSQ: HPF decisive at 400; cuts at outdoor depth"
+    }
+   },
+   {
+    "ch": "7",
+    "source": "Ride, underhead",
+    "mic": "Audio-Technica PRO 37",
+    "finding": "SDC, 30 Hz–15 kHz, 141 dB SPL; a 'big 7k boost' and a steep roll-off above ~12 kHz; users cut deep around 7k on cymbals.",
+    "sources": "Gearspace 'Audio Technica Pro37 real opinions'; RecordingHacks PRO 37; A-T ride-miking blog; DFO underhead thread",
+    "verdict": "THIN",
+    "trace": {
+     "base": "−6@7k on the baked hype; underhead = ping + bleed, not air",
+     "equip": "underhead short boom (notated) — floor-tom bleed cut −6@600",
+     "genre": "rock ride: keep the ping, cut 2.5k clank −4",
+     "artist": "long jam sections ride-heavy — ducker not gate",
+     "venue": "FSQ: HPF 500"
+    }
+   },
+   {
+    "ch": "8",
+    "source": "Overhead, mono",
+    "mic": "Shure SM27",
+    "finding": "LDC, 40 Hz–20 kHz, 148 dB max SPL, 9.5 dBA self-noise, switchable −6/oct@115 or −18/oct@80 rolloff, −15 dB pad; generally flat with slight presence/air.",
+    "sources": "RecordingHacks SM27 spec; AudioTechnology SM27 review; Podcastage SM27",
+    "verdict": "THIN",
+    "trace": {
+     "base": "flat capsule — real cuts, nothing to trim",
+     "equip": "single mono OH, tall boom (band's call)",
+     "genre": "rock: HPF 300, −5@500 shell bleed",
+     "artist": "ride has its own mic — this is crash/hat wash/glue",
+     "venue": "FSQ 76% RH: no air boost; −4@3k crash harshness"
+    }
+   },
+   {
+    "ch": "9/10",
+    "source": "Roland SPD-SX L/R",
+    "mic": "Radial Pro D2 passive DI",
+    "finding": "Finished audio: samples pre-EQ'd/compressed; Pro D2 passive with −15 dB pad; SPD-SX output level is a known live-sound complaint (run master high, pad at DI).",
+    "sources": "Roland SPD-SX product page; Gearspace live-sound 'SPD-SX sample level very quiet'; Radial Pro D2 spec",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "no transducer — one venue trim, no boost",
+     "equip": "stereo out, two DIs, panned L/R",
+     "genre": "no change",
+     "artist": "samples under indie rock — overlap trim only",
+     "venue": "FSQ: −5@300, HPF 40"
+    }
+   },
+   {
+    "ch": "11",
+    "source": "Bass DI",
+    "mic": "XLR line feed",
+    "finding": "Line feed; KB mic+DI lane rule (DI <100 Hz + definition, cab mic above 100).",
+    "sources": "KB eq-starting-points (bass mic+DI); TalkBass 'micing a bass cabinet live'",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "DI owns <100 and definition",
+     "equip": "215 bass rig (notated) — HPF 35, subs carry it",
+     "genre": "indie rock melodic bass: +3@800 definition",
+     "artist": "Sean's busy lines — definition over growl, VCA comp",
+     "venue": "FSQ: −6@250, −4@3k clank"
+    }
+   },
+   {
+    "ch": "12",
+    "source": "Bass cab 2×15",
+    "mic": "Sennheiser MD 421-U (band's)",
+    "finding": "30 Hz–17 kHz, bass tube for extended lows, low-mid girth 200–400 up close, voiced presence rise ~4–5 kHz; 2×15 cab reproduces ~30 Hz–5 kHz.",
+    "sources": "Sennheiser MD 421 spec; SOS MD 421 Kompakt review; Seismic Audio 215 spec; KB 421-U row",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "lane 100 up; trim baked 4.5k presence −3",
+     "equip": "2×15 — LPF 8k, low-mid −7@300",
+     "genre": "rock grind lane kept",
+     "artist": "no change",
+     "venue": "FSQ: −7@300 outdoor depth"
+    }
+   },
+   {
+    "ch": "13",
+    "source": "Julia's 4×10 combo",
+    "mic": "Shure SM27",
+    "finding": "SM27 on a cab adds fullness without the 2–4 kHz bite of a vocal-style dynamic; 10-inch speakers = tighter midrange, less low end than 12s.",
+    "sources": "AudioTechnology SM27 review; Premier Guitar SM27 review; Gearspace '10 vs 12 speaker' thread",
+    "verdict": "THIN",
+    "trace": {
+     "base": "flat capsule, no trims",
+     "equip": "4×10 (notated) → owns the TOP lane of the twin-guitar slot",
+     "genre": "indie rock: −7@350 mud",
+     "artist": "rhythm under her own vocal — −3@900 cedes mids to Dave",
+     "venue": "FSQ: LPF 10k, HPF 100"
+    }
+   },
+   {
+    "ch": "14",
+    "source": "Dave's 2×12 combo, front",
+    "mic": "Sennheiser MD 409",
+    "finding": "Measured across five units: ~5 dB bump at 100–200 Hz, dip below 100 Hz, otherwise even to ~15 kHz; the e609 differs (broad 5k lift, earlier top roll-off).",
+    "sources": "Xaudia 'Testing the Sennheiser MD409 family' (2022 measurements); Tape Op MD409 review",
+    "verdict": "THIN",
+    "trace": {
+     "base": "trim the baked 100–200 bump −3@160; mids honest → +3@1k clean",
+     "equip": "2×12 open-back (notated), front mic of a front/rear pair — HPF 120, lane above the rear 57",
+     "genre": "rock lead guitar: mid lane +3@1k",
+     "artist": "'probing to inferno' lead + slide — cut-through in the 1k lane, −3@3k cedes top to Julia",
+     "venue": "FSQ: LPF 9k"
+    }
+   },
+   {
+    "ch": "15",
+    "source": "Dave's 2×12 combo, rear",
+    "mic": "Shure SM57",
+    "finding": "Rear of an open-back cab radiates mostly low end and cabinet resonance; the rear mic is in negative polarity to the front mic and needs a flip, then a mono sweet-spot check; it 'beefs up a top-heavy front-miked sound'.",
+    "sources": "Recording magazine 'One Amp, Three Mics'; Sound On Sound 'Two-mic Guitar Tracking'; Marshall Forum front-vs-rear; Gearspace 'mic the back of a speaker cab'",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "body lane only: HPF 70, LPF 2k, polarity flip",
+     "equip": "open-back 212 (notated) — −4@450 cabinet box",
+     "genre": "no change",
+     "artist": "fills under the 409 during the loud sections, 6–10 dB under",
+     "venue": "FSQ: no change"
+    }
+   },
+   {
+    "ch": "16",
+    "source": "Acoustic (DI)",
+    "mic": "XLR line feed",
+    "finding": "Piezo/pickup feed: under-saddle transient 'quack'; KB rule — 1.5–2k quack is the primary cut plus 200–400 mud, outdoor depth.",
+    "sources": "Radial 'Acoustic pickups & how to make them sound their best'; SOS 'Mixing Acoustic Guitars Live'; KB piezo string-band row",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "quack −7@1.8k, mud −7@250",
+     "equip": "band DI box — no change",
+     "genre": "folk-conservative in spirit: no boosts",
+     "artist": "fingerpicked intros carried alone — LPF 12k, natural",
+     "venue": "FSQ: cuts at −7"
+    }
+   },
+   {
+    "ch": "17",
+    "source": "Cowbell",
+    "mic": "Shure SM57",
+    "finding": "Cowbell = two partials ~587 and ~845 Hz (1:1.44); SM57 presence peak 6–7 kHz +5 to +7.",
+    "sources": "Sound On Sound 'Synthesizing cowbells & claves'; KB SM57 row (Shure curve)",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "leave 590/850; trim 57 peak −4@6.5k",
+     "equip": "no change",
+     "genre": "rock: −5@3k ring",
+     "artist": "no change",
+     "venue": "FSQ: HPF 250, LPF 10k"
+    }
+   },
+   {
+    "ch": "18",
+    "source": "Pedal steel / gtr, 1×12 combo",
+    "mic": "Shure Nexadyne NXN5",
+    "finding": "Supercardioid, 50 Hz–16 kHz, presence peak centred at 6 kHz (grille/housing), extra midrange cut vs proximity; steel through a Fender-style combo wants a wide 300–400 cut and a 600–800 dip, easy on the top.",
+    "sources": "Mix Nexadyne review; ProSoundWeb 'Road Test: Shure Nexadyne'; Steel Guitar Forum 'Proper Pedal Steel EQ' / 'Frequencies for Steel'; playpedalsteel.com EQ tips",
+    "verdict": "THIN",
+    "trace": {
+     "base": "trim the baked 6k −4",
+     "equip": "1×12 combo (notated): −7@350 wide boom",
+     "genre": "Americana refine: steel colours, doesn't honk — −4@700",
+     "artist": "Andy doubles on guitar — same curve, steel sets it",
+     "venue": "FSQ: LPF 10k, HPF 100"
+    }
+   },
+   {
+    "ch": "19",
+    "source": "Male backing vocal",
+    "mic": "Shure SM58",
+    "finding": "50 Hz–15 kHz, bass roll below 100, proximity +6–10 dB @100 Hz within 6 mm, presence region 4–6 kHz.",
+    "sources": "Shure SM58 user guide; RecordingHacks SM58; KB SM58 row",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "cuts only: box −6@400, presence −3@5k",
+     "equip": "no change",
+     "genre": "rock: aggressive cuts-only",
+     "artist": "harmony slot under Julia — HPF 110, nasal lane 2.5k",
+     "venue": "FSQ: gain-before-feedback, no boosts"
+    }
+   },
+   {
+    "ch": "20",
+    "source": "Female lead vocal",
+    "mic": "sE Electronics V7",
+    "finding": "Presence peak centred ~3 kHz (not 4.2k), dip in the sibilance zone ~6 kHz, air bump above 10 kHz, controlled proximity below 1 kHz.",
+    "sources": "Sound On Sound 'sE Electronics V3 & V7'; Tape Op V7 review; KB sE V7 X row",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "trim baked 3k −4; nothing at 6k (capsule dips); ease 10k air −3",
+     "equip": "no change",
+     "genre": "rock lead vocal: cuts only, decisive HPF",
+     "artist": "sweet voice over distorted lead + steel — HPF 130, lane at 3k vs Sean's 2.5k",
+     "venue": "FSQ 76% RH: air bump trimmed for GBF"
+    }
+   }
+  ],
+  "reconciliation": [
+   "No web↔KB disagreements on the units that have a KB row (Beta 91A, 421-U, SM57, SM58, V7, piezo acoustic, sampling pad, bass DI lane rule) — all AGREE.",
+   "Nine units THIN — touring mics with no KB row (NXN2, NXN6 ×3, NXN5, Karma K-Micro, PRO 37, SM27 ×2, MD409). Brian: build from the web findings and add the rows."
+  ],
+  "kb_writeback": [
+   "NEW ROW — Shure Nexadyne NXN2: supercardioid dual-transducer kick, 20 Hz–16 kHz, −66 dBV/Pa, built-in 450 Hz scoop + broad 4.5 kHz lift (Mix). Tendency: no click boost, no cut at 450.",
+   "NEW ROW — Shure Nexadyne NXN6: supercardioid tom/snare, 50 Hz–16 kHz, −61 dBV/Pa, wide smooth ~6 kHz presence (Mix). Tendency: attack is baked, trim don't boost.",
+   "NEW ROW — Shure Nexadyne NXN5: supercardioid amp mic, 50 Hz–16 kHz, presence peak centred 6 kHz (Mix, PSW). Tendency: trim 6k on bright sources (steel).",
+   "NEW ROW — Karma K-Micro Silver Bullet: electret SDC, 20–20k, dip ~2 kHz, ~7 dB peak ~6.5 kHz (SOS). Hat/snare-bottom class. Tendency: trim 6.5k, never cut 2k.",
+   "NEW ROW — Audio-Technica PRO 37: SDC, 30 Hz–15 kHz, 141 dB SPL, big 7 kHz hype, roll-off above ~12k (Gearspace, RecordingHacks). Tendency: −6 at 7k on cymbals.",
+   "NEW ROW — Shure SM27: LDC, 40 Hz–20 kHz, 148 dB SPL, 9.5 dBA, flat with slight presence/air; rolloff 80/115, −15 pad (RecordingHacks). Cab and overhead use; nothing baked to trim.",
+   "NEW ROW — Sennheiser MD 409: ~5 dB bump 100–200 Hz, dip <100, even to ~15k; NOT the e609 (which adds a broad 5k lift) (Xaudia measurements). Tendency: trim the low bump, mids honest.",
+   "eq-starting-points — front + rear mic on one open-back cab: rear leg polarity-flipped, LPF ~2k, body-only lane 70–250, box cut ~450; front mic HPF above the rear's lane (RatBoys 09-18).",
+   "eq-starting-points — pedal steel through a 1×12 combo: wide −7@350, −4@700, trim the mic's top; Steel Guitar Forum consensus (RatBoys 09-18)."
+  ]
+ },
+ "channels": [
+  {
+   "ch": 1,
+   "name": "Kick In",
+   "instrument": "Kick (in)",
+   "mic": "Shure Beta 91A",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "tour": true,
+   "stand": "—",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 3500,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -7,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Two-mic kick with CH2 (NXN2). One signal: same VCA, blend fixed at soundcheck, sum to mono and flip one leg if it thins. Contour switch assumed OFF (flat) — if the band runs it ON, the 400 cut is already in the mic: back B3 off to −2.",
+   "mic_notes": "Band's Beta 91A boundary inside the shell — owns the ATTACK lane. Nominally flat with the contour off; picks up shell box 300–500. GATE (doc only): Green/FET, thr ~−28, atk 1 ms, hold 40, rel 120, range 20 — fast enough for the driving eighth-note kick, range shallow so the ring under the jam sections survives.",
+   "eq_summary": "Attack lane only. +3@3.5k is the beater snap a rock kick wants outdoors, placed BELOW the NXN2's baked 4.5k lift so the two clicks don't stack (Mix: NXN2 'broad boost centred at 4.5 kHz'). −7@400 is the boundary mic's documented box zone at outdoor depth. Lows flat — the NXN2 owns bottom."
+  },
+  {
+   "ch": 2,
+   "name": "Kick Out",
+   "instrument": "Kick (out)",
+   "mic": "Shure Nexadyne NXN2",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Short",
+   "hpf": 30,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 4500,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 250,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 60,
+     "q": 1.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Outside/port mic on the band's short boom. Owns the BODY lane. Polarity vs CH1 checked in mono.",
+   "mic_notes": "Revonic dual-transducer supercardioid, 20 Hz–16 kHz. The capsule already scoops 450 Hz (built-in low-Q bandpass) and lifts 4.5 kHz (Mix real-world review) — so no box cut near 450 (it's already gone) and no click boost (it's already there). Sub reach is real: Mix heard 'a good mix of subsonic energy and attack' out front.",
+   "eq_summary": "Body lane. +3@60 gives the KS21 arch something to carry — cleared because the NXN2 has no baked low peak, just flat reach to 20 Hz. −4@250 clears the low-mid between the fundamental and the mic's own 450 scoop (not inside the scoop — R15). −3@4.5k trims the baked click so CH1 owns attack alone. HPF 30."
+  },
+  {
+   "ch": 3,
+   "name": "Snare Top",
+   "instrument": "Snare top",
+   "mic": "Shure Nexadyne NXN6",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "—",
+   "hpf": 100,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 180,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Snare top only — no bottom mic on this list. Clip mount (band).",
+   "mic_notes": "NXN6 supercardioid, 50 Hz–16 kHz, a wide smooth presence rise around 6 kHz (Mix: 'about the same frequency [as the NXN5's 6 kHz] but much wider and smoother'). The crack is baked in: no B4 boost, and if it reads harsh on the open plaza trim −2@6k rather than reach for air. Mix noted minimal hat leakage on snare. GATE (doc only): Green/FET, thr ~−30, atk 0.5 ms, hold 60, rel 150, range 15 — shallow range so ghost notes in the quieter verses stay.",
+   "eq_summary": "Rock snare outdoors: +3@180 body (cleared — NXN6 has full low end with no baked low peak; 180 is above its 50 Hz floor and below the box), −6@400 box at outdoor depth. Top left alone because the capsule already carries the 6k crack. HPF 100."
+  },
+  {
+   "ch": 4,
+   "name": "Hat",
+   "instrument": "Hi-hat",
+   "mic": "Karma K-Micro Silver Bullet",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Short",
+   "hpf": 400,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -5,
+     "freq": 6500,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 500,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Band's electret pencil, needs 48V. Aim the capsule away from the snare.",
+   "mic_notes": "Karma K-Micro: electret SDC, 20 Hz–20 kHz, plot shows a DIP around 2 kHz and a ~7 dB PEAK around 6–6.5 kHz (Sound On Sound review, RecordingHacks). So the sizzle is baked — trim it — and there is no 2k cut here because the capsule already scoops that zone (R15).",
+   "eq_summary": "HPF 400 decisive — the hat mic on this kit is fighting snare bleed from a mic that sits low. −5@6.5k shaves the capsule's own peak so the hat doesn't turn to tizz in the open air. −6@500 is snare-body bleed. Nothing at 2k on purpose."
+  },
+  {
+   "ch": 5,
+   "name": "Rack",
+   "instrument": "Rack tom",
+   "mic": "Shure Nexadyne NXN6",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "—",
+   "hpf": 60,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 120,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Rim clip (band). No sizes notated — generic rack.",
+   "mic_notes": "Same NXN6 as the snare: baked wide 6k presence for stick attack, full lows. Mix on a rack tom: 'thick tonality with plenty of attack'. GATE (doc only): Green/FET, thr ~−32, atk 1 ms, hold 80, rel 200, range 25.",
+   "eq_summary": "+3@120 fundamental weight (cleared — no baked low peak). −7@400 box at outdoor depth. Attack is the capsule's — no top boost."
+  },
+  {
+   "ch": 6,
+   "name": "Floor",
+   "instrument": "Floor tom",
+   "mic": "Shure Nexadyne NXN6",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "—",
+   "hpf": 45,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 700,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -8,
+     "freq": 350,
+     "q": 1.8,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": 3,
+     "freq": 80,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Rim clip (band). Generic floor.",
+   "mic_notes": "NXN6 on a floor: Mix heard 'a big, meaty sound with good transients' — the low end is not a problem to solve, the low-mid is. GATE (doc only): Green/FET, thr ~−32, atk 1 ms, hold 100, rel 300, range 25 — slower release than the rack so the floor's decay in the slow songs doesn't chop.",
+   "eq_summary": "+3@80 fundamental (cleared, no baked peak there). −8@350 is the outdoor floor-tom mud cut, deeper than the rack because the shell is bigger. −3@700 rings. Top stays with the capsule."
+  },
+  {
+   "ch": 7,
+   "name": "Ride",
+   "instrument": "Ride (underhead)",
+   "mic": "Audio-Technica PRO 37",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Short",
+   "hpf": 500,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -6,
+     "freq": 7000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -4,
+     "freq": 2500,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 600,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Band mounts it UNDER the ride on a short boom, capsule facing the bell from below and away from the floor tom. Mono channel, its own fader.",
+   "mic_notes": "PRO 37 SDC, 30 Hz–15 kHz, 141 dB SPL. The tell is a big ~7 kHz hype and a steep roll-off above ~12 kHz (Gearspace 'real opinions' thread; RecordingHacks) — users 'find themselves doing deep cuts around there, especially on cymbals'. Underhead placement hears more ping and stick than wash, and more floor-tom bleed than a true overhead (A-T ride-miking blog; DFO underhead thread). DUCK (doc only): thr ~−45, range 20 — a ducker, not a gate, so the ride tail is never chopped.",
+   "eq_summary": "This channel is ping and stick, not air. −6@7k sits on the capsule's baked hype (trim, never boost). −4@2.5k is stick clank on a bright ride, deeper outdoors. −6@600 is floor-tom bleed coming up from below. HPF 500."
+  },
+  {
+   "ch": 8,
+   "name": "OH",
+   "instrument": "Overhead (mono)",
+   "mic": "Shure SM27",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Tall",
+   "hpf": 300,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -4,
+     "freq": 3000,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 500,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "ONE SM27 on a tall boom, mono, its own fader (band's call: ride and overhead are separate mono channels). Mic switches assumed FLAT / no pad — confirm at load-in; the desk HPF does the low-cut work so leave the mic's 80/115 Hz switch flat.",
+   "mic_notes": "SM27 LDC, 40 Hz–20 kHz, 148 dB SPL, 9.5 dBA self-noise, generally flat with a slight presence/air lift (RecordingHacks spec; AudioTechnology and Podcastage reviews). Nothing baked to fight. As a single mono overhead over a ride-plus-crash kit it's crash, hat wash and kit glue — the ride has its own mic.",
+   "eq_summary": "HPF 300 — this mic is cymbals and glue, the shells are all close-miked. −5@500 pulls snare/tom body bleed. −4@3k is the crash's harsh zone in the open air; no baked peak there on this mic so it's a real cut, not a trim. No top boost — 76% RH by set time and a flat capsule that already has air."
+  },
+  {
+   "ch": 9,
+   "name": "SPD L",
+   "instrument": "Roland SPD-SX (L)",
+   "mic": "Radial Pro D2 (passive DI)",
+   "section": "KEYS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "—",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Roland SPD-SX stereo out, L leg, band's passive Radial Pro D2 (green DI). Mono channel panned hard L. No 48V. FADER 9: the template's stereo Overheads channel — Brian breaks the stereo link on the desk and runs it mono; the build only renames and EQs it.",
+   "mic_notes": "Passive DI on finished audio — every sample was EQ'd and compressed before it reached the pad (KB sampling-pad row). No transducer to correct, no boost available; the Pro D2 is a flat passive box with a −15 dB pad if the SPD runs hot (Radial spec). Gearspace live-sound thread on SPD-SX level: run the pad's master high and pad at the DI rather than chase gain at the desk.",
+   "eq_summary": "One venue-driven trim: −5@300 where the samples overlap bass and guitars on the plaza. HPF 40 so a sub-heavy sample still reaches the KS21s. Panned L; both legs identical.",
+   "patch": "Local 9"
+  },
+  {
+   "ch": 10,
+   "name": "SPD R",
+   "instrument": "Roland SPD-SX (R)",
+   "mic": "Radial Pro D2 (passive DI)",
+   "section": "KEYS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "—",
+   "hpf": 40,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -5,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Roland SPD-SX stereo out, R leg, band's passive Radial Pro D2 (green DI). Mono channel panned hard R. No 48V. FADER 10: the template's SNARE PL8 reverb return, repurposed as a mono input for this show on Brian's explicit call (band runs their own reverbs). Patcher run with --allow-protected 10; re-patch the fader's input to Local 10 on the desk.",
+   "mic_notes": "Passive DI on finished audio — every sample was EQ'd and compressed before it reached the pad (KB sampling-pad row). No transducer to correct, no boost available; the Pro D2 is a flat passive box with a −15 dB pad if the SPD runs hot (Radial spec). Gearspace live-sound thread on SPD-SX level: run the pad's master high and pad at the DI rather than chase gain at the desk.",
+   "eq_summary": "One venue-driven trim: −5@300 where the samples overlap bass and guitars on the plaza. HPF 40 so a sub-heavy sample still reaches the KS21s. Panned R; both legs identical.",
+   "patch": "Local 10"
+  },
+  {
+   "ch": 11,
+   "name": "Bass DI",
+   "instrument": "Bass DI (line)",
+   "mic": "XLR line feed (band DI)",
+   "section": "BASS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "—",
+   "hpf": 35,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -4,
+     "freq": 3000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": 3,
+     "freq": 800,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 250,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "XLR out of the band's rig / DI. Ask at load-in whether it is PRE or POST the amp EQ: if POST, drop the +3@800 (the amp already voiced it — KB post-EQ DI rule) and keep the cuts. No 48V unless it turns out to be a house J48.",
+   "mic_notes": "Line feed — no capsule. Lane owner for everything BELOW 100 Hz and for definition (KB mic+DI rule: DI owns <100, cab mic owns above). Sean's lines are melodic and busy ('fantastic bass line' — AV Club on the new record), so definition matters more than growl. COMP (doc only): Red/VCA 4:1, atk 20 ms, rel 100 ms, 4–5 dB GR, GR target 4 — even the melodic runs out.",
+   "eq_summary": "−6@250 clears the low-mid so the 421 leg can own it. +3@800 is note definition on a clean DI (cleared: no transducer, nothing baked). −4@3k tames string clank and pick edge outdoors. HPF 35 — the 2×15 rig is doing sub on stage but FOH still wants fundamental through the arch."
+  },
+  {
+   "ch": 12,
+   "name": "Bass Mic",
+   "instrument": "Bass cab (2×15)",
+   "mic": "Sennheiser MD 421-U",
+   "section": "BASS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Short",
+   "hpf": 100,
+   "lpf": 8000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 4500,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Band's 421 on a short boom at the 215 rig, 1 in off the grille between dust-cap and cone edge. Bass roll-off at M (flat) assumed — if they run it at S the low-mid cut can ease to −4. Polarity vs CH11 checked in mono; the pair is ONE signal on one VCA.",
+   "mic_notes": "Vintage 421-U (the band's — any '421' on this list is theirs, not the house Silver Tail). 30 Hz–17 kHz with the bass tube, low-mid girth 200–400 that blooms up close, and a voiced presence rise ~4–5 kHz (Sennheiser spec, KB row). On a 2×15 the cab itself lives 30 Hz–5 kHz (Seismic 215 spec) so the 421's top is mostly grille noise.",
+   "eq_summary": "Lane: 100 Hz up. HPF 100 is the lane boundary handed to the DI. −7@300 is the 421's close-up bloat plus the 15s' low-mid at outdoor depth. −3@4.5k trims the baked presence rise (not a cut into a scoop). LPF 8k — nothing useful above it from two 15s."
+  },
+  {
+   "ch": 13,
+   "name": "J Gtr",
+   "instrument": "Julia — 4×10 combo",
+   "mic": "Shure SM27",
+   "section": "GUITAR",
+   "phantom": true,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Short",
+   "hpf": 100,
+   "lpf": 10000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 900,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 350,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Julia's 410 guitar combo, centre stage, band's SM27 on a short boom. Switches flat, pad OFF unless the amp is cranked (148 dB SPL — it won't be). 48V.",
+   "mic_notes": "SM27 on a cab: full body, no 2–4 kHz bite (AudioTechnology: 'adds fullness without biting your head off around 2–4 kHz'; Premier Guitar review). Nothing baked to trim. The cab is four 10s: tighter, more midrange, less low end than 12s (Gearspace 10 vs 12 thread), so it is the natural owner of the TOP lane of the twin-guitar section. Julia plays rhythm under her own vocal, so this channel sits under CH20 at all times.",
+   "eq_summary": "Twin-guitar slot: Julia owns 2–4k jangle (4×10 + open SM27), Dave owns the 600–1.2k midrange. −7@350 mud at outdoor depth. −3@900 cedes the midrange to Dave's lead. No top cut — this channel IS the top lane. LPF 10k for fizz in the open. HPF 100."
+  },
+  {
+   "ch": 14,
+   "name": "D Gtr Front",
+   "instrument": "Dave — 2×12 combo, FRONT",
+   "mic": "Sennheiser MD 409",
+   "section": "GUITAR",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Short",
+   "hpf": 120,
+   "lpf": 9000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 3000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": 3,
+     "freq": 1000,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 1,
+     "gain": -3,
+     "freq": 160,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "FRONT of Dave's 212 combo (stage left), band's MD409 on a short boom, on the grille toward the cone edge. Partner is CH15 (rear 57): ONE signal, same VCA, blend set at soundcheck — the 409 leads, the 57 fills. Equipboard lists his amp as a Fender Hot Rod Deluxe with a Tele/Strat and a JHS Morning Glory into a Strymon BlueSky — confirm the 212 at load-in.",
+   "mic_notes": "MD409 signature (Xaudia measured five units): a ~5 dB bump at 100–200 Hz and a dip below 100 Hz, otherwise even to ~15 kHz — NOT a presence-peak mic like the e609 (which adds a broad 5k lift the 409 lacks). So the warmth is baked; trim it rather than boost body, and the mids are honest so a mid boost is clean. This is the LEAD guitar: 'from gently probing to outright inferno' (Paste), slide into thick distortion, long jam sections (Tiny Desk review) — the channel needs cut in the 1k lane, not more bass.",
+   "eq_summary": "Owns the midrange lane of the twin-guitar section. +3@1k is lead-guitar cut-through, cleared because the 409 has no mid peak to stack on. −3@160 trims the capsule's own 100–200 bump so it doesn't pile on the rear mic's body. −3@3k cedes the top lane to Julia's 4×10. HPF 120 (the 57 owns below). LPF 9k."
+  },
+  {
+   "ch": 15,
+   "name": "D Gtr Rear",
+   "instrument": "Dave — 2×12 combo, REAR",
+   "mic": "Shure SM57",
+   "section": "GUITAR",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Short",
+   "hpf": 70,
+   "lpf": 2000,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -4,
+     "freq": 450,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "REAR of Dave's open-back 212, band's SM57 on a short boom pointed at the back of the cone. POLARITY FLIP ON THIS CHANNEL — the back of the cone moves away when the front moves toward the 409, so the rear mic arrives inverted by physics (Recording magazine 'One amp, three mics'; SOS two-mic guitar tracking). Flip, sum with CH14 in mono, slide the mic until the sum is fullest. Body-only role, rides 6–10 dB under the front.",
+   "mic_notes": "SM57 hearing the OPEN BACK: the rear of an open cab radiates mostly low end and cabinet resonance — the highs beam out the front (Recording magazine; Marshall forum front-vs-rear). Its 6–7 kHz presence peak (KB row) is irrelevant here because the channel is low-passed. The rear mic 'can help beef up a top-heavy front-miked guitar sound' (SOS) — exactly the job under the 409 during the loud sections.",
+   "eq_summary": "Lane: 70–250 body, nothing else. LPF 2k keeps the rear leg out of the top where two mics on one cone would comb. −4@450 is the open-back cabinet's box resonance. No boost — the front 409 already bakes 100–200, this leg just fills under it. HPF 70."
+  },
+  {
+   "ch": 16,
+   "name": "Acoustic",
+   "instrument": "Acoustic guitar (DI)",
+   "mic": "XLR line feed (band DI)",
+   "section": "GUITAR",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "—",
+   "hpf": 100,
+   "lpf": 12000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -7,
+     "freq": 1800,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 250,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Andy's acoustic on the riser, stage left, through the band's DI box (plot: 'acoustic (DI box)'). No 48V unless it turns out to be a house J48. Songs open fingerpicked and build ('delicate acoustic guitars giving way to a more urgent, driving sound' — DIY Mag), so this channel carries quiet intros alone.",
+   "mic_notes": "Pickup/piezo-class line feed — no capsule, the transient-rich under-saddle quack is the whole problem (Radial acoustic-pickup blog; SOS 'Mixing Acoustic Guitars Live'). KB piezo rule: the 1.5–2k quack is the primary cut, plus 200–400 mud, at outdoor depth on FSQ. Folk-conservative in spirit but the numbers are FSQ-deep because there is no room to hide in.",
+   "eq_summary": "−7@1.8k is the piezo quack, the primary move, outdoor depth. −7@250 body mud that would smear into the bass DI. LPF 12k trims pickup hash. No boost — the fingerpicked intros want natural, and the vocal owns the presence band. HPF 100."
+  },
+  {
+   "ch": 17,
+   "name": "Cowbell",
+   "instrument": "Cowbell",
+   "mic": "Shure SM57",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Tall",
+   "hpf": 250,
+   "lpf": 10000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -4,
+     "freq": 6500,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -5,
+     "freq": 3000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Mounted stage left by Dave on a tall boom (plot). Band's 57.",
+   "mic_notes": "A cowbell is two clangy partials near 590 and 850 Hz (SOS synthesis reference) — that IS the instrument, so nothing is cut there. The SM57's baked peak is at 6–7 kHz, +5 to +7 (KB row), which on a cowbell is pure spike.",
+   "eq_summary": "HPF 250 under the partials. −5@3k is the ring harshness in the open, −4@6.5k trims the 57's own peak on the strike. LPF 10k. Partials at 590/850 left alone."
+  },
+  {
+   "ch": 18,
+   "name": "Steel",
+   "instrument": "Pedal steel — 1×12 combo",
+   "mic": "Shure Nexadyne NXN5",
+   "section": "STRINGS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Short",
+   "hpf": 100,
+   "lpf": 10000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -4,
+     "freq": 6000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -4,
+     "freq": 700,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 350,
+     "q": 1.2,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Andy's 112 guitar combo on the riser, stage left, band's NXN5 on a short boom. Also his electric guitar when he switches (plot: 'STEEL/GTR') — same channel, same curve, the steel is the harder case so it sets the numbers.",
+   "mic_notes": "NXN5 supercardioid, 50 Hz–16 kHz, presence peak centred at 6 kHz from the grille/housing (Mix real-world review; PSW road test), with 'a little more midrange cut to counteract proximity'. Steel Guitar Forum consensus for steel through a Fender-style combo: wide cut 300–400 (boom), a dip in the 600–800 zone, and go easy on the top because the instrument already has 'tons of highs' and ice-picks on the high strings.",
+   "eq_summary": "−7@350 wide is the steel/combo boom at outdoor depth. −4@700 is the forum's midrange dip so the steel colours rather than honks against Dave's 1k lane. −4@6k trims the NXN5's baked peak right where the steel already ice-picks — a trim, not a cut into a scoop. LPF 10k. HPF 100."
+  },
+  {
+   "ch": 19,
+   "name": "Sean Vox",
+   "instrument": "Vocal — male BV (bass player)",
+   "mic": "Shure SM58",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Tall",
+   "hpf": 110,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 5000,
+     "q": 2.5,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -4,
+     "freq": 2500,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 400,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Sean, stage right, tall boom with clip (plot). Band's SM58. Backing vocal under Julia; on ears.",
+   "mic_notes": "SM58: 50 Hz–15 kHz, bass rolled below 100 for close work, proximity +6–10 dB at 100 Hz inside 6 mm (Shure user guide), presence in the 4–6 kHz region, upper-mid spit and box when close (KB row). Cuts only. COMP (doc only): Blue/Neve 3:1, atk 10 ms, rel 150 ms, GR target 3–4.",
+   "eq_summary": "Cuts only. HPF 110 — the harmony slot, above Julia's 100-class HPF so his low end never crowds the lead. −6@400 box. −4@2.5k nasal/spit lane (Julia's is at 3k so the two cuts never share a frequency). −3@5k tames the 58's presence rise before it feeds back on the open plaza. No boosts."
+  },
+  {
+   "ch": 20,
+   "name": "Julia Vox",
+   "instrument": "Vocal — female lead",
+   "mic": "sE Electronics V7",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": true,
+   "stand": "Tall",
+   "hpf": 130,
+   "lpf": 16000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 10000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 3,
+     "gain": -4,
+     "freq": 3000,
+     "q": 2.0,
+     "type": "BELL",
+     "deq": null
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL",
+     "deq": null
+    }
+   ],
+   "notes": "Julia, centre, tall boom with clip (plot). Band's sE V7. Lead vocal, plays guitar (CH13) at the same time; on ears.",
+   "mic_notes": "sE V7 supercardioid dynamic: presence peak centred nearer 3 kHz than the SM58's 4–5k, a welcome dip in the sibilance zone at ~6 kHz, then an air bump above 10 kHz; smooth proximity build below 1 kHz (Sound On Sound V3/V7 review; Tape Op). A 'sweet' voice (NPR Tiny Desk copy) that has to sit over a distorted lead and a pedal steel. Cuts only — and NOTHING at 6k because the capsule already dips there (R15). COMP (doc only): Blue/Neve 3:1, atk 10 ms, rel 120 ms, GR target 4–5 — she goes from fingerpicked whisper to full band.",
+   "eq_summary": "Cuts only. HPF 130 — female lead, sits above the guitar she's playing. −6@300 mud/proximity. −4@3k trims the V7's own presence peak, which is also the plaza feedback zone. −3@10k eases the air bump for gain-before-feedback at 76% RH. No cut at 6k on purpose. No boosts."
+  }
+ ]
+}
