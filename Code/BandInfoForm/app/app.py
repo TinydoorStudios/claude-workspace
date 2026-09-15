@@ -1458,6 +1458,33 @@ def show_band_emails(show_id):
     return _back(url_for("artist_detail", artist_id=s["artist_id"]))
 
 
+@app.post("/show/<int:show_id>/purge")
+def show_purge(show_id):
+    """Irreversible: deletes this one show's submission, uploaded files,
+    booking row, event-act slot, and history entirely (Brian, 2026-09-15 —
+    the 'complete removal' option on the dashboard's cancel dialog; the
+    artist row and any other booking they have elsewhere is untouched — see
+    advance_db.purge_show). `confirm_name` must match the artist's name
+    exactly (case-insensitive) — the modal supplies it after the user types
+    it; this is the server-side backstop so a bare POST can't fire it."""
+    if not DB_OK:
+        abort(503)
+    body = request.get_json(silent=True) or {}
+    confirm_name = (body.get("confirm_name") or "").strip().lower()
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.get_show(cur, show_id)
+        if not s:
+            return {"ok": False, "error": "not-found"}, 404
+        cur.execute("SELECT name FROM artists WHERE id=%s", (s["artist_id"],))
+        row = cur.fetchone()
+        real_name = (row["name"] if row else "") or ""
+        if not confirm_name or confirm_name != real_name.strip().lower():
+            return {"ok": False, "error": "name-mismatch"}, 400
+        summary = advance_db.purge_show(cur, show_id)
+        conn.commit()
+    return {"ok": True, "summary": summary}
+
+
 @app.post("/show/<int:show_id>/uncancel")
 def show_uncancel(show_id):
     if not DB_OK:

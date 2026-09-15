@@ -97,6 +97,33 @@
   .legend{display:flex;gap:16px;flex-wrap:wrap;padding:18px 24px 0;font-size:11.5px;color:#8b97a6;}
   .legend span{display:inline-flex;align-items:center;gap:6px;}
   .legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* Cancel dialog — two ways to cancel (Brian, 2026-09-15): keep the
+     paperwork and just mark it Cancelled (existing behavior), or delete
+     this show's data entirely. The second is irreversible, so it gets its
+     own typed-confirmation step rather than a plain confirm(). */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;
+    align-items:center;justify-content:center;z-index:100;padding:16px;}
+  .modal-backdrop[hidden]{display:none;}
+  .modal{position:relative;background:#161b22;border:1px solid #2a323d;border-radius:14px;
+    padding:22px 24px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+  .modal h3{margin:0 0 8px;font-size:16px;color:#e6edf3;}
+  .modal p{margin:0 0 16px;font-size:13.5px;color:#c7d6e6;line-height:1.5;}
+  .modal-close{position:absolute;top:14px;right:14px;background:transparent;border:0;
+    color:#6e7681;font-size:16px;cursor:pointer;line-height:1;}
+  .modal-close:hover{color:#e6edf3;}
+  .modal-actions{display:flex;flex-direction:column;gap:10px;}
+  .modal-btn{width:100%;border-radius:9px;padding:11px 14px;font-size:13.5px;font-weight:600;
+    cursor:pointer;border:1px solid #2a323d;background:#0d1117;color:#e6edf3;text-align:left;}
+  .modal-btn small{display:block;font-weight:400;font-size:11.5px;color:#8b97a6;margin-top:2px;}
+  .modal-btn:hover{border-color:#4da3ff;}
+  .modal-btn.purge{border-color:#5a1e1e;color:#f85149;}
+  .modal-btn.purge:hover{border-color:#f85149;background:rgba(248,81,73,.08);}
+  .modal-btn.purge small{color:#f85149;opacity:.8;}
+  .modal-btn:disabled{opacity:.4;cursor:default;}
+  .modal-confirm input{width:100%;box-sizing:border-box;background:#0d1117;border:1px solid #2a323d;
+    border-radius:8px;padding:9px 11px;color:#e6edf3;font-size:13.5px;margin-bottom:14px;}
+  .modal-confirm input:focus{outline:none;border-color:#f85149;}
 </style>
 </head>
 <body>
@@ -131,6 +158,30 @@
 <main id="main">
   <div class="empty">loading…</div>
 </main>
+
+<div class="modal-backdrop" id="cancelModalBackdrop" hidden>
+  <div class="modal" id="cancelModal">
+    <button class="modal-close" id="btnModalClose" aria-label="Close">✕</button>
+    <h3 id="cancelModalTitle">Cancel show</h3>
+    <p id="cancelModalBody">Choose how to cancel this show.</p>
+    <div class="modal-actions" id="cancelModalChoices">
+      <button class="modal-btn" id="btnKeep">Mark Cancelled
+        <small>Keeps the paperwork on file. Shows as Cancelled, nothing more gets emailed for it. Reversible from the artist page.</small>
+      </button>
+      <button class="modal-btn purge" id="btnPurge">Delete Everything
+        <small>Removes this show's submission, uploaded files, booking, and history from the database. The artist and any other booking they have elsewhere is untouched. Cannot be undone.</small>
+      </button>
+    </div>
+    <div class="modal-confirm" id="purgeConfirm" hidden>
+      <p>Type <b id="purgeConfirmName"></b> to permanently delete every record of this show. This cannot be undone.</p>
+      <input type="text" id="purgeConfirmInput" autocomplete="off" spellcheck="false">
+      <div class="modal-actions">
+        <button class="modal-btn" id="btnPurgeGo" disabled style="border-color:#5a1e1e;color:#f85149;">Delete permanently</button>
+        <button class="modal-btn" id="btnPurgeBack">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const REFRESH_MS = 20000;
@@ -201,7 +252,7 @@ function render(bills){
         const holdLink = a.state === "held"
           ? `<a class="finalize-btn" style="text-decoration:none" href="/show/${a.show_id}/hold">Decide</a>` : "";
         const cancelBtn = a.state === "cancelled" ? ""
-          : `<button class="cancel-btn" onclick="cancelShow(${a.show_id}, this)">Cancel</button>`;
+          : `<button class="cancel-btn" onclick="openCancelModal(${a.show_id}, this)">Cancel</button>`;
         // Email band (Brian, 2026-09-14): a real Outlook draft to the band's
         // contact with their answers pasted below, once they've submitted.
         // Edit form (Brian, 2026-09-14): the advance form for this show, pre-filled
@@ -235,8 +286,40 @@ function render(bills){
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-async function cancelShow(showId, btn){
-  if (!confirm("Cancel this show? Nothing more will be emailed for it. It stays on record as Cancelled.")) return;
+// Cancel dialog (Brian, 2026-09-15): two ways to cancel a show — keep the
+// paperwork and just mark it Cancelled, or delete this show's data
+// entirely. Band name is read from the card's own DOM rather than passed
+// through the onclick string, so a band name with a quote in it can't break
+// the inline handler.
+let cancelModalState = null;
+
+function openCancelModal(showId, btn){
+  const band = btn.closest(".act").querySelector(".band").textContent;
+  cancelModalState = {showId, band, btn};
+  document.getElementById("cancelModalTitle").textContent = "Cancel " + band;
+  document.getElementById("cancelModalBody").textContent = "Choose how to cancel this show.";
+  document.getElementById("cancelModalChoices").hidden = false;
+  document.getElementById("purgeConfirm").hidden = true;
+  document.getElementById("purgeConfirmInput").value = "";
+  document.getElementById("purgeConfirmName").textContent = band;
+  document.getElementById("btnPurgeGo").disabled = true;
+  document.getElementById("cancelModalBackdrop").hidden = false;
+}
+
+function closeCancelModal(){
+  document.getElementById("cancelModalBackdrop").hidden = true;
+  cancelModalState = null;
+}
+
+document.getElementById("btnModalClose").onclick = closeCancelModal;
+document.getElementById("cancelModalBackdrop").onclick = e => {
+  if (e.target.id === "cancelModalBackdrop") closeCancelModal();
+};
+
+document.getElementById("btnKeep").onclick = async () => {
+  if (!cancelModalState) return;
+  const {showId, btn} = cancelModalState;
+  closeCancelModal();
   btn.disabled = true;
   try{
     const res = await fetch(`/show/${showId}/cancel`, {method: "POST"});
@@ -246,7 +329,50 @@ async function cancelShow(showId, btn){
     btn.disabled = false;
     alert("Couldn't cancel — try again.");
   }
-}
+};
+
+document.getElementById("btnPurge").onclick = () => {
+  document.getElementById("cancelModalChoices").hidden = true;
+  document.getElementById("purgeConfirm").hidden = false;
+  document.getElementById("purgeConfirmInput").focus();
+};
+
+document.getElementById("btnPurgeBack").onclick = () => {
+  document.getElementById("purgeConfirm").hidden = true;
+  document.getElementById("cancelModalChoices").hidden = false;
+};
+
+document.getElementById("purgeConfirmInput").oninput = e => {
+  const band = (cancelModalState && cancelModalState.band) || "";
+  document.getElementById("btnPurgeGo").disabled =
+    e.target.value.trim().toLowerCase() !== band.trim().toLowerCase();
+};
+
+document.getElementById("btnPurgeGo").onclick = async () => {
+  if (!cancelModalState) return;
+  const {showId, band, btn} = cancelModalState;
+  closeCancelModal();
+  btn.disabled = true;
+  try{
+    const res = await fetch(`/show/${showId}/purge`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({confirm_name: band}),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || res.status);
+    await refresh();
+    const stray = data.summary && data.summary.filed_paths_needing_manual_cleanup;
+    if (stray && stray.length){
+      alert("Deleted. This was the only act left on that bill, so its filed paperwork " +
+            "entry was cleared from tracking too — remove these files from Dropbox by hand:\n" +
+            stray.join("\n"));
+    }
+  }catch(e){
+    btn.disabled = false;
+    alert("Couldn't delete — try again. (" + e.message + ")");
+  }
+};
 
 async function draftEmail(artistId, showId, btn){
   btn.disabled = true; const label = btn.textContent; btn.textContent = "…";

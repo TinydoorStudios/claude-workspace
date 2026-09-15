@@ -1566,6 +1566,84 @@ def uncancel_show(cur, show_id):
     return cur.fetchone() is not None
 
 
+def purge_show(cur, show_id):
+    """Irreversibly delete every DATABASE trace of ONE show (Brian,
+    2026-09-15 — the 'complete removal' option on the dashboard's cancel
+    dialog, scoped to just this show: the artist row and any other booking
+    they have elsewhere, other venues/dates, is untouched).
+
+    Deletes, in order: this show's uploaded files -> its submissions -> its
+    event_acts row (and the event itself, plus the filed_docs/doc_notices
+    REGISTRY rows, if this was the only act left on that bill) -> the
+    matching bookings row -> the shows row (cascades advance_reminders /
+    followup_queue / advance_recaps / send_failures automatically, per their
+    FKs). Never touches physical files — a filed .docx/.md on Dropbox, or a
+    stage-plot upload's copy on the NAS — those are named in the returned
+    summary for a human to remove by hand.
+
+    Returns a summary dict, or None if the show doesn't exist."""
+    show = get_show(cur, show_id)
+    if not show:
+        return None
+    artist_id, venue, show_date = show["artist_id"], show["venue"], show["show_date"]
+
+    cur.execute("SELECT name FROM artists WHERE id=%s", (artist_id,))
+    artist_row = cur.fetchone()
+    artist_name = artist_row["name"] if artist_row else None
+
+    cur.execute("SELECT id FROM submissions WHERE show_id=%s", (show_id,))
+    sub_ids = [r["id"] for r in cur.fetchall()]
+    files_deleted = 0
+    if sub_ids:
+        cur.execute("DELETE FROM files WHERE submission_id = ANY(%s) RETURNING id", (sub_ids,))
+        files_deleted = len(cur.fetchall())
+    cur.execute("DELETE FROM submissions WHERE show_id=%s RETURNING id", (show_id,))
+    submissions_deleted = len(cur.fetchall())
+
+    # the matching bookings row — same match_key join every other query in
+    # this file uses to tie a booking to a show.
+    cur.execute(
+        """DELETE FROM bookings b USING artists a
+           WHERE a.id=%s AND b.venue=%s AND b.event_date=%s
+             AND lower(btrim(regexp_replace(b.artist_name, '\\s+', ' ', 'g'))) = a.match_key
+           RETURNING b.id""",
+        (artist_id, venue, show_date))
+    booking_deleted = cur.fetchone() is not None
+
+    # this act's slot on the event's day-sheet bill, and the event itself
+    # (+ its filed-doc registry rows) if that was the only act left on it —
+    # the physical file stays; only the registry pointer to it is cleared.
+    filed_paths = []
+    cur.execute(
+        """SELECT ea.id, ea.event_id FROM event_acts ea
+           JOIN events e ON e.id = ea.event_id
+           WHERE ea.artist_id=%s AND e.venue=%s AND e.event_date=%s""",
+        (artist_id, venue, show_date))
+    act_row = cur.fetchone()
+    if act_row:
+        cur.execute("DELETE FROM event_acts WHERE id=%s", (act_row["id"],))
+        cur.execute("SELECT count(*) AS n FROM event_acts WHERE event_id=%s", (act_row["event_id"],))
+        if cur.fetchone()["n"] == 0:
+            cur.execute("DELETE FROM events WHERE id=%s", (act_row["event_id"],))
+            cur.execute("SELECT path FROM filed_docs WHERE venue=%s AND event_date=%s",
+                        (venue, show_date))
+            filed_paths = [r["path"] for r in cur.fetchall()]
+            cur.execute("DELETE FROM filed_docs WHERE venue=%s AND event_date=%s", (venue, show_date))
+            cur.execute("DELETE FROM doc_notices WHERE venue=%s AND event_date=%s", (venue, show_date))
+
+    cur.execute("DELETE FROM shows WHERE id=%s", (show_id,))
+
+    return {
+        "artist_name": artist_name,
+        "venue": venue,
+        "show_date": show_date.isoformat() if show_date else None,
+        "submissions_deleted": submissions_deleted,
+        "files_deleted": files_deleted,
+        "booking_deleted": booking_deleted,
+        "filed_paths_needing_manual_cleanup": filed_paths,
+    }
+
+
 def hold_show(cur, show_id, reason):
     cur.execute("""UPDATE shows SET held_at = now(), hold_reason = %s
                    WHERE id=%s AND held_at IS NULL AND cancelled_at IS NULL
