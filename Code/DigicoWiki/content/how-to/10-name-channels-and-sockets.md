@@ -1,7 +1,5 @@
 # Name channels and sockets
 
-![Cards Sockets — Quantum 2](/figures/q2-cards-sockets.png)
-
 Two kinds of names. **Socket names** live in Audio I/O and follow the physical input ("Stage Rack: Mic 3"). **Channel names** live on the channel and, by default, copy the socket name until you type something.
 
 ## Channel names, one at a time

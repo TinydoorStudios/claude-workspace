@@ -1,7 +1,5 @@
 # Mix a monitor send on the faders (Aux to Faders)
 
-![Channel List — Quantum 2](/figures/q2-channel-list.png)
-
 Solo an aux and the channel faders become the sends to that aux. That's the default behaviour (Options > Solo > *Solo assigns aux sends to faders*, on by default) and the fastest way to build a wedge or IEM mix.
 
 1. Go to the outputs layer and press **solo** on the aux. The input faders jump to their send levels for that aux; the top row of encoders also takes the sends (*Solo assigns aux to top encoders*).

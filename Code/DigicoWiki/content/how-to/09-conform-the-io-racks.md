@@ -1,7 +1,5 @@
 # Conform the I/O racks (Audio I/O)
 
-![Audio Io — Quantum 2](/figures/q2-audio-io.png)
-
 "Conforming" makes the on-screen rack match the cards physically in it. If a card label under the rack graphic is **red**, the console thinks a different card is there and audio on that card is suspect. **Green** is good.
 
 ![Audio I/O panel](/figures/ref-p150-2.png)

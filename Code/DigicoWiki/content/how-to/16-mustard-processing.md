@@ -1,7 +1,5 @@
 # Mustard processing (tube, EQ, modelled compressors, gate)
 
-![Mustard — Quantum 2](/figures/q2-mustard.png)
-
 Mustard is a second channel strip that runs alongside the standard SD strip on every Quantum channel: a preamp/tube model, a 4-band EQ with filters, four compressor types and a gate/ducker. A channel counts as "using Mustard" as soon as any one module is on; the count in use and remaining is in System > Diagnostics > **Engine**. The Q225 getting-started guide quotes 24 simultaneous Mustard strips.
 
 ![Mustard channel strip](/figures/ref-p054-1.png)

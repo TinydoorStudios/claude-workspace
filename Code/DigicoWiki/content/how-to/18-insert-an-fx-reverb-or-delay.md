@@ -1,7 +1,5 @@
 # Add a reverb or delay (internal FX)
 
-![Fx — Quantum 2](/figures/q2-fx.png)
-
 The console's own FX are stereo FPGA reverbs, delays, chorus, pitch and enhancers, created from **fx presets** and fed from any channel output, direct out, aux or insert send.
 
 ## The usual way: an aux feeding a reverb

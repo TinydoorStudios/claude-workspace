@@ -1,7 +1,5 @@
 # The matrix
 
-![Matrix — Quantum 2](/figures/q2-matrix.png)
-
 Master screen > **Matrix** opens the Matrix Inputs panel. Columns are matrix inputs, rows are matrix outputs, each crosspoint is a level pot.
 
 ![Matrix panel](/figures/ref-p133-1.png)

@@ -1,7 +1,5 @@
 # iPad app, OSC and other external control
 
-![External Control — Quantum 2](/figures/q2-external-control.png)
-
 Setup > **External Control** is the one panel for everything that talks to the console over the network: the DiGiCo iPad app, generic OSC devices (Companion, TouchOSC), KLANG, Sound Devices Astral, L-ISA, Soundscape, Spacemap and LiveTrax.
 
 Turn **Enable External Control** on only while you need it; DiGiCo asks you to switch it off otherwise.

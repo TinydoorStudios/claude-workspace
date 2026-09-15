@@ -1,7 +1,5 @@
 # Route a channel to groups, auxes and direct outs
 
-![Channel Output — Quantum 2](/figures/q2-channel-output.png)
-
 An input channel can feed four places: the **aux busses**, the **group busses** (including the master), its **insert sends**, and its **direct output**.
 
 ## Groups and the master

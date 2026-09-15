@@ -1,7 +1,5 @@
 # Macros and smart keys
 
-![Macros — Quantum 2](/figures/q2-macros.png)
-
 A macro is a list of console commands fired from a smart key, a keyboard F-key, a GPI, an OSC message, a snapshot, a fader or meter condition, or just by touching it in the list.
 
 Setup > **Macros** (or the **assign** button in the macros area of the surface) opens the list of every macro with its trigger.

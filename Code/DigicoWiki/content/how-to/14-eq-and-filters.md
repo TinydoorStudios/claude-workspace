@@ -1,7 +1,5 @@
 # EQ, filters and dynamic EQ
 
-![Eq — Quantum 2](/figures/q2-eq.png)
-
 Every input channel has a 24 dB/oct high-pass and low-pass, then four fully parametric bands, each of which can be made dynamic. Output channels have EQ too (see the manual for bus EQ).
 
 ## Filters

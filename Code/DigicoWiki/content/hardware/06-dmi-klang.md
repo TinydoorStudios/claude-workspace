@@ -1,7 +1,5 @@
 # DMI-KLANG (immersive IEM mixing in the console)
 
-![External Control — Quantum 2](/figures/q2-external-control.png)
-
 The DMI-KLANG takes 64 channels from the console and returns **16 stereo mixes** (as 32 channels) plus a stereo engineer cue (channels 33/34). No audio connectors on the card: the audio moves over the DMI bus. Two EtherCON and one RJ45 **control** ports (all one internal switch) for the console, the KLANG:app computer and Wi-Fi for the musicians' phones; a USB port for updates and presets.
 
 ![DMI-KLANG](/figures/ref-p242-1.png)

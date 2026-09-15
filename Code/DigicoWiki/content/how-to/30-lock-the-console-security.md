@@ -1,7 +1,5 @@
 # Lock the console (security modes)
 
-![Security — Quantum 2](/figures/q2-security.png)
-
 System > **Security**. Three levels:
 
 | Mode | Effect |

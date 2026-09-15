@@ -1,7 +1,5 @@
 # Load a session
 
-![Load Session — Quantum 2](/figures/q2-load-session.png)
-
 Sessions are `.ses` files. The console keeps its own in `D:\Projects`; a USB stick shows up as *Removable*.
 
 1. Master screen > **Files** > **Load Session**.

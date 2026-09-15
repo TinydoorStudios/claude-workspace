@@ -1,7 +1,5 @@
 # Put channels on faders (layers, banks, assign, swap)
 
-![Channel List — Quantum 2](/figures/q2-channel-list.png)
-
 The Q225 surface is two sections of 12 faders. Each section has up to 3 **layers**, each layer up to 4 **banks** of 12. The bank and layer buttons sit to the right of each section. Hold a bank button on one side and press the other side's to switch both sections together.
 
 ![Layers and banks](/figures/gs-p009-1.png)

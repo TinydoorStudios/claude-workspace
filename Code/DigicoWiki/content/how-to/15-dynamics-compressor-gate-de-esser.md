@@ -1,7 +1,5 @@
 # Compressor, gate, ducker and de-esser
 
-![Dynamics — Quantum 2](/figures/q2-dynamics.png)
-
 Each channel has two SD dynamics modules, under the EQ in the strip. Touch **Comp** or **Gate** to open the panel.
 
 ![Dynamics panel](/figures/ref-p051-1.png)
