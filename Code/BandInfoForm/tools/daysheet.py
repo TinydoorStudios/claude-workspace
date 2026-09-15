@@ -37,7 +37,9 @@ wins, same merge policy as the email drafts. Writes:
     pulled from the public 3CDC staffing sheet via staffing.engineers_for()
     (Brian, 2026-09-08); a line left as its unfilled placeholder ('FOH – ')
     means the sheet didn't resolve a clean name for that show, not that the
-    row was skipped
+    row was skipped. An act whose own_engineer answer starts with "Yes"
+    gets "TOUR" in its own column instead (Brian, 2026-09-15) — see
+    _tour_engineer_cols
   - the crew SCHEDULE table (Crew Call / Load In-Sound Check / Performance /
     Load-out / Curfew) — ONLY for a series with a locked '## Crew Schedule'
     section (venue_email.crew_schedule_for(); Brian, 2026-09-09: Salsa On
@@ -573,6 +575,35 @@ def _active_cols(n):
     return [3]
 
 
+def _act_col(a, n):
+    """Which of the 3 act columns (1=Opener, 2=Direct Support, 3=Headliner)
+    this act's data goes into — see build()'s own comment above its (now
+    retired) local _col() closure for the full slot -> column rule. Shared
+    with fill_engineer's per-column TOUR check so the two never drift apart."""
+    if n >= 3:
+        return a["slot_order"]
+    if n == 1:
+        return 3
+    return 3 if a.get("slot") == "headliner" else 2
+
+
+def _tour_engineer_cols(acts, n):
+    """Column indices whose act brings its own engineer — own_engineer
+    starts with "Yes" (fieldspec.py's "Yes — bringing our own (we'll
+    coordinate)") — so that column reads "TOUR" instead of the house
+    staffing-sheet name (Brian, 2026-09-15, RatBoys/FSQ 9/18: the band said
+    so on the form, Brian confirmed it with a staff edit, and neither ever
+    reached this row — own_engineer had nowhere to go before this)."""
+    cols = set()
+    for a in acts or []:
+        if a.get("_cancelled"):
+            continue
+        oe = (merged_fields(a).get("own_engineer") or "").strip().lower()
+        if oe.startswith("yes"):
+            cols.add(_act_col(a, n))
+    return cols
+
+
 def fill_event_type(grid, event, n=1):
     """Event Type / Paying Band — an event-level fact, but the 2/3-band
     templates repeat this row once per act column (same shape as Engineer/
@@ -607,26 +638,32 @@ def fill_event_type(grid, event, n=1):
             return
 
 
-def fill_engineer(grid, event, n):
-    """Engineer row (FOH – / Mon –), same value repeated into every act
-    column — it's one FOH engineer and one Mon engineer for the whole SHOW,
-    not per band, same as how the Consoles row already repeats its (static)
-    value across columns. Pulled from the public 3CDC staffing sheet
-    (Brian, 2026-09-08: cross-reference the Mix column's initials against the
-    staffing sheet's codes tab; one set of initials is FOH only, two is
-    FOH then Mon). Leaves a line as-is ('FOH – ' / 'Mon – ', blank) whenever
-    the sheet doesn't cleanly resolve a name, so a same-day production call
-    by hand is exactly as easy as it always was."""
+def fill_engineer(grid, event, n, acts=None):
+    """Engineer row (FOH – / Mon –), same house value repeated into every
+    act column — it's one FOH engineer and one Mon engineer for the whole
+    SHOW, not per band, same as how the Consoles row already repeats its
+    (static) value across columns. Pulled from the public 3CDC staffing
+    sheet (Brian, 2026-09-08: cross-reference the Mix column's initials
+    against the staffing sheet's codes tab; one set of initials is FOH
+    only, two is FOH then Mon).
+
+    Exception (Brian, 2026-09-15): an act bringing its own engineer gets
+    "TOUR" in ITS column instead of the house name — see
+    _tour_engineer_cols. Leaves a line as-is ('FOH – ' / 'Mon – ', blank)
+    for any other column whenever the sheet doesn't cleanly resolve a
+    name, so a same-day production call by hand is exactly as easy as it
+    always was."""
     venue = event.get("venue")
     date = event.get("event_date")
-    if not venue or not date:
-        return
-    try:
-        names = staffing.engineers_for(venue, date.isoformat())
-    except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the fill
-        print(f"[daysheet] engineer lookup failed: {e!r}", file=sys.stderr)
-        return
-    if not names.get("foh") and not names.get("mon"):
+    tour_cols = _tour_engineer_cols(acts, n)
+    names = {}
+    if venue and date:
+        try:
+            names = staffing.engineers_for(venue, date.isoformat())
+        except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the fill
+            print(f"[daysheet] engineer lookup failed: {e!r}", file=sys.stderr)
+            names = {}
+    if not tour_cols and not names.get("foh") and not names.get("mon"):
         return
     for r in grid.rows:
         if r.cells and norm(r.cells[0].text) == "engineer":
@@ -634,12 +671,13 @@ def fill_engineer(grid, event, n):
                 if ci >= len(r.cells):
                     continue
                 cell = r.cells[ci]
+                tour = ci in tour_cols
                 for p in cell.paragraphs:
                     t = p.text.strip()
-                    if t.startswith("FOH") and names.get("foh"):
-                        set_para_text(p, f"FOH – {names['foh']}")
-                    elif t.startswith("Mon") and names.get("mon"):
-                        set_para_text(p, f"Mon – {names['mon']}")
+                    if t.startswith("FOH") and (tour or names.get("foh")):
+                        set_para_text(p, "FOH – TOUR" if tour else f"FOH – {names['foh']}")
+                    elif t.startswith("Mon") and (tour or names.get("mon")):
+                        set_para_text(p, "Mon – TOUR" if tour else f"Mon – {names['mon']}")
             return
 
 
@@ -868,30 +906,18 @@ def build(event_id, template=None, stageplot_names=None):
 
     fill_header(grid, event)
     fill_event_type(grid, event, n)
-    fill_engineer(grid, event, n)
+    fill_engineer(grid, event, n, acts=acts)
     fill_consoles(grid, event)
     fill_crew_schedule(doc, event)
     fill_lead(doc, event)
 
     # Which of the 3 act columns (1=Opener, 2=Direct Support, 3=Headliner)
-    # this act's data goes into. The universal doc always has all 3 columns
-    # regardless of how many bands are really on the bill (Brian, 2026-09-11),
-    # so this is purely slot -> column, never "how many acts, in what order":
-    #   - 3-band bill: unambiguous — slot_order already IS the column
-    #     (opener=1/direct_support=2/headliner=3).
-    #   - 2-band bill: whichever act is actually the headliner always takes
-    #     column 3 (its slot_order already is 3); the OTHER act takes column
-    #     2 regardless of whether it was slotted "opener" or "direct support"
-    #     at booking time — a 2-band universal doc always reads Headliner +
-    #     Direct Support, never Opener.
-    #   - 1-band bill: everything goes under Headliner, column 3, full stop,
-    #     regardless of what slot got stored for the lone act.
+    # this act's data goes into — see _act_col's own docstring for the full
+    # slot -> column rule (3-band: slot_order IS the column; 2-band: the
+    # real headliner always takes column 3, the other act column 2 no
+    # matter its stored slot; 1-band: everything under column 3).
     def _col(a):
-        if n >= 3:
-            return a["slot_order"]
-        if n == 1:
-            return 3
-        return 3 if a.get("slot") == "headliner" else 2
+        return _act_col(a, n)
 
     # act-name header row: bold slot label already printed by the template
     # (OPENER:/DIR SUPPORT:/HEADLINER:), second paragraph is the blank line
