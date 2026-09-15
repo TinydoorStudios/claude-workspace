@@ -43,7 +43,7 @@ def due_shows(cur):
         r"""SELECT DISTINCT ON (s.id)
                    s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                    a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
-                   b.location, b.lead_name, b.lead_phone, b.contact_name,
+                   b.location, b.lead_name, b.lead_phone, b.contact_name, b.event_name,
                    b.load_in, b.soundcheck, b.event_start, b.event_end, b.curfew
             FROM shows s JOIN artists a ON a.id = s.artist_id
             LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
@@ -224,7 +224,7 @@ def main():
             cur.execute(
                 r"""SELECT DISTINCT ON (s.id) s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                            a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
-                           b.location, b.lead_name, b.lead_phone, b.contact_name,
+                           b.location, b.lead_name, b.lead_phone, b.contact_name, b.event_name,
                            b.load_in, b.soundcheck, b.event_start, b.event_end, b.curfew
                     FROM shows s JOIN artists a ON a.id = s.artist_id
                     LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
