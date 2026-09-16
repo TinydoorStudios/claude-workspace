@@ -1075,7 +1075,17 @@ def _record_booking_band_answers(f, files, data, existing_artist_id=None):
         file_info = {"filename": upload.filename, "stored_name": stored,
                     "mime": upload.mimetype, "size": dest.stat().st_size if dest.exists() else None}
     try:
-        return advance_db.record_submission(rec, file_info=file_info, source="staff")
+        # resolve_booking=False (Brian caught this 2026-09-16): the booking
+        # form ALREADY says exactly which artist/venue/date this belongs to —
+        # there's nothing to resolve. With it left on, record_submission's own
+        # fuzzy matching ran anyway and, finding no show yet for a brand-new
+        # artist (the booking row exists but upsert_show hasn't run for it),
+        # fell back to "is there exactly one other unresponded show at this
+        # venue+date" — found one (an unrelated band on the same bill) and
+        # flagged a false "needs a booking" notice against it, even though the
+        # submission had already correctly created its own artist and show.
+        return advance_db.record_submission(rec, file_info=file_info, source="staff",
+                                            resolve_booking=False)
     except Exception as e:  # noqa: BLE001
         _log_db_error("booking_band_answers", e)
         return None
