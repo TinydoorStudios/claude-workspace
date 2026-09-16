@@ -64,13 +64,21 @@ for d in "${TOOLS_DIRS[@]}"; do SHIPPED_DIRS+=("tools/$d"); done
   echo "--- pre-flight: check the VM matches the last deployed commit ---"
   PREV_SHA="$($SSH "cat $APP_DIR/.deployed_commit 2>/dev/null")"
   if [ -n "$PREV_SHA" ] && git -C "$HERE" cat-file -e "$PREV_SHA" 2>/dev/null; then
+    # `git show rev:path` always wants a path relative to the REPO ROOT,
+    # even with -C — unlike ls-tree's pathspec matching (below), which
+    # does respect -C's cwd for both matching and --name-only output.
+    # Without this prefix every git-show lookup below silently failed
+    # (empty content, "path exists, but not '<name>'"), so the local
+    # manifest came back empty and every single shipped file looked
+    # "drifted" on the very first real run of this check.
+    REPO_PREFIX="$(git -C "$HERE" rev-parse --show-prefix)"
     ALL_PATHS=("${SHIPPED_FILES[@]}")
     for d in "${SHIPPED_DIRS[@]}"; do
       while IFS= read -r p; do ALL_PATHS+=("$p"); done < <(git -C "$HERE" ls-tree -r --name-only "$PREV_SHA" -- "$d" 2>/dev/null)
     done
     LOCAL_MANIFEST="$(mktemp)"; REMOTE_MANIFEST="$(mktemp)"
     for p in "${ALL_PATHS[@]}"; do
-      sha="$(git -C "$HERE" show "$PREV_SHA:$p" 2>/dev/null | shasum -a 256 | awk '{print $1}')"
+      sha="$(git -C "$HERE" show "$PREV_SHA:${REPO_PREFIX}$p" 2>/dev/null | shasum -a 256 | awk '{print $1}')"
       [ -n "$sha" ] && echo "$sha  $p" >> "$LOCAL_MANIFEST"
     done
     printf '%s\n' "${ALL_PATHS[@]}" | $SSH "cd $APP_DIR && xargs -I{} sh -c 'sha256sum \"{}\" 2>/dev/null'" > "$REMOTE_MANIFEST"
