@@ -94,7 +94,7 @@
     btn.textContent = 'Running…';
     out.innerHTML = '<div class="banner ok">Running — this usually takes under a minute…</div>';
     try {
-      const r = await fetch('{{ url_for("booking_run") }}', {method: 'POST'});
+      const r = await fetch('{{ url_for("booking_run") }}', {method: 'POST', headers: {'X-CSRF': '{{ csrf_token() }}'}});
       if (!r.ok) throw new Error('start failed (' + r.status + ')');
       for (let i = 0; i < 300; i++) {
         await new Promise(res => setTimeout(res, 3000));
@@ -123,7 +123,7 @@
 {% else %}
   {% if error %}<div class="banner err">{{ error }}</div>{% endif %}
   <div class="card">
-  <form method="post" enctype="multipart/form-data" action="{{ post_url or (url_for('show_edit', show_id=show_id) if show_id else (url_for('booking_edit', booking_id=edit_booking_id) if edit_booking_id else url_for('booking'))) }}">
+  <form method="post" enctype="multipart/form-data" action="{{ post_url or (url_for('show_edit', show_id=show_id) if show_id else (url_for('booking_edit', booking_id=edit_booking_id) if edit_booking_id else url_for('booking'))) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     {% set flat_series = [] %}
     {% for v, opts in series_by_venue.items() %}{% for s in opts %}{% set _ = flat_series.append(s) %}{% endfor %}{% endfor %}
     {% for s in standalone_series %}{% set _ = flat_series.append(s) %}{% endfor %}

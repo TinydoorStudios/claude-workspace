@@ -129,12 +129,22 @@ if [ "$GOT_SECRETS" = 0 ]; then
   mkdir -p "$SECRETS_DIR/secrets-plain"
   NEWPW="$(head -c 24 /dev/urandom | base64 | tr -d '/+=' | head -c 32)"
   NEWSEC="$(head -c 32 /dev/urandom | xxd -p -c 64)"
+  # audit 2026-09-16 ops #4: without a token here, EVERY /internal/*
+  # endpoint (the whole n8n-driven lifecycle, both digests, the watchdog,
+  # missing-reports) 403s until someone notices and sets one by hand — a
+  # fresh-secrets restore used to come back up looking healthy while all
+  # of that silently didn't work.
+  NEWTOKEN="$(head -c 32 /dev/urandom | xxd -p -c 64)"
   cat > "$SECRETS_DIR/secrets-plain/advance.env" <<EOF
 ADVANCE_DB_URL=postgresql://advance:$NEWPW@127.0.0.1:5433/advance
 ADVANCE_SECRET=$NEWSEC
 ADVANCE_GATE_PASS=lockdown
 ADVANCE_PUBLIC_URL=https://advance.tinydoorstudios.com
+ADVANCE_INTERNAL_TOKEN=$NEWTOKEN
 EOF
+  note "fresh ADVANCE_INTERNAL_TOKEN generated — every n8n workflow's X-Advance-Token"
+  note "header needs updating to match before internal endpoints (lifecycle, digests,"
+  note "the watchdog) will work again"
   echo "ADVANCE_DB_PASSWORD=$NEWPW" > "$SECRETS_DIR/secrets-plain/advance-db.env"
 fi
 SP="$SECRETS_DIR/secrets-plain"
@@ -173,6 +183,11 @@ fi
 
 # ------------------------------------------------------------- database -----
 step "5/8  database"
+# audit 2026-09-16 ops #4/#5: stop the app FIRST — restoring onto a box
+# where band-advance is already live (a rollback, not just a fresh
+# bootstrap) used to swap the database out from under a running service,
+# racing its in-flight requests against the rename/restore below.
+systemctl stop band-advance >/dev/null 2>&1 && note "band-advance stopped for the restore" || true
 DBPW="$(grep '^ADVANCE_DB_PASSWORD=' "$SP/advance-db.env" 2>/dev/null | cut -d= -f2-)"
 COMPOSE="$APP_DIR/db/docker-compose.yml"
 [ -f "$COMPOSE" ] || COMPOSE="$HERE/docker/advance-db.compose.yml"
@@ -184,24 +199,41 @@ for i in $(seq 1 60); do
   docker exec advance-db pg_isready -U advance -d advance >/dev/null 2>&1 && break
   sleep 2
 done
+SKIP_DB=0
 if docker exec advance-db pg_isready -U advance -d advance >/dev/null 2>&1; then
   ok "postgres is accepting connections"
   ROWS="$(docker exec advance-db psql -U advance -d advance -tAc \
           "select coalesce(sum(n_live_tup),0) from pg_stat_user_tables;" 2>/dev/null | tr -d ' ')"
   if [ "${ROWS:-0}" -gt 0 ]; then
-    docker exec advance-db psql -U advance -d postgres -c \
-      "alter database advance rename to advance_pre_restore_$STAMP;" >/dev/null 2>&1 \
-      && note "existing database held $ROWS rows — renamed to advance_pre_restore_$STAMP (nothing dropped)" \
-      || bad "could not set the existing database aside; refusing to overwrite it"
-    docker exec advance-db psql -U advance -d postgres -c "create database advance owner advance;" >/dev/null 2>&1
+    if docker exec advance-db psql -U advance -d postgres -c \
+      "alter database advance rename to advance_pre_restore_$STAMP;" >/dev/null 2>&1; then
+      note "existing database held $ROWS rows — renamed to advance_pre_restore_$STAMP (nothing dropped)"
+      docker exec advance-db psql -U advance -d postgres -c "create database advance owner advance;" >/dev/null 2>&1
+    else
+      # audit ops #4: this used to say "refusing to overwrite it" and then
+      # restore into the SAME still-populated "advance" database anyway —
+      # pg_restore --clean drops existing objects first, so the live data
+      # this was supposed to protect would have been destroyed regardless.
+      SKIP_DB=1
+      bad "could not set the existing database aside — SKIPPING the restore to protect it (still has $ROWS rows, untouched)"
+    fi
   fi
-  if [ -f "$HERE/db/advance.dump" ]; then
-    docker exec -i advance-db pg_restore -U advance -d advance --clean --if-exists --no-owner \
-      < "$HERE/db/advance.dump" >/dev/null 2>&1
-    ok "restored from advance.dump"
+  if [ "$SKIP_DB" = 1 ]; then
+    :
+  elif [ -f "$HERE/db/advance.dump" ]; then
+    if docker exec -i advance-db pg_restore -U advance -d advance --clean --if-exists --no-owner \
+      < "$HERE/db/advance.dump" >/dev/null 2>&1; then
+      ok "restored from advance.dump"
+    else
+      bad "pg_restore reported errors — check journalctl / the container logs before trusting this database"
+    fi
   elif [ -f "$HERE/db/advance.sql.gz" ]; then
-    gunzip -c "$HERE/db/advance.sql.gz" | docker exec -i advance-db psql -U advance -d advance >/dev/null 2>&1
-    ok "restored from advance.sql.gz"
+    if gunzip -c "$HERE/db/advance.sql.gz" | docker exec -i advance-db psql -U advance -d advance \
+      -v ON_ERROR_STOP=1 >/dev/null 2>&1; then
+      ok "restored from advance.sql.gz"
+    else
+      bad "psql reported errors restoring advance.sql.gz — check the database before trusting it"
+    fi
   else
     bad "no database dump in this archive"
   fi
@@ -247,9 +279,27 @@ fi
 # --------------------------------------------------------------- service ----
 if [ "$MODE" = "full" ]; then
   step "8/8  service + timer"
-  for unit in band-advance.service band-advance-backup.service band-advance-backup.timer; do
-    [ -f "$HERE/systemd/$unit" ] && install -m 644 "$HERE/systemd/$unit" "/etc/systemd/system/$unit" && ok "installed $unit"
-  done
+  # audit 2026-09-16 ops #4: install every unit the archive actually
+  # carries, not a hardcoded 3 — advance_backup.sh now captures whatever's
+  # really on the host, so this has to match rather than silently drop the
+  # nightly-run/db-nightly/lifecycle-watchdog/dropbox units on the floor.
+  INSTALLED_ANY_UNIT=0
+  if [ -d "$HERE/systemd" ]; then
+    for unit_path in "$HERE/systemd"/*.service "$HERE/systemd"/*.timer; do
+      [ -f "$unit_path" ] || continue
+      unit="$(basename "$unit_path")"
+      install -m 644 "$unit_path" "/etc/systemd/system/$unit" && ok "installed $unit" && INSTALLED_ANY_UNIT=1
+    done
+  fi
+  # the scripts those units ExecStart — a unit with no script behind it
+  # fails at runtime even though it installed clean.
+  if [ -d "$HERE/systemd/ops" ]; then
+    mkdir -p "$APP_DIR/ops"
+    cp "$HERE/systemd/ops"/*.sh "$HERE/systemd/ops"/*.py "$APP_DIR/ops/" 2>/dev/null
+    chmod +x "$APP_DIR/ops"/*.sh 2>/dev/null
+    id "$SVC_USER" >/dev/null 2>&1 && chown -R "$SVC_USER:$SVC_USER" "$APP_DIR/ops"
+    ok "ops/*.sh scripts restored"
+  fi
   [ -f /etc/systemd/system/band-advance.service ] || cat > /etc/systemd/system/band-advance.service <<EOF
 [Unit]
 Description=3CDC Band Advance Form
@@ -259,7 +309,7 @@ After=network.target docker.service
 User=$SVC_USER
 WorkingDirectory=$APP_DIR
 EnvironmentFile=$APP_DIR/advance.env
-ExecStart=$APP_DIR/venv/bin/gunicorn -w 2 -b 0.0.0.0:8097 app:app
+ExecStart=$APP_DIR/venv/bin/gunicorn --worker-class gthread -w 4 --threads 4 --timeout 120 --graceful-timeout 120 -b 127.0.0.1:8097 app:app
 Restart=always
 
 [Install]
@@ -267,7 +317,13 @@ WantedBy=multi-user.target
 EOF
   systemctl daemon-reload
   systemctl enable --now band-advance >/dev/null 2>&1
-  [ -f /etc/systemd/system/band-advance-backup.timer ] && systemctl enable --now band-advance-backup.timer >/dev/null 2>&1
+  # enable every timer the archive installed (not just the backup one) —
+  # a fresh box otherwise silently runs with none of the nightly jobs.
+  for timer_path in /etc/systemd/system/*.timer; do
+    [ -f "$timer_path" ] || continue
+    t="$(basename "$timer_path")"
+    case "$t" in band-advance*|advance-*|dropbox*) systemctl enable --now "$t" >/dev/null 2>&1 ;; esac
+  done
   sleep 3
   [ "$(systemctl is-active band-advance)" = "active" ] && ok "band-advance service is active" || bad "band-advance service did not start (journalctl -u band-advance)"
 else
@@ -290,6 +346,12 @@ if [ "$WITH_N8N" = 1 ]; then
     if [ -f "$SP/n8n_credentials.decrypted.json" ]; then
       docker compose -f "$N8N_DIR/docker-compose.yml" cp "$SP/n8n_credentials.decrypted.json" n8n:/tmp/creds.json >/dev/null 2>&1
       $NC import:credentials --input=/tmp/creds.json >/dev/null 2>&1 && ok "credentials imported" || bad "credential import failed"
+    else
+      # audit 2026-09-16 ops #4: the decrypted export was dropped from the
+      # secrets bundle (blast radius) — n8n.env's N8N_ENCRYPTION_KEY plus
+      # n8n's own restored Postgres data already let n8n decrypt its own
+      # credential store; nothing extra to import here.
+      note "no decrypted credential export in this archive (expected, 2026-09-16 on) — credentials come from n8n's own restored database via N8N_ENCRYPTION_KEY"
     fi
     # import:workflow does NOT carry active state — replay it.
     if [ -f "$HERE/n8n/workflow_active_state.txt" ]; then

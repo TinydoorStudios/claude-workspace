@@ -1,10 +1,12 @@
 [Unit]
-Description=Run dropbox-cache-guard every 5 minutes
+Description=Run dropbox-cache-guard every 10 minutes
 
 [Timer]
-OnBootSec=2min
-OnUnitActiveSec=2min
-AccuracySec=15s
+# audit 2026-09-16 ops #4: was 2 min (720 journal lines/day) for a check
+# that can't even trigger below 29% disk used — ten minutes is plenty.
+OnBootSec=10min
+OnUnitActiveSec=10min
+AccuracySec=30s
 
 [Install]
 WantedBy=timers.target

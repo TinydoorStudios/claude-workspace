@@ -1,0 +1,13 @@
+# Reference copy of /etc/logrotate.d/band-advance (audit 2026-09-16 ops #4).
+# Nothing else ever rotated these — mail.log, run_now_background.log,
+# regen_show.log and thankyou.log all grow forever otherwise. Weekly,
+# 8 weeks kept, compressed after the first rotation.
+/opt/band-advance/data/*.log {
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}

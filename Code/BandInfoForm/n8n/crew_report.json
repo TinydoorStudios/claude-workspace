@@ -14,7 +14,7 @@
         300
       ],
       "parameters": {
-        "url": "http://192.168.200.84:8097/internal/crew-report",
+        "url": "http://host.docker.internal:8097/internal/crew-report",
         "method": "POST",
         "sendHeaders": true,
         "headerParameters": {

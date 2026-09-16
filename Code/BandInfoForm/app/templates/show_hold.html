@@ -38,7 +38,7 @@
       <div>{{ c.artist_name }} — {{ c.venue }} {{ c.show_date.strftime('%m/%d/%Y') if c.show_date else '' }}
         <div class="muted">{% if c.held_at %}on hold ({{ c.hold_reason }}){% elif c.advance_draft_created_at %}welcome sent{% else %}no welcome yet{% endif %}</div></div>
       <form method="post" action="{{ url_for('show_merge', show_id=s.id, target_id=c.id) }}"
-            onsubmit="return confirm('Merge {{ s.artist_name|e }} {{ s.show_date }} into {{ c.artist_name|e }} {{ c.show_date }}?');">
+            onsubmit="return confirm('Merge {{ s.artist_name|e }} {{ s.show_date }} into {{ c.artist_name|e }} {{ c.show_date }}?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <button class="primary" type="submit">Typo for this → merge</button>
       </form>
     </div>
@@ -51,13 +51,13 @@
     <h2>Or</h2>
     <div class="row">
       <div>Cancel — the show didn't happen / was removed. Kept on record as Cancelled; nothing more sends.</div>
-      <form method="post" action="{{ url_for('show_cancel', show_id=s.id) }}?next={{ url_for('show_hold', show_id=s.id) }}">
+      <form method="post" action="{{ url_for('show_cancel', show_id=s.id) }}?next={{ url_for('show_hold', show_id=s.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <button class="danger" type="submit">Cancel show</button>
       </form>
     </div>
     <div class="row">
       <div>Restore — it's real, keep advancing it (it won't be put on hold again).</div>
-      <form method="post" action="{{ url_for('show_restore', show_id=s.id) }}">
+      <form method="post" action="{{ url_for('show_restore', show_id=s.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <button class="plain" type="submit">Restore</button>
       </form>
     </div>

@@ -33,12 +33,12 @@
     {% if m.status == 'attached_auto' %}
     <div class="row">
       <div>That's the right band.</div>
-      <form method="post" action="{{ url_for('submission_match_confirm', match_id=m.id) }}"><button class="primary">Confirm</button></form>
+      <form method="post" action="{{ url_for('submission_match_confirm', match_id=m.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="primary">Confirm</button></form>
     </div>
     <div class="row">
       <div>Wrong band — give “{{ m.typed_name }}” its own record; the booking goes back to unanswered.</div>
       <form method="post" action="{{ url_for('submission_match_detach', match_id=m.id) }}"
-            onsubmit="return confirm('Detach this submission from {{ current.artist_name|e if current else '' }}?');"><button class="danger">Wrong band, detach</button></form>
+            onsubmit="return confirm('Detach this submission from {{ current.artist_name|e if current else '' }}?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="danger">Wrong band, detach</button></form>
     </div>
     {% endif %}
   </div>
@@ -50,7 +50,7 @@
     <div class="row">
       <div>{{ o.artist_name }} — {{ o.show_date.strftime('%m/%d/%Y') if o.show_date else '' }}</div>
       <form method="post" action="{{ url_for('submission_match_attach', match_id=m.id, show_id=o.show_id) }}"
-            onsubmit="return confirm('Attach this submission to {{ o.artist_name|e }}?');"><button class="primary">Attach here</button></form>
+            onsubmit="return confirm('Attach this submission to {{ o.artist_name|e }}?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="primary">Attach here</button></form>
     </div>
     {% endfor %}
   </div>

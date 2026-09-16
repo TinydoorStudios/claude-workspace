@@ -26,7 +26,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://192.168.200.84:8097/internal/run-followups",
+        "url": "http://host.docker.internal:8097/internal/run-followups",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [

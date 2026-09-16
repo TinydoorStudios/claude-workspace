@@ -137,7 +137,14 @@ def translate_es_fields(rec, log=None):
     either way. `log(context, err)` — matching app.py's _log_db_error
     signature — is called (never raised) on any failure; the original
     Spanish values stay in place untouched in that case."""
-    to_translate = {k: rec[k] for k in FREE_TEXT_FIELDS if (rec.get(k) or "").strip()}
+    # audit 2026-09-16 security #7: form_lang=es is client-controlled, so
+    # every POST claiming it used to trigger a real Groq call (up to
+    # TIMEOUT seconds, in the request thread) regardless of whether the
+    # text needed translating at all — plain ASCII/English text, or
+    # nothing but a number, still made the round trip. Only bother when a
+    # field actually contains a non-ASCII character, and cap what's sent.
+    to_translate = {k: rec[k][:6000] for k in FREE_TEXT_FIELDS
+                    if (rec.get(k) or "").strip() and not rec[k].isascii()}
     if not to_translate:
         return rec
 

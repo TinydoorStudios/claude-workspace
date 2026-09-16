@@ -3,7 +3,10 @@ Description=Check at 10:15 that the 9am Advance Lifecycle Check ran
 
 [Timer]
 OnCalendar=*-*-* 10:15:00
-Persistent=false
+# audit 2026-09-16 ops #4: catch up on the next boot if the VM was down
+# at 10:15 — false meant a reboot spanning that window silently skipped
+# the day's check entirely instead of running it late.
+Persistent=true
 
 [Install]
 WantedBy=timers.target

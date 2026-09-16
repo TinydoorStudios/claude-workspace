@@ -283,27 +283,6 @@ def shows_due_for_initial_advance(cur):
     return sorted(cur.fetchall(), key=lambda r: (r["show_date"], r["show_id"]))
 
 
-def shows_due_for_send_reminder(cur, days_out=21):
-    """RETIRED (Brian, 2026-09-13, live-send migration) — no longer called
-    anywhere. Used to nudge Brian that a draft sitting in Gmail/Outlook was
-    ready to send at the 21-day mark; now that the initial advance sends
-    itself for real at booking time, there's no draft left to nudge about.
-    Left in place (unused) rather than deleted in case anything ever needs
-    the historical shape back."""
-    cur.execute(
-        """SELECT s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
-                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date
-           FROM shows s JOIN artists a ON a.id = s.artist_id
-           WHERE s.advance_draft_created_at IS NOT NULL
-             AND s.send_reminder_sent_at IS NULL
-             AND s.show_date IS NOT NULL
-             AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
-           ORDER BY s.show_date""",
-        (days_out,),
-    )
-    return cur.fetchall()
-
-
 # Reminder cadence (Brian, 2026-09-10: 7/3/2/1; trimmed 2026-09-13 to
 # 7/3/1 — the 2-day tier is gone — as part of the live-send migration).
 # Each fires at most once, independently, as long as the band still
@@ -469,14 +448,6 @@ def mark_stale_followup_tiers_skipped(cur, show_id, days_out):
                 "VALUES (%s, %s, false) ON CONFLICT (show_id, days_before) DO NOTHING",
                 (show_id, tier),
             )
-
-
-def mark_send_reminder_sent(cur, show_id):
-    """RETIRED (Brian, 2026-09-13) — see shows_due_for_send_reminder."""
-    cur.execute(
-        "UPDATE shows SET send_reminder_sent_at = COALESCE(send_reminder_sent_at, now()) "
-        "WHERE id = %s", (show_id,),
-    )
 
 
 def shows_due_for_unresponded_alert(cur, days_before=3):
@@ -1631,6 +1602,48 @@ def get_or_create_short_link(cur, token):
         "ON CONFLICT (code) DO NOTHING", (code, token),
     )
     return code
+
+
+SUBMIT_RATE_PER_IP = 5
+SUBMIT_RATE_SITEWIDE = 60
+SUBMIT_RATE_WINDOW_MIN = 60
+
+
+def submit_rate_limited(cur, ip):
+    """True if this IP (or the site overall) has already hit the /submit
+    rate limit in the last hour (audit 2026-09-16 security #7) — every bot
+    POST to the bare public form does real work (artist+show+submission,
+    notify email, FSQ parking queue, a regen_show.py spawn), not a cheap
+    no-op, so this isn't just noise prevention."""
+    cur.execute(
+        """SELECT count(*) AS n FROM submit_attempts
+           WHERE ip=%s AND attempted_at > now() - (%s || ' minutes')::interval""",
+        (ip, SUBMIT_RATE_WINDOW_MIN))
+    if cur.fetchone()["n"] >= SUBMIT_RATE_PER_IP:
+        return True
+    cur.execute(
+        """SELECT count(*) AS n FROM submit_attempts
+           WHERE attempted_at > now() - (%s || ' minutes')::interval""",
+        (SUBMIT_RATE_WINDOW_MIN,))
+    return cur.fetchone()["n"] >= SUBMIT_RATE_SITEWIDE
+
+
+def record_submit_attempt(cur, ip):
+    cur.execute("INSERT INTO submit_attempts (ip) VALUES (%s)", (ip,))
+
+
+def prune_short_links_and_gate_attempts(cur):
+    """Nothing else ever prunes either table (audit 2026-09-16 security
+    #9) — short_links grows one row per artist ever drafted, forever;
+    gate_attempts/gate_lockouts log every passcode attempt, forever. A
+    short_links row past a year is already useless on its own (the signed
+    token it points at now carries its own 180-day expiry — see
+    PREFILL_TOKEN_MAX_AGE in app.py), so this is storage hygiene, not a
+    security boundary by itself."""
+    cur.execute("DELETE FROM short_links WHERE created_at < now() - interval '1 year'")
+    cur.execute("DELETE FROM gate_attempts WHERE attempted_at < now() - interval '90 days'")
+    cur.execute("DELETE FROM gate_lockouts WHERE locked_at < now() - interval '90 days'")
+    cur.execute("DELETE FROM submit_attempts WHERE attempted_at < now() - interval '7 days'")
 
 
 def resolve_short_link(cur, code):

@@ -10,9 +10,11 @@ import hmac
 import ipaddress
 import json
 import re
+import secrets
 import subprocess
 import sys
 import threading
+import time
 import datetime as dt
 import mimetypes
 from pathlib import Path
@@ -23,7 +25,7 @@ from flask import (
 )
 from urllib.parse import quote
 from werkzeug.utils import secure_filename
-from itsdangerous import URLSafeSerializer, BadData
+from itsdangerous import URLSafeTimedSerializer, BadData
 
 import forms_config
 import i18n
@@ -74,14 +76,25 @@ app.secret_key = SECRET
 app.config["MAX_CONTENT_LENGTH"] = 30 * 1024 * 1024  # 30 MB cap on the stage-plot upload
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
+    # Strict, not Lax (audit 2026-09-16 security #4): every *.tinydoorstudios.com
+    # subdomain — including the guest uploads portal — counted as "same-site"
+    # under Lax, so an HTML file dropped there (or an XSS on any sibling host)
+    # could fire an authenticated cross-origin POST here using a staffer's
+    # live session. The CSRF token below is the other half of this fix.
+    SESSION_COOKIE_SAMESITE="Strict",
     SESSION_COOKIE_SECURE=True,  # served over HTTPS via the Cloudflare tunnel
+    PERMANENT_SESSION_LIFETIME=dt.timedelta(hours=12),
 )
 
-_signer = URLSafeSerializer(SECRET, salt="advance-prefill")
+# URLSafeTimedSerializer, not the plain (non-expiring) URLSafeSerializer
+# (audit 2026-09-16 security #9): a forwarded reminder link used to be
+# forever-valid — whoever held it, even months later, could still open and
+# overwrite that artist's record. See PREFILL_TOKEN_MAX_AGE below.
+_signer = URLSafeTimedSerializer(SECRET, salt="advance-prefill")
 # Signed artist id carried on the band form (audit #6) — a plain hidden
 # artist_id could be edited to rename another artist / change their email.
-_artist_signer = URLSafeSerializer(SECRET, salt="advance-artist-id")
+_artist_signer = URLSafeTimedSerializer(SECRET, salt="advance-artist-id")
+PREFILL_TOKEN_MAX_AGE = 180 * 24 * 3600
 
 
 def artist_token(artist_id):
@@ -90,7 +103,7 @@ def artist_token(artist_id):
 
 def verify_artist_token(tok):
     try:
-        return int(_artist_signer.loads(tok)) if tok else None
+        return int(_artist_signer.loads(tok, max_age=PREFILL_TOKEN_MAX_AGE)) if tok else None
     except (BadData, TypeError, ValueError):
         return None
 
@@ -176,7 +189,7 @@ def make_prefill_token(artist_id, show=None):
 
 def read_prefill_token(token):
     try:
-        return _signer.loads(token)
+        return _signer.loads(token, max_age=PREFILL_TOKEN_MAX_AGE)
     except BadData:
         return None
 
@@ -346,6 +359,20 @@ def submit():
         lang = "es" if (f.get("form_lang") or "").strip().lower() == "es" else "en"
         return render_template("thanks.html", band=f.get("band_name"),
                                lang=lang, t=i18n.translator(lang))
+    # audit 2026-09-16 security #7: rate limit — 5/IP/hour, 60 site-wide/
+    # hour. Fails open (never blocks a real submission over a DB hiccup) —
+    # abort() lives outside the try so it isn't itself swallowed as an error.
+    limited = False
+    if DB_OK:
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                limited = advance_db.submit_rate_limited(cur, _client_ip())
+                advance_db.record_submit_attempt(cur, _client_ip())
+                conn.commit()
+        except Exception as e:
+            _log_db_error("submit_rate_limit", e)
+    if limited:
+        abort(429)
     # Brian, 2026-09-14: a 3rd-party advance is filled in by staff — nothing
     # on it is required (band name, stage plot, any of it). Same for a staff
     # edit from the dashboard's Edit form button (signed-in staff only).
@@ -396,7 +423,12 @@ def submit():
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     slug = _slug(band_name)
-    rec = {k: v for k, v in f.items() if k not in ("artist_id", "artist_token", "staff_edit")}
+    # audit 2026-09-16 security #7: no per-field length cap existed beyond
+    # the whole-request MAX_CONTENT_LENGTH — a free-text field could carry
+    # tens of MB into data/*.json and submissions.data. Free-text fields get
+    # more room than everything else (venue/select/number fields).
+    rec = {k: (v[:4000] if k in es_translate.FREE_TEXT_FIELDS else v[:300])
+          for k, v in f.items() if k not in ("artist_id", "artist_token", "staff_edit")}
     rec["band_name"] = band_name
     if verified_artist_id:
         rec["artist_id"] = str(verified_artist_id)
@@ -750,11 +782,43 @@ GATE_GLOBAL_MAX_FAILS = 30
 GATE_NOTIFY_COOLDOWN_MIN = 60
 
 
+def _csrf_token():
+    """Per-session token (audit 2026-09-16 security #4) — get-or-create so
+    every gated page renders the same one for its whole session lifetime."""
+    tok = session.get("csrf")
+    if not tok:
+        tok = secrets.token_urlsafe(32)
+        session["csrf"] = tok
+    return tok
+
+
+@app.context_processor
+def _inject_csrf():
+    return {"csrf_token": _csrf_token}
+
+
 @app.before_request
 def _gate():
     p = request.path
+    if request.method == "POST" and p.startswith(GATED_PREFIXES) and session.get("auth"):
+        sent = request.form.get("csrf") or request.headers.get("X-CSRF") or ""
+        if not hmac.compare_digest(sent, session.get("csrf") or ""):
+            abort(403)
     if p.startswith(GATED_PREFIXES) and not session.get("auth"):
         return redirect(url_for("gate", next=p))
+
+
+@app.after_request
+def _security_headers(resp):
+    """Baseline headers (audit 2026-09-16 security #12) — live had none of
+    these at all. Cloudflare terminates TLS in front of this app, but HSTS
+    still belongs on the origin response so a client that somehow reaches
+    us over plain HTTP is told to stop."""
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("X-Frame-Options", "DENY")
+    resp.headers.setdefault("Referrer-Policy", "same-origin")
+    resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    return resp
 
 
 def _client_ip():
@@ -782,9 +846,20 @@ def _lockout_net(ip):
 
 
 def _safe_next(nxt):
-    """Only ever redirect to a page on this site (audit #13)."""
-    if nxt and nxt.startswith("/") and not nxt.startswith("//") and "\\" not in nxt:
-        return nxt
+    """Only ever redirect to a page on this site (audit #13).
+
+    audit 2026-09-16 security #5: the old check let a control character
+    through — "/%09/evil.example" decodes to a leading tab, which both
+    gunicorn's header validator and browsers themselves tolerate/strip,
+    turning "/\\t/evil.example" into a scheme-relative "//evil.example" by
+    the time it reaches the browser. Reject any C0 control character (incl.
+    tab) up front, and parse with urlsplit rather than trusting startswith
+    alone — a scheme or netloc anywhere in the string is refused outright."""
+    from urllib.parse import urlsplit
+    if nxt and not re.search(r"[\x00-\x1f\\]", nxt):
+        u = urlsplit(nxt)
+        if not u.scheme and not u.netloc and u.path.startswith("/") and not u.path.startswith("//"):
+            return nxt
     return url_for("staff")
 
 
@@ -860,6 +935,7 @@ def gate():
             except Exception as e:
                 _log_db_error("gate_record", e)
         if ok:
+            session.permanent = True  # audit #4/#12: cookie now expires server-side after 12h
             session["auth"] = True
             return redirect(_safe_next(request.args.get("next")))
         if locked:
@@ -1983,15 +2059,9 @@ def show_merge(show_id, target_id):
     return redirect(url_for("artist_detail", artist_id=tgt["artist_id"]))
 
 
-# ── staff edit + doc change review (Brian, 2026-09-14) ──────────────────────
-# Edit form: the band's advance form for one show, pre-filled with that
-# show's latest answers, submitted as a staff edit. Anything the resubmission
-# would change in a filled cell of the advance doc waits on /doc-review for
-# Keep doc / Use new (docmerge's resubmission review).
-
-_INTERNAL_KEYS = ("_submitted_at", "_db", "_staff_edit", "artist_id", "website",
-                  "stage_plot_carried_from", "form_lang")
-
+# ── doc change review (Brian, 2026-09-14) ────────────────────────────────────
+# Anything a resubmission would change in a filled cell of the advance doc
+# waits on /doc-review for Keep doc / Use new (docmerge's resubmission review).
 
 @app.route("/show/<int:show_id>/edit", methods=["GET", "POST"])
 def show_edit(show_id):
@@ -2278,6 +2348,15 @@ def advance_lifecycle():
     sys.path.insert(0, str(TOOLS_DIR))
     import venue_email as ve
 
+    # audit 2026-09-16 ops #4 (Brian's call: the cheap fix): gunicorn kills
+    # this worker at 120s regardless of what it's mid-write on — a large
+    # welcome batch could get SIGKILLed between a confirmed send and its
+    # own commit. The per-show loops below check this and stop themselves
+    # cleanly well before that, so whatever's left over just runs on the
+    # next scheduled pass instead of being killed uncleanly.
+    deadline = time.monotonic() + 100
+    ran_out_of_time = False
+
     lock_conn = advance_db.get_conn()
     lock_conn.autocommit = True
     initial, followup, failures, dayahead, booking_updates = [], [], 0, [], []
@@ -2287,6 +2366,10 @@ def advance_lifecycle():
         lock_conn.execute("SELECT pg_advisory_lock(%s)", (LIFECYCLE_LOCK_KEY,))
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             advance_db.record_job_run(cur, "advance-lifecycle", source)
+            # audit 2026-09-16 security #9: both tables grow forever with
+            # nothing else that ever prunes them. Rides the daily 9am run —
+            # no new systemd unit needed.
+            advance_db.prune_short_links_and_gate_attempts(cur)
             conn.commit()
 
         def fail(show_id, kind, error):
@@ -2350,6 +2433,9 @@ def advance_lifecycle():
             from draft_emails import slug as _dslug
             seen_shows = set()
             for r in due_initial:
+                if time.monotonic() > deadline:
+                    ran_out_of_time = True
+                    break
                 if r["show_id"] in seen_shows:      # H1 belt-and-braces
                     continue
                 seen_shows.add(r["show_id"])
@@ -2422,6 +2508,9 @@ def advance_lifecycle():
                 for r in advance_db.shows_due_for_followup(cur, tier):
                     by_show.setdefault(r["show_id"], []).append((tier, r))
         for show_id, tiers in by_show.items():
+            if time.monotonic() > deadline:
+                ran_out_of_time = True
+                break
             tiers.sort(key=lambda t: t[0])
             tier, r = tiers[0]
             older = [t for t, _ in tiers[1:]]
@@ -2526,38 +2615,47 @@ def advance_lifecycle():
             unresponded_sent = len(due_unresponded)
 
         # ── day-before confirmations (review 2026-09-14, E5) ──
-        try:
-            from dayahead import send_due as _dayahead_send_due
-            dayahead = _dayahead_send_due(fail)
-        except Exception as e:  # noqa: BLE001 — never blocks the rest of the run
-            _log_db_error("dayahead", e)
-            dayahead = []
+        # Skipped entirely once the deadline's passed — small phases, but
+        # every bit of headroom left matters once welcome/followup already
+        # ate the budget (audit 2026-09-16 ops #4).
+        if not ran_out_of_time:
+            try:
+                from dayahead import send_due as _dayahead_send_due
+                dayahead = _dayahead_send_due(fail)
+            except Exception as e:  # noqa: BLE001 — never blocks the rest of the run
+                _log_db_error("dayahead", e)
+                dayahead = []
 
         # ── booking-edit "info changed" notices (Brian, 2026-09-14) ──
-        try:
-            from booking_update import send_due as _booking_update_send_due
-            booking_updates = _booking_update_send_due(fail)
-        except Exception as e:  # noqa: BLE001 — never blocks the rest of the run
-            _log_db_error("booking_update", e)
-            booking_updates = []
+        if not ran_out_of_time:
+            try:
+                from booking_update import send_due as _booking_update_send_due
+                booking_updates = _booking_update_send_due(fail)
+            except Exception as e:  # noqa: BLE001 — never blocks the rest of the run
+                _log_db_error("booking_update", e)
+                booking_updates = []
 
         # ── thank-you, automatic (audit 2026-09-16 #23, Brian's call) ──
         # finalize_thankyou.send_for_show already records its own outcome
         # (thankyou_sent_at/thankyou_error) and queues its own digest item
         # on failure — nothing here needs fail() too.
         thankyou = []
-        try:
-            from finalize_thankyou import send_for_show as _send_thankyou
-            with advance_db.get_conn() as conn, conn.cursor() as cur:
-                due_thankyou = advance_db.shows_due_for_thankyou(cur)
-            for show_id in due_thankyou:
-                try:
-                    _send_thankyou(show_id)
-                    thankyou.append(show_id)
-                except Exception as e:  # noqa: BLE001 — one show's failure never blocks the rest
-                    _log_db_error("thankyou_auto", e)
-        except Exception as e:  # noqa: BLE001 — never blocks the rest of the run
-            _log_db_error("thankyou_auto", e)
+        if not ran_out_of_time:
+            try:
+                from finalize_thankyou import send_for_show as _send_thankyou
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    due_thankyou = advance_db.shows_due_for_thankyou(cur)
+                for show_id in due_thankyou:
+                    if time.monotonic() > deadline:
+                        ran_out_of_time = True
+                        break
+                    try:
+                        _send_thankyou(show_id)
+                        thankyou.append(show_id)
+                    except Exception as e:  # noqa: BLE001 — one show's failure never blocks the rest
+                        _log_db_error("thankyou_auto", e)
+            except Exception as e:  # noqa: BLE001 — never blocks the rest of the run
+                _log_db_error("thankyou_auto", e)
 
         _email_send_failures()
     except Exception as e:
@@ -2576,7 +2674,7 @@ def advance_lifecycle():
 
     return {"initial": initial, "followup": followup, "dayahead": dayahead,
             "held_drafts": held_drafts, "booking_updates": booking_updates,
-            "thankyou": thankyou,
+            "thankyou": thankyou, "ran_out_of_time": ran_out_of_time,
             "unresponded_alert_sent": unresponded_sent, "failures": failures}
 
 

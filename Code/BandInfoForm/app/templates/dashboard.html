@@ -190,6 +190,7 @@
 </div>
 
 <script>
+const CSRF_TOKEN = "{{ csrf_token() }}";  // audit 2026-09-16 security #4
 const REFRESH_MS = 20000;
 let activeVenue = "All";
 let lastBills = [];
@@ -329,7 +330,7 @@ document.getElementById("btnKeep").onclick = async () => {
   closeCancelModal();
   btn.disabled = true;
   try{
-    const res = await fetch(`/show/${showId}/cancel`, {method: "POST"});
+    const res = await fetch(`/show/${showId}/cancel`, {method: "POST", headers: {"X-CSRF": CSRF_TOKEN}});
     if (!res.ok) throw new Error(res.status);
     await refresh();
   }catch(e){
@@ -363,7 +364,7 @@ document.getElementById("btnPurgeGo").onclick = async () => {
   try{
     const res = await fetch(`/show/${showId}/purge`, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: {"Content-Type": "application/json", "X-CSRF": CSRF_TOKEN},
       body: JSON.stringify({confirm_name: band}),
     });
     const data = await res.json();
@@ -384,7 +385,7 @@ document.getElementById("btnPurgeGo").onclick = async () => {
 async function draftEmail(artistId, showId, btn){
   btn.disabled = true; const label = btn.textContent; btn.textContent = "…";
   try{
-    const res = await fetch(`/artist/${artistId}/draft/${showId}`, {method: "POST", headers: {"Accept": "application/json"}});
+    const res = await fetch(`/artist/${artistId}/draft/${showId}`, {method: "POST", headers: {"Accept": "application/json", "X-CSRF": CSRF_TOKEN}});
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || res.status);
     btn.textContent = "Draft ready";
@@ -403,7 +404,7 @@ async function finalizeShow(artistId, showId, btn){
     // The endpoint redirects to the artist page on success (it's the same
     // route the artist page's own form posts to) — fetch just follows that
     // transparently; only a real error status (400/404/503) fails `ok`.
-    const res = await fetch(`/artist/${artistId}/finalize/${showId}`, {method: "POST"});
+    const res = await fetch(`/artist/${artistId}/finalize/${showId}`, {method: "POST", headers: {"X-CSRF": CSRF_TOKEN}});
     if (!res.ok) throw new Error("request failed: " + res.status);
     await refresh();
   }catch(e){

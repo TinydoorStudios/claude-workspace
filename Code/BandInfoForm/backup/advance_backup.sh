@@ -273,9 +273,24 @@ cp "$APP_DIR/n8n"/*.json "$STAGE/n8n/" 2>/dev/null   # repo copies, as shipped
 # 6. Host wiring — systemd units, docker compose, cloudflare ingress note
 # ============================================================================
 step "6/10  host configuration"
-for unit in band-advance.service band-advance-backup.service band-advance-backup.timer; do
-  cp "/etc/systemd/system/$unit" "$STAGE/systemd/$unit" 2>/dev/null && ok "unit: $unit"
+# audit 2026-09-16 ops #4: this used to name exactly 3 units — everything
+# else the pipeline actually depends on (the nightly-run/db-nightly/
+# lifecycle-watchdog/dropbox-cache-guard/dropbox timers and services) was
+# silently never backed up, so restore.sh had nothing to reinstall them
+# from either. Discover whatever's actually on this host instead.
+for unit_path in /etc/systemd/system/band-advance*.service /etc/systemd/system/band-advance*.timer \
+                 /etc/systemd/system/advance-*.service /etc/systemd/system/advance-*.timer \
+                 /etc/systemd/system/dropbox*.service /etc/systemd/system/dropbox*.timer; do
+  [ -f "$unit_path" ] || continue
+  unit="$(basename "$unit_path")"
+  cp "$unit_path" "$STAGE/systemd/$unit" 2>/dev/null && ok "unit: $unit"
 done
+# the scripts those units actually ExecStart — a reinstalled unit with no
+# script behind it fails at runtime even though the unit itself installed
+# clean.
+mkdir -p "$STAGE/systemd/ops"
+cp "$APP_DIR/ops"/*.sh "$STAGE/systemd/ops/" 2>/dev/null && ok "ops/*.sh scripts"
+cp "$APP_DIR/ops/alert.py" "$STAGE/systemd/ops/" 2>/dev/null
 cp "$APP_DIR/db/docker-compose.yml" "$STAGE/docker/advance-db.compose.yml" 2>/dev/null && ok "advance-db compose"
 cp "$N8N_DIR/docker-compose.yml"    "$STAGE/docker/n8n.compose.yml"        2>/dev/null && ok "n8n compose"
 {
@@ -295,12 +310,13 @@ step "7/10  secrets bundle"
 cp "$APP_DIR/advance.env" "$STAGE/secrets-plain/advance.env" 2>/dev/null && ok "advance.env"
 cp "$APP_DIR/db/.env"     "$STAGE/secrets-plain/advance-db.env" 2>/dev/null && ok "advance-db .env"
 cp "$N8N_DIR/.env"        "$STAGE/secrets-plain/n8n.env" 2>/dev/null && ok "n8n .env (carries N8N_ENCRYPTION_KEY)"
-# Decrypted n8n credentials — the only form usable if the encryption key is ever lost.
-$NC export:credentials --all --decrypted --output=/tmp/n8n_creds_dec.json >/dev/null 2>&1 \
-  && docker cp "$N8N_CTR:/tmp/n8n_creds_dec.json" \
-       "$STAGE/secrets-plain/n8n_credentials.decrypted.json" >/dev/null 2>&1 \
-  && ok "n8n credentials (decrypted copy)" || warn "decrypted credential export unavailable"
-docker exec "$N8N_CTR" rm -f /tmp/n8n_creds_dec.json >/dev/null 2>&1
+# audit 2026-09-16 ops #4: dropped the decrypted n8n credential export —
+# every credential (Graph, Groq, Slack, everything) in one plaintext file,
+# even inside the GPG layer. N8N_ENCRYPTION_KEY (above) plus n8n's own
+# Postgres dump already let n8n decrypt its own credential store on
+# restore; this was only for the much rarer case of losing that key too,
+# and wasn't worth the blast radius of a single file with everything in
+# it, still just "lockdown"-protected on most archives.
 
 PASSPHRASE="lockdown"
 [ -r "$PASS_FILE" ] && PASSPHRASE="$(head -n1 "$PASS_FILE")"
@@ -390,8 +406,13 @@ STATUS="COMPLETE"
 ok "checksums for $(wc -l < "$STAGE/CHECKSUMS.sha256") files"
 
 if tar -C "$WORKROOT" -czf "$ARCHIVE" "$NAME" 2>>"$LOG"; then
+  # audit 2026-09-16 ops #4: the archive (this app tree, uploaded band
+  # files, and — until the fix above — everything n8n could decrypt) was
+  # otherwise readable by anyone on the box, local and on both NAS copies.
+  chmod 640 "$ARCHIVE"
   ARCHIVE_SHA="$(sha_of "$ARCHIVE")"
   echo "$ARCHIVE_SHA  $NAME.tar.gz" > "$ARCHIVE.sha256"
+  chmod 640 "$ARCHIVE.sha256"
   ok "archive: $NAME.tar.gz ($(human "$ARCHIVE"))"
 else
   fail "tar failed — no archive produced"

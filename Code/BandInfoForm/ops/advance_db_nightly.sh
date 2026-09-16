@@ -35,6 +35,14 @@ if [ ${#FAILS[@]} -eq 0 ]; then
     # zsh-safe retention on TrueNAS: find, never a glob
     ssh $SSH_OPTS "$HOST" "find '$DIR' -maxdepth 1 -type f -name 'advance-*.dump' -printf '%T@ %p\n' | sort -rn | awk 'NR>$KEEP {print \$2}' | xargs -r rm -f" \
       || FAILS+=("$NM: retention cleanup failed")
+    # audit 2026-09-16 ops #4: only the DB dump rode this nightly job —
+    # uploaded stage plots + disk-first submission JSON (data/) had up to
+    # a week's gap same as the DB used to, now closed the same way. A
+    # mirror, not versioned dumps — --delete keeps it matching live.
+    DATADIR="$(dirname "$DIR")/data"
+    if ! ssh $SSH_OPTS "$HOST" "mkdir -p '$DATADIR'"; then FAILS+=("$NM: data dir unreachable"); continue; fi
+    rsync -a --delete -e "ssh $SSH_OPTS" /opt/band-advance/data/ "$HOST:$DATADIR/" \
+      || FAILS+=("$NM: data/ mirror failed")
   done
 fi
 # local: keep 3

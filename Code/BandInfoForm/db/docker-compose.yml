@@ -16,9 +16,6 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - advance_pgdata:/var/lib/postgresql/data
-    networks:
-      - default
-      - n8n
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U advance -d advance"]
       interval: 10s
@@ -28,9 +25,10 @@ services:
 volumes:
   advance_pgdata:
 
-# n8n reaches this DB by container name over its own network (for the follow-up
-# checks). The n8n stack owns n8n_default; we just attach to it.
-networks:
-  n8n:
-    external: true
-    name: n8n_default
+# audit 2026-09-16 ops #4: dropped the n8n_default network attachment —
+# it existed only for the follow-up-check workflow to reach this DB by
+# container name (n8n/README.md's SUPERSEDED workflow, dead since the
+# 2026-09-13 live-send migration; no n8n workflow references advance-db or
+# postgres directly). Every n8n workflow reaches the app over HTTP
+# (host.docker.internal:8097), never this container directly — the
+# loopback-published port above is all Flask itself ever needed.

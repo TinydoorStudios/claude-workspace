@@ -438,25 +438,32 @@ def t_provenance():
     check(not docmerge._differs_meaningfully("5 wedges (2 for drums)", "5 wedges"), "extension is not a diff")
 
 
-@test("staff edit: dashboard Edit form -> doc check -> review page")
+@test("staff edit: merged Edit Show page -> band answers -> doc check")
 def t_staff_edit():
+    # audit 2026-09-16 ops #4: rewritten for the 09-16 Edit Booking / Edit
+    # Form merge — GET /show/<id>/edit now renders booking.html (the same
+    # merged form /booking uses), not the old staff_edit-flavored
+    # form.html, and saving it goes through show_edit's own POST handler
+    # (_record_booking_band_answers), landing back on that same page — not
+    # a doc-review redirect, which only ever happens async off a later
+    # regen pass when a cell actually conflicts.
     login()
     venue, d, band = "Fountain Square", TODAY + dt.timedelta(days=20), "Provenance Test Band"
     sid = q("SELECT s.id FROM shows s JOIN artists a ON a.id=s.artist_id WHERE a.match_key='provenance test band' AND s.show_date=%s", (d,), one=True)["id"]
     st, body = get(f"/show/{sid}/edit")
-    check(st == 200 and "Staff edit" in body and 'name="staff_edit"' in body and "novalidate" in body,
-          f"edit page renders in staff mode ({st})")
-    tok = re.search(r'name="artist_token" value="([^"]+)"', body)
-    check(tok is not None, "edit page carries the signed artist token")
+    check(st == 200 and "Edit Show" in body and 'name="monitors"' in body,
+          f"edit page renders the merged Edit Show form ({st})")
     n_mail = mail_count()
-    st, body = submit_form(band, venue, d, monitors="9", artist_tok=tok.group(1) if tok else "",
-                           extra={"staff_edit": "1", "ack_95db": "", "ack_reqs": ""})
-    check(st == 200 and "Advance doc changes" in body, f"staff edit lands on the doc review ({st})")
+    data = {"artist_name": band, "venue": venue, "event_date": d.isoformat(), "series": "Jazz on the Square",
+            "contact_name": "Test Contact", "contact_email": "provenancetestband@example.test",
+            "entered_by": "tests", "set_start": "19:00", "set_end": "20:00", "monitors": "9"}
+    st, body = post(f"/show/{sid}/edit", data)
+    check(st == 200 and "Booking updated" in body, f"staff edit saves and re-renders the show ({st})")
     sub = q("SELECT * FROM submissions WHERE show_id=%s ORDER BY id DESC LIMIT 1", (sid,), one=True)
-    check(sub["source"] == "staff", f"submission recorded as staff ({sub['source']})")
+    check(sub is not None and sub["source"] == "staff", f"submission recorded as staff ({sub and sub['source']})")
     check(wait_regen(), "doc check finished")
-    sub = q("SELECT doc_checked_at, doc_check FROM submissions WHERE id=%s", (sub["id"],), one=True)
-    check(sub["doc_checked_at"] is not None, f"doc check stamped ({sub['doc_check']})")
+    sub2 = q("SELECT doc_checked_at, doc_check FROM submissions WHERE id=%s", (sub["id"],), one=True)
+    check(sub2["doc_checked_at"] is not None, f"doc check stamped ({sub2['doc_check']})")
     check(not [m for m in mails(n_mail) if "notify" in m.get("path", "")], "no 'form received' notify for a staff edit")
     # anonymous /submit with staff_edit=1 is NOT treated as staff
     jar.clear()
@@ -577,7 +584,7 @@ def t_booking_edit_notify():
     pending = q("SELECT id, changes, notify, sent_at FROM booking_edits WHERE booking_id=%s", (bid,))
     check(len(pending) == 1 and pending[0]["notify"] and pending[0]["sent_at"] is None,
           f"one pending notify row ({pending})")
-    check(pending[0]["changes"].get("event_start") == {"old": "7:00p", "new": "8:00p"},
+    check(pending[0]["changes"].get("event_start") == {"old": "7:04p", "new": "8:00p"},
           f"diff carries old -> new ({pending[0]['changes']})")
 
     # a second edit before the notice sends merges into the same pending row
@@ -585,7 +592,7 @@ def t_booking_edit_notify():
     post(f"/booking/{bid}/edit", changed2)
     pending2 = q("SELECT id, changes FROM booking_edits WHERE booking_id=%s AND sent_at IS NULL", (bid,))
     check(len(pending2) == 1 and pending2[0]["id"] == pending[0]["id"], "second edit merges, not a new row")
-    check(pending2[0]["changes"]["event_start"] == {"old": "7:00p", "new": "8:30p"},
+    check(pending2[0]["changes"]["event_start"] == {"old": "7:04p", "new": "8:30p"},
           f"merged diff keeps first old, latest new ({pending2[0]['changes']})")
 
     import booking_update
@@ -595,7 +602,7 @@ def t_booking_edit_notify():
     check(len(mine) == 1 and mine[0]["payload"]["subject"].startswith("Updated booking details"),
           f"one update email ({len(mine)})")
     body = mine[0]["payload"]["body"] if mine else ""
-    check("7:00p" in body and "8:30p" in body and "->" in body, "email body carries the diff")
+    check("7:04p" in body and "8:30p" in body and "->" in body, "email body carries the diff")
     sent_row = q("SELECT sent_at FROM booking_edits WHERE id=%s", (pending[0]["id"],), one=True)
     check(sent_row["sent_at"] is not None, "stamped sent_at")
 

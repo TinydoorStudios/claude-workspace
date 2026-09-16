@@ -73,6 +73,7 @@ for c in creds:
   echo
   echo "--- import + publish each workflow ---"
   IDS=()
+  SKIPPED=0
   for f in "${FILES[@]}"; do
     name="$(basename "$f")"
     wfid="$(python3 -c "import json; print(json.load(open('$f'))['id'])")"
@@ -81,9 +82,28 @@ for c in creds:
     IDS+=("$wfid")
     echo "  $name -> id=$wfid"
     tmp="/tmp/n8n_deploy_$name"
-    sed -e "s/REPLACE_WITH_ADVANCE_INTERNAL_TOKEN/$TOKEN/g" \
-        -e "s/REPLACE_WITH_GRAPH_CREDENTIAL_ID/${GRAPH_CRED_ID:-REPLACE_WITH_GRAPH_CREDENTIAL_ID}/g" \
-        "$f" > "$tmp"
+    # audit 2026-09-16 ops #4: python, not sed — and check the result
+    # before shipping anything. GRAPH_CRED_ID resolving empty used to just
+    # warn, then still import a workflow that read a live
+    # REPLACE_WITH_GRAPH_CREDENTIAL_ID literal, breaking at runtime.
+    if ! ADVANCE_TOKEN="$TOKEN" ADVANCE_GRAPH_CRED="$GRAPH_CRED_ID" python3 -c "
+import os
+text = open('$f').read()
+text = text.replace('REPLACE_WITH_ADVANCE_INTERNAL_TOKEN', os.environ['ADVANCE_TOKEN'])
+graph = os.environ.get('ADVANCE_GRAPH_CRED') or ''
+if graph:
+    text = text.replace('REPLACE_WITH_GRAPH_CREDENTIAL_ID', graph)
+if 'REPLACE_WITH_' in text:
+    import re
+    left = sorted(set(re.findall(r'REPLACE_WITH_\w+', text)))
+    print(f'unresolved placeholder(s) in $name: {left}')
+    raise SystemExit(1)
+open('$tmp', 'w').write(text)
+"; then
+      echo "  SKIPPING $name — see the placeholder error above"
+      SKIPPED=$((SKIPPED + 1))
+      continue
+    fi
     scp -J tds -i "$KEY" "$tmp" "$VM:$tmp" || { echo "  SCP FAILED for $name"; rm -f "$tmp"; continue; }
     rm -f "$tmp"
     $SSH "
@@ -110,9 +130,21 @@ for c in creds:
   echo
   echo "--- final state ---"
   for wfid in "${IDS[@]}"; do
-    $SSH "cd /opt/n8n && sudo docker compose exec -T postgres psql -U n8n -d n8n -tAc \"select id,name,active from workflow_entity where id='$wfid';\""
+    # "activeVersionId" is what n8n actually schedules off of — the plain
+    # active column can read false while the workflow still fires (the
+    # Advance Follow-up Check zombie, root-caused 2026-09-16): a raw-column
+    # edit clears active without touching activeVersionId.
+    $SSH "cd /opt/n8n && sudo docker compose exec -T postgres psql -U n8n -d n8n -tAc \"select id, name, active, \\\"activeVersionId\\\" is not null as published from workflow_entity where id='$wfid';\""
   done
 
   echo
-  echo "=== done $(date) ==="
+  if [ "$SKIPPED" -gt 0 ]; then
+    echo "=== done with $SKIPPED workflow(s) SKIPPED $(date) ==="
+  else
+    echo "=== done $(date) ==="
+  fi
 } 2>&1 | tee "$LOG"
+# audit 2026-09-16 ops #4: propagate a skipped workflow as a real failure
+# exit code — piping through tee above means $? would otherwise always be
+# tee's, never the actual run's.
+! grep -q 'done with .* SKIPPED' "$LOG"
