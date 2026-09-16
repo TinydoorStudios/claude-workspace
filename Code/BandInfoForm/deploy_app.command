@@ -33,6 +33,14 @@ NEW_SHA="$(git -C "$HERE" rev-parse HEAD)"
 # Every relative path (under $APP_DIR on the VM) this deploy ships, shared
 # between the drift check below and the tar staging step — one list, so
 # they can never quietly drift apart from each other.
+#
+# app/*.py and app/templates/ are FLATTENED on deploy (tar -C "$HERE/app" ..
+# extracts straight into $APP_DIR, no "app/" component survives) — every
+# other shipped path is identical on both sides. The drift check needs
+# both spellings: REMOTE_TO_LOCAL_PREFIX carries the one local prefix
+# ("app/") that doesn't match its remote path, keyed by the first path
+# component, so it stays a single source of truth instead of a second
+# hardcoded file list that could drift from this one.
 APP_FILES=(app.py advance_db.py forms_config.py i18n.py es_translate.py mailer.py status_labels.py)
 TOOLS_FILES=(
   draft_emails.py backfill.py event.py daysheet.py sheet.py import_sheet.py fieldspec.py
@@ -50,6 +58,16 @@ for f in "${TOOLS_FILES[@]}"; do SHIPPED_FILES+=("tools/$f"); done
 # would flag files that were never part of any deploy in the first place.
 SHIPPED_DIRS=(templates ops db/migrations backup)
 for d in "${TOOLS_DIRS[@]}"; do SHIPPED_DIRS+=("tools/$d"); done
+# remote path -> local git-path prefix, for the two flattened cases above.
+_local_git_path() {
+  case "$1" in
+    templates/*) echo "app/$1" ;;
+    *)
+      for f in "${APP_FILES[@]}"; do [ "$1" = "$f" ] && { echo "app/$1"; return; }; done
+      echo "$1"
+      ;;
+  esac
+}
 
 {
   echo "=== Band Advance deploy — $(date) — branch $CUR @ $(git -C "$HERE" rev-parse --short HEAD) ==="
@@ -74,11 +92,20 @@ for d in "${TOOLS_DIRS[@]}"; do SHIPPED_DIRS+=("tools/$d"); done
     REPO_PREFIX="$(git -C "$HERE" rev-parse --show-prefix)"
     ALL_PATHS=("${SHIPPED_FILES[@]}")
     for d in "${SHIPPED_DIRS[@]}"; do
-      while IFS= read -r p; do ALL_PATHS+=("$p"); done < <(git -C "$HERE" ls-tree -r --name-only "$PREV_SHA" -- "$d" 2>/dev/null)
+      # "templates" is the one flattened dir here too (local: app/templates)
+      # — query ls-tree against the real local path, then strip it back to
+      # the remote spelling so ALL_PATHS stays in remote-path convention
+      # throughout (matching _local_git_path's own "app/" special case).
+      ld="$d"; [ "$d" = "templates" ] && ld="app/templates"
+      while IFS= read -r p; do
+        [ "$d" = "templates" ] && p="${p#app/}"
+        ALL_PATHS+=("$p")
+      done < <(git -C "$HERE" ls-tree -r --name-only "$PREV_SHA" -- "$ld" 2>/dev/null)
     done
     LOCAL_MANIFEST="$(mktemp)"; REMOTE_MANIFEST="$(mktemp)"
     for p in "${ALL_PATHS[@]}"; do
-      sha="$(git -C "$HERE" show "$PREV_SHA:${REPO_PREFIX}$p" 2>/dev/null | shasum -a 256 | awk '{print $1}')"
+      lp="$(_local_git_path "$p")"
+      sha="$(git -C "$HERE" show "$PREV_SHA:${REPO_PREFIX}$lp" 2>/dev/null | shasum -a 256 | awk '{print $1}')"
       [ -n "$sha" ] && echo "$sha  $p" >> "$LOCAL_MANIFEST"
     done
     printf '%s\n' "${ALL_PATHS[@]}" | $SSH "cd $APP_DIR && xargs -I{} sh -c 'sha256sum \"{}\" 2>/dev/null'" > "$REMOTE_MANIFEST"
