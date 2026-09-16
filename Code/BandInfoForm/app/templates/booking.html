@@ -32,7 +32,7 @@
 </head>
 <body>
 {% include '_nav.html' %}
-<header><div class="wrap"><h1>{% if edit_booking_id %}Edit Booking{% else %}New Artist Booking{% endif %}</h1><p>3CDC Events — {% if edit_booking_id %}update this booking's core details.{% else %}log a booking; the band fills the rest on their advance form.{% endif %}</p></div></header>
+<header><div class="wrap"><h1>{% if show_id %}Edit Show{% elif edit_booking_id %}Edit Booking{% else %}New Artist Booking{% endif %}</h1><p>3CDC Events — {% if show_id %}logistics and the band's own answers, together.{% elif edit_booking_id %}update this booking's core details.{% else %}log a booking; the band fills the rest on their advance form.{% endif %}</p></div></header>
 <div class="wrap">
 
 {% if edited %}
@@ -57,7 +57,7 @@
     <p class="hint" style="margin-top:0">No band-facing fields changed — nothing to notify the band about.</p>
     {% endif %}
   </div>
-  <a class="btn" href="{{ url_for('booking_edit', booking_id=edit_booking_id) }}">← Back to this booking</a>
+  <a class="btn" href="{{ url_for('show_edit', show_id=show_id) if show_id else url_for('booking_edit', booking_id=edit_booking_id) }}">← Back to this show</a>
   <a class="btn" href="{{ url_for('dashboard') }}" style="margin-left:16px">Dashboard →</a>
 {% elif saved %}
   <div class="banner ok">
@@ -123,7 +123,7 @@
 {% else %}
   {% if error %}<div class="banner err">{{ error }}</div>{% endif %}
   <div class="card">
-  <form method="post" enctype="multipart/form-data" action="{{ url_for('booking_edit', booking_id=edit_booking_id) if edit_booking_id else url_for('booking') }}">
+  <form method="post" enctype="multipart/form-data" action="{{ post_url or (url_for('booking_edit', booking_id=edit_booking_id) if edit_booking_id else url_for('booking')) }}">
     {% set flat_series = [] %}
     {% for v, opts in series_by_venue.items() %}{% for s in opts %}{% set _ = flat_series.append(s) %}{% endfor %}{% endfor %}
     {% for s in standalone_series %}{% set _ = flat_series.append(s) %}{% endfor %}
@@ -281,12 +281,22 @@
         </div>
         <div><label>Vehicle Count</label><input type="number" name="vehicle_count" min="0" step="1" value="{{ form.vehicle_count or '' }}"></div>
         <div><label>Large Vehicle Count</label><input type="number" name="large_vehicle_count" min="0" step="1" value="{{ form.large_vehicle_count or '' }}"></div>
+        <div><label>Stage Escort — Name</label><input name="stage_escort_name" value="{{ form.stage_escort_name or '' }}"></div>
+        <div><label>Stage Escort — Cell</label><input name="stage_escort_cell" value="{{ form.stage_escort_cell or '' }}"></div>
         <div class="full"><label>Backline</label><textarea name="backline">{{ form.backline or '' }}</textarea></div>
         <div class="full"><label>Scenic Notes</label><textarea name="scenic">{{ form.scenic or '' }}</textarea></div>
         <div class="full"><label>Lighting Notes</label><textarea name="lighting">{{ form.lighting or '' }}</textarea></div>
         <div class="full"><label>Stage Plot — description or link</label><textarea name="stage_plot_desc">{{ form.stage_plot_desc or '' }}</textarea></div>
         <div class="full"><label>Stage Plot — file</label><input type="file" name="stage_plot_file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx"></div>
         <div class="full"><label>Additional Info</label><textarea name="additional">{{ form.additional or '' }}</textarea></div>
+        <div class="full" style="border-top:1px solid #2a323d;padding-top:12px;margin-top:2px">
+          <label style="margin-bottom:8px">Acknowledgments (tick if the band confirmed some other way — phone, email)</label>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;font-weight:400;text-transform:none;letter-spacing:normal;color:#e6edf3">
+            <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;text-transform:none;font-weight:400"><input type="checkbox" name="ack_loadin" value="yes" style="width:auto;margin-top:2px" {% if form.ack_loadin=='yes' %}checked{% endif %}> Load-in process reviewed</label>
+            <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;text-transform:none;font-weight:400"><input type="checkbox" name="ack_95db" value="yes" style="width:auto;margin-top:2px" {% if form.ack_95db=='yes' %}checked{% endif %}> 95 dBA-Slow sound limit acknowledged</label>
+            <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;text-transform:none;font-weight:400"><input type="checkbox" name="ack_reqs" value="yes" style="width:auto;margin-top:2px" {% if form.ack_reqs=='yes' %}checked{% endif %}> Performance requirements acknowledged</label>
+          </div>
+        </div>
       </div>
     </details>
 

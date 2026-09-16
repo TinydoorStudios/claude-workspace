@@ -1115,13 +1115,14 @@ def _manual_fill_link(data):
     return f"{PUBLIC_URL}/f/{token}"
 
 
-def _booking_form(error=None, form=None, status=200, edit_booking_id=None):
+def _booking_form(error=None, form=None, status=200, edit_booking_id=None, show_id=None):
     return render_template("booking.html", venues=forms_config.VENUES,
                            wp_locations=list(forms_config.WP_LOCATIONS),
                            series_by_venue=_series_by_venue(),
                            standalone_series=STANDALONE_SERIES,
                            locked_schedule_series=_locked_schedule_series(),
-                           error=error, form=form or {}, edit_booking_id=edit_booking_id), status
+                           error=error, form=form or {}, edit_booking_id=edit_booking_id,
+                           show_id=show_id), status
 
 
 def _booking_row_to_form(b):
@@ -1208,6 +1209,53 @@ def _set_start_taken(cur, venue, event_date, set_start, artist_name, series=None
     return row["artist_name"] if row else None
 
 
+def _validate_booking_data(f):
+    """POST form -> (data dict, None) or (None, error message). Shared by
+    every route that saves a bookings row (create, booking-only edit, and the
+    merged show edit) so the rules can't drift between them (Brian, 2026-09-16
+    — 'one page that lets me change anything with the booking or the artist').
+
+    Rules (audit 2026-09-13):
+      #3  contact email is required unless "Manual band advance" is checked
+      #16 Series is required: a named series, "Stand-Alone Internal" or
+          "3rd Party"; that pick sets Event Type (named series = Internal)
+      Set Start / Set End (Brian, 2026-09-15) are required on every booking;
+      they aren't stored fields themselves — see _derive_schedule."""
+    data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
+    data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
+    data["draft_only"] = f.get("draft_only") == "on"
+    # 3rd Party: the band gets no automated email unless this is ticked
+    # (Brian, 2026-09-14). Meaningless for other series — always stored off.
+    data["band_emails"] = f.get("band_emails") == "on" and advance_db.is_third_party(data["series"])
+    if not data["entered_by"]:
+        return None, "Who's entering this is required."
+    if not data["venue"] or not advance_db.to_date(data["event_date"]):
+        return None, "Venue and a valid event date are required."
+    if not f.get("set_start") or not f.get("set_end"):
+        return None, "Set Start and Set End are required."
+    if not data["series"] or data["series"].lower() == "default":
+        return None, "Pick a series — or Stand-Alone Internal / 3rd Party."
+    # Brian, 2026-09-14: a 3rd-party event must have an Event Name, and its
+    # artist/band is optional. The booking row still needs a name (it's the
+    # upsert key and the sheet/artist match), so a blank one takes the event
+    # name.
+    if advance_db.is_third_party(data["series"]) and not data["event_name"]:
+        return None, "Event Name is required for a 3rd-party event."
+    if not data["artist_name"]:
+        if not advance_db.is_third_party(data["series"]):
+            return None, "Artist name is required."
+        data["artist_name"] = data["event_name"]
+    # Brian, 2026-09-14: a 3rd-party event usually comes with no band contact
+    # at all — name, email and phone are optional for it. No email simply
+    # means no welcome / reminders / day-before for that show.
+    if (not data["skip_welcome_email"] and "@" not in data["contact_email"]
+            and not advance_db.is_third_party(data["series"])):
+        return None, "Contact email is required (or check Manual band advance)."
+    data["event_type"] = _event_type_for_series(data["series"])
+    _derive_schedule(data, f)
+    return data, None
+
+
 @app.route("/booking", methods=["GET", "POST"])
 def booking():
     """Short staff intake form for a new artist booking. Writes to the bookings
@@ -1225,38 +1273,9 @@ def booking():
       they aren't stored fields themselves — see _derive_schedule."""
     if request.method == "POST":
         f = request.form
-        data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
-        data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
-        data["draft_only"] = f.get("draft_only") == "on"
-        # 3rd Party: the band gets no automated email unless this is ticked
-        # (Brian, 2026-09-14). Meaningless for other series — always stored off.
-        data["band_emails"] = f.get("band_emails") == "on" and advance_db.is_third_party(data["series"])
-        if not data["entered_by"]:
-            return _booking_form("Who's entering this is required.", f, 400)
-        if not data["venue"] or not advance_db.to_date(data["event_date"]):
-            return _booking_form("Venue and a valid event date are required.", f, 400)
-        if not f.get("set_start") or not f.get("set_end"):
-            return _booking_form("Set Start and Set End are required.", f, 400)
-        if not data["series"] or data["series"].lower() == "default":
-            return _booking_form("Pick a series — or Stand-Alone Internal / 3rd Party.", f, 400)
-        # Brian, 2026-09-14: a 3rd-party event must have an Event Name, and
-        # its artist/band is optional. The booking row still needs a name
-        # (it's the upsert key and the sheet/artist match), so a blank one
-        # takes the event name.
-        if advance_db.is_third_party(data["series"]) and not data["event_name"]:
-            return _booking_form("Event Name is required for a 3rd-party event.", f, 400)
-        if not data["artist_name"]:
-            if not advance_db.is_third_party(data["series"]):
-                return _booking_form("Artist name is required.", f, 400)
-            data["artist_name"] = data["event_name"]
-        # Brian, 2026-09-14: a 3rd-party event usually comes with no band
-        # contact at all — name, email and phone are optional for it. No
-        # email simply means no welcome / reminders / day-before for that show.
-        if (not data["skip_welcome_email"] and "@" not in data["contact_email"]
-                and not advance_db.is_third_party(data["series"])):
-            return _booking_form("Contact email is required (or check Manual band advance).", f, 400)
-        data["event_type"] = _event_type_for_series(data["series"])
-        _derive_schedule(data, f)
+        data, err = _validate_booking_data(f)
+        if err:
+            return _booking_form(err, f, 400)
         saved = False
         if DB_OK:
             try:
@@ -1315,33 +1334,26 @@ def booking_edit(booking_id):
         abort(503)
     with advance_db.get_conn() as conn, conn.cursor() as cur:
         existing = advance_db.get_booking(cur, booking_id)
+        if existing:
+            show = advance_db.show_for_booking(cur, existing.get("artist_name"), existing.get("venue"),
+                                               existing.get("event_date"))
+        else:
+            show = None
     if not existing:
         abort(404)
+    # The merged edit page (Brian, 2026-09-16) is keyed by show_id — once a
+    # show exists for this booking there's something to merge WITH (the
+    # band's own answers), so a GET here goes straight there. Before a show
+    # exists (the pipeline hasn't run yet, or this is a same-second re-open
+    # right after creating the booking) there's genuinely nothing to merge —
+    # this page keeps working exactly as it always has until that catches up.
+    if request.method == "GET" and show:
+        return redirect(url_for("show_edit", show_id=show["id"]))
     if request.method == "POST":
         f = request.form
-        data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
-        data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
-        data["draft_only"] = f.get("draft_only") == "on"
-        data["band_emails"] = f.get("band_emails") == "on" and advance_db.is_third_party(data["series"])
-        if not data["entered_by"]:
-            return _booking_form("Who's entering this is required.", f, 400, booking_id)
-        if not data["venue"] or not advance_db.to_date(data["event_date"]):
-            return _booking_form("Venue and a valid event date are required.", f, 400, booking_id)
-        if not f.get("set_start") or not f.get("set_end"):
-            return _booking_form("Set Start and Set End are required.", f, 400, booking_id)
-        if not data["series"] or data["series"].lower() == "default":
-            return _booking_form("Pick a series — or Stand-Alone Internal / 3rd Party.", f, 400, booking_id)
-        if advance_db.is_third_party(data["series"]) and not data["event_name"]:
-            return _booking_form("Event Name is required for a 3rd-party event.", f, 400, booking_id)
-        if not data["artist_name"]:
-            if not advance_db.is_third_party(data["series"]):
-                return _booking_form("Artist name is required.", f, 400, booking_id)
-            data["artist_name"] = data["event_name"]
-        if (not data["skip_welcome_email"] and "@" not in data["contact_email"]
-                and not advance_db.is_third_party(data["series"])):
-            return _booking_form("Contact email is required (or check Manual band advance).", f, 400, booking_id)
-        data["event_type"] = _event_type_for_series(data["series"])
-        _derive_schedule(data, f)
+        data, err = _validate_booking_data(f)
+        if err:
+            return _booking_form(err, f, 400, booking_id)
         changes, will_notify = {}, False
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -1836,40 +1848,79 @@ _INTERNAL_KEYS = ("_submitted_at", "_db", "_staff_edit", "artist_id", "website",
                   "stage_plot_carried_from", "form_lang")
 
 
-@app.get("/show/<int:show_id>/edit")
+@app.route("/show/<int:show_id>/edit", methods=["GET", "POST"])
 def show_edit(show_id):
+    """The one place to edit a show (Brian, 2026-09-16 — 'doesn't make sense
+    to' keep Edit Booking and Edit Form as two separate pages once one of them
+    could already touch the band's own answers; merged into one screen, one
+    Save): booking logistics (venue/date/schedule/contact/series/toggles) and
+    the band's own questions together.
+
+    Keyed by show_id, not booking_id, because show_id is the more universal
+    handle — a show can exist (from a real band submission) with no staff
+    booking ever logged for it. When a booking row IS on file, this edits it
+    in place exactly as /booking/<id>/edit always has (same validation, same
+    'info changed' notice on a band-facing change); when one ISN'T, saving
+    here creates it — nothing distinguishes the two from the person typing,
+    same as Brian asked for."""
     if not DB_OK:
         abort(503)
     with advance_db.get_conn() as conn, conn.cursor() as cur:
         s = advance_db.show_with_artist(cur, show_id)
         if not s:
             abort(404)
-        cur.execute("SELECT * FROM submissions WHERE show_id=%s ORDER BY submitted_at DESC LIMIT 1",
-                    (show_id,))
-        sub = cur.fetchone() or advance_db.newest_submission(cur, s["artist_id"])
-        cur.execute(r"""SELECT * FROM bookings WHERE venue=%s AND event_date=%s
-                        AND lower(btrim(regexp_replace(artist_name, '\s+', ' ', 'g'))) = %s
-                        ORDER BY id DESC LIMIT 1""", (s["venue"], s["show_date"], s["match_key"]))
-        booking = cur.fetchone() or {}
-    series = s.get("show_series") or booking.get("series")
-    location = booking.get("location") or ((sub or {}).get("data") or {}).get("location")
-    cfg = forms_config.get_config(series_key=series, venue=s["venue"], location=location,
-                                  lang="en")
-    cfg["third_party"] = advance_db.is_third_party(series)
-    prefill = {k: v for k, v in ((sub or {}).get("data") or {}).items() if k not in _INTERNAL_KEYS}
-    prefill.update({"band_name": s["artist_name"], "venue": s["venue"],
-                    "show_date": s["show_date"].isoformat() if s["show_date"] else ""})
-    if not sub:
-        prefill["contact_name"] = booking.get("contact_name") or ""
-        prefill["contact_email"] = booking.get("contact_email") or s.get("last_email") or ""
-    return render_template(
-        "form.html", venues=forms_config.VENUES, cfg=cfg,
-        prefill=prefill, returning=bool(sub), artist_name=s["artist_name"],
-        tech_packs=forms_config.tech_packs(),
-        known_artist_id=s["artist_id"], artist_tok=artist_token(s["artist_id"]),
-        locked_venue=True, locked_date=True, staff_edit=True, staff_show=s,
-        has_answers=bool(sub),
-    )
+        booking = advance_db.get_booking_for_show(cur, s)
+
+    if request.method == "POST":
+        f = request.form
+        data, err = _validate_booking_data(f)
+        if err:
+            return _booking_form(err, f, 400, show_id=show_id)
+        changes, will_notify = {}, False
+        booking_id = booking["id"] if booking else None
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                taken = _set_start_taken(cur, data["venue"], advance_db.to_date(data["event_date"]),
+                                         data.get("event_start"), data["artist_name"],
+                                         series=data["series"], location=data.get("location"),
+                                         exclude_booking_id=booking_id)
+                if taken:
+                    return _booking_form(
+                        f"{taken} already starts at {data['event_start']} on "
+                        f"{data['event_date']} — set start decides the running order, "
+                        f"so two artists can't share one.", f, 409, show_id=show_id)
+                if booking_id:
+                    was_draft_only = bool((advance_db.get_booking(cur, booking_id) or {}).get("draft_only"))
+                    changes, will_notify = advance_db.update_booking(cur, booking_id, data)
+                    if was_draft_only and not data["draft_only"]:
+                        advance_db.clear_advance_held_draft(cur, show_id)
+                else:
+                    booking_id = advance_db.insert_booking(cur, data)
+                conn.commit()
+        except Exception as e:
+            _log_db_error("show_edit_save", e)
+            return _booking_form("Couldn't save — the database is unreachable. Try again shortly.",
+                                 f, 503, show_id=show_id)
+        band_answers_saved = _record_booking_band_answers(
+            f, request.files, data, existing_artist_id=s["artist_id"]) is not None
+        show_date = advance_db.to_date(data.get("event_date"))
+        scope = f"{data['venue']}|{show_date.isoformat()}" if show_date else None
+        _run_pipeline_background(scope)
+        return render_template("booking.html", venues=forms_config.VENUES,
+                               saved=data, urgent=False, band_answers_saved=band_answers_saved,
+                               edited=True, edit_changes=changes, will_notify=will_notify,
+                               show_id=show_id)
+
+    form = _booking_row_to_form(booking or {
+        "artist_name": s["artist_name"], "venue": s["venue"], "event_date": s["show_date"],
+        "contact_email": s.get("last_email") or "",
+    })
+    # Series/artist name/venue/date come from the SHOW when there's no booking
+    # to read them from yet — locked either way, since this page edits the
+    # show that's already open, not a different one.
+    if not form.get("series"):
+        form["series"] = s.get("show_series") or ""
+    return _booking_form(form=form, show_id=show_id)[0]
 
 
 def _review_date(v):

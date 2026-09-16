@@ -88,7 +88,7 @@
         {% endif %}
         {% if s.state != 'cancelled' %}
         <div><a class="edit-btn" href="{{ url_for('show_edit', show_id=s.show_id) }}"
-               title="Open this show's advance form with the band's answers filled in">Edit form ✎</a></div>
+               title="Venue, date, schedule, contact, and the band's own answers — all in one place">Edit ✎</a></div>
         {% endif %}
         {% if s.state in ('responded', 'finalized') %}
         <form method="post" action="{{ url_for('draft_reply', artist_id=artist.id, show_id=s.show_id) }}">
@@ -130,7 +130,7 @@
     {% for sub in subs %}
     <div class="card">
       <h3>{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }} · {{ sub.venue or '—' }}{% if sub.show_date %} · show {{ sub.show_date }}{% endif %}{% if sub.source == 'staff' %} <span class="badge">staff edit</span>{% endif %}
-        {% if sub.show_id and sub.show_date and sub.show_date >= today %}<a class="edit-btn" style="float:right;margin-top:0" href="{{ url_for('show_edit', show_id=sub.show_id) }}">Edit form ✎</a>{% endif %}</h3>
+        {% if sub.show_id and sub.show_date and sub.show_date >= today %}<a class="edit-btn" style="float:right;margin-top:0" href="{{ url_for('show_edit', show_id=sub.show_id) }}">Edit ✎</a>{% endif %}</h3>
       <div class="kv">
         <div class="k">Contact phone</div><div>{{ sub.contact_phone or '—' }}</div>
         <div class="k">Performers + crew</div><div>{{ sub.performers if sub.performers is not none else '—' }}</div>

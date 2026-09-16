@@ -263,17 +263,16 @@ function render(bills){
           : `<button class="cancel-btn" onclick="openCancelModal(${a.show_id}, this)">Cancel</button>`;
         // Email band (Brian, 2026-09-14): a real Outlook draft to the band's
         // contact with their answers pasted below, once they've submitted.
-        // Edit form (Brian, 2026-09-14): the advance form for this show, pre-filled
-        // with its latest answers; submitting it lands on the doc review.
+        // Edit (merged 2026-09-16, was two separate buttons — "Edit form" for
+        // the band's own answers, "Edit booking" for venue/date/schedule/
+        // contact — Brian: one page, one Save, either or both at once).
+        // Always available via show_id; a booking row is created on first
+        // save if one doesn't exist yet. A band-facing change inside the
+        // 21-day window still queues an "info changed" email at the next
+        // daily run, same as before.
         const editBtn = a.state === "cancelled" ? ""
-          : `<a class="cancel-btn" style="text-decoration:none;color:#c7d6e6" href="/show/${a.show_id}/edit" target="_blank">Edit form ✎</a>`;
-        // Edit booking (Brian, 2026-09-14): the bookings row itself — venue,
-        // date, schedule, contact — distinct from "Edit form" above
-        // (the band's own submitted answers). Only shown when a booking row
-        // exists (see dashboard_data's booking_id). A change here inside the
-        // 21-day window queues an "info changed" email at the next daily run.
-        const bookingBtn = (a.state === "cancelled" || !a.booking_id) ? ""
-          : `<a class="cancel-btn" style="text-decoration:none;color:#c7d6e6" href="/booking/${a.booking_id}/edit" target="_blank">Edit booking ✎</a>`;
+          : `<a class="cancel-btn" style="text-decoration:none;color:#c7d6e6" href="/show/${a.show_id}/edit" target="_blank">Edit ✎</a>`;
+        const bookingBtn = "";
         const emailBtn = (a.state === "responded" || a.state === "finalized")
           ? `<button class="cancel-btn" style="color:#4da3ff;border-color:#2E6DA4" onclick="draftEmail(${a.artist_id}, ${a.show_id}, this)">Email band ✉</button>` : "";
         return `<div class="act ${a.state === 'cancelled' ? 'cancelled' : ''}"><span class="band">${esc(a.band)}</span><div class="act-status"><span class="pill ${a.state_css}">${a.state_label}</span>${finalizeBtn}${holdLink}${editBtn}${bookingBtn}${emailBtn}${cancelBtn}</div></div>`;

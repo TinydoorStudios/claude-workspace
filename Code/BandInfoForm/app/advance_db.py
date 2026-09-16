@@ -947,6 +947,23 @@ def show_for_booking(cur, artist_name, venue, show_date):
     return cur.fetchone()
 
 
+def get_booking_for_show(cur, show):
+    r"""The bookings row for this show (same match_key/venue/date join every
+    other booking/show lookup here uses), or None if staff never logged one —
+    a show can exist purely from a real band submission. `show` is a shows-
+    with-artist row (needs venue, show_date, match_key)."""
+    if not (show.get("venue") and show.get("show_date") and show.get("match_key")):
+        return None
+    cur.execute(
+        r"""SELECT * FROM bookings
+            WHERE venue=%s AND event_date=%s
+              AND lower(btrim(regexp_replace(artist_name, '\s+', ' ', 'g'))) = %s
+            ORDER BY id DESC LIMIT 1""",
+        (show["venue"], show["show_date"], show["match_key"]),
+    )
+    return cur.fetchone()
+
+
 def show_state(cur, show_id):
     """This show's current computed state from advance_status, or None if the
     id doesn't exist. Used by the finalize endpoint to re-check server-side
@@ -1220,6 +1237,12 @@ BOOKING_BAND_ANSWER_FIELDS = [
     "iem_count", "own_iems", "split_snake", "own_engineer", "merch",
     "band_tent", "vehicle_count", "large_vehicle_count", "backline",
     "scenic", "lighting", "stage_plot_desc", "additional",
+    "stage_escort_name", "stage_escort_cell",
+    # the three acknowledgment checkboxes a real submission carries — optional
+    # here (this is staff transcription, not the band affirming for
+    # themselves), but worth recording if the band confirmed some other way
+    # (phone, email) so a completed advance doesn't read as unacknowledged.
+    "ack_loadin", "ack_95db", "ack_reqs",
 ]
 
 # Fields a band actually sees/relies on, vs. staff-facing bookkeeping
