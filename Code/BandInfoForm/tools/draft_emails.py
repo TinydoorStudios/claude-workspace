@@ -234,254 +234,265 @@ def main():
     summary = []
     with db.get_conn() as conn:
         for r in rows:
-            name = r["name"]
-            venue = r.get("venue")
-            show_date = parse_date(r.get("show_date"))
-            series = r.get("series") or None
-            # Brian, 2026-09-12: Salsa On The Square's advance email goes out
-            # English-then-Spanish in one message with two form links, no
-            # exceptions asked for elsewhere — every other series is
-            # completely unaffected by everything gated on this flag below.
-            is_bilingual = bool(series) and ve.is_bilingual_series(series)
-            email = r.get("email") or None
-            bill = bills.get(_bill_key(r), [])
-            deadline = ""
-            if show_date:
-                d = show_date - dt.timedelta(days=10)
-                deadline = us_date(d) if d >= dt.date.today() else ""
+            try:
+                name = r["name"]
+                venue = r.get("venue")
+                show_date = parse_date(r.get("show_date"))
+                series = r.get("series") or None
+                # Brian, 2026-09-12: Salsa On The Square's advance email goes out
+                # English-then-Spanish in one message with two form links, no
+                # exceptions asked for elsewhere — every other series is
+                # completely unaffected by everything gated on this flag below.
+                is_bilingual = bool(series) and ve.is_bilingual_series(series)
+                email = r.get("email") or None
+                bill = bills.get(_bill_key(r), [])
+                deadline = ""
+                if show_date:
+                    d = show_date - dt.timedelta(days=10)
+                    deadline = us_date(d) if d >= dt.date.today() else ""
 
-            with conn.cursor() as cur:
-                artist_id = db.upsert_artist(cur, name, email=email)
-                show_id = db.upsert_show(cur, artist_id, venue, show_date, series=series)
-                prior = db.played_within(cur, artist_id, show_date, months=args.months,
-                                         exclude_show_id=show_id)
-            conn.commit()
-
-            if args.mark_sent:
                 with conn.cursor() as cur:
-                    db.stamp_email_sent(cur, show_id)
+                    artist_id = db.upsert_artist(cur, name, email=email)
+                    show_id = db.upsert_show(cur, artist_id, venue, show_date, series=series)
+                    prior = db.played_within(cur, artist_id, show_date, months=args.months,
+                                             exclude_show_id=show_id)
                 conn.commit()
 
-            # Day-of contact (audit #15): the MIX ENGINEER's name + cell from the
-            # staffing sheet (FSQ and WP), then the booking's Lead, then — if
-            # neither exists yet — say it comes the week of the show and drop
-            # the "text them 5 minutes out" line (there's no one to text).
-            day_of_contact = ""
-            engineer_contact = False
-            eng = (staffing.engineer_for(venue, show_date,
-                                         series=r.get("series"),
-                                         event_name=r.get("event_name"),
-                                         artist_name=r.get("artist_name"),
-                                         event_start=r.get("event_start"))
-                   if venue in ("Fountain Square", "Washington Park") else None)
-            if eng:
-                day_of_contact = eng
-                engineer_contact = True
-            elif r.get("lead_name"):
-                day_of_contact = r["lead_name"] + (
-                    f" ({r['lead_phone']})" if r.get("lead_phone") else "")
+                if args.mark_sent:
+                    with conn.cursor() as cur:
+                        db.stamp_email_sent(cur, show_id)
+                    conn.commit()
 
-            email_extra = {}
-            if venue == "Washington Park":
-                loc_name = r.get("location") or ""
-                loc_cfg = forms_config.WP_LOCATIONS.get(loc_name)
-                email_extra["location"] = loc_name or "confirm with your day-of contact"
-                email_extra["stage_size"] = (loc_cfg["stage_size"] if loc_cfg
-                                              else "confirm with your day-of contact")
-                # Lighting exists only at the Main Stage; Porch and Bandstand
-                # have none, so the LD line is dropped from their emails
-                # entirely (Brian, 2026-09-11).
-                email_extra["lighting_line"] = (
-                    "\n- Lighting: we provide a house LD."
-                    if loc_name == "Main Stage" else "")
-                # Drum riser is a Main Stage option only; Porch/Bandstand have
-                # none, so drop "flat vs. drum riser" from their emails too.
-                email_extra["riser_phrase"] = (
-                    "flat vs. drum riser, " if loc_name == "Main Stage" else "")
-            def _setlen(v):
-                v = str(v).strip()
-                return f"{v} min" if v.isdigit() else v
-            set_line = ""
-            if r.get("set_time"):
-                set_line = f"Set length: {_setlen(r['set_time'])}"
+                # Day-of contact (audit #15): the MIX ENGINEER's name + cell from the
+                # staffing sheet (FSQ and WP), then the booking's Lead, then — if
+                # neither exists yet — say it comes the week of the show and drop
+                # the "text them 5 minutes out" line (there's no one to text).
+                day_of_contact = ""
+                engineer_contact = False
+                # audit 2026-09-16 #23: the lifecycle's welcome batch keys
+                # this row "name", not "artist_name" (see main()'s `name =
+                # r["name"]` above) — r.get("artist_name") was always None
+                # on that path, so the mix-engineer lookup silently fell
+                # through to the booking Lead (or nothing) for every
+                # welcome sent through the live lifecycle, not just the
+                # CSV/xlsx batch path this also serves.
+                eng = (staffing.engineer_for(venue, show_date,
+                                             series=r.get("series"),
+                                             event_name=r.get("event_name"),
+                                             artist_name=name,
+                                             event_start=r.get("event_start"))
+                       if venue in ("Fountain Square", "Washington Park") else None)
+                if eng:
+                    day_of_contact = eng
+                    engineer_contact = True
+                elif r.get("lead_name"):
+                    day_of_contact = r["lead_name"] + (
+                        f" ({r['lead_phone']})" if r.get("lead_phone") else "")
 
-            # Review 2026-09-14 (M3): a blank schedule field is TBD, not the
-            # Fountain Square default — a WP/Court/ESP booking with no times
-            # used to email the band FSQ's day as fact.
-            def sched(k, lang="en"):
-                return r.get(k) or (fs.SCHEDULE_TBD_ES if lang == "es" else fs.SCHEDULE_TBD)
-
-            # A series can lock its own schedule (Brian, 2026-09-09: Salsa On
-            # The Square runs a fixed 3-set/2-break night that never
-            # changes). That wins over whatever a staffer types on the
-            # booking — a full replacement of the Day Schedule block, not
-            # just the generic 5 fields filled in differently.
-            custom_schedule = ve.schedule_block_for(venue, series) if series else None
-            schedule_locked = bool(custom_schedule)
-            if custom_schedule:
-                schedule_block = custom_schedule
-            else:
-                schedule_block = "\n".join([
-                    f"  {sched('load_in')}    Load-In",
-                    f"  {sched('soundcheck')}    Sound Check",
-                    f"  {sched('event_start')}    Start of Event",
-                    f"  {sched('event_end')}   End of Event",
-                    f"  {sched('curfew')}   Curfew",
-                ])
-
-            bill_block = ""
-            if len(bill) > 1:
-                lines = ["The bill:"]
-                for a in bill:
-                    when = a.get("set_start") or "time TBC"
-                    line = f"  - {when}  {a['name']}"
-                    if a.get("set_time"):
-                        line += f" — {_setlen(a['set_time'])}"
-                    lines.append(line)
-                bill_block = "\n".join(lines)
-
-            # ── Spanish half of a bilingual send (ve.BILINGUAL_SERIES) ──
-            # Same shape as the English block above, Spanish labels around
-            # the same underlying times/names. schedule_block_for(lang="es")
-            # returns None (never falls back to English prose) if the
-            # series file has no "## Schedule (Español)" section, in which
-            # case the generic 5-row Spanish schedule is built instead —
-            # same as the English path's own fallback.
-            set_line_es = bill_block_es = ""
-            schedule_block_es, schedule_locked_es = "", False
-            if is_bilingual:
-                custom_schedule_es = ve.schedule_block_for(venue, series, lang="es")
-                schedule_locked_es = bool(custom_schedule_es)
-                if custom_schedule_es:
-                    schedule_block_es = custom_schedule_es
-                else:
-                    rl = ve.SCHEDULE_ROW_LABELS_ES
-                    schedule_block_es = "\n".join([
-                        f"  {sched('load_in', 'es')}    {rl['load_in']}",
-                        f"  {sched('soundcheck', 'es')}    {rl['soundcheck']}",
-                        f"  {sched('event_start', 'es')}    {rl['event_start']}",
-                        f"  {sched('event_end', 'es')}   {rl['event_end']}",
-                        f"  {sched('curfew', 'es')}   {rl['curfew']}",
-                    ])
+                email_extra = {}
+                if venue == "Washington Park":
+                    loc_name = r.get("location") or ""
+                    loc_cfg = forms_config.WP_LOCATIONS.get(loc_name)
+                    email_extra["location"] = loc_name or "confirm with your day-of contact"
+                    email_extra["stage_size"] = (loc_cfg["stage_size"] if loc_cfg
+                                                  else "confirm with your day-of contact")
+                    # Lighting exists only at the Main Stage; Porch and Bandstand
+                    # have none, so the LD line is dropped from their emails
+                    # entirely (Brian, 2026-09-11).
+                    email_extra["lighting_line"] = (
+                        "\n- Lighting: we provide a house LD."
+                        if loc_name == "Main Stage" else "")
+                    # Drum riser is a Main Stage option only; Porch/Bandstand have
+                    # none, so drop "flat vs. drum riser" from their emails too.
+                    email_extra["riser_phrase"] = (
+                        "flat vs. drum riser, " if loc_name == "Main Stage" else "")
+                def _setlen(v):
+                    v = str(v).strip()
+                    return f"{v} min" if v.isdigit() else v
+                set_line = ""
                 if r.get("set_time"):
-                    set_line_es = f"{ve.SET_LENGTH_LABEL_ES}: {_setlen(r['set_time'])}"
+                    set_line = f"Set length: {_setlen(r['set_time'])}"
+
+                # Review 2026-09-14 (M3): a blank schedule field is TBD, not the
+                # Fountain Square default — a WP/Court/ESP booking with no times
+                # used to email the band FSQ's day as fact.
+                def sched(k, lang="en"):
+                    return r.get(k) or (fs.SCHEDULE_TBD_ES if lang == "es" else fs.SCHEDULE_TBD)
+
+                # A series can lock its own schedule (Brian, 2026-09-09: Salsa On
+                # The Square runs a fixed 3-set/2-break night that never
+                # changes). That wins over whatever a staffer types on the
+                # booking — a full replacement of the Day Schedule block, not
+                # just the generic 5 fields filled in differently.
+                custom_schedule = ve.schedule_block_for(venue, series) if series else None
+                schedule_locked = bool(custom_schedule)
+                if custom_schedule:
+                    schedule_block = custom_schedule
+                else:
+                    schedule_block = "\n".join([
+                        f"  {sched('load_in')}    Load-In",
+                        f"  {sched('soundcheck')}    Sound Check",
+                        f"  {sched('event_start')}    Start of Event",
+                        f"  {sched('event_end')}   End of Event",
+                        f"  {sched('curfew')}   Curfew",
+                    ])
+
+                bill_block = ""
                 if len(bill) > 1:
-                    lines_es = [ve.BILL_HEADER_ES]
+                    lines = ["The bill:"]
                     for a in bill:
-                        when = a.get("set_start") or ve.TIME_TBC_ES
+                        when = a.get("set_start") or "time TBC"
                         line = f"  - {when}  {a['name']}"
                         if a.get("set_time"):
                             line += f" — {_setlen(a['set_time'])}"
-                        lines_es.append(line)
-                    bill_block_es = "\n".join(lines_es)
+                        lines.append(line)
+                    bill_block = "\n".join(lines)
 
-            # Is this a multi-artist night? Counted from the bookings table
-            # (Brian, 2026-09-15), which knows about an artist as soon as staff
-            # logs the booking — so artist 1 knows it's a multi-artist night on
-            # day one even if the others aren't in THIS batch. That's what the
-            # retired "Bands on the Bill" answer was for; it's counted now
-            # rather than typed. Falls back to this batch's own bill.
-            try:
-                with conn.cursor() as cur:
-                    booked_n = db.artist_count_for_event(cur, venue, show_date, series=series)
-            except Exception:
-                booked_n = 0
-            multiband = (booked_n or 0) >= 2 or bool(bill_block)
+                # ── Spanish half of a bilingual send (ve.BILINGUAL_SERIES) ──
+                # Same shape as the English block above, Spanish labels around
+                # the same underlying times/names. schedule_block_for(lang="es")
+                # returns None (never falls back to English prose) if the
+                # series file has no "## Schedule (Español)" section, in which
+                # case the generic 5-row Spanish schedule is built instead —
+                # same as the English path's own fallback.
+                set_line_es = bill_block_es = ""
+                schedule_block_es, schedule_locked_es = "", False
+                if is_bilingual:
+                    custom_schedule_es = ve.schedule_block_for(venue, series, lang="es")
+                    schedule_locked_es = bool(custom_schedule_es)
+                    if custom_schedule_es:
+                        schedule_block_es = custom_schedule_es
+                    else:
+                        rl = ve.SCHEDULE_ROW_LABELS_ES
+                        schedule_block_es = "\n".join([
+                            f"  {sched('load_in', 'es')}    {rl['load_in']}",
+                            f"  {sched('soundcheck', 'es')}    {rl['soundcheck']}",
+                            f"  {sched('event_start', 'es')}    {rl['event_start']}",
+                            f"  {sched('event_end', 'es')}   {rl['event_end']}",
+                            f"  {sched('curfew', 'es')}   {rl['curfew']}",
+                        ])
+                    if r.get("set_time"):
+                        set_line_es = f"{ve.SET_LENGTH_LABEL_ES}: {_setlen(r['set_time'])}"
+                    if len(bill) > 1:
+                        lines_es = [ve.BILL_HEADER_ES]
+                        for a in bill:
+                            when = a.get("set_start") or ve.TIME_TBC_ES
+                            line = f"  - {when}  {a['name']}"
+                            if a.get("set_time"):
+                                line += f" — {_setlen(a['set_time'])}"
+                            lines_es.append(line)
+                        bill_block_es = "\n".join(lines_es)
 
-            token = _token(artist_id, venue, show_date, series, r.get("location"),
-                           r.get("contact_name"), r.get("contact_email") or r.get("email"))
-            with conn.cursor() as cur:
-                short_code = db.get_or_create_short_link(cur, token)
-            conn.commit()
-            returning = bool(prior)
-            kind = "RETURNING" if returning else "NEW"
-
-            advance_recap = None
-            if returning and prior.get("venue") and prior.get("show_date"):
-                # DB first — the nightly extraction (tools/extract_advance_recap.py,
-                # 3 days after the show) stores this durably, independent of
-                # events/event_acts (which package_run.py truncates + rebuilds
-                # every run) and of the filed .docx still being where it was
-                # filed. Live-parse the file only as a fallback for a show too
-                # recent for the nightly job to have caught yet.
-                stored = None
-                if prior.get("show_id"):
+                # Is this a multi-artist night? Counted from the bookings table
+                # (Brian, 2026-09-15), which knows about an artist as soon as staff
+                # logs the booking — so artist 1 knows it's a multi-artist night on
+                # day one even if the others aren't in THIS batch. That's what the
+                # retired "Bands on the Bill" answer was for; it's counted now
+                # rather than typed. Falls back to this batch's own bill.
+                try:
                     with conn.cursor() as cur:
-                        stored = db.get_advance_recap_by_show(cur, prior["show_id"])
-                if stored:
-                    advance_recap = {"venue": stored["venue"],
-                                      "show_date": us_date(stored["show_date"]),
-                                      "rows": [tuple(pair) for pair in stored["recap"]]}
-                    print(f"  (recap: db, {stored['source_docx']})")
-                else:
-                    found = daysheet.read_filed_advance(prior["venue"], prior["show_date"], name)
-                    if found:
-                        recap_path, recap_rows = found
-                        advance_recap = {"venue": prior["venue"],
-                                          "show_date": us_date(prior["show_date"]),
-                                          "rows": recap_rows}
-                        print(f"  (recap: live file, {recap_path.name})")
+                        booked_n = db.artist_count_for_event(cur, venue, show_date, series=series)
+                except Exception:
+                    booked_n = 0
+                multiband = (booked_n or 0) >= 2 or bool(bill_block)
 
-            last_rows = summarize_submission(prior) if returning else []
-            personal_note_en = (r.get("email_note") or "").strip()
-            blocks_en = ve.blocks_for(venue, series=series, third_party=db.is_third_party(series),
-                                      **email_extra)
-            if not day_of_contact:
-                blocks_en = ve.without_text_on_arrival(blocks_en, lang="en")
-            ctx = dict(
-                name=name, contact_name=_greeting_contact_name(r.get("contact_name"), name), venue=venue,
-                blocks=blocks_en, common_requirements=ve.COMMON_REQUIREMENTS,
-                engineer_contact=engineer_contact,
-                personal_note=(f"{personal_note_en}\n\n" if personal_note_en else ""),
-                event_name=r.get("event_name") or "",
-                series=series or "",
-                show_date=us_date(show_date),
-                advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
-                set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
-                multiband=multiband, schedule_locked=schedule_locked,
-                form_link=f"{PUBLIC_URL}/s/{short_code}", deadline=deadline,
-                returning=returning, last=last_rows,
-                advance_recap=advance_recap,
-            )
+                token = _token(artist_id, venue, show_date, series, r.get("location"),
+                               r.get("contact_name"), r.get("contact_email") or r.get("email"))
+                with conn.cursor() as cur:
+                    short_code = db.get_or_create_short_link(cur, token)
+                conn.commit()
+                returning = bool(prior)
+                kind = "RETURNING" if returning else "NEW"
 
-            if is_bilingual:
-                # Same booking, Spanish labels/blocks. personal_note and
-                # advance_recap are left out of this half on purpose — a
-                # staffer's ad hoc note is written in English and would
-                # read oddly repeated verbatim under the Spanish section,
-                # and advance_recap's row labels come from the filed docx's
-                # own English column headers (fieldspec.py's full label
-                # set), not the handful this module translates for `last` —
-                # the English half above already carries both, nothing is
-                # lost by not duplicating them here untranslated.
-                ctx_es = dict(ctx)
-                blocks_es = ve.blocks_for(venue, series=series, lang="es",
-                                          third_party=db.is_third_party(series), **email_extra)
+                advance_recap = None
+                if returning and prior.get("venue") and prior.get("show_date"):
+                    # DB first — the nightly extraction (tools/extract_advance_recap.py,
+                    # 3 days after the show) stores this durably, independent of
+                    # events/event_acts (which package_run.py truncates + rebuilds
+                    # every run) and of the filed .docx still being where it was
+                    # filed. Live-parse the file only as a fallback for a show too
+                    # recent for the nightly job to have caught yet.
+                    stored = None
+                    if prior.get("show_id"):
+                        with conn.cursor() as cur:
+                            stored = db.get_advance_recap_by_show(cur, prior["show_id"])
+                    if stored:
+                        advance_recap = {"venue": stored["venue"],
+                                          "show_date": us_date(stored["show_date"]),
+                                          "rows": [tuple(pair) for pair in stored["recap"]]}
+                        print(f"  (recap: db, {stored['source_docx']})")
+                    else:
+                        found = daysheet.read_filed_advance(prior["venue"], prior["show_date"], name)
+                        if found:
+                            recap_path, recap_rows = found
+                            advance_recap = {"venue": prior["venue"],
+                                              "show_date": us_date(prior["show_date"]),
+                                              "rows": recap_rows}
+                            print(f"  (recap: live file, {recap_path.name})")
+
+                last_rows = summarize_submission(prior) if returning else []
+                personal_note_en = (r.get("email_note") or "").strip()
+                blocks_en = ve.blocks_for(venue, series=series, third_party=db.is_third_party(series),
+                                          **email_extra)
                 if not day_of_contact:
-                    blocks_es = ve.without_text_on_arrival(blocks_es, lang="es")
-                ctx_es.update(
-                    blocks=blocks_es,
-                    common_requirements=ve.COMMON_REQUIREMENTS_ES,
-                    personal_note="",
-                    set_line=set_line_es, schedule_block=schedule_block_es,
-                    bill_block=bill_block_es, schedule_locked=schedule_locked_es,
-                    form_link=f"{PUBLIC_URL}/s/{short_code}?lang=es",
-                    last=[(ve.SUMMARY_LABELS_ES.get(k, k), v) for k, v in last_rows],
-                    advance_recap=None,
+                    blocks_en = ve.without_text_on_arrival(blocks_en, lang="en")
+                ctx = dict(
+                    name=name, contact_name=_greeting_contact_name(r.get("contact_name"), name), venue=venue,
+                    blocks=blocks_en, common_requirements=ve.COMMON_REQUIREMENTS,
+                    engineer_contact=engineer_contact,
+                    personal_note=(f"{personal_note_en}\n\n" if personal_note_en else ""),
+                    event_name=r.get("event_name") or "",
+                    series=series or "",
+                    show_date=us_date(show_date),
+                    advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
+                    set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
+                    multiband=multiband, schedule_locked=schedule_locked,
+                    form_link=f"{PUBLIC_URL}/s/{short_code}", deadline=deadline,
+                    returning=returning, last=last_rows,
+                    advance_recap=advance_recap,
                 )
-                subject_line, body_en = _split_subject(advance_t.render(**ctx))
-                _, body_es = _split_subject(advance_es_t.render(**ctx_es))
-                sep = "─" * 42
-                body = (f"{subject_line}\n\n{body_en}\n\n{sep}\n"
-                        f"ESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}")
-            else:
-                body = advance_t.render(**ctx)
 
-            fname = f"{slug(name)}__{show_date.isoformat() if show_date else 'nodate'}__{kind.lower()}.md"
-            (out_dir / fname).write_text(body)
-            summary.append((kind, name, venue,
-                            show_date.isoformat() if show_date else "?",
-                            email or "(no email)", fname))
+                if is_bilingual:
+                    # Same booking, Spanish labels/blocks. personal_note and
+                    # advance_recap are left out of this half on purpose — a
+                    # staffer's ad hoc note is written in English and would
+                    # read oddly repeated verbatim under the Spanish section,
+                    # and advance_recap's row labels come from the filed docx's
+                    # own English column headers (fieldspec.py's full label
+                    # set), not the handful this module translates for `last` —
+                    # the English half above already carries both, nothing is
+                    # lost by not duplicating them here untranslated.
+                    ctx_es = dict(ctx)
+                    blocks_es = ve.blocks_for(venue, series=series, lang="es",
+                                              third_party=db.is_third_party(series), **email_extra)
+                    if not day_of_contact:
+                        blocks_es = ve.without_text_on_arrival(blocks_es, lang="es")
+                    ctx_es.update(
+                        blocks=blocks_es,
+                        common_requirements=ve.COMMON_REQUIREMENTS_ES,
+                        personal_note="",
+                        set_line=set_line_es, schedule_block=schedule_block_es,
+                        bill_block=bill_block_es, schedule_locked=schedule_locked_es,
+                        form_link=f"{PUBLIC_URL}/s/{short_code}?lang=es",
+                        last=[(ve.SUMMARY_LABELS_ES.get(k, k), v) for k, v in last_rows],
+                        advance_recap=None,
+                    )
+                    subject_line, body_en = _split_subject(advance_t.render(**ctx))
+                    _, body_es = _split_subject(advance_es_t.render(**ctx_es))
+                    sep = "─" * 42
+                    body = (f"{subject_line}\n\n{body_en}\n\n{sep}\n"
+                            f"ESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}")
+                else:
+                    body = advance_t.render(**ctx)
+
+                fname = f"{slug(name)}__{show_date.isoformat() if show_date else 'nodate'}__{kind.lower()}.md"
+                (out_dir / fname).write_text(body)
+                summary.append((kind, name, venue,
+                                show_date.isoformat() if show_date else "?",
+                                email or "(no email)", fname))
+            except Exception as e:  # noqa: BLE001 — one bad row must never sink the whole batch (audit 2026-09-16 #15)
+                print(f"[draft_emails] {r.get('name')}: {e!r}", file=sys.stderr)
+                continue
 
     # summary table
     w = [max(len(str(x[i])) for x in summary + [("KIND", "ARTIST", "VENUE", "DATE", "EMAIL", "DRAFT")])

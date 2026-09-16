@@ -21,6 +21,7 @@ freeze the whole pipeline — and Brian is alerted once that day instead.
 import datetime as dt
 import os
 import sys
+from difflib import SequenceMatcher
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -38,6 +39,20 @@ MISSING_REASON = "missing from the advance sheet"
 
 def _ident(name, venue, date):
     return (db.normalize(name), (venue or "").strip().lower(), str(date or "")[:10])
+
+
+def _names_plausible_correction(a, b):
+    """≥0.6 sequence similarity or one name containing the other (audit
+    2026-09-16 #19) — a same-venue+date candidate under a different band
+    name is only a plausible typo-correction of the orphan if the names
+    actually resemble each other. Two unrelated acts sharing a bill (the
+    normal case for a multi-act night entered together) don't."""
+    x, y = db.normalize(a), db.normalize(b)
+    if not x or not y:
+        return False
+    if x in y or y in x:
+        return True
+    return SequenceMatcher(None, x, y).ratio() >= 0.6
 
 
 def run(sheet_path, send_mail=True, dry_run=False):
@@ -86,11 +101,25 @@ def run(sheet_path, send_mail=True, dry_run=False):
                 if db.hold_show(cur, o["id"], MISSING_REASON):
                     held += 1
                     for c in db.merge_candidates(cur, o["id"]):
-                        if (c["advance_draft_created_at"] is None and c["responded_at"] is None
+                        if not (c["advance_draft_created_at"] is None and c["responded_at"] is None
                                 and c["held_at"] is None and c["hold_dismissed_at"] is None
                                 and c["created_at"] >= dt.datetime.now(c["created_at"].tzinfo)
                                 - dt.timedelta(days=2)):
-                            db.hold_show(cur, c["id"], f"possible correction of show {o['id']}")
+                            continue
+                        # audit 2026-09-16 #19: a same-venue+date candidate
+                        # under a DIFFERENT band name is only a plausible
+                        # correction if the names actually resemble each
+                        # other — otherwise this was holding a real second
+                        # band on a real multi-act bill. A candidate with
+                        # its own bookings row was deliberately booked, not
+                        # a stray leftover of the orphan, so it's excluded
+                        # outright regardless of name similarity.
+                        if c["artist_id"] != o["artist_id"] and not _names_plausible_correction(
+                                c["artist_name"], o["artist_name"]):
+                            continue
+                        if db.get_booking_for_show(cur, c):
+                            continue
+                        db.hold_show(cur, c["id"], f"possible correction of show {o['id']}")
             conn.commit()
     for o in orphans:
         print(f"  {'would hold' if dry_run else 'HOLD'}: {o['artist_name']} @ {o['venue']} {o['show_date']}")

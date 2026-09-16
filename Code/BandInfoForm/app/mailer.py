@@ -44,7 +44,7 @@ def _log(line):
         pass
 
 
-def send(to, subject, body=None, html=None, attachment=None, timeout=30, attachments=None):
+def send(to, subject, body=None, html=None, attachment=None, timeout=90, attachments=None):
     """(ok, error). ok=True only on a confirmed send. Never raises.
     `attachment` is one (name, type, base64) tuple; `attachments` a list of
     them (review 2026-09-14, E4: a venue can attach a load-in doc AND a tech
@@ -86,6 +86,17 @@ def send(to, subject, body=None, html=None, attachment=None, timeout=30, attachm
             pass
         _log(f"FAILED to={to!r} subject={subject!r} {err}")
         return False, err
+    except (TimeoutError, urllib.error.URLError) as e:
+        # A timeout means we never learned whether Graph actually sent it
+        # (audit 2026-09-16 #17) — distinct from a definite failure, so the
+        # caller can avoid an automatic retry that would double-send if the
+        # original really did go through. urllib wraps a socket timeout in
+        # URLError; TimeoutError catches urlopen's own timeout directly.
+        if isinstance(e, urllib.error.URLError) and not isinstance(e.reason, TimeoutError):
+            _log(f"FAILED to={to!r} subject={subject!r} {e!r}")
+            return False, repr(e)
+        _log(f"TIMEOUT (unknown outcome) to={to!r} subject={subject!r} {e!r}")
+        return False, f"TIMEOUT: {e!r}"
     except Exception as e:  # noqa: BLE001
         _log(f"FAILED to={to!r} subject={subject!r} {e!r}")
         return False, repr(e)

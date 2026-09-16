@@ -66,6 +66,7 @@ STATUS_COLS = [
 ]
 FILL_KEYS = list(fs.BAND_KEYS) + ["contact_email"]
 STATUS_LABELS = [lbl for (lbl, _k, _w) in STATUS_COLS]
+STATUS_GROUP_LABEL = "STATUS — auto, do not edit"
 # Spec columns that get appended to the live sheet automatically if missing
 # (audit #7). Any other missing spec column is assumed deliberately deleted.
 AUTO_ADD_LABELS = ["Vehicle Count", "Large Vehicle Count"]
@@ -98,6 +99,8 @@ def banding(row):
             else PatternFill(fill_type=None))
 
 
+
+
 def find_header_row(ws):
     """Row whose cells best match the spec labels (a group bar may sit above)."""
     labels = {lbl.lower() for (lbl, _k, _c) in fs.ALL_COLUMNS}
@@ -107,6 +110,26 @@ def find_header_row(ws):
         if hits > best:
             best, best_row = hits, r
     return best_row
+
+
+def _find_status_block(ws, hrow):
+    """Locate the STATUS block by its group-header cell (hrow-1, 'STATUS —
+    auto, do not edit') when it's still there, else by a run of columns
+    whose headers match at least 4 of the 7 STATUS_LABELS in their expected
+    relative position (audit 2026-09-16 #22) — the old exact 7-of-7 match
+    broke the moment one label got hand-edited or a column got deleted from
+    inside the block, silently leaving the stale remainder in place while a
+    fresh block got appended next to it."""
+    n = len(STATUS_LABELS)
+    if hrow > 1:
+        for c in range(1, ws.max_column + 1):
+            if _s(ws.cell(hrow - 1, c).value) == STATUS_GROUP_LABEL:
+                return c
+    for c in range(1, ws.max_column - n + 2):
+        hits = sum(1 for i in range(n) if _s(ws.cell(hrow, c + i).value) == STATUS_LABELS[i])
+        if hits >= 4:
+            return c
+    return None
 
 
 def load_meta(wb):
@@ -177,8 +200,16 @@ def delete_columns_safe(ws, start, count, meta):
             ws.column_dimensions[get_column_letter(c - count)].width = w
     remapped = {}
     for addr, val in meta.items():
-        r, c = addr[1:].split("c")
-        c = int(c)
+        m = re.match(r"^r(\d+)c(\d+)$", addr)
+        if not m:
+            # audit 2026-09-16 #22: a content-based key (band|venue|date|
+            # field) needs no remapping at all — that's the whole point of
+            # it not being tied to a cell address — so it just passes
+            # through unchanged. Only the legacy r{row}c{col} keys still
+            # need this column-shift math.
+            remapped[addr] = val
+            continue
+        r, c = m.group(1), int(m.group(2))
         if start <= c < start + count:
             continue
         remapped[f"r{r}c{c - count if c >= start + count else c}"] = val
@@ -205,6 +236,7 @@ def main():
     index = {(norm(r["band"]), norm(r.get("venue")), norm_date(r.get("date"))): r
              for r in records}
 
+    loaded_hash = fs.sheet_hash(args.list)
     wb = load_workbook(args.list)
     if "Status" in wb.sheetnames:        # retire the old separate tab
         del wb["Status"]
@@ -217,14 +249,26 @@ def main():
     # ── remove EVERY existing STATUS block (stale copies included) so the one
     #    rebuilt below is always the only one, always at the far right, and
     #    never overwrites a column someone added by hand (audit #17) ─────────
+    n_status = len(STATUS_LABELS)
     while True:
-        found = None
-        for c in range(1, ws.max_column - len(STATUS_LABELS) + 2):
-            if [_s(ws.cell(hrow, c + i).value) for i in range(len(STATUS_LABELS))] == STATUS_LABELS:
-                found = c
+        found = _find_status_block(ws, hrow)
         if not found:
             break
-        meta_prev = delete_columns_safe(ws, found, len(STATUS_LABELS), meta_prev)
+        # audit 2026-09-16 #22: the fuzzy 4-of-7 match in _find_status_block
+        # can land on a run of columns that isn't really the status block —
+        # refuse to delete anything under a header that ISN'T a STATUS label
+        # but has real data, rather than silently destroying someone's
+        # column.
+        bad = next(
+            ((c, _s(ws.cell(hrow, c).value)) for c in range(found, found + n_status)
+             if _s(ws.cell(hrow, c).value) not in STATUS_LABELS
+             and any(_s(ws.cell(r, c).value) for r in range(data_start, ws.max_row + 1))),
+            None)
+        if bad:
+            print(f"  ! status-block cleanup stopped: column {bad[0]} ('{bad[1]}') has data "
+                  "and isn't a STATUS column — leaving the detected block alone", file=sys.stderr)
+            break
+        meta_prev = delete_columns_safe(ws, found, n_status, meta_prev)
 
     # ── append any auto-add spec column that's missing (audit #7) ───────────
     present = {_s(ws.cell(hrow, c).value) for c in range(1, ws.max_column + 1)}
@@ -276,18 +320,29 @@ def main():
             continue
         venue = _s(ws.cell(r, c_venue).value) if c_venue else ""
         date = norm_date(ws.cell(r, c_date).value) if c_date else ""
-        rec = index.get((norm(band), norm(venue), date)) or {}
+        rec = index.get((norm(band), norm(venue), date))
+        # audit 2026-09-16 #22: no matching status record at all is not the
+        # same thing as "the band left this field blank" — the former means
+        # we simply don't know this band's current status (a timing miss,
+        # an identity mismatch) and must leave whatever's already on the
+        # sheet alone; only a genuinely found record's own empty fields get
+        # cleared below.
+        if rec is None:
+            continue
         bf = rec.get("band_fields", {})
 
         plot_rel = rec.get("stageplot_rel")
         for k, c in fill_cols:
             cell = ws.cell(r, c)
-            addr = f"r{r}c{c}"
+            addr = f"r{r}c{c}"          # pre-2026-09-16 key, read as a migration input only
+            key = fs.advance_meta_key(band, venue, date, k)
             # Stage Plot: when a file was filed, the cell becomes a clickable link
             # to it (relative to the workbook) instead of the typed description.
             link = plot_rel if k == "stage_plot_desc" and plot_rel else None
             B = link.rsplit("/", 1)[-1] if link else _s(bf.get(k, ""))
-            prev = meta_prev.get(addr)
+            prev = meta_prev.get(key)
+            if prev is None:
+                prev = meta_prev.get(addr)  # not yet re-keyed under `key` — migrate it now
             managed = prev is not None
             owned = managed and _s(cell.value) == _s(prev)
             if B:
@@ -297,7 +352,7 @@ def main():
                     if link:
                         cell.hyperlink = quote(link, safe="/")
                         cell.font = Font(color="0563C1", underline="single")
-                    meta_new[addr] = B
+                    meta_new[key] = B
                 elif managed:                 # he typed over it — it's his now
                     cell.fill = banding(r)
                     cell.hyperlink = None
@@ -323,7 +378,7 @@ def main():
 
     if hrow > 1:
         ws.merge_cells(start_row=hrow - 1, start_column=start, end_row=hrow - 1, end_column=end)
-    gb = ws.cell(hrow - 1, start, "STATUS — auto, do not edit")
+    gb = ws.cell(hrow - 1, start, STATUS_GROUP_LABEL)
     gb.fill = PatternFill("solid", fgColor=GROUP_FILL)
     gb.font = Font(bold=True, color="FFFFFF")
     gb.alignment = Alignment(horizontal="center", vertical="center")
@@ -359,7 +414,10 @@ def main():
             scell.fill = PatternFill("solid", fgColor=STATE_FILL[state])
 
     save_meta(wb, meta_new)
-    wb.save(args.list)
+    try:
+        fs.safe_save_workbook(wb, args.list, loaded_hash)
+    except fs.SheetChangedError as e:
+        raise SystemExit(f"{e} — not saving, re-run to pick up the current sheet")
     print(f"Merged status into {args.list.name} — {len(records)} advance(s), "
           f"{len(meta_new)} band-filled cell(s).")
 

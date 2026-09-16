@@ -608,7 +608,7 @@ def t_booking_edit_notify():
 @test("digest: Needs you + queued items (E1)")
 def t_digest():
     import daily_digest
-    subject, html = daily_digest.build_digest()
+    subject, html, _queued_ids = daily_digest.build_digest()
     check("Needs you" in html, "digest renders the Needs-you section")
     check("Submission needs a booking" in html or "Show on hold" in html or "Doc differs" in html, "needs feed lists open decisions")
     left = q("SELECT count(*) AS n FROM digest_items WHERE delivered_at IS NULL", one=True)["n"]

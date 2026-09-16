@@ -71,6 +71,7 @@ def update_edited(sheet_path, data_path):
         print("no edited bookings to sync", file=sys.stderr)
         print("")
         return
+    loaded_hash = fs.sheet_hash(sheet_path)
     wb = load_workbook(sheet_path)
     ws = wb[INPUT_SHEET] if INPUT_SHEET in wb.sheetnames else wb.worksheets[0]
     hrow, key_col = sheet_index(ws)
@@ -120,7 +121,11 @@ def update_edited(sheet_path, data_path):
         synced.append(str(b["id"]))
 
     if changed_cells:
-        wb.save(sheet_path)
+        try:
+            fs.safe_save_workbook(wb, sheet_path, loaded_hash)
+        except fs.SheetChangedError as e:
+            print(f"  ! {e} — not saving, re-run to pick up the current sheet", file=sys.stderr)
+            sys.exit(1)
     print(f"synced {len(synced)} edited booking(s), {changed_cells} cell(s)", file=sys.stderr)
     for m in missing:
         print(f"  ! no sheet row found for {m} — left alone", file=sys.stderr)
@@ -142,6 +147,7 @@ def main():
     bookings = json.loads(args.data.read_text()) if args.data.exists() else []
     if not bookings:
         return
+    loaded_hash = fs.sheet_hash(args.list)
     wb = load_workbook(args.list)
     ws = wb[INPUT_SHEET] if INPUT_SHEET in wb.sheetnames else wb.worksheets[0]
 
@@ -187,7 +193,11 @@ def main():
         appended += 1
 
     if appended:
-        wb.save(args.list)
+        try:
+            fs.safe_save_workbook(wb, args.list, loaded_hash)
+        except fs.SheetChangedError as e:
+            print(f"  ! {e} — not saving, re-run to pick up the current sheet", file=sys.stderr)
+            sys.exit(1)
     print(f"appended {appended} new booking row(s)", file=sys.stderr)
     # STDOUT: ids to stamp seeded (handled whether appended or already present)
     print(",".join(handled))

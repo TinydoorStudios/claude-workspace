@@ -76,13 +76,31 @@ def send_due(fail=None):
     import mailer
     sent = []
     with db.get_conn() as conn, conn.cursor() as cur:
+        db.skip_stale_booking_edits(cur)
+        conn.commit()
+    with db.get_conn() as conn, conn.cursor() as cur:
         rows = db.due_booking_edits(cur)
     for r in rows:
+        # audit 2026-09-16 #14: fail() records against shows(id) — passing
+        # the booking_id there either violated the FK or, worse, silently
+        # recorded the failure against an unrelated show that happened to
+        # share that numeric id. Resolve the real show_id once per row;
+        # a booking with no show yet (the pipeline hasn't created one) has
+        # nothing to record a failure against, so fail() is skipped, not
+        # misdirected.
+        show_id = None
+        with db.get_conn() as conn, conn.cursor() as cur:
+            show = db.show_for_booking(cur, r["artist_name"], r["venue"], r["event_date"])
+            show_id = show["id"] if show else None
+
+        def _fail(kind, error):
+            if fail and show_id:
+                fail(show_id, kind, error)
+
         email = (r.get("contact_email") or "").strip()
         if not email:
             if not db.is_third_party(r.get("series")):
-                if fail:
-                    fail(r["booking_id"], "booking_update", "no contact email on file")
+                _fail("booking_update", "no contact email on file")
             with db.get_conn() as conn, conn.cursor() as cur:
                 db.mark_booking_edit_sent(cur, r["edit_id"], False, "no contact email on file")
                 conn.commit()
@@ -90,8 +108,7 @@ def send_due(fail=None):
         try:
             subject, body = build_email(r)
         except Exception as e:  # noqa: BLE001
-            if fail:
-                fail(r["booking_id"], "booking_update", f"couldn't build the email: {e!r}")
+            _fail("booking_update", f"couldn't build the email: {e!r}")
             continue
         ok, err = mailer.send(email, subject, body=body)
         with db.get_conn() as conn, conn.cursor() as cur:
@@ -100,8 +117,8 @@ def send_due(fail=None):
         if ok:
             sent.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
                          "event_date": r["event_date"].strftime("%m/%d/%Y")})
-        elif fail:
-            fail(r["booking_id"], "booking_update", err)
+        else:
+            _fail("booking_update", err)
     return sent
 
 

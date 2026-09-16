@@ -696,8 +696,14 @@ def file_stage_plot(src, folder, fname, dry_run=False):
             return fname, None
     alt = f"{stem} (updated {dt.datetime.now().strftime('%m%d%y-%H%M')}){ext}"
     shutil.copy(src, folder / alt)
+    # kind="stage_plot" (audit 2026-09-16 #23): this is an FYI, not a
+    # reviewable conflict — there's no doc cell to "Keep" or "Apply" for a
+    # separate uploaded file — so it's auto-resolved at insert instead of
+    # sitting in the kind='diff' review queue forever with nothing that
+    # would ever resolve it.
     return fname, {"field": "Stage plot file", "doc_value": fname,
-                   "new_value": f"new upload saved as {alt}", "cell_key": f"plot:{alt}"}
+                   "new_value": f"new upload saved as {alt}", "cell_key": f"plot:{alt}",
+                   "kind": "stage_plot"}
 
 
 def record_and_email_notices(results, send_mail=True):
@@ -710,14 +716,22 @@ def record_and_email_notices(results, send_mail=True):
     with db.get_conn() as conn, conn.cursor() as cur:
         for ev, res in results:
             for n in res.get("notices") or []:
+                kind = n.get("kind") or "diff"
                 nid = db.insert_doc_notice(cur, ev.get("venue"), ev.get("event_date"),
-                                           event_key(ev), "diff", n["field"],
+                                           event_key(ev), kind, n["field"],
                                            n.get("new_value") or "", n.get("doc_value") or "",
                                            detail=Path(res.get("path") or "").name
                                            + (" (hand-edited)" if res.get("hand_edited") else ""),
                                            cell_key=n.get("cell_key"))
                 if nid:
                     inserted += 1
+                    # audit 2026-09-16 #23: only kind='diff' is a real
+                    # decision for Brian (open_doc_notices/the review UI
+                    # both filter on it) — anything else is informational
+                    # and would otherwise sit "open" forever with no path
+                    # that ever resolves it.
+                    if kind != "diff":
+                        db.resolve_doc_notice(cur, nid, "auto")
         conn.commit()
         pending = db.unnotified_doc_notices(cur)
     if not pending or not send_mail:

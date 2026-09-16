@@ -48,7 +48,12 @@ def due_shows(cur):
             FROM shows s JOIN artists a ON a.id = s.artist_id
             LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                    AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
-            WHERE s.show_date = CURRENT_DATE + 1
+            -- audit 2026-09-16 #23: catches today too, not just tomorrow —
+            -- a missed 9am run yesterday (the lifecycle didn't fire) used
+            -- to mean the day-before for a show now happening TODAY never
+            -- goes out at all, since it's never "tomorrow" again once the
+            -- date passes.
+            WHERE s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 1
               AND s.cancelled_at IS NULL AND s.held_at IS NULL
               AND s.dayahead_sent_at IS NULL
               AND (s.responded_at IS NOT NULL
@@ -130,20 +135,28 @@ def _recap_lines(r):
 def build_email(r):
     d = r["show_date"]
     day = d.strftime("%A, %B ") + str(d.day)
-    subject = f"Tomorrow at {r['venue']} — {r['artist_name']} ({d.strftime('%-m/%-d')})"
+    # audit 2026-09-16 #23: due_shows now also catches a show happening
+    # TODAY (a missed run yesterday) — "tomorrow" would be wrong in that
+    # case, sent the day of the show.
+    when_word = "today" if d == dt.date.today() else "tomorrow"
+    subject = f"{when_word.title()} at {r['venue']} — {r['artist_name']} ({d.strftime('%-m/%-d')})"
     contact, is_engineer = _day_of_contact(r)
     extra = {}
     if r["venue"] == "Washington Park":
         loc = r.get("location") or ""
         extra = {"location": loc or "confirm with your day-of contact"}
-    blocks = ve.blocks_for(r["venue"], series=r.get("series"), **extra)
+    # audit 2026-09-16 #23: without third_party=, a 3rd-party show's
+    # day-before wrongly kept the touring-band garage-QR/validation
+    # paragraph even at a venue (FSQ) with a dedicated 3rd-party override.
+    third_party = db.is_third_party(r.get("series"))
+    blocks = ve.blocks_for(r["venue"], series=r.get("series"), third_party=third_party, **extra)
     if not contact:
         blocks = ve.without_text_on_arrival(blocks, lang="en")
     sched = "\n".join(f"  {t}    {label}" for label, t in _schedule_lines(r))
     recap = _recap_lines(r)
     greeting = _greeting(r)
     body = (f"{greeting},\n\n"
-            f"Quick confirmation for tomorrow, {day}, at {r['venue']}"
+            f"Quick confirmation for {when_word}, {day}, at {r['venue']}"
             f"{(' — ' + blocks['location']) if blocks.get('location') else ''}.\n\n"
             f"Day Schedule:\n{sched}\n\n")
     if contact:
@@ -154,22 +167,26 @@ def build_email(r):
     body += f"{_without_form_refs(blocks['load_in'])}\n\n"
     if recap:
         body += "What we have on file for you:\n" + "\n".join(f"  {k}: {v}" for k, v in recap) + "\n\n"
+    see_you = "See you today" if when_word == "today" else "See you tomorrow"
     body += ("If anything has changed — headcount, gear, arrival time — reply to this email today "
-             "and we'll update it.\n\nSee you tomorrow,\n3CDC Events / Production")
+             f"and we'll update it.\n\n{see_you},\n3CDC Events / Production")
     if r.get("series") and ve.is_bilingual_series(r["series"]):
-        blocks_es = ve.blocks_for(r["venue"], series=r.get("series"), lang="es", **extra)
+        blocks_es = ve.blocks_for(r["venue"], series=r.get("series"), lang="es",
+                                  third_party=third_party, **extra)
         if not contact:
             blocks_es = ve.without_text_on_arrival(blocks_es, lang="es")
         sched_es = "\n".join(f"  {t}    {label}" for label, t in _schedule_lines(r, lang="es"))
         greeting_es = _greeting(r, es=True)
+        when_word_es = "hoy" if when_word == "today" else "mañana"
+        see_you_es = "Nos vemos hoy" if when_word == "today" else "Nos vemos mañana"
         body_es = (f"{greeting_es},\n\n"
-                   f"Confirmación rápida para mañana, {d.strftime('%d/%m/%Y')}, en {r['venue']}.\n\n"
+                   f"Confirmación rápida para {when_word_es}, {d.strftime('%d/%m/%Y')}, en {r['venue']}.\n\n"
                    f"Horario del día:\n{sched_es}\n\n")
         if contact:
             body_es += f"Contacto del día del evento: {contact}\n\n"
         body_es += (f"{_without_form_refs(blocks_es['load_in'], 'es')}\n\n"
                     "Si algo cambió — número de personas, equipo, hora de llegada — respondan a este "
-                    "correo hoy y lo actualizamos.\n\nNos vemos mañana,\n3CDC Eventos / Producción")
+                    f"correo hoy y lo actualizamos.\n\n{see_you_es},\n3CDC Eventos / Producción")
         sep = "─" * 42
         body = f"{body}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
     return subject, body
@@ -195,7 +212,12 @@ def send_due(fail=None):
             if fail:
                 fail(r["show_id"], "dayahead", f"couldn't build the email: {e!r}")
             continue
-        ok, err = mailer.send(email, subject, body=body, attachments=ve.venue_attachments(r["venue"]))
+        # audit 2026-09-16 #17: link the venue's standing docs instead of
+        # re-attaching them — only the welcome attaches the real file.
+        doc_links = ve.venue_doc_links_text(r["venue"])
+        if doc_links:
+            body = f"{body}\n\n{doc_links}"
+        ok, err = mailer.send(email, subject, body=body)
         with db.get_conn() as conn, conn.cursor() as cur:
             if ok:
                 cur.execute("UPDATE shows SET dayahead_sent_at = now(), dayahead_error = NULL WHERE id=%s",

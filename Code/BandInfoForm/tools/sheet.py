@@ -64,12 +64,30 @@ def read_advance_sheet(path):
         return []
     rows = []
     for row in ws.iter_rows(min_row=header_row + 1):
+        # audit 2026-09-16 #22 (root cause D): the band-owned check below
+        # needs this row's own identity (band/venue/date) to build the same
+        # content-based _advance_meta key merge_status.py now writes — a
+        # first pass over the row's raw values resolves that identity
+        # before the second pass applies the mirror check per cell.
+        raw = {}
+        for cell in row:
+            key = header.get(cell.column)
+            if key:
+                raw[key] = cell.value
+        band = str(raw.get("artist_name") or "").strip()
+        venue = str(raw.get("venue") or "").strip()
+        date = _norm_date(raw.get("event_date")) or ""
+
         rec = {}
         for cell in row:
             key = header.get(cell.column)
             if key:
-                addr = f"r{cell.row}c{cell.column}"
-                if addr in owned and str(cell.value or "") == owned[addr]:
+                content_key = fs.advance_meta_key(band, venue, date, key)
+                addr = f"r{cell.row}c{cell.column}"  # pre-2026-09-16 key, migration fallback only
+                mirrored = owned.get(content_key)
+                if mirrored is None:
+                    mirrored = owned.get(addr)
+                if mirrored is not None and str(cell.value or "") == mirrored:
                     continue  # band-filled mirror, not a Brian override
                 rec[key] = cell.value
         artist = (str(rec.get("artist_name") or "")).strip()

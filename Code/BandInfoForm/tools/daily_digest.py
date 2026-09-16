@@ -116,7 +116,12 @@ def _today_crew(today):
     return sorted(by_date.get(today, []), key=lambda e: e["venue"])
 
 
-def build_digest(days_ahead=14, hours_back=24):
+def build_digest(days_ahead=14, hours_back=24, mark_delivered=True):
+    """mark_delivered=False (audit 2026-09-16 #16): the live /internal/daily-
+    digest route now sends via mailer.send itself and only marks the queued
+    digest_items delivered once that send is actually confirmed — marking
+    them here unconditionally, before any send happened, used to lose a
+    queued item for good whenever the downstream n8n send failed."""
     today = dt.date.today()
     today_crew = _today_crew(today)
     with db.get_conn() as conn, conn.cursor() as cur:
@@ -136,7 +141,8 @@ def build_digest(days_ahead=14, hours_back=24):
         # the 3-day unresponded list, thank-you / day-before failures)
         needs = db.needs_attention(cur)
         queued = db.undelivered_digest_items(cur)
-        db.mark_digest_items_delivered(cur, [q["id"] for q in queued])
+        if mark_delivered:
+            db.mark_digest_items_delivered(cur, [q["id"] for q in queued])
         conn.commit()
 
     public_url = __import__("os").environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
@@ -161,7 +167,7 @@ def build_digest(days_ahead=14, hours_back=24):
         subject += f" — {len(needs)} need{'s' if len(needs) == 1 else ''} you"
     if today_shows:
         subject += f" — {len(today_shows)} show{'s' if len(today_shows) != 1 else ''} today"
-    return subject, html
+    return subject, html, [q["id"] for q in queued]
 
 
 def main():
@@ -170,7 +176,7 @@ def main():
     ap.add_argument("--days", type=int, default=14)
     ap.add_argument("--hours", type=int, default=24)
     args = ap.parse_args()
-    subject, html = build_digest(days_ahead=args.days, hours_back=args.hours)
+    subject, html, _queued_ids = build_digest(days_ahead=args.days, hours_back=args.hours)
     if args.out:
         args.out.write_text(html)
         print(f"Subject: {subject}\nSaved: {args.out}")

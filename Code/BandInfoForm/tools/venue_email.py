@@ -208,6 +208,37 @@ def venue_attachments(venue, root=None):
     return out
 
 
+def venue_attachment_links(venue, root=None):
+    """Same standing files as venue_attachments(), as (filename, url) pairs
+    instead of base64 content — for a reminder or day-before email, which
+    links instead of re-attaching the same PDF the welcome already carried
+    (audit 2026-09-16 #17: the welcome is the only email that attaches it;
+    every FSQ email was carrying its own copy of a 1.4 MB file). Served by
+    app.py's /venue-doc/<venue>/<filename> route."""
+    if not venue:
+        return []
+    vdir = (Path(root) if root else SERIES_EMAIL_ROOT) / venue.strip()
+    if not vdir.is_dir():
+        return []
+    public_url = _os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
+    from urllib.parse import quote
+    return [(path.name, f"{public_url}/venue-doc/{quote(venue.strip())}/{quote(path.name)}")
+            for path in sorted(p for p in vdir.glob("_attachment*") if p.is_file())]
+
+
+def venue_doc_links_text(venue, root=None):
+    """Plain-text block linking this venue's standing docs, for a reminder
+    or day-before body — '' if there are none. Friendly label for the two
+    conventional files (load-in doc / tech pack); anything past that just
+    gets its filename."""
+    links = venue_attachment_links(venue, root=root)
+    if not links:
+        return ""
+    labels = {0: "Load-in doc", 1: "Tech pack"}
+    lines = [f"{labels.get(i, name)}: {url}" for i, (name, url) in enumerate(links)]
+    return "\n".join(lines)
+
+
 def venue_attachment(venue, root=None):
     """(filename, content_type, base64 content) for this venue's standing
     email attachment, or None if there isn't one (Brian, 2026-09-12 — the FSQ

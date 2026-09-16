@@ -690,32 +690,23 @@ def fill_engineer(grid, event, n, acts=None):
             return
 
 
-def _shift_house_time(s, minutes):
-    """Shift a house-format time string ('6:00p') by minutes; '' if unparseable."""
-    import datetime as _dt
-    s = (s or "").strip().lower().replace(" ", "")
-    if not s:
+def house_time(s, minutes=0):
+    """Parse a house-format clock string ('6:00p', or a legacy bare '6:00')
+    through the same rules as every other clock field in this system
+    (advance_db.parse_clock, which treats a bare 1-6 with no meridian as PM)
+    and format back in house style ('6:00p'), optionally shifted by
+    `minutes` — every schedule cell this file computes routes through here
+    now (audit 2026-09-16 #20, root cause C), instead of this function's old
+    bespoke 12-hour parsing that had none of parse_clock's ambiguous-time
+    handling. '' if unparseable, same as before."""
+    mins = db.parse_clock(s)
+    if mins is None:
         return ""
-    ap = None
-    if s and s[-1] in ("a", "p"):
-        ap, s = s[-1], s[:-1]
-    t = None
-    for fmt in ("%I:%M", "%I", "%H:%M"):
-        try:
-            t = _dt.datetime.strptime(s, fmt)
-            break
-        except ValueError:
-            continue
-    if t is None:
-        return ""
-    h = t.hour
-    if ap == "p" and h < 12:
-        h += 12
-    elif ap == "a" and h == 12:
-        h = 0
-    base = t.replace(hour=h)
-    out = (base + _dt.timedelta(minutes=minutes)).strftime("%I:%M%p").lstrip("0").lower()
-    return out[:-1]  # '4:00pm' -> '4:00p'
+    mins = (mins + minutes) % 1440
+    h, m = divmod(mins, 60)
+    ap = "a" if h < 12 else "p"
+    h = h % 12 or 12
+    return f"{h}:{m:02d}{ap}"
 
 
 def _schedule_role(rank, n):
@@ -975,8 +966,8 @@ def fill_crew_schedule(doc, event, acts=None):
     except Exception:
         staff_times = {}
     crew_call = (staff_times.get("crew_call")
-                 or (_shift_house_time(anchor, -60) if anchor else "")
-                 or (_shift_house_time(start, -120) if start else ""))
+                 or (house_time(anchor, -60) if anchor else "")
+                 or (house_time(start, -120) if start else ""))
     curfew = staff_times.get("curfew") or det.get("curfew")
     event_level = {"crew call": crew_call, "curfew": curfew}
     for r in table.rows:

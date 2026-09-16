@@ -299,3 +299,60 @@ GROUPS = [
     ("ACT", len(ACT_FIELDS)),
     ("BAND DETAILS — usually from the form; fill to override", len(BAND_FIELDS)),
 ]
+
+
+def normalize_for_key(v):
+    """Same normalization merge_status.py's norm() and sheet.py's band
+    matching use — whitespace-collapsed, lowercased. Shared here so the
+    writer (merge_status.py) and reader (sheet.py) of _advance_meta can
+    never drift apart on what a given (band, venue, date, field) hashes to."""
+    import re
+    return re.sub(r"\s+", " ", "" if v is None else str(v).strip()).lower()
+
+
+def advance_meta_key(band, venue, date, field):
+    """Content-based _advance_meta key (audit 2026-09-16 #22, root cause D):
+    identifies a band-filled cell by WHO and WHICH FIELD, not by row/column
+    address — a row sort, insert or delete used to silently invalidate
+    every address-keyed entry (each pointed at a different cell after the
+    shift), so a band's real answer could get read as a Brian override, or
+    the reverse. `date` is expected already normalized (YYYY-MM-DD)."""
+    return f"{normalize_for_key(band)}|{normalize_for_key(venue)}|{date or ''}|{field}"
+
+
+def sheet_hash(path):
+    """sha256 of the sheet file on disk, or None if it doesn't exist yet."""
+    import hashlib
+    p = Path(path)
+    if not p.exists():
+        return None
+    h = hashlib.sha256()
+    with p.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+class SheetChangedError(RuntimeError):
+    """The sheet on disk changed between load and save (audit 2026-09-16
+    #21) — someone else (Brian in Excel, a concurrent pipeline run) wrote it
+    while this process was working. Saving now would silently discard
+    whatever they just did; the caller has to reload and redo its edit."""
+
+
+def safe_save_workbook(wb, path, loaded_hash):
+    """Save an openpyxl workbook the way every sheet writer should (audit
+    2026-09-16 #21): abort if the file changed on disk since it was loaded
+    (`loaded_hash` — from sheet_hash(path), captured right after load), then
+    write to a tmp file in the same directory and os.replace() it into
+    place, so a process killed mid-save (the pipeline's 1200s caller
+    timeout is reachable) can never leave a half-written sheet for Dropbox
+    to sync out."""
+    import os
+    if sheet_hash(path) != loaded_hash:
+        raise SheetChangedError(
+            f"{path} changed on disk since it was loaded — not saving over it")
+    path = Path(path)
+    tmp = path.with_suffix(path.suffix + f".tmp-{os.getpid()}")
+    wb.save(tmp)
+    os.replace(tmp, path)

@@ -128,10 +128,10 @@ def main():
         shutil.rmtree(out)
     out.mkdir(parents=True)
 
-    # 1. rebuild the event/act model from the sheet (submissions untouched)
-    with db.get_conn() as conn, conn.cursor() as cur:
-        cur.execute("TRUNCATE events, event_acts RESTART IDENTITY CASCADE;")
-        conn.commit()
+    # 1. rebuild the event/act model from the sheet (submissions untouched).
+    # The truncate lives inside import_sheet.py's own transaction now (audit
+    # 2026-09-16 #18) — it reads and validates the sheet FIRST and never
+    # wipes events/event_acts on a sheet it couldn't read.
     run("import_sheet.py", args.sheet)
 
     # 2. regenerate the flat draft artifacts into their working dirs
@@ -228,9 +228,16 @@ def main():
                 n_emails += 1
 
     if results and not args.dry_run_docs:
-        new_notices = docmerge.record_and_email_notices(results, send_mail=not args.no_mail)
-        if new_notices:
-            print(f"  {new_notices} new doc-change notice(s) recorded")
+        # audit 2026-09-16 #18: the actual doc filing above already
+        # succeeded by this point — a failure just recording/emailing the
+        # change notices must not lose that work or crash the run before it
+        # prints its summary.
+        try:
+            new_notices = docmerge.record_and_email_notices(results, send_mail=not args.no_mail)
+            if new_notices:
+                print(f"  {new_notices} new doc-change notice(s) recorded")
+        except Exception as e:  # noqa: BLE001
+            print(f"  ! record_and_email_notices failed (non-fatal): {e!r}", file=sys.stderr)
 
     # 3b. any current show no longer in the sheet goes ON HOLD — no sends —
     #     until Brian cancels / restores / merges it (audit #4)

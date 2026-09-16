@@ -109,6 +109,16 @@ def main():
     events_made = acts_made = 0
     clashes = []
     with db.get_conn() as conn:
+        # audit 2026-09-16 #18: the truncate used to run in package_run.py
+        # BEFORE this script was even invoked, so an unreadable/mid-sync
+        # sheet (the empty-rows exit above) left events/event_acts wiped
+        # until the next good run. It lives here now, in the same
+        # transaction as the first group's insert (below) — read_advance_
+        # sheet has already succeeded and rows is non-empty by this point,
+        # and any failure before that first commit rolls the truncate back
+        # too, so a bad run never leaves the model empty.
+        with conn.cursor() as cur:
+            cur.execute("TRUNCATE events, event_acts RESTART IDENTITY CASCADE;")
         for (ename, edate, evenue), acts in groups.items():
             series = next((a.get("series") for a in acts if a.get("series")), None)
             # event-level details: first non-empty value across the group's rows
@@ -132,6 +142,14 @@ def main():
                 by_start = {}
                 for a in acts:
                     if not (a.get("artist_name") or "").strip():
+                        continue
+                    # audit 2026-09-16 #23: a cancelled act's sheet row can
+                    # still be sitting there (cancelling a show only sets
+                    # shows.cancelled_at — nothing removes its sheet row or
+                    # booking) — it shouldn't be able to clash with, or
+                    # crowd out, a real act's set start.
+                    show = db.show_for_booking(cur, a["artist_name"], evenue, to_date(edate))
+                    if show and show.get("cancelled_at"):
                         continue
                     start = (a.get("event_start") or "").strip()
                     if start:

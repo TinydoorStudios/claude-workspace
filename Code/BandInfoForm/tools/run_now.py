@@ -29,10 +29,19 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 PY = sys.executable
 sys.path.insert(0, str(HERE))
+for _cand in (HERE.parent, HERE.parent / "app"):
+    if (_cand / "advance_db.py").exists():
+        sys.path.insert(0, str(_cand))
+        break
 import fieldspec as fs
+import advance_db as db
 NYQUIST_DEFAULT = fs.nyquist_root()
 LOCK = HERE / ".run_now.lock"
-LOCK_WAIT_SECS = 900
+# audit 2026-09-16 #21: below the caller's 1200s subprocess timeout (app.py)
+# with real headroom left for the actual work after the lock is acquired —
+# at 900 a long wait plus a normal run could still eat past 1200 and get
+# SIGKILLed mid-save.
+LOCK_WAIT_SECS = 600
 MAX_PASSES = 3
 
 
@@ -97,6 +106,26 @@ def one_pass(sheet, nyquist, scope, summary):
         finally:
             ed_file.unlink(missing_ok=True)
 
+    # 1c. reconcile: a booking whose sheet row vanished out from under it (a
+    # hand edit, a bad merge) is invisible to seed_bookings.py --json —
+    # seeded_at is already set — so it never re-seeds on its own and holds.py
+    # orphans it permanently, Restore included (audit 2026-09-16 #19).
+    # append_bookings.py --data already skips any booking whose ident IS
+    # still in the sheet, so passing every future booking here is safe —
+    # only ones actually missing get re-appended.
+    with db.get_conn() as conn, conn.cursor() as cur:
+        future = db.future_bookings(cur)
+    if future:
+        mi_file = HERE / ".reconcile_tmp.json"
+        mi_file.write_text(json.dumps(future, default=str))
+        try:
+            reconciled = run("append_bookings.py", "--list", sheet, "--data", mi_file)
+            ids = reconciled.stdout.strip()
+            if ids:
+                run("seed_bookings.py", "--seed", ids)
+        finally:
+            mi_file.unlink(missing_ok=True)
+
     # 2. rebuild events/drafts/status and file docs in place (scoped if asked)
     out = HERE / "_package"
     cmd = ["package_run.py", sheet, "--out", "_package"]
@@ -154,9 +183,26 @@ def main():
                 break
         print(json.dumps(summary))
     except subprocess.CalledProcessError as e:
-        print(json.dumps({"error": e.__class__.__name__,
-                           "cmd": " ".join(str(a) for a in e.cmd),
-                           "stderr": (e.stderr or "")[-2000:]}))
+        err = {"error": e.__class__.__name__,
+               "cmd": " ".join(str(a) for a in e.cmd),
+               "stderr": (e.stderr or "")[-2000:]}
+        print(json.dumps(err))
+        # audit 2026-09-16 #18: most calls into this script are background
+        # subprocesses (app.py's _run_pipeline_background) — a failure here
+        # used to be silent unless someone was watching that one invocation's
+        # output. Surface it both ways: queued onto the daily digest, and an
+        # immediate alert, same as any other pipeline failure.
+        try:
+            import advance_db as db
+            import mailer
+            html = (f"<p><b>{mailer.esc(err['cmd'])}</b> failed:</p>"
+                    f"<pre style='white-space:pre-wrap'>{mailer.esc(err['stderr'])}</pre>")
+            with db.get_conn() as conn, conn.cursor() as cur:
+                db.queue_digest_item(cur, "pipeline_failure", "Advance pipeline run failed", html)
+                conn.commit()
+            mailer.alert("Advance pipeline run failed", html)
+        except Exception:  # noqa: BLE001 — the failure path must never itself crash
+            pass
         sys.exit(1)
     finally:
         try:

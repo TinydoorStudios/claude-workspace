@@ -49,33 +49,6 @@
       }
     },
     {
-      "id": "gmail-send-1",
-      "name": "Send Digest",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        640,
-        300
-      ],
-      "parameters": {
-        "url": "http://localhost:5678/webhook/internal-send-outlook",
-        "method": "POST",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Advance-Token",
-              "value": "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ subject: $json.subject, html: $json.html, to: $json.to }) }}",
-        "options": {}
-      }
-    },
-    {
       "id": "webhook-1",
       "name": "On-Demand Trigger",
       "type": "n8n-nodes-base.webhook",
@@ -113,17 +86,6 @@
         [
           {
             "node": "Fetch Digest",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch Digest": {
-      "main": [
-        [
-          {
-            "node": "Send Digest",
             "type": "main",
             "index": 0
           }

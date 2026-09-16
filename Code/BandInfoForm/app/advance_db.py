@@ -261,7 +261,14 @@ def shows_due_for_initial_advance(cur):
            WHERE s.advance_draft_created_at IS NULL
              AND s.cancelled_at IS NULL AND s.held_at IS NULL
              AND s.responded_at IS NULL
-             AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+             -- audit 2026-09-16 #9: a booking entered WITH the band's answers
+             -- already typed in (source='staff') inserts a submission row but
+             -- deliberately never stamps responded_at (record_submission
+             -- stamp_responded=False) — the welcome/reminder ladder still
+             -- needs to run for it, so a staff-sourced submission alone
+             -- doesn't count as "already responded" here.
+             AND NOT EXISTS (SELECT 1 FROM submissions sub
+                             WHERE sub.show_id = s.id AND sub.source <> 'staff')
              AND s.show_date IS NOT NULL
              AND s.show_date >= CURRENT_DATE
              AND s.show_date <= CURRENT_DATE + 21
@@ -345,6 +352,30 @@ def shows_due_for_followup(cur, days_before=7):
         (days_before, days_before),
     )
     return sorted(cur.fetchall(), key=lambda r: (r["show_date"], r["show_id"]))
+
+
+def shows_due_for_thankyou(cur):
+    """Show ids whose thank-you should go out on its own now (audit
+    2026-09-16 #23, Brian's call: automatic, date-driven) — responded, the
+    day after the show, not already sent. A short catch-up window (up to a
+    week back) tolerates a missed lifecycle run without sending a thank-you
+    that reads as comically late; tools/finalize_thankyou.send_for_show
+    still separately no-ops a cancelled/past/3rd-party-silent show, same
+    skip rules as the manual Finalize path — this only decides WHEN to
+    call it automatically. finalized_at (the human sign-off) is untouched
+    either way — this is independent of it, not a substitute."""
+    cur.execute(
+        """SELECT s.id AS show_id
+           FROM shows s JOIN artists a ON a.id = s.artist_id
+           WHERE s.cancelled_at IS NULL AND s.held_at IS NULL
+             AND s.thankyou_sent_at IS NULL
+             AND (s.responded_at IS NOT NULL
+                  OR EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id))
+             AND s.show_date IS NOT NULL
+             AND s.show_date BETWEEN CURRENT_DATE - 7 AND CURRENT_DATE - 1
+             AND NOT """ + THIRD_PARTY_SILENT_SQL + """
+           ORDER BY s.show_date""")
+    return [r["show_id"] for r in cur.fetchall()]
 
 
 def mark_advance_drafted(cur, show_id):
@@ -614,9 +645,13 @@ def artist_count_for_event(cur, venue, event_date, series=None):
     "Bands on the Bill" on 2026-09-15, because the answer was already sitting in
     the bookings table and a typed one could disagree with it. 0 if none."""
     cur.execute(
-        "SELECT COUNT(DISTINCT lower(btrim(regexp_replace(artist_name,'\\s+',' ','g')))) AS n "
-        "FROM bookings WHERE venue=%s AND event_date=%s AND COALESCE(btrim(artist_name),'') <> '' "
-        "AND (lower(btrim(COALESCE(series,''))) = '3rd party') = %s",
+        r"""SELECT COUNT(DISTINCT lower(btrim(regexp_replace(b.artist_name,'\s+',' ','g')))) AS n
+            FROM bookings b
+            LEFT JOIN artists a ON a.match_key = lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g')))
+            LEFT JOIN shows s ON s.artist_id = a.id AND s.venue = b.venue AND s.show_date = b.event_date
+            WHERE b.venue=%s AND b.event_date=%s AND COALESCE(btrim(b.artist_name),'') <> ''
+              AND (lower(btrim(COALESCE(b.series,''))) = '3rd party') = %s
+              AND s.cancelled_at IS NULL""",
         (venue, event_date, is_third_party(series)),
     )
     row = cur.fetchone()
@@ -691,7 +726,7 @@ def insert_file(cur, submission_id, artist_id, filename, stored_name,
 
 
 def record_submission(form: dict, file_info=None, source="form", resolve_booking=True,
-                      carry_plot=True):
+                      carry_plot=True, stamp_responded=True):
     """One transaction: resolve which artist+show this submission belongs to,
     insert it, stamp responded_at, link any uploaded file. Returns a dict:
     {artist_id, show_id, submission_id, artist_name, match, carried_from}.
@@ -773,10 +808,11 @@ def record_submission(form: dict, file_info=None, source="form", resolve_booking
                                  "size": prior["size"]}
 
             sub_id = insert_submission(cur, artist_id, show_id, form, source=source)
-            cur.execute(
-                "UPDATE shows SET responded_at = COALESCE(responded_at, now()) WHERE id = %s",
-                (show_id,),
-            )
+            if stamp_responded:
+                cur.execute(
+                    "UPDATE shows SET responded_at = COALESCE(responded_at, now()) WHERE id = %s",
+                    (show_id,),
+                )
             if file_info:
                 insert_file(
                     cur, sub_id, artist_id,
@@ -880,9 +916,13 @@ def played_within(cur, artist_id, ref_date, months=6, exclude_show_id=None):
     delta_days = (ref_date - last).days
     if 0 <= delta_days <= months * 31:
         return sub
-    # also treat a very recent past submission (any venue) as returning
-    if -31 <= delta_days < 0:
-        return sub
+    # audit 2026-09-16 #23: the branch that used to sit here treated a
+    # submission for a show up to 31 days in the FUTURE as "their last
+    # show" too (delta_days < 0 means `last` is after ref_date) — a second,
+    # different upcoming booking close by got called returning with a
+    # recap of a show that hasn't happened yet, the same class of bug
+    # exclude_show_id fixes for the identical-show case, just not caught
+    # by it since these are two different shows.
     return None
 
 
@@ -960,6 +1000,24 @@ def get_booking_for_show(cur, show):
               AND lower(btrim(regexp_replace(artist_name, '\s+', ' ', 'g'))) = %s
             ORDER BY id DESC LIMIT 1""",
         (show["venue"], show["show_date"], show["match_key"]),
+    )
+    return cur.fetchone()
+
+
+def find_booking(cur, venue, event_date, artist_name):
+    """Same identity key as uq_bookings_ident (venue, event_date, normalized
+    artist_name) — used by /booking to detect a re-POST for a band already
+    booked that night before deciding insert vs. update (audit 2026-09-16
+    #11)."""
+    if not (venue and event_date and artist_name):
+        return None
+    cur.execute(
+        r"""SELECT * FROM bookings
+            WHERE venue=%s AND event_date=%s
+              AND lower(btrim(regexp_replace(artist_name, '\s+', ' ', 'g')))
+                = lower(btrim(regexp_replace(%s, '\s+', ' ', 'g')))
+            ORDER BY id DESC LIMIT 1""",
+        (venue, event_date, artist_name),
     )
     return cur.fetchone()
 
@@ -1055,6 +1113,15 @@ def parse_clock(s):
         hour, minute = int(m.group(1)), int(m.group(2))
         if hour > 23 or minute > 59:
             return None
+        # audit 2026-09-16 #20 (root cause C): a bare hour 1-6 with no am/pm
+        # is read literally as 1am-6am here, but a human typing a show time
+        # with no am/pm essentially never means the middle of the night —
+        # Rob Keenan's FSQ 9/23 "5:00" (meant 5pm) sorted him at 05:00 and
+        # was emailed to the band as "6:30pm -> 5:00". Legacy/loose data
+        # only (a sheet cell, an old row) — _validate_booking_data rejects
+        # a bare H:MM outright at entry now, so new data can't create this.
+        if 1 <= hour <= 6:
+            hour += 12
     mins = hour * 60 + minute
     return mins + 1440 if mins < NIGHT_ROLLOVER_MIN else mins
 
@@ -1297,9 +1364,19 @@ def update_booking(cur, booking_id, data: dict):
     def _as_text(v):
         return v.isoformat() if isinstance(v, dt.date) else (v or "")
 
+    # audit 2026-09-16 #20: "8:00pm" -> "8:00p" (or any other spelling of
+    # the same time) isn't a real change — compare these five as clock
+    # minutes, not text, so re-typing a time in a different format doesn't
+    # queue a pointless "info changed" email to the band.
+    _CLOCK_FIELDS = {"load_in", "soundcheck", "event_start", "event_end", "curfew"}
+
     changes = {}
     for f in BAND_FACING_FIELDS:
         old_s, new_s = _as_text(before.get(f)), _as_text(vals.get(f))
+        if f in _CLOCK_FIELDS and old_s and new_s:
+            old_m, new_m = parse_clock(old_s), parse_clock(new_s)
+            if old_m is not None and old_m == new_m:
+                continue
         if old_s != new_s:
             changes[f] = {"old": old_s, "new": new_s}
 
@@ -1346,20 +1423,54 @@ def update_booking(cur, booking_id, data: dict):
     return changes, notify
 
 
+_BOOKING_EDIT_SHOW_JOIN = r"""
+           LEFT JOIN artists a ON a.match_key = lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g')))
+           LEFT JOIN shows s ON s.artist_id = a.id AND s.venue = b.venue AND s.show_date = b.event_date"""
+_BOOKING_EDIT_SILENT_SQL = (
+    "(lower(btrim(COALESCE(b.series,''))) = '3rd party' AND NOT COALESCE(b.band_emails, false))")
+
+
 def due_booking_edits(cur):
     """Pending booking-edit notifications ready for the next daily lifecycle
     run — still inside the 21-day window (an edit queued while urgent, then
     the window closes some other way before the next run, silently drops
-    the notice rather than sending a stale one)."""
+    the notice rather than sending a stale one). Excludes a show that's
+    since gone cancelled/held, or is 3rd-party without band_emails opted in
+    (audit 2026-09-16 #13) — see skip_stale_booking_edits, which resolves
+    those instead of leaving them pending forever."""
     cur.execute(
         """SELECT e.id AS edit_id, e.booking_id, e.changes, e.edited_at,
                   b.artist_name, b.event_date, b.venue, b.contact_email, b.series
-           FROM booking_edits e JOIN bookings b ON b.id = e.booking_id
+           FROM booking_edits e JOIN bookings b ON b.id = e.booking_id"""
+        + _BOOKING_EDIT_SHOW_JOIN + """
            WHERE e.notify AND e.sent_at IS NULL
              AND b.event_date IS NOT NULL
              AND b.event_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 21
+             AND (s.id IS NULL OR (s.cancelled_at IS NULL AND s.held_at IS NULL))
+             AND NOT """ + _BOOKING_EDIT_SILENT_SQL + """
            ORDER BY e.id""")
     return cur.fetchall()
+
+
+def skip_stale_booking_edits(cur):
+    """A pending booking-edit notice whose show has since gone cancelled,
+    held, or turned 3rd-party-silent is done, not failed and not stuck
+    retrying forever — resolve it the same way a stale followup tier gets
+    pre-skipped (audit 2026-09-16 #13)."""
+    cur.execute(
+        """SELECT e.id AS edit_id, s.cancelled_at, s.held_at,
+                  """ + _BOOKING_EDIT_SILENT_SQL + """ AS silent
+           FROM booking_edits e JOIN bookings b ON b.id = e.booking_id"""
+        + _BOOKING_EDIT_SHOW_JOIN + """
+           WHERE e.notify AND e.sent_at IS NULL
+             AND (s.cancelled_at IS NOT NULL OR s.held_at IS NOT NULL OR """
+        + _BOOKING_EDIT_SILENT_SQL + ")")
+    for r in cur.fetchall():
+        reason = ("skipped: cancelled" if r["cancelled_at"] else
+                  "skipped: held" if r["held_at"] else
+                  "skipped: 3rd-party silent")
+        cur.execute("UPDATE booking_edits SET sent_at=now(), error=%s WHERE id=%s",
+                    (reason, r["edit_id"]))
 
 
 def mark_booking_edit_sent(cur, edit_id, ok, err=None):
@@ -1451,6 +1562,20 @@ def browse_bands(cur, venue, series):
 def unseeded_bookings(cur):
     """Bookings not yet appended to the sheet, oldest first."""
     cur.execute("SELECT * FROM bookings WHERE seeded_at IS NULL ORDER BY id")
+    return cur.fetchall()
+
+
+def future_bookings(cur):
+    """Every booking for a show that hasn't happened yet, seeded or not —
+    used to reconcile against the sheet (audit 2026-09-16 #19): a seeded
+    booking whose sheet row later vanishes (a hand edit, a bad merge) is
+    invisible to unseeded_bookings (seeded_at is already set), so it just
+    falls off the sheet for good and holds.py orphans it — and Restore
+    doesn't put it back either. run_now.one_pass re-appends anything whose
+    ident isn't found in a fresh sheet read, regardless of seeded_at."""
+    cur.execute("""SELECT * FROM bookings
+                   WHERE event_date IS NOT NULL AND event_date >= CURRENT_DATE
+                   ORDER BY id""")
     return cur.fetchall()
 
 
@@ -1823,8 +1948,12 @@ def cancel_show(cur, show_id):
 
 
 def uncancel_show(cur, show_id):
-    cur.execute("UPDATE shows SET cancelled_at = NULL, hold_dismissed_at = now() "
-                "WHERE id=%s RETURNING id", (show_id,))
+    # audit 2026-09-16 #19: hold_dismissed_at is restore_show's flag (a
+    # HELD show, released for good) — stamping it here too, on a plain
+    # un-cancel, permanently exempted this show from ever being auto-held
+    # again for an unrelated reason (its sheet row later vanishing, say),
+    # which was never the intent of reversing a cancellation.
+    cur.execute("UPDATE shows SET cancelled_at = NULL WHERE id=%s RETURNING id", (show_id,))
     return cur.fetchone() is not None
 
 
@@ -1996,8 +2125,26 @@ def merge_shows(cur, old_id, new_id):
              unresponded_alert_sent_at = COALESCE(n.unresponded_alert_sent_at, o.unresponded_alert_sent_at),
              finalized_at = COALESCE(n.finalized_at, o.finalized_at),
              thankyou_sent_at = COALESCE(n.thankyou_sent_at, o.thankyou_sent_at),
+             -- audit 2026-09-16 #23: these two were missing — losing
+             -- advance_held_draft_at un-held a deliberately-withheld draft
+             -- and fired a fresh send; losing dayahead_sent_at let the
+             -- corrected show's day-before go out a second time.
+             advance_held_draft_at = COALESCE(n.advance_held_draft_at, o.advance_held_draft_at),
+             dayahead_sent_at = COALESCE(n.dayahead_sent_at, o.dayahead_sent_at),
              held_at = NULL, hold_reason = NULL, hold_dismissed_at = now()
            FROM shows o WHERE n.id=%s AND o.id=%s""", (new_id, old_id))
+    # audit 2026-09-16 #23: the old show's own bookings row (if staff had
+    # logged one under the pre-correction venue/date/name) otherwise
+    # becomes an orphan nothing else cleans up — and the run_now.py #19
+    # reconcile step would eventually re-append it to the sheet, recreating
+    # exactly what this merge just corrected away.
+    old_artist = get_artist(cur, old["artist_id"])
+    if old_artist:
+        cur.execute(
+            """DELETE FROM bookings b
+               WHERE b.venue=%s AND b.event_date=%s
+                 AND lower(btrim(regexp_replace(b.artist_name, '\\s+', ' ', 'g'))) = %s""",
+            (old["venue"], old["show_date"], old_artist["match_key"]))
     cur.execute("DELETE FROM shows WHERE id=%s", (old_id,))
     if old["artist_id"] != new["artist_id"]:
         cur.execute("""DELETE FROM artists a WHERE a.id=%s
@@ -2026,7 +2173,8 @@ def merge_candidates(cur, show_id):
     if not s:
         return []
     cur.execute(
-        """SELECT s.*, a.name AS artist_name FROM shows s JOIN artists a ON a.id=s.artist_id
+        """SELECT s.*, a.name AS artist_name, a.match_key
+           FROM shows s JOIN artists a ON a.id=s.artist_id
            WHERE s.id <> %s AND s.cancelled_at IS NULL AND s.show_date >= CURRENT_DATE - 1
              AND ( s.artist_id = %s
                    OR (s.venue = %s AND s.show_date = %s) )

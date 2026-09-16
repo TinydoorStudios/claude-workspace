@@ -49,66 +49,6 @@
       }
     },
     {
-      "id": "if-1",
-      "name": "Has Content",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        640,
-        300
-      ],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "typeValidation": "loose",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "has-send",
-              "leftValue": "={{ $json.send }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      }
-    },
-    {
-      "id": "http-2",
-      "name": "Send Digest",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        860,
-        220
-      ],
-      "parameters": {
-        "url": "http://localhost:5678/webhook/internal-send-outlook",
-        "method": "POST",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Advance-Token",
-              "value": "REPLACE_WITH_ADVANCE_INTERNAL_TOKEN"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ subject: $json.subject, html: $json.html, to: $json.to }) }}",
-        "options": {}
-      }
-    },
-    {
       "id": "webhook-1",
       "name": "On-Demand Trigger",
       "type": "n8n-nodes-base.webhook",
@@ -154,24 +94,6 @@
     },
     "Fetch Parking Digest": {
       "main": [
-        [
-          {
-            "node": "Has Content",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Has Content": {
-      "main": [
-        [
-          {
-            "node": "Send Digest",
-            "type": "main",
-            "index": 0
-          }
-        ],
         []
       ]
     },
