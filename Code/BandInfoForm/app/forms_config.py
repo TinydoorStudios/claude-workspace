@@ -16,6 +16,8 @@ you want a custom Spanish subtitle for it; otherwise the generic one is
 used and is always grammatically correct regardless of what intro a series
 sets in English.
 """
+import re
+
 import i18n
 
 VENUES = [
@@ -168,6 +170,15 @@ def get_config(series_key=None, venue=None, location=None, lang="en"):
 
     if series_key and SERIES.get(series_key, {}).get("drum_riser") is False:
         cfg["drum_riser_available"] = False
+
+    # A 3rd-party event has no band bringing its own gear — the vehicle/large
+    # vehicle parking questions exist for a touring act loading in, and don't
+    # apply to a third party's event (Brian, 2026-09-16). Same normalize rule
+    # as advance_db.is_third_party, kept local rather than imported so this
+    # module stays a standalone form-config file, independent of the DB layer.
+    if re.sub(r"\s+", " ", (series_key or "").strip()).lower() == "3rd party":
+        cfg["blocks"] = dict(cfg["blocks"])
+        cfg["blocks"]["large_vehicle"] = False
 
     # Fountain Square used to ask only the headliner about a drum riser and
     # hide the question from the opener and direct support (Brian, 2026-09-11).
