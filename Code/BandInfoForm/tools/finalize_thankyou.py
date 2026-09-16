@@ -142,26 +142,45 @@ def _artist_position(venue, show_date, artist_name):
     return None, len(acts)
 
 
-def _schedule_lines(doc, position, bill_size=0):
+def _name_fragments(artist_name):
+    """The artist's OWN name as schedule-row candidates — since 2026-09-15 the
+    filed doc reads 'RatBoys Load-In', not 'Artist 3 Load-In' (daysheet.
+    name_schedule_labels). Tried first: a name is unambiguous even on a bill
+    where this artist has moved position since the doc was filed."""
+    n = (artist_name or "").strip()
+    if not n:
+        return []
+    return [("Load-in", [f"{n} Load-In"]),
+            ("Sound check", [f"{n} Sound Check"]),
+            ("Line check", [f"{n} Line Check"]),
+            ("Set starts", [f"{n} Starts", f"{n} Set Starts"]),
+            ("Set ends", [f"{n} Set End", f"{n} End"])]
+
+
+def _schedule_lines(doc, position, bill_size=0, artist_name=None):
     """[(human label, time), ...] for this artist's rows plus Curfew, in
     schedule order. Any single row that can't be matched is just skipped,
     never fatal to the rest."""
     table = daysheet.find_schedule_table(doc)
     if table is None:
         return []
-    fragments = list(ARTIST_SCHEDULE_FRAGMENTS.get(min(position or 1, 3), []))
-    legacy = LEGACY_SLOT_FRAGMENTS.get(_legacy_slot(position or 1, bill_size))
-    if legacy:
-        # same human labels, so merge candidate lists rather than appending
-        # a second set of rows that would print the schedule twice
-        merged = {human: list(cands) for human, cands in fragments}
-        for human, cands in legacy:
-            merged.setdefault(human, []).extend(c for c in cands if c not in merged.get(human, []))
-        # fixed schedule order, so a label that only exists on the legacy side
-        # (a 2-act bill's second artist was the "headliner", with a Sound check
-        # row where Artist 2 now has a Line check one) can't land out of order
-        order = ["Load-in", "Sound check", "Line check", "Set starts", "Set ends"]
-        fragments = [(human, merged[human]) for human in order if human in merged]
+    # Three generations of label, most specific first: the artist's own name
+    # (what a doc filed today says), "Artist N" (what the template said between
+    # the two), and the retired slot names. They share the same human labels, so
+    # the candidate lists merge into one per label instead of producing three
+    # sets of rows that would print the schedule three times.
+    merged = {}
+    for source in (_name_fragments(artist_name),
+                   ARTIST_SCHEDULE_FRAGMENTS.get(min(position or 1, 3), []),
+                   LEGACY_SLOT_FRAGMENTS.get(_legacy_slot(position or 1, bill_size)) or []):
+        for human, cands in source:
+            have = merged.setdefault(human, [])
+            have.extend(c for c in cands if c not in have)
+    # fixed schedule order, so a label that only exists on one generation's side
+    # (a 2-act bill's second artist was the "headliner", with a Sound check row
+    # where Artist 2 now has a Line check one) can't land out of order
+    order = ["Load-in", "Sound check", "Line check", "Set starts", "Set ends"]
+    fragments = [(human, merged[human]) for human in order if human in merged]
     found = {}
     curfew_time = None
     all_rows = []  # every (label, time) row seen, for the single-band fallback below
@@ -234,7 +253,7 @@ def build_recap(venue, show_date, artist_name, series=None):
     if doc is not None:
         position, bill_size = _artist_position(venue, show_date, artist_name)
         if position:
-            schedule_lines = _schedule_lines(doc, position, bill_size)
+            schedule_lines = _schedule_lines(doc, position, bill_size, artist_name)
     return schedule_lines, recap_lines
 
 

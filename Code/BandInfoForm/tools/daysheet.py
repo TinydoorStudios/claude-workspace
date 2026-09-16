@@ -767,6 +767,100 @@ def _schedule_row_value(label, per_artist):
     return None
 
 
+def _third_line(cell):
+    """The act header cell's third paragraph — the set-time line under the
+    artist's name. Cloned from the name line the first time so it matches that
+    cell's font, then reused on every later fill (a doc regenerated twice must
+    not grow a fourth and fifth line)."""
+    if len(cell.paragraphs) >= 3:
+        return cell.paragraphs[2]
+    name_p = cell.paragraphs[1]
+    new_p = copy.deepcopy(name_p._p)
+    name_p._p.addnext(new_p)
+    para = cell.paragraphs[2]
+    for r in list(para.runs)[1:]:
+        r._element.getparent().remove(r._element)
+    if para.runs:
+        para.runs[0].text = ""
+    return para
+
+
+def set_time_range(act):
+    """'9:00pm–10:00pm' for the act's own set — the third line under the
+    artist's name in its AUDIO column (Brian, 2026-09-15). Just the start if
+    there's no end on file, blank if there's no time at all."""
+    start = (act.get("set_start") or "").strip()
+    end = (act.get("set_end") or "").strip()
+    if start and end:
+        return f"{start}–{end}"
+    return start or ""
+
+
+# "Artist 1", "Artist 2", "Artist 3" anywhere in a schedule row's label —
+# including a changeover row that names two of them.
+_ARTIST_TOKEN = re.compile(r"artist\s*([123])\b", re.I)
+
+
+def name_schedule_labels(table, acts):
+    """Put the real artist names into the schedule rows: '4:30pm Artist 3
+    Load-In' becomes '4:30pm RatBoys Load-In' (Brian, 2026-09-15).
+
+    Driven by the SAME artist_order that decides the AUDIO columns, so a name in
+    the schedule can't drift from the name at the top of its column — they are
+    two renderings of one list.
+
+    A position nobody occupies (a 2-artist bill has no Artist 3) has its half of
+    the label dropped rather than printed: the row goes blank instead of reading
+    "Artist 3 Load-In" with no time beside it, and a changeover row naming one
+    real artist and one empty position keeps the real half ("Ricky Nye Set
+    Starts", not "... / Artist 2 Load-In"). The row itself stays — blank, like
+    any other unfilled row — because the table's shape is what docmerge lines an
+    already-filed doc up against.
+
+    A cancelled act keeps its name here; its column header is what says
+    CANCELLED, and its rows have no times.
+
+    Runs LAST, after the times are in, and over whatever rows the table ended
+    up with — so it covers a locked series schedule (which replaces every row
+    wholesale from the series file) exactly the same as the template's own."""
+    names = {}
+    for a in acts or []:
+        if a.get("artist") and a.get("artist_order"):
+            names[min(a["artist_order"], 3)] = a["artist"]["name"]
+    if not names:
+        return
+    for row in table.rows:
+        if not row.cells:
+            continue
+        cell = row.cells[-1]
+        label = cell.text.strip()
+        if not label:
+            continue
+        tokens = [int(t) for t in _ARTIST_TOKEN.findall(label)]
+        if tokens and all(t in names for t in tokens):
+            # every position in this label is played — substitute in place so
+            # the row's own punctuation and spacing survive untouched
+            new = _ARTIST_TOKEN.sub(lambda m: names[int(m.group(1))], label)
+        elif tokens:
+            # part (or all) of this row belongs to a position nobody plays. A
+            # row with a time keeps its real half; a row with no time at all
+            # goes blank rather than leaving an orphaned "Changeover" behind.
+            if not row.cells[0].text.strip():
+                new = ""
+            else:
+                kept = [
+                    _ARTIST_TOKEN.sub(lambda m: names[int(m.group(1))], f).strip()
+                    for f in label.split("/")
+                    if not (_ARTIST_TOKEN.findall(f)
+                            and not any(int(t) in names for t in _ARTIST_TOKEN.findall(f)))
+                ]
+                new = " / ".join(k for k in kept if k)
+        else:
+            continue              # Crew Call, Load Out, Curfew — nobody's row
+        if new != label:
+            set_cell(cell, new)
+
+
 def fill_crew_schedule(doc, event, acts=None):
     """The day-of crew table (Crew Call / per-artist Load-In & Sound Check /
     Starts / Set Ends / Load Out / Curfew).
@@ -804,6 +898,7 @@ def fill_crew_schedule(doc, event, acts=None):
             new_row = table.rows[-1]
             set_cell(new_row.cells[0], time_value)
             set_cell(new_row.cells[-1], label)
+        name_schedule_labels(table, acts)
         return
     # No locked schedule: fill the template's own labelled rows from the event's
     # derived times. Crew Call and Curfew come from the staffing sheet's Event
@@ -836,6 +931,7 @@ def fill_crew_schedule(doc, event, acts=None):
         val = event_level.get(norm(label)) or _schedule_row_value(label, per_artist)
         if val:
             set_cell(r.cells[0], val)
+    name_schedule_labels(table, acts)
 
 
 def _consoles_text(event):
@@ -981,11 +1077,11 @@ def build(event_id, template=None, stageplot_names=None):
     def _col(a):
         return _act_col(a, n)
 
-    # act-name header row: bold label already printed by the template
-    # (ARTIST 1:/ARTIST 2:/ARTIST 3:), second paragraph is the blank line for
-    # the actual artist name. Always present, even for a single artist — the
-    # universal template has no separate "Band:" line the way the old retired
-    # templates did.
+    # act-name header row, three lines (Brian, 2026-09-15): the bold label the
+    # template already prints (ARTIST 1:/ARTIST 2:/ARTIST 3:), then the artist's
+    # name on the template's own blank second line, then their set time. The
+    # third line is added here — the template has no paragraph for it — cloned
+    # from the name line so it inherits that cell's font and spacing.
     for r in grid.rows:
         if r.cells and r.cells[0].text.strip() == "" and any(
                 c.paragraphs and c.paragraphs[0].runs and c.paragraphs[0].runs[0].bold
@@ -999,6 +1095,7 @@ def build(event_id, template=None, stageplot_names=None):
                     if a.get("_cancelled"):
                         label = f"CANCELLED — {label}"
                     set_para_text(r.cells[ci].paragraphs[1], label)
+                    set_para_text(_third_line(r.cells[ci]), set_time_range(a))
             break
 
     rows_by_label = act_columns(grid, n)
