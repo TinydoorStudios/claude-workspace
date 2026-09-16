@@ -1010,6 +1010,77 @@ def _series_by_venue():
     return ordered
 
 
+def _record_booking_band_answers(f, files, data, existing_artist_id=None):
+    """A staffer filled in the band's own questions right on the booking form
+    (Brian, 2026-09-16). Builds the same `rec` shape /submit would from a real
+    submission and calls record_submission — one system, not two: the answer
+    reaches search, the day-sheet and the doc exactly the way a band's own
+    submission does.
+
+    No-ops (returns None) when none of those fields were touched, and when the
+    touched values exactly match the artist's newest submission already on
+    file — so re-saving a booking's schedule doesn't quietly file a duplicate
+    "the band submitted again" row every time. Never raises: a failure here
+    must not undo the booking save that already happened."""
+    posted = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_BAND_ANSWER_FIELDS}
+    upload = files.get("stage_plot_file")
+    has_upload = bool(upload and upload.filename)
+    if not any(posted.values()) and not has_upload:
+        return None
+    if not DB_OK:
+        return None
+    try:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            artist = (advance_db.get_artist(cur, existing_artist_id) if existing_artist_id
+                     else advance_db.find_artist_by_name(cur, data.get("artist_name")))
+            if artist:
+                prior = advance_db.newest_submission(cur, artist["id"])
+                prior_data = (prior or {}).get("data") or {}
+
+                def _prior_value(k):
+                    v = prior_data.get(k)
+                    if v not in (None, ""):
+                        return str(v).strip()
+                    v = (prior or {}).get(k)
+                    if isinstance(v, bool):  # own_iems / merch are BOOLEAN in that column
+                        v = "Yes" if v else "No"
+                    return str(v or "").strip()
+
+                if not has_upload and all(
+                        posted.get(k, "") == _prior_value(k)
+                        for k in advance_db.BOOKING_BAND_ANSWER_FIELDS):
+                    return None  # nothing actually changed since the last answer on file
+    except Exception as e:  # noqa: BLE001
+        _log_db_error("booking_band_answers_precheck", e)
+
+    rec = dict(posted)
+    rec["band_name"] = data.get("artist_name") or ""
+    rec["venue"] = data.get("venue") or ""
+    rec["show_date"] = data.get("event_date") or ""
+    rec["show_series"] = data.get("series") or ""
+    rec["contact_name"] = data.get("contact_name") or ""
+    rec["contact_email"] = data.get("contact_email") or ""
+    rec["_submitted_at"] = dt.datetime.now().isoformat(timespec="seconds")
+    rec["_staff_edit"] = True
+    rec = {k: v for k, v in rec.items() if v not in (None, "")}
+
+    file_info = None
+    if has_upload:
+        stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+        safe = secure_filename(upload.filename)
+        stored = f"{stamp}__{_slug(rec['band_name'])}__{safe}"
+        dest = UPLOADS / stored
+        upload.save(dest)
+        rec["stage_plot_file"] = stored
+        file_info = {"filename": upload.filename, "stored_name": stored,
+                    "mime": upload.mimetype, "size": dest.stat().st_size if dest.exists() else None}
+    try:
+        return advance_db.record_submission(rec, file_info=file_info, source="staff")
+    except Exception as e:  # noqa: BLE001
+        _log_db_error("booking_band_answers", e)
+        return None
+
+
 def _manual_fill_link(data):
     """Link to the band's own full advance form for a manual-entry booking
     (skip_welcome_email). Same signed-token/short-link shape as the
@@ -1063,6 +1134,26 @@ def _booking_row_to_form(b):
     hhmm = _clock_to_hhmm(form.get("event_end"))
     if hhmm:
         form["set_end"] = hhmm
+    # Band's own answers (2026-09-16): prefill from whatever's already on
+    # file, the same way the band's own form prefills a returning artist —
+    # reopening this booking shows what was last recorded, not a blank slate.
+    if DB_OK:
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                artist = advance_db.find_artist_by_name(cur, b.get("artist_name"))
+                sub = advance_db.newest_submission(cur, artist["id"]) if artist else None
+            if sub:
+                sub_data = sub.get("data") or {}
+                for k in advance_db.BOOKING_BAND_ANSWER_FIELDS:
+                    v = sub_data.get(k)
+                    if v in (None, "") and sub.get(k) is not None:
+                        v = sub.get(k)          # promoted column fallback
+                        if isinstance(v, bool):  # own_iems / merch are BOOLEAN there
+                            v = "Yes" if v else "No"
+                    if v not in (None, ""):
+                        form[k] = str(v)
+        except Exception as e:  # noqa: BLE001
+            _log_db_error("booking_band_answers_prefill", e)
     return form
 
 
@@ -1175,6 +1266,7 @@ def booking():
                 _log_db_error("insert_booking", e)
         if not saved:
             return _booking_form("Couldn't save — the database is unreachable. Try again shortly.", f, 503)
+        band_answers_saved = _record_booking_band_answers(f, request.files, data) is not None
         _notify_email("booking", data)
         show_date = advance_db.to_date(data.get("event_date"))
         days_out = (show_date - dt.date.today()).days if show_date else None
@@ -1187,9 +1279,15 @@ def booking():
         # staff fill the form themselves for a manual advance, and for a
         # 3rd-party booking the band isn't emailed about
         silent_third = advance_db.is_third_party(data["series"]) and not data["band_emails"]
-        fill_link = _manual_fill_link(data) if (data["skip_welcome_email"] or silent_third) else None
+        # The fill-later link is only worth showing if the answers weren't
+        # already entered right here (Brian, 2026-09-16 — the band's own
+        # questions are now on this page, so the two-step "save, then click a
+        # link to a second form" path is the fallback, not the default).
+        fill_link = (_manual_fill_link(data)
+                    if (data["skip_welcome_email"] or silent_third) and not band_answers_saved
+                    else None)
         return render_template("booking.html", venues=forms_config.VENUES,
-                               saved=data, urgent=urgent,
+                               saved=data, urgent=urgent, band_answers_saved=band_answers_saved,
                                fill_link=fill_link, silent_third=silent_third)
     return _booking_form(form={})[0]
 
@@ -1263,11 +1361,12 @@ def booking_edit(booking_id):
             _log_db_error("update_booking", e)
             return _booking_form("Couldn't save — the database is unreachable. Try again shortly.",
                                  f, 503, booking_id)
+        band_answers_saved = _record_booking_band_answers(f, request.files, data) is not None
         show_date = advance_db.to_date(data.get("event_date"))
         scope = f"{data['venue']}|{show_date.isoformat()}" if show_date else None
         _run_pipeline_background(scope)
         return render_template("booking.html", venues=forms_config.VENUES,
-                               saved=data, urgent=False,
+                               saved=data, urgent=False, band_answers_saved=band_answers_saved,
                                edited=True, edit_changes=changes, will_notify=will_notify,
                                edit_booking_id=booking_id)
     return _booking_form(form=_booking_row_to_form(existing), edit_booking_id=booking_id)[0]

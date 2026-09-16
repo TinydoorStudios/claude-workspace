@@ -38,6 +38,7 @@
 {% if edited %}
   <div class="banner ok">
     Booking updated: <strong>{{ saved.artist_name }}</strong>{% if saved.event_name %} — {{ saved.event_name }}{% endif %}{% if saved.venue %} @ {{ saved.venue }}{% endif %}{% if saved.event_date %} ({{ saved.event_date }}){% endif %}.
+    {% if band_answers_saved %}Their answers were recorded too — same as if they'd submitted the form themselves.{% endif %}
   </div>
   <div class="card">
     {% if edit_changes %}
@@ -61,6 +62,7 @@
 {% elif saved %}
   <div class="banner ok">
     Booking logged: <strong>{{ saved.artist_name }}</strong>{% if saved.event_name %} — {{ saved.event_name }}{% endif %}{% if saved.venue %} @ {{ saved.venue }}{% endif %}{% if saved.event_date %} ({{ saved.event_date }}){% endif %}.
+    {% if band_answers_saved %}Their answers were recorded too — same as if they'd submitted the form themselves.{% endif %}
   </div>
   {% if fill_link %}
   <div class="card" style="border-color:rgba(77,163,255,.4)">
@@ -121,7 +123,7 @@
 {% else %}
   {% if error %}<div class="banner err">{{ error }}</div>{% endif %}
   <div class="card">
-  <form method="post" action="{{ url_for('booking_edit', booking_id=edit_booking_id) if edit_booking_id else url_for('booking') }}">
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('booking_edit', booking_id=edit_booking_id) if edit_booking_id else url_for('booking') }}">
     {% set flat_series = [] %}
     {% for v, opts in series_by_venue.items() %}{% for s in opts %}{% set _ = flat_series.append(s) %}{% endfor %}{% endfor %}
     {% for s in standalone_series %}{% set _ = flat_series.append(s) %}{% endfor %}
@@ -217,6 +219,74 @@
       </div>
       <div style="margin-top:14px"><label>Email Note (personal line for this band's advance email)</label>
         <textarea name="email_note" placeholder="e.g. Great to have you back — same backline as last time?">{{ form.email_note or '' }}</textarea>
+      </div>
+    </details>
+
+    <details id="band_answers" {% if form.monitors or form.own_engineer or form.stage_plot_desc %}open{% endif %}>
+      <summary>Band's own answers (optional — everything a band would answer on their own form, so a booking they emailed or called in doesn't need a second pass)</summary>
+      <p class="hint" style="margin-top:0">Nothing here is required — fill in whatever they told you. Saving creates the same record their own submission would, so it reaches search, the day-sheet and the doc exactly the same way.</p>
+      <div class="grid2">
+        <div><label>Contact Phone</label><input name="contact_phone" value="{{ form.contact_phone or '' }}"></div>
+        <div><label>Performers</label><input type="number" name="performers" min="1" step="1" value="{{ form.performers or '' }}"></div>
+        <div><label>Stage Type</label>
+          <select name="stage_type">
+            <option value="" {% if not form.stage_type %}selected{% endif %}>—</option>
+            <option value="Flat stage" {% if form.stage_type=='Flat stage' %}selected{% endif %}>Flat stage</option>
+            <option value="Drum riser" {% if form.stage_type=='Drum riser' %}selected{% endif %}>Drum riser (if available)</option>
+          </select>
+        </div>
+        <div><label>Monitors</label><input type="number" name="monitors" min="0" step="1" value="{{ form.monitors or '' }}"></div>
+        <div><label>Uses IEMs</label>
+          <select name="uses_iems" id="uses_iems_select" onchange="onUsesIemsChange()">
+            <option value="" {% if not form.uses_iems %}selected{% endif %}>—</option>
+            <option value="Yes" {% if form.uses_iems=='Yes' %}selected{% endif %}>Yes</option>
+            <option value="No" {% if form.uses_iems=='No' %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div id="iem_count_field"><label>Number of IEMs</label><input type="number" name="iem_count" min="1" step="1" value="{{ form.iem_count or '' }}"></div>
+        <div id="own_iems_field"><label>Own IEM System</label>
+          <select name="own_iems">
+            <option value="" {% if not form.own_iems %}selected{% endif %}>—</option>
+            <option value="Yes" {% if form.own_iems=='Yes' %}selected{% endif %}>Yes</option>
+            <option value="No" {% if form.own_iems=='No' %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div id="split_field"><label>Split Snake</label>
+          <select name="split_snake">
+            <option value="" {% if not form.split_snake %}selected{% endif %}>—</option>
+            <option value="Yes" {% if form.split_snake=='Yes' %}selected{% endif %}>Yes</option>
+            <option value="No" {% if form.split_snake=='No' %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div><label>Own Engineer</label>
+          <select name="own_engineer">
+            <option value="" {% if not form.own_engineer %}selected{% endif %}>—</option>
+            <option value="No — use house engineers" {% if form.own_engineer=='No — use house engineers' %}selected{% endif %}>No — use house engineers</option>
+            <option value="Yes — bringing our own (we'll coordinate)" {% if form.own_engineer=="Yes — bringing our own (we'll coordinate)" %}selected{% endif %}>Yes — bringing their own</option>
+          </select>
+        </div>
+        <div><label>Merch</label>
+          <select name="merch">
+            <option value="" {% if not form.merch %}selected{% endif %}>—</option>
+            <option value="Yes" {% if form.merch=='Yes' %}selected{% endif %}>Yes</option>
+            <option value="No" {% if form.merch=='No' %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div><label>Dressing Room Tent</label>
+          <select name="band_tent">
+            <option value="" {% if not form.band_tent %}selected{% endif %}>—</option>
+            <option value="Yes, please provide the tent" {% if form.band_tent=='Yes, please provide the tent' %}selected{% endif %}>Yes, please provide it</option>
+            <option value="No, not needed" {% if form.band_tent=='No, not needed' %}selected{% endif %}>No, not needed</option>
+          </select>
+        </div>
+        <div><label>Vehicle Count</label><input type="number" name="vehicle_count" min="0" step="1" value="{{ form.vehicle_count or '' }}"></div>
+        <div><label>Large Vehicle Count</label><input type="number" name="large_vehicle_count" min="0" step="1" value="{{ form.large_vehicle_count or '' }}"></div>
+        <div class="full"><label>Backline</label><textarea name="backline">{{ form.backline or '' }}</textarea></div>
+        <div class="full"><label>Scenic Notes</label><textarea name="scenic">{{ form.scenic or '' }}</textarea></div>
+        <div class="full"><label>Lighting Notes</label><textarea name="lighting">{{ form.lighting or '' }}</textarea></div>
+        <div class="full"><label>Stage Plot — description or link</label><textarea name="stage_plot_desc">{{ form.stage_plot_desc or '' }}</textarea></div>
+        <div class="full"><label>Stage Plot — file</label><input type="file" name="stage_plot_file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx"></div>
+        <div class="full"><label>Additional Info</label><textarea name="additional">{{ form.additional or '' }}</textarea></div>
       </div>
     </details>
 
@@ -369,6 +439,13 @@
     draftOnly.closest('label').style.opacity = manual ? '0.45' : '';
   }
   onManualChange();
+  function onUsesIemsChange() {
+    var yes = document.getElementById('uses_iems_select').value === 'Yes';
+    ['iem_count_field', 'own_iems_field', 'split_field'].forEach(function (id) {
+      document.getElementById(id).style.display = yes ? '' : 'none';
+    });
+  }
+  onUsesIemsChange();
   </script>
 {% endif %}
 </div>

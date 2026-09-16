@@ -1191,6 +1191,20 @@ SHEET_OWNED_FIELDS = [
     "contact_email", "email_note",
 ]
 
+# The band's OWN answers, addable straight from the booking form (Brian,
+# 2026-09-16: "I should be able to enter all of the same information as if...
+# from the band's side"). Same field names /submit expects from a real band
+# submission, so a value typed here goes through record_submission exactly
+# the way the band's own form would — same table, same daysheet/doc path, no
+# second system to keep in sync. contact_name/contact_email are the booking's
+# own fields already; contact_phone is band-only, added here.
+BOOKING_BAND_ANSWER_FIELDS = [
+    "contact_phone", "performers", "stage_type", "monitors", "uses_iems",
+    "iem_count", "own_iems", "split_snake", "own_engineer", "merch",
+    "band_tent", "vehicle_count", "large_vehicle_count", "backline",
+    "scenic", "lighting", "stage_plot_desc", "additional",
+]
+
 # Fields a band actually sees/relies on, vs. staff-facing bookkeeping
 # (contact info, entered_by, email_note, lead/paying-band, series, event
 # name, band_count). Changing one of these on an already-logged booking is
