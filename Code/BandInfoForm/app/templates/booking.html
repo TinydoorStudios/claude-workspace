@@ -185,6 +185,11 @@
         <span>Manual band advance</span>
       </label>
       <p class="hint" style="margin:6px 0 0 25px">Band already emailed their info directly — no automated welcome email, you'll fill in their form yourself.</p>
+      <label style="display:flex;align-items:flex-start;gap:9px;text-transform:none;font-weight:400;letter-spacing:normal;color:#e6edf3;font-size:14px;cursor:pointer;margin-top:12px">
+        <input type="checkbox" name="draft_only" id="draft_only" style="width:auto;margin-top:2px" {% if form.draft_only %}checked{% endif %}>
+        <span>Draft the advance email — don't send it</span>
+      </label>
+      <p class="hint" style="margin:6px 0 0 25px">The welcome lands in Production@3cdc.org as a draft for you to review and send by hand. Nothing else about the booking changes, and no reminders go out to this band until the box is cleared.</p>
     </div>
     <div><label>Set Length</label><input name="set_time" id="set_time_input" value="{{ form.set_time or '' }}" placeholder="e.g. 60 min" oninput="scheduleTouched.set_time_input=true"></div>
     <p class="hint">More than one artist on the bill? Log each one separately with the same event name, date, and venue. Set Start puts them in order on the paperwork — earliest is Artist 1 — so nothing here asks who opens or how many are playing.</p>
@@ -356,6 +361,12 @@
     document.getElementById('event_name_input').required = third;
     document.getElementById('event_name_field').classList.toggle('req', third);
     document.getElementById('event_name_hint').textContent = third ? 'Required for a 3rd-party event.' : 'Optional.';
+    // "Manual band advance" means no welcome email exists at all, so there is
+    // nothing to hold as a draft — the two can't both be on.
+    var draftOnly = document.getElementById('draft_only');
+    draftOnly.disabled = manual;
+    if (manual) { draftOnly.checked = false; }
+    draftOnly.closest('label').style.opacity = manual ? '0.45' : '';
   }
   onManualChange();
   </script>

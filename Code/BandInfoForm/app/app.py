@@ -573,6 +573,49 @@ def _send_internal_email(subject, html, to=None):
     return mailer.alert(subject, html, to=to)
 
 
+def _create_outlook_draft(to, subject, body=None, html=None, attachments=None, timeout=30):
+    """(ok, error, web_link) — put a message in Production@3cdc.org's drafts
+    instead of sending it. The single draft path, shared by the artist page's
+    "Email band" button and by a booking flagged "draft, don't send"
+    (bookings.draft_only — Brian, 2026-09-15).
+
+    Mirrors mailer.send's payload shape, attachments included, so a drafted
+    welcome carries the same venue load-in doc and tech pack a sent one would.
+    Honours the same two kill switches as a real send: a draft nobody asked for
+    is as unwelcome in a staging run as an email."""
+    if os.environ.get("ADVANCE_MAIL_DISABLED") == "1":
+        return False, "mail disabled", None
+    if (os.environ.get("ADVANCE_STAGING") == "1"
+            and not CREATE_DRAFT_URL.startswith("http://127.0.0.1:8199")):
+        return False, "staging refuses non-stub url", None
+    content = html if html else (body or "")
+    if not str(content).strip():
+        return False, "empty body", None
+    payload = {"to": to, "subject": subject}
+    payload["html" if html else "body"] = content
+    att = list(attachments or [])
+    if att:
+        payload["attachment_name"], payload["attachment_type"], payload["attachment_content"] = att[0]
+        if len(att) > 1:
+            payload["attachments"] = [{"name": n, "type": t, "content": c} for n, t, c in att[1:]]
+    try:
+        import urllib.request
+        req = urllib.request.Request(
+            CREATE_DRAFT_URL, data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            raw = json.loads(resp.read().decode("utf-8", "replace") or "{}")
+    except Exception as e:  # noqa: BLE001
+        return False, repr(e)[:200], None
+    if isinstance(raw, list):
+        raw = raw[0] if raw else {}
+    gbody = raw.get("body") if isinstance(raw, dict) else None
+    status = raw.get("statusCode") if isinstance(raw, dict) else None
+    if status in (200, 201) and isinstance(gbody, dict) and gbody.get("id"):
+        return True, None, gbody.get("webLink")
+    return False, f"draft not created (HTTP {status}): {str(gbody)[:200]}", None
+
+
 def _run_pipeline_background(scope=None):
     """Kick off run_now.py in the background — never blocks or risks the request
     it's called from. Detached (start_new_session) so it outlives this worker.
@@ -1009,6 +1052,7 @@ def _booking_row_to_form(b):
         form["event_date"] = b["event_date"].isoformat()
     form["skip_welcome_email"] = bool(b.get("skip_welcome_email"))
     form["band_emails"] = bool(b.get("band_emails"))
+    form["draft_only"] = bool(b.get("draft_only"))
     # Set Start/Set End (2026-09-15) predate this booking if it's older than
     # the feature — back-fill them from the existing Start/End so editing an
     # old booking doesn't get stopped by two newly-required fields it never
@@ -1082,6 +1126,7 @@ def booking():
         f = request.form
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
         data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
+        data["draft_only"] = f.get("draft_only") == "on"
         # 3rd Party: the band gets no automated email unless this is ticked
         # (Brian, 2026-09-14). Meaningless for other series — always stored off.
         data["band_emails"] = f.get("band_emails") == "on" and advance_db.is_third_party(data["series"])
@@ -1168,6 +1213,7 @@ def booking_edit(booking_id):
         f = request.form
         data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
         data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
+        data["draft_only"] = f.get("draft_only") == "on"
         data["band_emails"] = f.get("band_emails") == "on" and advance_db.is_third_party(data["series"])
         if not data["entered_by"]:
             return _booking_form("Who's entering this is required.", f, 400, booking_id)
@@ -1200,7 +1246,18 @@ def booking_edit(booking_id):
                         f"{taken} already starts at {data['event_start']} on "
                         f"{data['event_date']} — set start decides the running order, "
                         f"so two artists can't share one.", f, 409, booking_id)
+                was_draft_only = bool((advance_db.get_booking(cur, booking_id) or {}).get("draft_only"))
                 changes, will_notify = advance_db.update_booking(cur, booking_id, data)
+                # Clearing "draft, don't send" releases the hold: the welcome
+                # sitting in drafts stops being the reason this show is quiet,
+                # and the next lifecycle run sends it for real (Brian,
+                # 2026-09-15). Ticking it on an already-sent show does nothing
+                # — advance_draft_created_at is what that query gates on.
+                if was_draft_only and not data["draft_only"]:
+                    show = advance_db.find_show(cur, data["artist_name"], data["venue"],
+                                                advance_db.to_date(data["event_date"]))
+                    if show:
+                        advance_db.clear_advance_held_draft(cur, show["id"])
                 conn.commit()
         except Exception as e:
             _log_db_error("update_booking", e)
@@ -1500,24 +1557,12 @@ def draft_reply(artist_id, show_id):
         result["error"] = "no contact email on file"
     else:
         subject, body = _build_reply_draft(show, artist, sub or {})
-        try:
-            import urllib.request
-            req = urllib.request.Request(
-                CREATE_DRAFT_URL, data=json.dumps({"to": to, "subject": subject, "body": body}).encode(),
-                headers={"Content-Type": "application/json", "X-Advance-Token": INTERNAL_TOKEN})
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                raw = json.loads(resp.read().decode("utf-8", "replace") or "{}")
-            if isinstance(raw, list):
-                raw = raw[0] if raw else {}
-            gbody = raw.get("body") if isinstance(raw, dict) else None
-            status = raw.get("statusCode") if isinstance(raw, dict) else None
-            if status in (200, 201) and isinstance(gbody, dict) and gbody.get("id"):
-                result.update(ok=True, link=gbody.get("webLink"), to=to)
-            else:
-                result["error"] = f"draft not created (HTTP {status}): {str(gbody)[:200]}"
-        except Exception as e:  # noqa: BLE001
-            result["error"] = repr(e)[:200]
-            _log_db_error("draft_reply", e)
+        ok, err, link = _create_outlook_draft(to, subject, body=body)
+        if ok:
+            result.update(ok=True, link=link, to=to)
+        else:
+            result["error"] = err
+            _log_db_error("draft_reply", RuntimeError(err or "draft failed"))
     if wants_json:
         return result, (200 if result["ok"] else 502)
     q = ("drafted=1" if result["ok"] else "draft_error=" + quote(result["error"] or "failed"))
@@ -1881,6 +1926,7 @@ def advance_lifecycle():
     lock_conn = advance_db.get_conn()
     lock_conn.autocommit = True
     initial, followup, failures, dayahead, booking_updates = [], [], 0, [], []
+    held_drafts = []
     drafts_dir = None
     try:
         lock_conn.execute("SELECT pg_advisory_lock(%s)", (LIFECYCLE_LOCK_KEY,))
@@ -1950,6 +1996,24 @@ def advance_lifecycle():
                 text = hits[0].read_text()
                 subj_line, _, body = text.partition("\n")
                 subject = subj_line.removeprefix("Subject:").strip()
+                # "Draft the advance email, don't send it" (Brian, 2026-09-15):
+                # the welcome lands in Production@3cdc.org's drafts and a human
+                # sends it. The show is NOT stamped as advanced — the band
+                # hasn't been contacted — so the reminder cadence stays shut
+                # until the box is cleared. See advance_db.mark_advance_held_as_draft.
+                if r.get("draft_only"):
+                    ok, err, link = _create_outlook_draft(
+                        r["email"], subject, body=body.lstrip("\n"),
+                        attachments=ve.venue_attachments(r["venue"]))
+                    if not ok:
+                        fail(r["show_id"], "welcome_draft", err)
+                        continue
+                    with advance_db.get_conn() as conn, conn.cursor() as cur:
+                        advance_db.mark_advance_held_as_draft(cur, r["show_id"])
+                        conn.commit()
+                    held_drafts.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
+                                        "show_date": us_date(r["show_date"]), "link": link})
+                    continue
                 ok, err = _send_outlook_email(r["email"], subject, body=body.lstrip("\n"),
                                               attachments=ve.venue_attachments(r["venue"]))
                 if not ok:
@@ -2082,7 +2146,8 @@ def advance_lifecycle():
         _email_send_failures()
     except Exception as e:
         _log_db_error("advance_lifecycle", e)
-        return {"error": e.__class__.__name__, "initial": initial, "followup": followup}, 500
+        return {"error": e.__class__.__name__, "initial": initial, "followup": followup,
+                "held_drafts": held_drafts}, 500
     finally:
         try:
             lock_conn.execute("SELECT pg_advisory_unlock(%s)", (LIFECYCLE_LOCK_KEY,))
@@ -2094,7 +2159,7 @@ def advance_lifecycle():
             _shutil.rmtree(drafts_dir, ignore_errors=True)
 
     return {"initial": initial, "followup": followup, "dayahead": dayahead,
-            "booking_updates": booking_updates,
+            "held_drafts": held_drafts, "booking_updates": booking_updates,
             "unresponded_alert_sent": unresponded_sent, "failures": failures}
 
 

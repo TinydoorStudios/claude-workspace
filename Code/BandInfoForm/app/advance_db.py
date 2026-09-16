@@ -253,7 +253,8 @@ def shows_due_for_initial_advance(cur):
                   b.event_start AS event_start, b.event_end AS event_end,
                   b.curfew AS curfew, b.set_time AS set_time,
                   b.email_note AS email_note,
-                  b.contact_name AS contact_name, b.contact_email AS booking_contact_email
+                  b.contact_name AS contact_name, b.contact_email AS booking_contact_email,
+                  COALESCE(b.draft_only, false) AS draft_only
            FROM shows s JOIN artists a ON a.id = s.artist_id
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                   AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
@@ -265,6 +266,10 @@ def shows_due_for_initial_advance(cur):
              AND s.show_date >= CURRENT_DATE
              AND s.show_date <= CURRENT_DATE + 21
              AND b.skip_welcome_email IS NOT TRUE
+             -- a "draft, don't send" welcome that's already sitting in the
+             -- drafts folder isn't due again; un-ticking the box clears the
+             -- stamp and this picks the show straight back up
+             AND s.advance_held_draft_at IS NULL
              AND NOT """ + THIRD_PARTY_SILENT_SQL + """
            ORDER BY s.id, b.id DESC NULLS LAST"""
     )
@@ -352,6 +357,24 @@ def mark_advance_drafted(cur, show_id):
         "UPDATE shows SET advance_draft_created_at = COALESCE(advance_draft_created_at, now()) "
         "WHERE id = %s", (show_id,),
     )
+
+
+def mark_advance_held_as_draft(cur, show_id):
+    """The welcome was put in Production@3cdc.org's drafts instead of sent
+    (bookings.draft_only — Brian, 2026-09-15). Deliberately does NOT stamp
+    advance_draft_created_at: that column means the band has been contacted,
+    and nobody has been. This stamp only stops the lifecycle from building the
+    same draft again tomorrow morning."""
+    cur.execute(
+        "UPDATE shows SET advance_held_draft_at = COALESCE(advance_held_draft_at, now()) "
+        "WHERE id = %s", (show_id,),
+    )
+
+
+def clear_advance_held_draft(cur, show_id):
+    """Un-ticking "draft, don't send" puts the show back in the normal queue —
+    the next lifecycle run sends the welcome for real."""
+    cur.execute("UPDATE shows SET advance_held_draft_at = NULL WHERE id = %s", (show_id,))
 
 
 def mark_followup_sent(cur, show_id, days_before=7, sent=True):
@@ -870,6 +893,23 @@ def get_show(cur, show_id):
     return cur.fetchone()
 
 
+def show_for_booking(cur, artist_name, venue, show_date):
+    r"""The show row a booking belongs to — artist matched on the same
+    normalization every other booking/show join in this file uses (match_key),
+    so a stray capital or double space can't miss it. None if the pipeline
+    hasn't created the show yet."""
+    if not (artist_name and venue and show_date):
+        return None
+    cur.execute(
+        r"""SELECT s.* FROM shows s JOIN artists a ON a.id = s.artist_id
+            WHERE a.match_key = lower(btrim(regexp_replace(%s, '\s+', ' ', 'g')))
+              AND s.venue = %s AND s.show_date = %s
+            ORDER BY s.id DESC LIMIT 1""",
+        (artist_name, venue, show_date),
+    )
+    return cur.fetchone()
+
+
 def show_state(cur, show_id):
     """This show's current computed state from advance_status, or None if the
     id doesn't exist. Used by the finalize endpoint to re-check server-side
@@ -1099,8 +1139,10 @@ def insert_booking(cur, data: dict):
             vals["event_date"] = None
     vals["skip_welcome_email"] = bool(data.get("skip_welcome_email"))
     vals["band_emails"] = bool(data.get("band_emails"))
-    cols = ", ".join(BOOKING_FIELDS) + ", skip_welcome_email, band_emails"
-    ph = ", ".join(f"%({k})s" for k in BOOKING_FIELDS) + ", %(skip_welcome_email)s, %(band_emails)s"
+    vals["draft_only"] = bool(data.get("draft_only"))
+    cols = ", ".join(BOOKING_FIELDS) + ", skip_welcome_email, band_emails, draft_only"
+    ph = (", ".join(f"%({k})s" for k in BOOKING_FIELDS)
+          + ", %(skip_welcome_email)s, %(band_emails)s, %(draft_only)s")
     # Review 2026-09-14 (H1): one booking row per band/venue/date. A double
     # submit, a refresh that re-POSTs, or a re-entry updates the existing row
     # instead of creating a twin that would make the lifecycle send twice.
@@ -1112,7 +1154,8 @@ def insert_booking(cur, data: dict):
         f"""INSERT INTO bookings ({cols}) VALUES ({ph})
             ON CONFLICT (venue, event_date, (lower(btrim(regexp_replace(artist_name, '\\s+', ' ', 'g')))))
             DO UPDATE SET {upd}, skip_welcome_email = EXCLUDED.skip_welcome_email,
-                          band_emails = EXCLUDED.band_emails
+                          band_emails = EXCLUDED.band_emails,
+                          draft_only = EXCLUDED.draft_only
             RETURNING id""", vals)
     return cur.fetchone()["id"]
 
@@ -1157,11 +1200,13 @@ def update_booking(cur, booking_id, data: dict):
             vals["event_date"] = None
     vals["skip_welcome_email"] = bool(data.get("skip_welcome_email"))
     vals["band_emails"] = bool(data.get("band_emails"))
+    vals["draft_only"] = bool(data.get("draft_only"))
     vals["id"] = booking_id
     sets = ", ".join(f"{k} = %({k})s" for k in BOOKING_FIELDS)
     cur.execute(
         f"""UPDATE bookings SET {sets}, skip_welcome_email = %(skip_welcome_email)s,
-                                 band_emails = %(band_emails)s
+                                 band_emails = %(band_emails)s,
+                                 draft_only = %(draft_only)s
             WHERE id = %(id)s""", vals)
 
     changes = {}
@@ -1571,6 +1616,24 @@ def needs_attention(cur):
                     "detail": f"{n['venue']} {n['event_date']:%m/%d} · {n['n']} field(s): {n['fields'][:120]}",
                     "link_path": f"/doc-review?venue={quote(n['venue'])}&date={n['event_date'].isoformat()}",
                     "since": n["since"]})
+    # Welcomes held as a draft (bookings.draft_only — Brian, 2026-09-15). This
+    # panel is the only thing that surfaces them: a held show is deliberately
+    # silent, no reminders fire, so without a line here a draft nobody sent
+    # would just sit in Outlook until the show arrived.
+    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date,
+                          s.advance_held_draft_at
+                   FROM shows s JOIN artists a ON a.id=s.artist_id
+                   WHERE s.advance_held_draft_at IS NOT NULL
+                     AND s.advance_draft_created_at IS NULL
+                     AND s.cancelled_at IS NULL AND s.held_at IS NULL
+                     AND s.responded_at IS NULL
+                     AND s.show_date >= CURRENT_DATE
+                   ORDER BY s.show_date""")
+    for r in cur.fetchall():
+        out.append({"kind": "heldraft", "label": "Advance drafted, not sent",
+                    "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: "
+                              f"waiting in Production@3cdc.org drafts",
+                    "link_path": f"/artist/{r['artist_id']}", "since": r["advance_held_draft_at"]})
     cur.execute("""SELECT f.*, a.name, s.venue, s.show_date FROM send_failures f
                    JOIN shows s ON s.id=f.show_id JOIN artists a ON a.id=s.artist_id
                    WHERE f.created_at > now() - interval '3 days' AND s.show_date >= CURRENT_DATE

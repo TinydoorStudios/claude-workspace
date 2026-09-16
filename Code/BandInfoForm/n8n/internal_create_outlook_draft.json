@@ -51,7 +51,7 @@
         "genericAuthType": "oAuth2Api",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify((() => { const b = $json.body || $json; const recips = b.to ? [ { emailAddress: { address: b.to } } ] : []; const raw = b.html || b.body || ''; const msg = { subject: b.subject, body: { contentType: b.html ? 'HTML' : 'Text', content: raw }, toRecipients: recips }; if (b.attachment_content) { msg.attachments = [ { '@odata.type': '#microsoft.graph.fileAttachment', name: b.attachment_name || 'attachment', contentType: b.attachment_type || 'application/octet-stream', contentBytes: b.attachment_content } ]; } return msg; })()) }}",
+        "jsonBody": "={{ JSON.stringify((() => { const b = $json.body || $json; const recips = b.to ? [ { emailAddress: { address: b.to } } ] : []; const raw = b.html || b.body || ''; const msg = { subject: b.subject, body: { contentType: b.html ? 'HTML' : 'Text', content: raw }, toRecipients: recips }; const atts = []; if (b.attachment_content) { atts.push({ '@odata.type': '#microsoft.graph.fileAttachment', name: b.attachment_name || 'attachment', contentType: b.attachment_type || 'application/octet-stream', contentBytes: b.attachment_content }); } for (const x of (Array.isArray(b.attachments) ? b.attachments : [])) { if (x && x.content) { atts.push({ '@odata.type': '#microsoft.graph.fileAttachment', name: x.name || 'attachment', contentType: x.type || 'application/octet-stream', contentBytes: x.content }); } } if (atts.length) { msg.attachments = atts; } return msg; })()) }}",
         "options": {
           "response": {
             "response": {
