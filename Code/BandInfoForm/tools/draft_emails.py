@@ -423,7 +423,8 @@ def main():
 
             last_rows = summarize_submission(prior) if returning else []
             personal_note_en = (r.get("email_note") or "").strip()
-            blocks_en = ve.blocks_for(venue, series=series, **email_extra)
+            blocks_en = ve.blocks_for(venue, series=series, third_party=db.is_third_party(series),
+                                      **email_extra)
             if not day_of_contact:
                 blocks_en = ve.without_text_on_arrival(blocks_en, lang="en")
             ctx = dict(
@@ -453,7 +454,8 @@ def main():
                 # the English half above already carries both, nothing is
                 # lost by not duplicating them here untranslated.
                 ctx_es = dict(ctx)
-                blocks_es = ve.blocks_for(venue, series=series, lang="es", **email_extra)
+                blocks_es = ve.blocks_for(venue, series=series, lang="es",
+                                          third_party=db.is_third_party(series), **email_extra)
                 if not day_of_contact:
                     blocks_es = ve.without_text_on_arrival(blocks_es, lang="es")
                 ctx_es.update(
