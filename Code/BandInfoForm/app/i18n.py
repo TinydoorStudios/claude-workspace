@@ -106,7 +106,18 @@ STRINGS = {
     "stage_type_label": {"en": "Would you prefer a flat stage or a drum riser?",
                           "es": "¿Prefieren un escenario plano o una plataforma para la batería?"},
     "stage_type_flat":   {"en": "Flat stage", "es": "Escenario plano"},
-    "stage_type_riser":  {"en": "Drum riser", "es": "Plataforma para batería"},
+    # "(if available)" added 2026-09-15 (Brian). Every artist on the bill is
+    # asked now — the question used to be hidden from everyone but the
+    # headliner at FSQ — so the wording has to promise a riser to nobody while
+    # still collecting the preference. The stored VALUE stays "Drum riser": the
+    # doc's checkbox match, the sheet dropdown and the prefill selector all key
+    # on that exact string.
+    "stage_type_riser":  {"en": "Drum riser (if available)",
+                          "es": "Plataforma para batería (si está disponible)"},
+    "stage_type_help":   {"en": "The riser is set once for the night and isn't struck between "
+                                 "sets — tell us what you'd prefer and we'll get as close as we can.",
+                          "es": "La plataforma se instala una vez para toda la noche y no se retira "
+                                 "entre sets — díganos qué prefieren y nos acercaremos lo más posible."},
     "monitors_label":    {"en": "How many monitors do you need?", "es": "¿Cuántos monitores necesitan?"},
     "monitors_cap_help": {"en": "This location ({location}) is limited to {cap} monitor{plural}.",
                            "es": "Este lugar ({location}) está limitado a {cap} monitor{plural}."},

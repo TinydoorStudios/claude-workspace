@@ -21,9 +21,10 @@ Mapping (Brian, 2026-09-11):
   - Contact Email -> contact email.   Contact Phone -> contact phone if present.
   - Contact name is no longer required.
   - Only bookings dated TODAY or later are processed.
-  - Same date + series = ONE event; bands become acts, slotted by set time:
-        earliest = opener ... latest = headliner.
-  - Event Name = "<Series> - <headliner band>".
+  - Same date + series = ONE event; every artist becomes an act carrying its
+        OWN schedule, derived from its own set time. Position on the bill is
+        Artist 1/2/3, read off those times downstream — earliest plays first.
+  - Event Name = "<Series> - <last artist of the night>".
 
 Cancelled-event reconciliation is deliberately NOT handled here yet (a later
 pass). Other venues open up by adding them to LOCATION_VENUES + SERIES_STAGE.
@@ -67,11 +68,6 @@ SERIES_STAGE = {
     "Blues & Brews": "Porch",
 }
 
-SLOTS_BY_COUNT = {
-    1: ["headliner"],
-    2: ["opener", "headliner"],
-    3: ["opener", "direct_support", "headliner"],
-}
 INPUT_SHEET = "Advance List"
 
 
@@ -125,11 +121,11 @@ def shift(base_date, t, minutes):
     return (dt.datetime.combine(base_date, t) + dt.timedelta(minutes=minutes)).time()
 
 
-# Standard day, all offsets in minutes from the headliner's show start (Brian,
+# Standard day, all offsets in minutes from an act's own set time (Brian,
 # 2026-09-11): crew call -2:00, load-in -1:00, sound check -0:30, start = show
-# time, set is 3:00 long so end = +3:00, and curfew is 1:00 after the set ends
-# (+4:00). Crew call has no band-facing advance field, so it's computed for the
-# record / staffing use but not written to the email schedule.
+# time, set is 3:00 long so end = +3:00, and curfew is 1:00 after the last set
+# ends (+4:00). Crew call has no band-facing advance field, so it's computed for
+# the record / staffing use but not written to the email schedule.
 SCHED_OFFSETS = {"crew_call": -120, "load_in": -60, "soundcheck": -30,
                  "event_end": 180, "curfew": 240}
 
@@ -178,7 +174,7 @@ def load_rows(csv_path, today):
     return kept, skipped
 
 
-# ── group into events; slot by set time ───────────────────────────────────────
+# ── group into events; each act carries its own schedule ─────────────────────
 def build_events(rows):
     groups = {}
     for r in rows:
@@ -189,48 +185,46 @@ def build_events(rows):
         # order by set time (times unknown sort last but stable)
         acts.sort(key=lambda a: (a["time"] is None, a["time"] or dt.time(0, 0)))
         n = len(acts)
-        slots = SLOTS_BY_COUNT.get(n)
-        if slots is None:
-            print(f"  ! {series} @ {venue} {d}: {n} bands exceeds the 3-slot "
-                  f"model — first=opener, last=headliner, middles=direct_support",
-                  file=sys.stderr)
-            slots = ["opener"] + ["direct_support"] * (n - 2) + ["headliner"]
-        headliner = acts[-1]["artist_name"]
-        # The production day is worked backward from the HEADLINER's set time —
-        # the latest act (Brian, 2026-09-11). For a single-band night that's the
-        # only act; on a multi-band night an earlier slot is a DJ / warm-up that
-        # doesn't drive the day, so we anchor on the headliner (e.g. Neo Soul
-        # anchors on the 6PM band, not the 5PM DJ). Offsets: crew -2:00, load-in
-        # -1:00, soundcheck -0:30, start = the anchor.
-        # NOTE: this assumes earlier slots don't need their own load-in. A real
-        # opener BAND playing before the headliner would need its own timing —
-        # revisit when that case actually appears.
-        sched = {k: "" for k in ("event_start", "soundcheck", "load_in",
-                                 "crew_call", "event_end", "curfew")}
+        top_of_bill = acts[-1]["artist_name"]
+        # Every act gets its OWN load-in / sound check / start / end, worked off
+        # its own set time (Brian, 2026-09-15). Until then the whole day was
+        # anchored on the last act and that one schedule was copied onto every
+        # act row — which, now that set start decides who is Artist 1, would
+        # have given a 3-act bill three identical start times and no order at
+        # all. An earlier act's set ends when the next one starts; the last act
+        # gets the standard 3:00 set.
+        # Crew call and curfew stay event-level: crew call is 1:00 before the
+        # FIRST load-in of the day, curfew 1:00 after the last set ends.
+        for i, a in enumerate(acts):
+            t = a["time"]
+            nxt = acts[i + 1]["time"] if i + 1 < n else None
+            if not t:
+                a.update({k: "" for k in ("load_in", "soundcheck", "event_start", "event_end")})
+                continue
+            end = nxt if nxt else shift(d, t, SCHED_OFFSETS["event_end"])
+            a.update({
+                "load_in": house_time(shift(d, t, SCHED_OFFSETS["load_in"])),
+                "soundcheck": house_time(shift(d, t, SCHED_OFFSETS["soundcheck"])),
+                "event_start": house_time(t),
+                "event_end": house_time(end),
+            })
+        first_load_in = next((a["time"] for a in acts if a["time"]), None)
         anchor = acts[-1]["time"]
+        sched = {k: "" for k in ("crew_call", "curfew")}
         if anchor:
-            sched = {
-                "event_start": house_time(anchor),
-                "soundcheck": house_time(shift(d, anchor, SCHED_OFFSETS["soundcheck"])),
-                "load_in": house_time(shift(d, anchor, SCHED_OFFSETS["load_in"])),
-                "crew_call": house_time(shift(d, anchor, SCHED_OFFSETS["crew_call"])),
-                "event_end": house_time(shift(d, anchor, SCHED_OFFSETS["event_end"])),
-                "curfew": house_time(shift(d, anchor, SCHED_OFFSETS["curfew"])),
-            }
+            sched["curfew"] = house_time(shift(d, anchor, SCHED_OFFSETS["curfew"]))
+        if first_load_in:
+            sched["crew_call"] = house_time(shift(d, first_load_in, SCHED_OFFSETS["crew_call"]))
         events.append({
-            "event_name": f"{series} - {headliner}",
+            "event_name": f"{series} - {top_of_bill}",
             "event_date": d.isoformat(),
             "venue": venue,
             "location": acts[0]["location"],
             "series": series,
-            "band_count": str(n),
-            "event_start": sched["event_start"],
-            "soundcheck": sched["soundcheck"],
-            "load_in": sched["load_in"],
+            "artist_count": str(n),
             "crew_call": sched["crew_call"],
-            "event_end": sched["event_end"],
             "curfew": sched["curfew"],
-            "acts": [dict(a, slot=slots[i]) for i, a in enumerate(acts)],
+            "acts": acts,
         })
     return events
 
@@ -254,15 +248,13 @@ def act_to_cells(ev, act):
         "venue": ev["venue"],
         "location": ev["location"],
         "series": ev["series"],
-        "band_count": ev["band_count"],
-        "load_in": ev["load_in"],
-        "soundcheck": ev["soundcheck"],
-        "event_start": ev["event_start"],
-        "event_end": ev["event_end"],
+        "load_in": act.get("load_in", ""),
+        "soundcheck": act.get("soundcheck", ""),
+        "event_start": act.get("event_start", ""),
+        "event_end": act.get("event_end", ""),
         "curfew": ev["curfew"],
-        # crew_call is derived (start -2:00) but has no advance-doc field — it's
-        # a staffing/crew figure, not band-facing, so it isn't written here.
-        "slot": act["slot"],
+        # crew_call is derived (first load-in -1:00) but has no advance-doc
+        # field — a staffing/crew figure, not band-facing, so it isn't written.
         "artist_name": act["artist_name"],
         "contact_email": act["contact_email"],
         "contact_phone": act["contact_phone"],
@@ -281,7 +273,7 @@ def write_sheet(sheet_path, events, apply):
                     if _s(ws.cell(hrow, c).value) == lbl), None)
         if col:
             key_col[key] = col
-    for need in ("location", "band_count"):
+    for need in ("location",):
         if need not in key_col:
             missing_labels.append(need)
     if missing_labels:
@@ -330,17 +322,15 @@ def preview(events):
     for ev in events:
         print(f"  {ev['event_date']}  {ev['event_name']}")
         print(f"     venue={ev['venue']}  stage={ev['location'] or '(?)'}  "
-              f"series={ev['series']}  bands={ev['band_count']}")
-        if ev["event_start"]:
-            print(f"     schedule: crew {ev['crew_call']} · load-in {ev['load_in']} · "
-                  f"soundcheck {ev['soundcheck']} · start {ev['event_start']} · "
-                  f"end {ev['event_end']} · curfew {ev['curfew']}"
-                  + ("  (anchored on headliner; earlier slots are DJ/warm-up)"
-                     if int(ev["band_count"]) > 1 else ""))
-        for a in ev["acts"]:
-            print(f"       - {a['slot']:14} {a['artist_name']:24} "
+              f"series={ev['series']}  artists={ev['artist_count']}")
+        print(f"     crew call {ev['crew_call'] or '—'} · curfew {ev['curfew'] or '—'}")
+        for i, a in enumerate(ev["acts"], 1):
+            print(f"       - Artist {i:<3} {a['artist_name']:24} "
                   f"{fmt_time(a['time']) or '(no time)':9} {a['contact_email']}"
                   + (f"  {a['contact_phone']}" if a['contact_phone'] else ""))
+            if a.get("event_start"):
+                print(f"           load-in {a['load_in']} · soundcheck {a['soundcheck']} · "
+                      f"set {a['event_start']}–{a['event_end']}")
     print()
 
 
@@ -372,10 +362,11 @@ def seed_bookings(events):
                     db.insert_booking(cur, {
                         "event_name": ev["event_name"], "event_date": ev["event_date"],
                         "venue": ev["venue"], "location": ev["location"],
-                        "series": ev["series"], "band_count": ev["band_count"],
-                        "load_in": ev["load_in"], "soundcheck": ev["soundcheck"],
-                        "event_start": ev["event_start"], "event_end": ev["event_end"],
-                        "curfew": ev["curfew"], "slot": act["slot"],
+                        "series": ev["series"],
+                        "load_in": act.get("load_in", ""), "soundcheck": act.get("soundcheck", ""),
+                        "event_start": act.get("event_start", ""),
+                        "event_end": act.get("event_end", ""),
+                        "curfew": ev["curfew"],
                         "artist_name": act["artist_name"],
                         "contact_email": act["contact_email"],
                         "entered_by": "riffpay-import",

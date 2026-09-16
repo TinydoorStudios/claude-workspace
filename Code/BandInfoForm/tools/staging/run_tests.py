@@ -169,8 +169,7 @@ def submit_form(band, venue, date, monitors="3", extra=None, artist_tok=""):
 def make_booking(band, venue, date, series="Jazz on the Square", email=None, **kw):
     data = {"artist_name": band, "venue": venue, "event_date": date.isoformat(), "series": series,
             "contact_name": "Test Contact", "contact_email": email or f"{re.sub('[^a-z]', '', band.lower())}@example.test",
-            "entered_by": "tests", "band_count": "1", "slot": "headliner",
-            "set_start": "19:00", "set_end": "20:00"}
+            "entered_by": "tests", "set_start": "19:00", "set_end": "20:00"}
     data.update(kw)
     return post("/booking", data)
 
@@ -275,8 +274,8 @@ def t_lifecycle_dup():
     x("DELETE FROM bookings WHERE lower(btrim(artist_name))='twin rows band'")
     x("DROP INDEX IF EXISTS uq_bookings_ident")  # simulate the pre-fix twin rows
     for _ in range(2):
-        x("""INSERT INTO bookings (artist_name, venue, event_date, series, contact_email, entered_by, seeded_at, slot, band_count, location)
-             VALUES ('Twin Rows Band','Washington Park',%s,'Jazz At The Porch','twin@example.test','tests',now(),'headliner',1,'Porch')""", (d,))
+        x("""INSERT INTO bookings (artist_name, venue, event_date, series, contact_email, entered_by, seeded_at, event_start, location)
+             VALUES ('Twin Rows Band','Washington Park',%s,'Jazz At The Porch','twin@example.test','tests',now(),'7:00p','Porch')""", (d,))
     x("UPDATE shows SET advance_draft_created_at=NULL, responded_at=NULL WHERE id=%s", (sid,))
     x("DELETE FROM advance_reminders WHERE show_id=%s", (sid,))
     with db.get_conn() as conn, conn.cursor() as cur:
@@ -331,7 +330,7 @@ def t_attach():
     x("DELETE FROM submissions WHERE show_id=%s", (sid,))
     # staging clones live production data, so a real booking can land on the
     # same venue/date as this test's own show (H5 regression 2026-09-15,
-    # same category as t_third_party_band_emails' slot collision). The
+    # same category as t_third_party_band_emails' set-start collision). The
     # auto-attach gate this test exercises requires EXACTLY ONE unresponded
     # booking at venue+date (advance_db.unresponded_shows_at) — a coincidental
     # second real booking there turns the expected attached_auto into
@@ -466,7 +465,7 @@ def t_staff_edit():
     login()
 
 
-@test("multi-band doc: band 2 fills its column, band 1 untouched (test gap #1)")
+@test("multi-artist doc: artist 2 fills its column, artist 1 untouched (test gap #1)")
 def t_multiband():
     ev = q("""SELECT e.id, e.venue, e.event_date FROM events e
               WHERE (SELECT count(*) FROM event_acts a WHERE a.event_id=e.id) >= 2
@@ -474,9 +473,9 @@ def t_multiband():
     if not ev:
         check(True, "no multi-band event in the clone — skipped")
         return
-    acts = q("""SELECT a.name, ea.slot FROM event_acts ea JOIN artists a ON a.id=ea.artist_id
-                WHERE ea.event_id=%s ORDER BY ea.slot_order""", (ev["id"],))
-    b1, b2 = acts[0]["name"], acts[-1]["name"]
+    with db.get_conn() as conn, conn.cursor() as cur:
+        acts = [a for a in db.event_acts(cur, ev["id"]) if a.get("artist")]
+    b1, b2 = acts[0]["artist"]["name"], acts[-1]["artist"]["name"]
     before1, _ = doc_rows(ev["venue"], ev["event_date"], b1)
     st, _ = submit_form(b2, ev["venue"], ev["event_date"], monitors="9")
     check(wait_regen(), f"regen after {b2} submitted")
@@ -529,8 +528,8 @@ def t_dayahead():
     aid = db_upsert_artist("Tomorrow Test Band", "tomorrow@example.test")
     sid = db_upsert_show(aid, "Fountain Square", TODAY + dt.timedelta(days=1), series="Jazz on the Square")
     x("UPDATE shows SET responded_at=now(), dayahead_sent_at=NULL, cancelled_at=NULL, held_at=NULL WHERE id=%s", (sid,))
-    x("""INSERT INTO bookings (artist_name, venue, event_date, series, contact_email, entered_by, seeded_at, slot, band_count, load_in, event_start, curfew)
-         VALUES ('Tomorrow Test Band','Fountain Square',%s,'Jazz on the Square','tomorrow@example.test','tests',now(),'headliner',1,'5:30p','7:00p','10:00p')
+    x("""INSERT INTO bookings (artist_name, venue, event_date, series, contact_email, entered_by, seeded_at, load_in, event_start, curfew)
+         VALUES ('Tomorrow Test Band','Fountain Square',%s,'Jazz on the Square','tomorrow@example.test','tests',now(),'5:30p','7:00p','10:00p')
          ON CONFLICT DO NOTHING""", (TODAY + dt.timedelta(days=1),))
     import dayahead
     n0 = mail_count()
@@ -549,14 +548,14 @@ def t_dayahead():
 def t_booking_edit_notify():
     login()
     d = TODAY + dt.timedelta(days=10)
-    # a slot string nothing else uses (server doesn't restrict slot to
-    # BOOKING_SLOTS) — the clone is a snapshot of live bookings, so a real
-    # Fountain Square show could already hold "headliner" that day
+    # a set start nothing else uses — the clone is a snapshot of live bookings,
+    # so a real Fountain Square show could already start at 7:00p that day, and
+    # set start is what the server now refuses to double-book (audit #20)
     base = {"artist_name": "Edit Test Band", "venue": "Fountain Square", "event_date": d.isoformat(),
             "series": "Jazz on the Square", "contact_name": "Test Contact",
             "contact_email": "edittest@example.test", "entered_by": "tests",
-            "band_count": "1", "slot": "edittestslot", "event_start": "7:00p", "event_end": "10:00p",
-            "set_start": "19:00", "set_end": "22:00"}
+            "event_start": "7:04p", "event_end": "10:00p",
+            "set_start": "19:04", "set_end": "22:00"}
     st, _ = post("/booking", base)
     check(st == 200, f"booking created ({st})")
     row = q("""SELECT id FROM bookings WHERE lower(btrim(artist_name))='edit test band'
@@ -639,7 +638,7 @@ def t_statuslog():
     check(r.returncode == 0 and json.loads(fail_state.read_text()).get("count") == 0, "counter resets on success")
 
 
-@test("import_sheet: slot clash -> digest (test gap #4)")
+@test("import_sheet: same set start on one bill -> digest (test gap #4)")
 def t_clash():
     from openpyxl import load_workbook
     src = TOOLS / "lists" / "advance_list_template.xlsx"
@@ -659,16 +658,23 @@ def t_clash():
     for i, band in enumerate(("Clash Band One", "Clash Band Two"), start=1):
         row = last + i
         for key, val in (("event_name", "Clash Night"), ("event_date", d), ("venue", "Washington Park"),
-                         ("series", "Jazz At The Porch"), ("slot", "headliner"), ("artist_name", band),
+                         ("series", "Jazz At The Porch"), ("event_start", "8:00p"), ("artist_name", band),
                          ("contact_email", f"{band.replace(' ', '').lower()}@example.test")):
             if key in hdr:
                 ws.cell(row, hdr[key]).value = val
     wb.save(dst)
-    n_items = q("SELECT count(*) AS n FROM digest_items WHERE kind='slot_clash'", one=True)["n"]
+    n_items = q("SELECT count(*) AS n FROM digest_items WHERE kind='set_time_clash'", one=True)["n"]
     r = run_tool("import_sheet.py", dst)
-    n_items2 = q("SELECT count(*) AS n FROM digest_items WHERE kind='slot_clash'", one=True)["n"]
-    check(r.returncode == 0 and "slot clash" in r.stdout, f"clash detected (rc {r.returncode})")
-    check(n_items2 == n_items + 1, f"one slot-clash digest item queued ({n_items2 - n_items})")
+    n_items2 = q("SELECT count(*) AS n FROM digest_items WHERE kind='set_time_clash'", one=True)["n"]
+    check(r.returncode == 0 and "same set start" in r.stdout, f"clash detected (rc {r.returncode})")
+    check(n_items2 == n_items + 1, f"one set-start-clash digest item queued ({n_items2 - n_items})")
+    # both artists stay on the bill now — the clash is reported, not resolved
+    # by dropping one (2026-09-15)
+    ev = q("""SELECT id FROM events WHERE venue='Washington Park' AND event_date=%s
+              AND name='Clash Night'""", ((TODAY + dt.timedelta(days=30)),), one=True)
+    if ev:
+        n_acts = q("SELECT count(*) AS n FROM event_acts WHERE event_id=%s", (ev["id"],), one=True)["n"]
+        check(n_acts == 2, f"both clashing artists kept on the bill ({n_acts})")
     # rebuild events from the real staging sheet so later tests see the normal model
     run_tool("import_sheet.py", DROP / "Nyquist" / "advance-list.xlsx")
 
@@ -716,10 +722,15 @@ def t_draft():
 def t_third_party():
     login()
     d = TODAY + dt.timedelta(days=25)
-    make_booking("Bill Band A", "Fountain Square", d, series="Jazz on the Square", band_count="2", slot="headliner")
-    make_booking("Bill Band B", "Fountain Square", d, series="Jazz on the Square", band_count="2", slot="opener")
-    st, body = make_booking("Corporate Party Band", "Fountain Square", d, series="3rd Party", slot="headliner", event_name="Acme Holiday Party")
-    check(st == 200 and "already the headliner" not in body, "3rd-party headliner not refused by the internal headliner")
+    make_booking("Bill Band A", "Fountain Square", d, series="Jazz on the Square",
+                 set_start="21:00", set_end="22:00", event_start="9:00p", event_end="10:00p")
+    make_booking("Bill Band B", "Fountain Square", d, series="Jazz on the Square",
+                 set_start="19:00", set_end="19:45", event_start="7:00p", event_end="7:45p")
+    st, body = make_booking("Corporate Party Band", "Fountain Square", d, series="3rd Party",
+                            set_start="21:00", set_end="22:00", event_start="9:00p",
+                            event_end="10:00p", event_name="Acme Holiday Party")
+    check(st == 200 and "already starts at" not in body,
+          "3rd-party act at the same time as an internal one is its own bill, not a clash")
     check(wait_run_now(), "runs finished")
     evs = q("SELECT id, name, series FROM events WHERE venue='Fountain Square' AND event_date=%s ORDER BY id", (d,))
     check(len(evs) == 2, f"two events for the date ({[e['name'] for e in evs]})")
@@ -767,7 +778,7 @@ def t_third_party_contact():
     d = TODAY + dt.timedelta(days=5)
     data = {"artist_name": "No Contact Corp Event", "venue": "Washington Park", "location": "Main Stage",
             "event_date": d.isoformat(), "series": "3rd Party", "contact_name": "", "contact_email": "",
-            "entered_by": "tests", "band_count": "1", "slot": "headliner", "event_name": "Widget Co Picnic",
+            "entered_by": "tests", "event_name": "Widget Co Picnic",
             "set_start": "12:00", "set_end": "16:00"}
     st, body = post("/booking", data)
     check(st == 200 and "Contact email is required" not in body, f"3rd-party booking accepted without a contact ({st})")
@@ -786,7 +797,7 @@ def t_third_party_optional():
     login()
     d = TODAY + dt.timedelta(days=47)
     base = {"artist_name": "", "venue": "Fountain Square", "event_date": d.isoformat(), "series": "3rd Party",
-            "contact_name": "", "contact_email": "", "entered_by": "tests", "band_count": "1", "slot": "headliner",
+            "contact_name": "", "contact_email": "", "entered_by": "tests",
             "set_start": "12:00", "set_end": "16:00"}
     st, body = post("/booking", dict(base, event_name=""))
     check(st == 400 and "Event Name is required" in body, f"3rd-party booking without an event name refused ({st})")
@@ -829,7 +840,7 @@ def t_third_party_band_emails():
     d = TODAY + dt.timedelta(days=12)
     st, _ = make_booking("Quiet Corp Band", "Fountain Square", d, series="3rd Party",
                          event_name="Quiet Corp Gala", email="quiet@example.test",
-                         slot="quietcorpslot")
+                         set_start="19:07", set_end="20:07", event_start="7:07p")
     check(st == 200, f"booking with an email, emails off ({st})")
     check(wait_run_now(), "run finished")
     n0 = mail_count()
@@ -877,11 +888,13 @@ def t_day_of_contact():
             continue
         band = f"Day-of Contact Test {venue.replace(' ', '')}"
         # nearest staffed dates are near-term, i.e. exactly where the real
-        # cloned bill is often already full — try every slot before giving up
+        # cloned bill is often already booked at the obvious times — try a few
+        # odd set starts before giving up (set start is what collides now)
         st = None
-        for slot in ("opener", "direct_support", "headliner"):
-            st, _ = make_booking(band, venue, staffed_date, series=series, slot=slot,
-                                 band_count="3", **extra)
+        for hhmm, house in (("19:03", "7:03p"), ("20:03", "8:03p"), ("21:03", "9:03p")):
+            st, _ = make_booking(band, venue, staffed_date, series=series,
+                                 set_start=hhmm, set_end="23:00", event_start=house,
+                                 **extra)
             if st == 200:
                 break
         if st != 200:

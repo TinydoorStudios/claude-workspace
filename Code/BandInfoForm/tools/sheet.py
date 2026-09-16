@@ -2,7 +2,7 @@
 """Reader for the 3CDC Advance List spreadsheet (tools/lists/advance_list_template.xlsx).
 
 Normalizes each data row to a dict. Skips the gray example rows and blanks.
-Columns: Event Name, Event Date, Venue, Series, Slot, Set Time, Artist Name,
+Columns: Event Name, Event Date, Venue, Series, Start, Set Length, Artist Name,
 Contact Email, Notes.
 """
 import datetime as dt

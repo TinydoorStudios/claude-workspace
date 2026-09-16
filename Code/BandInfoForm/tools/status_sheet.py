@@ -77,7 +77,8 @@ COLS = [
     ("Event", 24, lambda st, sub, a: (a or {}).get("event_name", "")),
     ("Venue", 16, lambda st, sub, a: st["venue"]),
     ("Date", 12, lambda st, sub, a: d(st["show_date"]) if st["show_date"] else ""),
-    ("Slot", 14, lambda st, sub, a: (a or {}).get("slot", "")),
+    ("On the Bill", 12, lambda st, sub, a: db.artist_label((a or {}).get("artist_order"))),
+    ("Set Start", 11, lambda st, sub, a: (a or {}).get("set_start", "")),
     ("Set Length", 13, lambda st, sub, a: (a or {}).get("set_time", "")),
     ("Status", 14, lambda st, sub, a: SL.label(st["state"])),
     ("Advance Drafted", 14, lambda st, sub, a: d(st["advance_draft_created_at"])),
@@ -108,9 +109,12 @@ COLS = [
 
 
 def act_for(cur, st):
-    """The event act matching this show (artist + venue + date), for event/slot/set."""
+    """The event act matching this show (artist + venue + date), for
+    event / position on the bill / set. `artist_order` isn't a column — it's
+    derived from set start across the whole bill — so this finds the act's
+    event and then reads the ordered acts for it (advance_db.event_acts)."""
     cur.execute(
-        """SELECT ea.slot, ea.set_time, e.name AS event_name
+        """SELECT ea.event_id, e.name AS event_name
            FROM event_acts ea JOIN events e ON e.id = ea.event_id
            WHERE ea.artist_id = %s
              AND COALESCE(e.venue,'') = COALESCE(%s,'')
@@ -118,7 +122,15 @@ def act_for(cur, st):
            LIMIT 1""",
         (st["artist_id"], st["venue"], st["show_date"]),
     )
-    return cur.fetchone() or {}
+    row = cur.fetchone()
+    if not row:
+        return {}
+    act = next((a for a in db.event_acts(cur, row["event_id"])
+                if a.get("artist_id") == st["artist_id"]), {})
+    return {"event_name": row["event_name"],
+            "artist_order": act.get("artist_order"),
+            "set_start": act.get("set_start") or "",
+            "set_time": act.get("set_time") or ""}
 
 
 # internal-key -> how to pull that band's FORM answer for the fill-the-blanks merge
@@ -161,7 +173,8 @@ def records():
                 "band": st["band"],
                 "venue": st["venue"] or "",
                 "date": st["show_date"].isoformat() if st["show_date"] else "",
-                "slot": (act or {}).get("slot", ""),
+                "on_the_bill": db.artist_label((act or {}).get("artist_order")),
+                "set_start": (act or {}).get("set_start", ""),
                 "state": st["state"],
                 "advance_drafted": d(st["advance_draft_created_at"]),
                 "followup_due": followup_due(st),

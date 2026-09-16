@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Event (bill) manager — group band submissions into a day-sheet.
+"""Event (bill) manager — group artist submissions into a day-sheet.
 
-The advance form is per-band; the day-sheet DOC is per-event with up to three
-act slots. This assigns bands to slots. Most events are 1–2 acts — only fill the
-slots you need.
+The advance form is per-artist; the day-sheet DOC is per-event and always has
+three artist columns. This puts artists on a bill. Nothing assigns a position:
+Artist 1/2/3 is derived from set start — earliest plays first — so adding an
+artist with an earlier start renumbers the bill by itself.
 
   python3 event.py create --name "513 Airwaves w/ Inhaler" --venue "Fountain Square" --date 2026-09-20
-  python3 event.py add-act --event 1 --slot headliner --artist "Buffalo Wabs and the Price Hill Hustle"
-  python3 event.py add-act --event 1 --slot opener   --artist "The Cincy Suns"
+  python3 event.py add-act --event 1 --artist "Buffalo Wabs and the Price Hill Hustle" --set-start 9:00pm
+  python3 event.py add-act --event 1 --artist "The Cincy Suns" --set-start 7:00pm
   python3 event.py list
   python3 event.py show --event 1
 
-Slots: opener | direct_support | headliner  (they map to the day-sheet columns).
 Then generate the document with:  python3 daysheet.py --event 1
 """
 import argparse
@@ -25,8 +25,6 @@ for _cand in (HERE.parent, HERE.parent / "app"):
         sys.path.insert(0, str(_cand))
         break
 import advance_db as db
-
-SLOTS = ("opener", "direct_support", "headliner")
 
 
 def parse_date(s):
@@ -46,12 +44,13 @@ def cmd_create(args):
                               series=args.series)
         conn.commit()
     print(f"Created event {eid}: {args.name} @ {args.venue} {args.date}")
-    print(f"Add acts:  python3 event.py add-act --event {eid} --slot headliner --artist \"...\"")
+    print(f"Add acts:  python3 event.py add-act --event {eid} --artist \"...\" --set-start 9:00pm")
 
 
 def cmd_add_act(args):
-    if args.slot not in SLOTS:
-        print(f"slot must be one of {SLOTS}", file=sys.stderr); sys.exit(1)
+    if args.set_start and db.parse_clock(args.set_start) is None:
+        print(f"couldn't read --set-start '{args.set_start}' — try 9:00pm", file=sys.stderr)
+        sys.exit(1)
     with db.get_conn() as conn, conn.cursor() as cur:
         if not db.get_event(cur, args.event):
             print(f"No event {args.event}", file=sys.stderr); sys.exit(1)
@@ -61,11 +60,15 @@ def cmd_add_act(args):
                   f"(draft_emails.py) or check the name.", file=sys.stderr)
             sys.exit(1)
         sub = db.newest_submission(cur, artist["id"])
-        db.add_act(cur, args.event, args.slot, artist["id"],
-                   submission_id=args.submission)
+        db.add_act(cur, args.event, artist["id"], submission_id=args.submission,
+                   set_start=args.set_start, set_end=args.set_end,
+                   load_in=args.load_in, soundcheck=args.soundcheck)
         conn.commit()
+        acts = db.event_acts(cur, args.event)
     tag = "has a submission" if sub else "NO submission yet"
-    print(f"Event {args.event}: {args.slot} = {artist['name']} ({tag})")
+    place = next((db.artist_label(a["artist_order"]) for a in acts
+                  if a.get("artist") and a["artist"]["id"] == artist["id"]), "unplaced")
+    print(f"Event {args.event}: {place} = {artist['name']} ({tag})")
 
 
 def cmd_list(args):
@@ -90,7 +93,8 @@ def cmd_show(args):
     for a in acts:
         who = a["artist"]["name"] if a.get("artist") else "(none)"
         sub = "submission ✓" if a.get("submission") else "no submission"
-        print(f"  {a['slot']:16} {who}  [{sub}]")
+        when = a.get("set_start") or "no set time"
+        print(f"  {db.artist_label(a['artist_order']):10} {when:>9}  {who}  [{sub}]")
 
 
 def main():
@@ -103,8 +107,11 @@ def main():
 
     a = sub.add_parser("add-act"); a.set_defaults(fn=cmd_add_act)
     a.add_argument("--event", type=int, required=True)
-    a.add_argument("--slot", required=True, help="opener|direct_support|headliner")
     a.add_argument("--artist", required=True)
+    a.add_argument("--set-start", dest="set_start", help="e.g. 9:00pm — decides Artist 1/2/3")
+    a.add_argument("--set-end", dest="set_end")
+    a.add_argument("--load-in", dest="load_in")
+    a.add_argument("--soundcheck")
     a.add_argument("--submission", type=int, default=None)
 
     l = sub.add_parser("list"); l.set_defaults(fn=cmd_list)

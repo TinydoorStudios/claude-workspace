@@ -83,7 +83,7 @@ def event_stem(ev, acts, cancelled=False):
     # Name + headliner — single source of truth in fieldspec.py, shared with
     # regen_show.py's single-show path so both never drift apart on what an
     # event's filename looks like. See fieldspec.event_display_name /
-    # headliner_name for the actual rule. `cancelled` (review 2026-09-14,
+    # top_of_bill_name for the actual rule. `cancelled` (review 2026-09-14,
     # M4): every act on the bill is cancelled -> the same file is renamed in
     # place with a CANCELLED marker after the date stamp; undo-cancel renames
     # it back on the next run.

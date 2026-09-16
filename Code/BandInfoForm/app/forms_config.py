@@ -124,7 +124,7 @@ SERIES = {
 }
 
 
-def get_config(series_key=None, venue=None, location=None, slot=None, lang="en"):
+def get_config(series_key=None, venue=None, location=None, lang="en"):
     base = dict(SERIES["default"])
     cfg = dict(base)
     cfg["intro"] = i18n.t("intro_default", lang)
@@ -169,10 +169,11 @@ def get_config(series_key=None, venue=None, location=None, slot=None, lang="en")
     if series_key and SERIES.get(series_key, {}).get("drum_riser") is False:
         cfg["drum_riser_available"] = False
 
-    # Fountain Square: only the headliner is asked about a drum riser — an
-    # opener or direct-support act has no riser call of its own, so hide the
-    # question on their form (Brian, 2026-09-11).
-    if venue == "Fountain Square" and (slot or "").strip().lower() in ("opener", "direct_support"):
-        cfg["drum_riser_available"] = False
+    # Fountain Square used to ask only the headliner about a drum riser and
+    # hide the question from the opener and direct support (Brian, 2026-09-11).
+    # That went out with the slots on 2026-09-15: every artist is asked, and the
+    # option says "if available" instead — hiding it meant the earlier acts'
+    # preference existed nowhere and turned up at load-in. A venue or series
+    # with no riser at all (WP Porch/Bandstand, see above) still hides it.
 
     return cfg

@@ -189,24 +189,11 @@ def stamp_email_sent(cur, show_id):
 # itself if nothing's heard back by 7 days out. Both are DRAFTS — a human still
 # sends. See /internal/advance-lifecycle in app.py.
 
-def slot_for(cur, artist_id, venue, show_date):
-    r"""This artist's slot (opener / direct_support / headliner) on the event at
-    venue+date, or None. Used to tailor the band's own form — e.g. FSQ hides the
-    drum-riser question for openers/direct support (Brian, 2026-09-11)."""
-    if isinstance(show_date, str):
-        try:
-            show_date = dt.date.fromisoformat(show_date[:10])
-        except ValueError:
-            return None
-    cur.execute(
-        """SELECT ea.slot FROM event_acts ea
-           JOIN events e ON e.id = ea.event_id
-           WHERE ea.artist_id = %s AND e.venue = %s AND e.event_date = %s
-           ORDER BY ea.id DESC LIMIT 1""",
-        (artist_id, venue, show_date),
-    )
-    row = cur.fetchone()
-    return row["slot"] if row else None
+# slot_for() lived here until 2026-09-15. Its only caller tailored the band's
+# own form to its slot — FSQ hid the drum-riser question from openers and direct
+# support. The riser question is now asked of every artist, worded "if
+# available" (Brian, same day), so nothing needs to know an act's position to
+# render its form, and the lookup is gone rather than left dangling.
 
 
 def shows_due_for_initial_advance(cur):
@@ -238,7 +225,7 @@ def shows_due_for_initial_advance(cur):
     unrelated on-demand triggers fire in the meantime.
 
     Bug fixed 2026-09-08: this only ever selected `b.location` from the
-    bookings LEFT JOIN, so event_name/schedule/lead/slot/set_time/email_note
+    bookings LEFT JOIN, so event_name/schedule/lead/set_time/email_note
     — everything a staffer actually types into /booking beyond the bare
     minimum — silently never reached the drafted email on this path (the
     CSV/xlsx batch path draft_emails.py also supports has always carried all
@@ -264,8 +251,8 @@ def shows_due_for_initial_advance(cur):
                   b.lead_name AS lead_name, b.lead_phone AS lead_phone,
                   b.load_in AS load_in, b.soundcheck AS soundcheck,
                   b.event_start AS event_start, b.event_end AS event_end,
-                  b.curfew AS curfew, b.slot AS slot, b.set_time AS set_time,
-                  b.email_note AS email_note, b.band_count AS band_count,
+                  b.curfew AS curfew, b.set_time AS set_time,
+                  b.email_note AS email_note,
                   b.contact_name AS contact_name, b.contact_email AS booking_contact_email
            FROM shows s JOIN artists a ON a.id = s.artist_id
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
@@ -473,21 +460,24 @@ def mark_unresponded_alert_sent(cur, show_id):
 
 
 def bookings_on(cur, event_date):
-    """Every booking (one row per band) for a specific date, ordered venue
-    then event then slot (opener -> direct_support -> headliner) — the raw
-    material for the daily digest's 'shows today' section. Bands sharing a
-    bill share event_name/venue/schedule; the caller groups them."""
+    """Every booking (one row per artist) for a specific date — the raw material
+    for the daily digest's 'shows today' section. Artists sharing a bill share
+    event_name/venue; the caller groups them. Ordered by set start within each
+    bill (Artist 1 first), which is sorted in Python because event_start is free
+    text ('7:00pm') — see parse_clock."""
     cur.execute(
-        """SELECT event_name, venue, location, series, artist_name, slot,
+        """SELECT id, event_name, venue, location, series, artist_name,
                   load_in, soundcheck, event_start, event_end, curfew
            FROM bookings
            WHERE event_date = %s
-           ORDER BY venue, event_name,
-             CASE slot WHEN 'opener' THEN 1 WHEN 'direct_support' THEN 2
-                       WHEN 'headliner' THEN 3 ELSE 4 END""",
+           ORDER BY venue, event_name, id""",
         (event_date,),
     )
-    return cur.fetchall()
+    rows = cur.fetchall()
+    return sorted(rows, key=lambda r: (
+        r.get("venue") or "", r.get("event_name") or "",
+        act_sort_key({"set_start": r.get("event_start"), "id": r.get("id")}),
+    ))
 
 
 def advances_drafted_since(cur, hours=24):
@@ -580,17 +570,20 @@ def record_advance_recap(cur, show_id, artist_id, venue, show_date, source_docx,
     )
 
 
-def band_count_for_event(cur, venue, event_date, series=None):
-    """The declared band count (max across acts, in case of disagreement) for
-    this bill at venue+date — the internal bill, or (series '3rd Party') the
-    3rd-party event, never mixed (Brian, 2026-09-14). None if nobody declared one."""
+def artist_count_for_event(cur, venue, event_date, series=None):
+    """How many artists are actually booked on this bill at venue+date — the
+    internal bill, or (series '3rd Party') the 3rd-party event, never mixed
+    (Brian, 2026-09-14). Counted, not declared: the booking form stopped asking
+    "Bands on the Bill" on 2026-09-15, because the answer was already sitting in
+    the bookings table and a typed one could disagree with it. 0 if none."""
     cur.execute(
-        "SELECT max(band_count) AS n FROM bookings WHERE venue=%s AND event_date=%s "
-        "AND band_count IS NOT NULL AND (lower(btrim(COALESCE(series,''))) = '3rd party') = %s",
+        "SELECT COUNT(DISTINCT lower(btrim(regexp_replace(artist_name,'\\s+',' ','g')))) AS n "
+        "FROM bookings WHERE venue=%s AND event_date=%s AND COALESCE(btrim(artist_name),'') <> '' "
+        "AND (lower(btrim(COALESCE(series,''))) = '3rd party') = %s",
         (venue, event_date, is_third_party(series)),
     )
     row = cur.fetchone()
-    return row["n"] if row else None
+    return (row["n"] or 0) if row else 0
 
 
 def get_advance_recap_by_show(cur, show_id):
@@ -930,7 +923,68 @@ def get_submission(cur, submission_id):
 
 # ── events (day-sheet bills) ────────────────────────────────────────────────
 
-SLOT_ORDER = {"opener": 1, "direct_support": 2, "headliner": 3}
+# Artist order (Brian, 2026-09-15). Slots — opener / direct support / headliner
+# — are retired. An act's position on the bill is ARTIST 1 / 2 / 3, derived from
+# its set start time: earliest is Artist 1, latest is Artist 3. Nothing declares
+# it and nothing stores it, so a band booked later with an earlier start time
+# renumbers the whole bill by itself — no copying a band's answers into the next
+# slot down, nothing to migrate, nothing that can be half-moved.
+#
+# "Band" is deliberately not the word: plenty of these are solo artists.
+
+# A set starting before this hour belongs to the night before — a 12:30a set
+# sorts AFTER a 10:00p one, not seven hours before it.
+NIGHT_ROLLOVER_MIN = 4 * 60
+
+_CLOCK_RE = re.compile(r"^\s*(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m?\.?\s*$", re.I)
+
+
+def parse_clock(s):
+    """'7:00pm' / '7pm' / '7:00 p.m.' / '19:00' -> minutes past midnight.
+    None when there's nothing parseable — the caller decides what that means.
+    Times before 4:00am roll to the next day (see NIGHT_ROLLOVER_MIN)."""
+    if s is None:
+        return None
+    s = str(s).strip()
+    if not s:
+        return None
+    m = _CLOCK_RE.match(s)
+    if m:
+        hour, minute, half = int(m.group(1)), int(m.group(2) or 0), m.group(3).lower()
+        if not (1 <= hour <= 12) or minute > 59:
+            return None
+        hour = hour % 12 + (12 if half == "p" else 0)
+    else:
+        m = re.match(r"^\s*(\d{1,2}):(\d{2})\s*$", s)   # 24-hour, as the form posts it
+        if not m:
+            return None
+        hour, minute = int(m.group(1)), int(m.group(2))
+        if hour > 23 or minute > 59:
+            return None
+    mins = hour * 60 + minute
+    return mins + 1440 if mins < NIGHT_ROLLOVER_MIN else mins
+
+
+def act_sort_key(act):
+    """Earliest set start first; an act with no start time yet sorts last, in
+    the order it was entered, so a half-filled bill still renders stably."""
+    mins = parse_clock((act or {}).get("set_start"))
+    seq = (act or {}).get("id") or 0
+    return (0, mins, seq) if mins is not None else (1, 0, seq)
+
+
+def order_acts(acts):
+    """Acts sorted by set start, each stamped `artist_order` 1..N. This is the
+    only thing that decides who is Artist 1 — call it on every read."""
+    ordered = sorted(acts or [], key=act_sort_key)
+    for i, a in enumerate(ordered, 1):
+        a["artist_order"] = i
+    return ordered
+
+
+def artist_label(n):
+    """'Artist 1' — the label on the paperwork and in every internal list."""
+    return f"Artist {n}" if n else ""
 
 
 def create_event(cur, name, venue, event_date, series=None, notes=None, details=None):
@@ -956,24 +1010,29 @@ def update_event_details(cur, event_id, details):
                 (json.dumps(cur_details), event_id))
 
 
-def add_act(cur, event_id, slot, artist_id, submission_id=None, slot_order=None,
-            set_time=None, sheet_fields=None):
+def add_act(cur, event_id, artist_id, submission_id=None, set_time=None,
+            set_start=None, set_end=None, load_in=None, soundcheck=None,
+            sheet_fields=None):
+    """Put an artist on a bill. The act is keyed by its ARTIST — there is no
+    slot to collide over, so re-running an import just updates the same row.
+    `set_time` is the set LENGTH ('45'); `set_start` is what orders the bill."""
     import json
-    if slot_order is None:
-        slot_order = SLOT_ORDER.get(slot, 99)
     cur.execute(
-        """INSERT INTO event_acts (event_id, slot, slot_order, artist_id,
-                                   submission_id, set_time, sheet_fields)
-           VALUES (%s,%s,%s,%s,%s,%s,%s)
-           ON CONFLICT (event_id, slot) DO UPDATE SET
-             artist_id=EXCLUDED.artist_id,
+        """INSERT INTO event_acts (event_id, artist_id, submission_id, set_time,
+                                   set_start, set_end, load_in, soundcheck,
+                                   sheet_fields)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+           ON CONFLICT (event_id, artist_id) DO UPDATE SET
              submission_id=EXCLUDED.submission_id,
-             slot_order=EXCLUDED.slot_order,
              set_time=COALESCE(EXCLUDED.set_time, event_acts.set_time),
+             set_start=COALESCE(EXCLUDED.set_start, event_acts.set_start),
+             set_end=COALESCE(EXCLUDED.set_end, event_acts.set_end),
+             load_in=COALESCE(EXCLUDED.load_in, event_acts.load_in),
+             soundcheck=COALESCE(EXCLUDED.soundcheck, event_acts.soundcheck),
              sheet_fields=event_acts.sheet_fields || EXCLUDED.sheet_fields
            RETURNING id""",
-        (event_id, slot, slot_order, artist_id, submission_id, set_time,
-         json.dumps(sheet_fields or {})),
+        (event_id, artist_id, submission_id, set_time, set_start, set_end,
+         load_in, soundcheck, json.dumps(sheet_fields or {})),
     )
     return cur.fetchone()["id"]
 
@@ -993,12 +1052,14 @@ def list_events(cur):
 
 
 def event_acts(cur, event_id):
-    """Acts in column order, each with its artist + the submission to fill from
-    (the linked submission, or the artist's newest)."""
+    """Acts in column order — Artist 1 first — each stamped `artist_order` and
+    carrying its artist + the submission to fill from (the linked submission, or
+    the artist's newest). Order is computed here, every time, from set start:
+    see order_acts. `id` is the tiebreak, so the query orders by it."""
     cur.execute(
-        "SELECT * FROM event_acts WHERE event_id=%s ORDER BY slot_order", (event_id,)
+        "SELECT * FROM event_acts WHERE event_id=%s ORDER BY id", (event_id,)
     )
-    acts = cur.fetchall()
+    acts = order_acts(cur.fetchall())
     for a in acts:
         a["artist"] = get_artist(cur, a["artist_id"]) if a.get("artist_id") else None
         if a.get("submission_id"):
@@ -1014,9 +1075,12 @@ def event_acts(cur, event_id):
 BOOKING_FIELDS = [
     "event_name", "event_date", "venue", "location", "series", "event_type", "paying_band",
     "lead_name", "lead_phone", "load_in", "soundcheck", "event_start",
-    "event_end", "curfew", "slot", "set_time", "artist_name", "contact_name", "contact_email",
-    "email_note", "entered_by", "band_count",
+    "event_end", "curfew", "set_time", "artist_name", "contact_name", "contact_email",
+    "email_note", "entered_by",
 ]
+# `slot` and `band_count` came off this list 2026-09-15 — the form stopped
+# asking (position is derived from set start, and the bill counts itself).
+# The columns stay in the table as history on rows already written.
 
 
 def insert_booking(cur, data: dict):
@@ -1059,7 +1123,7 @@ def insert_booking(cur, data: dict):
 # what queues the "info changed" notice — see update_booking below and
 # tools/booking_update.py (Brian, 2026-09-14).
 BAND_FACING_FIELDS = [
-    "event_date", "venue", "location", "artist_name", "slot", "set_time",
+    "event_date", "venue", "location", "artist_name", "set_time",
     "load_in", "soundcheck", "event_start", "event_end", "curfew",
 ]
 
@@ -1453,7 +1517,7 @@ def mark_send_failures_notified(cur, ids):
 
 def queue_digest_item(cur, kind, subject, html, link=None):
     """Something Brian should see, folded into the next 7am digest instead
-    of its own email (doc notices, submission matches, slot clashes, the
+    of its own email (doc notices, submission matches, set-time clashes, the
     3-day unresponded list, thank-you / day-before failures)."""
     cur.execute("INSERT INTO digest_items (kind, subject, html, link) VALUES (%s,%s,%s,%s) RETURNING id",
                 (kind, subject, html, link))
@@ -1643,7 +1707,7 @@ def purge_show(cur, show_id):
         (artist_id, venue, show_date))
     booking_deleted = cur.fetchone() is not None
 
-    # this act's slot on the event's day-sheet bill, and the event itself
+    # this act on the event's day-sheet bill, and the event itself
     # (+ its filed-doc registry rows) if that was the only act left on it —
     # the physical file stays; only the registry pointer to it is cleared.
     filed_paths = []

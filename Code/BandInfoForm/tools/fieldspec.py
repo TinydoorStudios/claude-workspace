@@ -19,7 +19,9 @@ VENUES = [
     "Fountain Square", "Washington Park", "Elm Street Plaza",
     "Court Street Plaza", "Zeigler Park", "Imagination Alley",
 ]
-SLOTS = ["opener", "direct_support", "headliner"]
+# SLOTS (opener / direct_support / headliner) retired 2026-09-15 — an act's
+# position on the bill is Artist 1/2/3, derived from its set start time. See
+# advance_db.order_acts, which is the only thing that decides it.
 
 # ── Dropbox filing framework (2026-09-12 — real venue folders) ────────────────
 # The finished advance doc + stage plot file into the REAL, human-used venue
@@ -32,12 +34,14 @@ SLOTS = ["opener", "direct_support", "headliner"]
 # Radio - RatBoys Prod Adv.docx — matching the convention Brian and the rest
 # of the 3CDC production team have always hand-typed into that folder, so the
 # pipeline's output sits exactly where a human would look for it, named the
-# way a human would name it. The " - <Headliner>" segment was added 2026-09-13
-# (see package_run.py's event_stem/headliner_name) — reversing the 2026-09-11
-# "no band name in the filename" rule below, on purpose: Brian wants to see
-# who's playing without opening the file, and accepts that the filename now
-# changes (old one left orphaned on disk) if the headliner changes before
-# the show — the exact tradeoff 2026-09-11 was written to avoid.
+# way a human would name it. The " - <Top of bill>" segment was added
+# 2026-09-13 (see top_of_bill_name below) — reversing the 2026-09-11 "no band
+# name in the filename" rule below, on purpose: Brian wants to see who's
+# playing without opening the file, and accepts that the filename can change
+# (old one left orphaned on disk) if that artist changes before the show — the
+# exact tradeoff 2026-09-11 was written to avoid. As of 2026-09-15 the only way
+# that happens is a NEW artist booked with a LATER set time than everyone on
+# file; one booked earlier just becomes Artist 1 and renames nothing.
 #
 # Email drafts have no analog in the real, shared folders (they're an internal
 # working artifact, not a finished document) and stay under the Nyquist
@@ -129,14 +133,16 @@ def advance_stem(event_name, d):
     return f"{d.strftime('%m%d%y')} {_clean(event_name)} Prod Adv"
 
 
-def headliner_name(acts):
-    """Top-of-the-bill act's name, for the filename (Brian, 2026-09-13 —
+def top_of_bill_name(acts):
+    """Last artist of the night, for the filename (Brian, 2026-09-13 —
     reversing the 2026-09-11 "no band name in the filename" rule: he wants to
-    see who's playing without opening the file, and accepts that the
-    filename now changes if the headliner changes before the show). Prefers
-    the act actually slotted "headliner"; falls back to the last act in slot
-    order (event_acts is always queried ORDER BY slot_order, so the last one
-    is the closest guess at "top of the bill") if none is explicitly marked.
+    see who's playing without opening the file, and accepts that the filename
+    changes if that artist changes before the show).
+
+    2026-09-15: this used to prefer whoever was slotted "headliner". There are
+    no slots now — acts arrive already ordered by set start (advance_db.
+    order_acts), so the last one IS the top of the bill, and an artist added
+    later with an EARLIER start can never rename an already-filed doc.
     None if there are no acts with an artist attached yet.
 
     Single source of truth — package_run.py (the full rebuild) and
@@ -145,9 +151,6 @@ def headliner_name(acts):
     this and event_display_name below, so there's exactly one place that
     decides what an event's filename looks like, not two copies that can
     drift apart."""
-    for a in acts:
-        if a.get("slot") == "headliner" and a.get("artist"):
-            return a["artist"]["name"]
     for a in reversed(acts):
         if a.get("artist"):
             return a["artist"]["name"]
@@ -155,8 +158,8 @@ def headliner_name(acts):
 
 
 def event_display_name(ev, acts):
-    """The <Event/Series> - <Headliner> name that goes into advance_stem — see
-    headliner_name above for why the headliner is appended and by whom.
+    """The <Event/Series> - <Top of bill> name that goes into advance_stem — see
+    top_of_bill_name above for why that artist is appended and by whom.
 
     Real-data dry run (2026-09-13, against every currently active event)
     caught a real duplication bug before this ever shipped: several bookings
@@ -166,7 +169,7 @@ def event_display_name(ev, acts):
     Ricky Nye". A substring check on the base name skips the append whenever
     it's already there."""
     base = ev.get("name") or ev.get("series")
-    headliner = headliner_name(acts)
+    headliner = top_of_bill_name(acts)
     if base and headliner:
         if headliner.lower() in base.lower():
             return base
@@ -198,7 +201,6 @@ EVENT_FIELDS = [
     # yet). Physically appended as its OWN column at the end of the live
     # sheet, not inserted mid-layout — see the 2026-09-08 session notes on why
     # (merge-range + _advance_meta address safety).
-    ("Band Count",    "band_count",  ["1", "2", "3"]),
     ("Series",        "series",      None),
     ("Event Type",    "event_type",  ["Internal", "Third Party"]),
     ("Paying Band?",  "paying_band", ["Yes", "No"]),
@@ -226,7 +228,9 @@ SCHEDULE_TBD = "TBD — your day-of contact will confirm"
 SCHEDULE_TBD_ES = "Por confirmar — su contacto del día del evento lo confirmará"
 
 ACT_FIELDS = [
-    ("Slot",          "slot",         SLOTS),
+    # "Slot" was here until 2026-09-15. Position on the bill is derived from
+    # Start (the act's set start), not typed — earliest is Artist 1. A sheet
+    # that still has a Slot column imports fine; the label just goes unmapped.
     ("Set Length",    "set_time",     None),   # duration of the act's set (key kept as set_time)
     ("Artist Name",   "artist_name",  None),
     ("Contact Email", "contact_email", None),
@@ -270,8 +274,15 @@ ALL_COLUMNS = (
 )
 LABEL_TO_KEY = {lbl: key for (lbl, key, _ch) in ALL_COLUMNS}
 BAND_KEYS = [key for (_l, key, _c, _r) in BAND_FIELDS]
-EVENT_DETAIL_KEYS = ["location", "event_type", "paying_band", "mc", "dj", "lead_name", "lead_phone",
-                     "load_in", "soundcheck", "event_start", "event_end", "curfew", "band_count"]
+# What genuinely belongs to the whole event. load_in / soundcheck / event_start
+# / event_end came OFF this list 2026-09-15: they are per-artist, and collapsing
+# them to the event ("first non-empty value across the group's rows") printed one
+# artist's times against another's rows on every multi-act bill. Curfew stays —
+# it applies to the night, not to an act.
+EVENT_DETAIL_KEYS = ["location", "event_type", "paying_band", "mc", "dj",
+                     "lead_name", "lead_phone", "curfew"]
+# Per-act schedule, read off that artist's own sheet row / booking.
+ACT_SCHEDULE_KEYS = ["load_in", "soundcheck", "event_start", "event_end"]
 
 GROUPS = [
     ("EVENT — fill once per event", len(EVENT_FIELDS)),

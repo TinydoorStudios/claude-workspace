@@ -2,12 +2,12 @@
 """Booking-edit notification (Brian, 2026-09-14).
 
 Editing a logged booking's band-facing fields (date, venue, location, artist
-name, slot, set length, load-in/soundcheck/start/end/curfew) queues one
+name, set length, load-in/soundcheck/start/end/curfew) queues one
 email per booking — the old -> new diff — sent at the NEXT daily lifecycle
 run, never immediately, so a same-day string of corrections collapses into
 one email instead of several. Only fires while the show is still inside the
 21-day window; internal-only fields (contact info, entered_by, email_note,
-lead/paying-band, series, event name, band_count) never queue anything.
+lead/paying-band, series, event name) never queue anything.
 See advance_db.update_booking / due_booking_edits / BAND_FACING_FIELDS and
 app.py's /booking/<id>/edit route.
 
@@ -28,7 +28,7 @@ import advance_db as db
 
 FIELD_LABELS = {
     "event_date": "Date", "venue": "Venue", "location": "Location",
-    "artist_name": "Artist / Band", "slot": "Slot", "set_time": "Set length",
+    "artist_name": "Artist / Band", "set_time": "Set length",
     "load_in": "Load-in", "soundcheck": "Sound check",
     "event_start": "Start", "event_end": "End", "curfew": "Curfew",
 }

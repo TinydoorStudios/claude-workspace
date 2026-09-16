@@ -8,16 +8,16 @@ they're left on disk only as historical reference and so recap-extraction
 can still diff an old already-filed doc against the right pristine shape
 while it ages out of the catch-up window.
 
-The document always has all 3 act columns (Opener / Direct Support /
-Headliner), regardless of how many bands are really on the bill — unused
-columns just render blank. Column assignment is a straight slot -> column
-rule (see _col()), not "how many acts, in what order":
-  - 3-band bill: slot_order already IS the column (1/2/3).
-  - 2-band bill: whichever act is actually the headliner takes column 3;
-    the other act takes column 2 regardless of whether it was slotted
-    "opener" or "direct support" — a 2-band universal doc always reads
-    Headliner + Direct Support, never Opener.
-  - 1-band bill: everything goes under Headliner, column 3, full stop.
+The document always has all 3 act columns (ARTIST 1 / ARTIST 2 / ARTIST 3),
+regardless of how many artists are really on the bill — unused columns just
+render blank. Column assignment is now as simple as it sounds: the act's
+artist_order IS its column, and artist_order comes from set start — earliest
+plays first (Brian, 2026-09-15). A single artist is ARTIST 1 in column 1.
+
+That replaced a slot -> column rule where a 1-artist bill printed under
+HEADLINER in column 3 and a 2-artist bill used columns 2 and 3. There are no
+slots now: an artist booked later with an earlier set time simply becomes
+Artist 1 and everyone else shifts right, with nothing copied or moved.
 
 Source of truth is the advance SPREADSHEET (event + any band overrides); the
 advance FORM fills whatever the sheet left blank — the spreadsheet value
@@ -559,32 +559,24 @@ def fill_header(grid, event):
 
 
 def _active_cols(n):
-    """Which of the universal template's 3 value columns are actually in
-    play for an n-band bill — NOT the first n columns left to right, since
-    the doc always reads Opener/Direct Support/Headliner regardless of band
-    count (Brian, 2026-09-11): a 1-band bill's one act is under Headliner
-    (column 3), a 2-band bill occupies Direct Support + Headliner (2, 3),
-    only a 3-band bill actually uses all three (1, 2, 3). Event-level rows
-    that repeat across every act column (Event Type, Engineer) need to know
-    exactly these columns, not a contiguous slice from column 1 — matches
-    fill()'s own _col() rule."""
-    if n >= 3:
-        return [1, 2, 3]
-    if n == 2:
-        return [2, 3]
-    return [3]
+    """Which of the universal template's 3 value columns are in play for an
+    n-artist bill: the first n, left to right (Brian, 2026-09-15). Event-level
+    rows that repeat across every act column (Event Type, Engineer) use this so
+    they don't print into a column no artist occupies.
+
+    Until 2026-09-15 this was NOT a contiguous slice — a 1-artist bill lived in
+    column 3 and a 2-artist bill in columns 2 and 3, because the columns were
+    Opener/Direct Support/Headliner and a lone act was the headliner."""
+    return list(range(1, min(max(n, 1), 3) + 1))
 
 
 def _act_col(a, n):
-    """Which of the 3 act columns (1=Opener, 2=Direct Support, 3=Headliner)
-    this act's data goes into — see build()'s own comment above its (now
-    retired) local _col() closure for the full slot -> column rule. Shared
-    with fill_engineer's per-column TOUR check so the two never drift apart."""
-    if n >= 3:
-        return a["slot_order"]
-    if n == 1:
-        return 3
-    return 3 if a.get("slot") == "headliner" else 2
+    """Which of the 3 act columns this act's data goes into: its artist_order,
+    which advance_db.order_acts derived from set start. Capped at 3 — a fourth
+    artist on a bill has nowhere to print, and the template is the constraint,
+    not the model. Shared with fill_engineer's per-column TOUR check so the two
+    never drift apart."""
+    return min(a.get("artist_order") or 1, 3)
 
 
 def _tour_engineer_cols(acts, n):
@@ -716,20 +708,82 @@ def _shift_house_time(s, minutes):
     return out[:-1]  # '4:00pm' -> '4:00p'
 
 
-def fill_crew_schedule(doc, event):
-    """The day-of crew table (Crew Call / per-act Load-In & Sound Check /
-    Starts / Headliner End / Load Out / Curfew).
+def _artist_schedule_times(acts, event):
+    """{artist_order: {load-in/sound check/set starts/set ends: time}} — each
+    artist's OWN schedule, off its own booking.
+
+    Before 2026-09-15 there was no such thing: load_in / soundcheck /
+    event_start / event_end were collapsed onto the EVENT as "first non-empty
+    value across the bill's rows", so on any multi-artist bill one artist's
+    times printed against another's rows. FSQ 9/18/26 is the case that showed
+    it — the doc read Headliner Load-In 7:00pm and Headliner End 8:45pm for a
+    band that played 9:00–10:00, because those were the second act's times.
+
+    A single-artist bill still falls back to the event details, so events
+    written before the per-act columns existed keep filling in."""
+    out = {}
+    det = event.get("details") or {}
+    real = [a for a in (acts or []) if not a.get("_cancelled")]
+    for a in real:
+        col = min(a.get("artist_order") or 1, 3)
+        fallback = det if len(real) == 1 else {}
+        out[col] = {
+            "load-in": a.get("load_in") or fallback.get("load_in"),
+            "sound check": a.get("soundcheck") or fallback.get("soundcheck"),
+            "line check": a.get("soundcheck") or fallback.get("soundcheck"),
+            "set starts": a.get("set_start") or fallback.get("event_start"),
+            "set ends": a.get("set_end") or fallback.get("event_end"),
+        }
+    return out
+
+
+# Schedule-row labels in the template read "Artist 3 Load-In", and a changeover
+# row combines two: "Artist 1 Set Starts/ Artist 2 Load-In". One cell, one time
+# — the FIRST fragment wins, which is the one the row is named for.
+_SCHED_KEYWORDS = [
+    ("set starts", ("set starts", "starts")),
+    ("set ends", ("set end", "end")),
+    ("sound check", ("sound check",)),
+    ("line check", ("line check",)),
+    ("load-in", ("load-in", "load in")),
+]
+
+
+def _schedule_row_value(label, per_artist):
+    """The time for one schedule row, or None. Reads 'Artist N <what>' out of
+    the row's own label so the mapping can't drift from the template's wording
+    the way a hard-coded row list would."""
+    for fragment in str(label or "").split("/"):
+        frag = norm(fragment)
+        m = re.search(r"artist\s*(\d)", frag)
+        if not m:
+            continue
+        times = per_artist.get(int(m.group(1)))
+        if not times:
+            continue
+        for key, needles in _SCHED_KEYWORDS:
+            if any(nd in frag for nd in needles) and times.get(key):
+                return times[key]
+    return None
+
+
+def fill_crew_schedule(doc, event, acts=None):
+    """The day-of crew table (Crew Call / per-artist Load-In & Sound Check /
+    Starts / Set Ends / Load Out / Curfew).
 
     Two ways it gets filled:
       1. A series with a locked '## Crew Schedule' section (e.g. Salsa On The
          Square) REPLACES the rows wholesale with the series' own list, one
          row per time change (Brian, 2026-09-09).
-      2. Otherwise, fill the template's OWN rows from the event's derived
-         schedule (Brian, 2026-09-11 — without this the WP advance docs came
-         out with every time blank). The schedule is show-level and anchored
-         on the headliner, so the Headliner rows + Crew Call / Headliner End /
-         Curfew get times; per-act Opener/Direct Support rows are left for you
-         to finish on a multi-band bill.
+      2. Otherwise, fill the template's OWN rows — every artist's rows, each
+         from that artist's own booking (Brian, 2026-09-15). Crew Call and
+         Curfew stay event-level: they belong to the night, not to an act.
+
+    The rows are NOT in artist order and aren't meant to be: the top of the
+    bill loads in and sound checks first, so the block runs Artist 3 Load-In,
+    Artist 3 Sound Check, Artist 1 Load-In, and so on down to Artist 3's set.
+    That's the real order of the day; the numbering just isn't sequential
+    inside it (Brian's call, 2026-09-15).
     No-op only if the template has no crew table at all."""
     table = find_schedule_table(doc)
     if not table:
@@ -756,7 +810,15 @@ def fill_crew_schedule(doc, event):
     # cell when present (Brian, 2026-09-11, all sites — 'Jazz (3:30-10)'); they
     # fall back to computed (crew = start - 2:00) / booking curfew otherwise.
     det = event.get("details") or {}
-    start = det.get("event_start")
+    per_artist = _artist_schedule_times(acts, event)
+    # Crew call is anchored on the FIRST load-in of the day — whoever that is —
+    # falling back to the earliest set start, then the event's own start.
+    load_ins = [t.get("load-in") for t in per_artist.values() if t.get("load-in")]
+    starts = [t.get("set starts") for t in per_artist.values() if t.get("set starts")]
+    anchor = (min(load_ins, key=lambda v: (db.parse_clock(v) is None, db.parse_clock(v) or 0))
+              if load_ins else None)
+    start = (min(starts, key=lambda v: (db.parse_clock(v) is None, db.parse_clock(v) or 0))
+             if starts else det.get("event_start"))
     staff_times = {}
     try:
         import staffing
@@ -764,18 +826,14 @@ def fill_crew_schedule(doc, event):
             venue, event.get("event_date"), series=event.get("series")) or {}
     except Exception:
         staff_times = {}
-    crew_call = staff_times.get("crew_call") or (_shift_house_time(start, -120) if start else "")
+    crew_call = (staff_times.get("crew_call")
+                 or (_shift_house_time(anchor, -60) if anchor else "")
+                 or (_shift_house_time(start, -120) if start else ""))
     curfew = staff_times.get("curfew") or det.get("curfew")
-    by_label = {
-        "crew call": crew_call,
-        "headliner load-in": det.get("load_in"),
-        "headliner sound check": det.get("soundcheck"),
-        "headliner starts": det.get("event_start"),
-        "headliner end": det.get("event_end"),
-        "curfew": curfew,
-    }
+    event_level = {"crew call": crew_call, "curfew": curfew}
     for r in table.rows:
-        val = by_label.get(norm(r.cells[-1].text))
+        label = r.cells[-1].text
+        val = event_level.get(norm(label)) or _schedule_row_value(label, per_artist)
         if val:
             set_cell(r.cells[0], val)
 
@@ -806,7 +864,7 @@ def _consoles_text(event):
 
 def fill_consoles(grid, event):
     """Write the Consoles row from _consoles_text() into EVERY act column
-    (Opener / Direct Support / Headliner), so the console shows under each band
+    (Artist 1 / Artist 2 / Artist 3), so the console shows under each artist
     on the bill (Brian, 2026-09-12). No-op if blank (a venue with no rule) or
     the row isn't in this template."""
     text = _consoles_text(event)
@@ -880,7 +938,7 @@ def build(event_id, template=None, stageplot_names=None):
         if not event:
             print(f"No event {event_id}", file=sys.stderr); sys.exit(1)
         acts = db.event_acts(cur, event_id)
-        declared_n = db.band_count_for_event(cur, event.get("venue"), event.get("event_date"),
+        booked_n = db.artist_count_for_event(cur, event.get("venue"), event.get("event_date"),
                                              series=event.get("series"))
         # a cancelled band's info never goes into the doc (audit #4); its
         # column header reads "CANCELLED — <band>" so the doc says so
@@ -892,14 +950,14 @@ def build(event_id, template=None, stageplot_names=None):
         for a in acts:
             a["_cancelled"] = a.get("artist_id") in cancelled
 
-    # a declared "bands on the bill" (Brian, 2026-09-08 — set per booking, so
-    # it's known even before every act has its own event_acts row yet) wins
-    # over the real act count for TEMPLATE SHAPE, so a bill entered one band
-    # at a time still gets the right N-band document from the first band on —
-    # acts not yet booked just render blank in their column, filled in as
-    # each band's booking arrives. Falls back to the real count when nobody
-    # declared one.
-    n = max(len(acts), declared_n) if declared_n else len(acts)
+    # How many artists this bill really has. The bookings table knows about an
+    # artist as soon as staff logs the booking — before the act has its own
+    # event_acts row — so the larger of the two wins and a bill entered one
+    # artist at a time still reserves the right number of columns. Until
+    # 2026-09-15 this came from a "Bands on the Bill" number staff typed; it's
+    # counted now (advance_db.artist_count_for_event), so it can't disagree
+    # with the bookings it's counting.
+    n = max(len(acts), booked_n or 0)
     if template is None:
         template = UNIVERSAL_TEMPLATE
     if not template.exists():
@@ -915,22 +973,19 @@ def build(event_id, template=None, stageplot_names=None):
     fill_event_type(grid, event, n)
     fill_engineer(grid, event, n, acts=acts)
     fill_consoles(grid, event)
-    fill_crew_schedule(doc, event)
+    fill_crew_schedule(doc, event, acts)
     fill_lead(doc, event)
 
-    # Which of the 3 act columns (1=Opener, 2=Direct Support, 3=Headliner)
-    # this act's data goes into — see _act_col's own docstring for the full
-    # slot -> column rule (3-band: slot_order IS the column; 2-band: the
-    # real headliner always takes column 3, the other act column 2 no
-    # matter its stored slot; 1-band: everything under column 3).
+    # Which of the 3 act columns this act's data goes into — its position on
+    # the bill, earliest set start first. See _act_col.
     def _col(a):
         return _act_col(a, n)
 
-    # act-name header row: bold slot label already printed by the template
-    # (OPENER:/DIR SUPPORT:/HEADLINER:), second paragraph is the blank line
-    # for the actual band name. Always present now, even on a 1-band bill —
-    # the universal template has no separate single-band "Band:" line the
-    # way the old retired templates did.
+    # act-name header row: bold label already printed by the template
+    # (ARTIST 1:/ARTIST 2:/ARTIST 3:), second paragraph is the blank line for
+    # the actual artist name. Always present, even for a single artist — the
+    # universal template has no separate "Band:" line the way the old retired
+    # templates did.
     for r in grid.rows:
         if r.cells and r.cells[0].text.strip() == "" and any(
                 c.paragraphs and c.paragraphs[0].runs and c.paragraphs[0].runs[0].bold

@@ -469,8 +469,9 @@ SCHEDULE_ROW_LABELS_ES = {
 }
 SET_LENGTH_LABEL_ES = "Duración del set"
 BILL_HEADER_ES = "Cartelera:"
-SLOT_LABELS_ES = {"opener": "apertura", "direct_support": "soporte directo",
-                   "headliner": "cierre"}
+# SLOT_LABELS_ES retired 2026-09-15 with the slots themselves — the Spanish
+# bill block lists each artist by set time now, the same as the English one.
+TIME_TBC_ES = "hora por confirmar"
 # summarize_submission's labels (draft_emails.py), for a returning artist's
 # "here's what we have on file" block in the Spanish half.
 SUMMARY_LABELS_ES = {

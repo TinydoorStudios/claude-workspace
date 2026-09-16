@@ -132,7 +132,7 @@ def build_digest(days_ahead=14, hours_back=24):
             cur.execute("SELECT 1 FROM job_runs WHERE job='advance-lifecycle' AND source='cron' LIMIT 1")
             missed_yesterday = cur.fetchone() is not None  # only once cron tagging exists
         # review 2026-09-14 (E1): open decisions + everything that used to be
-        # its own alert email (doc notices, submission matches, slot clashes,
+        # its own alert email (doc notices, submission matches, set-time clashes,
         # the 3-day unresponded list, thank-you / day-before failures)
         needs = db.needs_attention(cur)
         queued = db.undelivered_digest_items(cur)

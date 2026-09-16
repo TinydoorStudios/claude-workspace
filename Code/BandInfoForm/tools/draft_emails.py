@@ -136,7 +136,6 @@ def load_batch(path):
                 "series": r.get("series") or "",
                 "email": r.get("contact_email") or "",
                 "set_time": r.get("set_time") or "",
-                "slot": r.get("slot") or "",
                 "event_name": r.get("event_name") or "",
                 "email_note": r.get("email_note") or "",
                 "location": r.get("location") or "",
@@ -147,7 +146,6 @@ def load_batch(path):
                 "event_start": r.get("event_start") or "",
                 "event_end": r.get("event_end") or "",
                 "curfew": r.get("curfew") or "",
-                "band_count": r.get("band_count") or "",
             })
         return out
     if p.suffix.lower() == ".json":
@@ -210,8 +208,10 @@ def main():
     # 2026-09-12) — every other series never touches this template.
     advance_es_t = env.get_template("advance_es.md.j2")
 
-    # the bill for each event (rows sharing event name + date + venue), in slot order
-    SLOT_ORD = {"opener": 1, "direct_support": 2, "headliner": 3}
+    # the bill for each event (rows sharing event name + date + venue), in set
+    # order — earliest set start first (Brian, 2026-09-15). Slots are retired,
+    # and the band-facing copy never labelled anyone the opener anyway: what an
+    # artist actually wants out of this block is who else is on and when.
     bills = {}
 
     def _bill_key(r):
@@ -223,11 +223,13 @@ def main():
     for r in rows:
         key = _bill_key(r)
         bills.setdefault(key, []).append({
-            "slot": r.get("slot") or "", "name": r.get("name") or "",
+            "name": r.get("name") or "",
             "set_time": r.get("set_time") or "",
+            "set_start": r.get("event_start") or "",
         })
     for acts in bills.values():
-        acts.sort(key=lambda a: SLOT_ORD.get(a["slot"], 99))
+        acts.sort(key=lambda a: (db.parse_clock(a["set_start"]) is None,
+                                 db.parse_clock(a["set_start"]) or 0, a["name"]))
 
     summary = []
     with db.get_conn() as conn:
@@ -259,7 +261,6 @@ def main():
                     db.stamp_email_sent(cur, show_id)
                 conn.commit()
 
-            slot = (r.get("slot") or "").replace("_", " ")
             # Day-of contact (audit #15): the MIX ENGINEER's name + cell from the
             # staffing sheet (FSQ and WP), then the booking's Lead, then — if
             # neither exists yet — say it comes the week of the show and drop
@@ -301,7 +302,7 @@ def main():
                 return f"{v} min" if v.isdigit() else v
             set_line = ""
             if r.get("set_time"):
-                set_line = f"Set length: {_setlen(r['set_time'])}" + (f" ({slot})" if slot else "")
+                set_line = f"Set length: {_setlen(r['set_time'])}"
 
             # Review 2026-09-14 (M3): a blank schedule field is TBD, not the
             # Fountain Square default — a WP/Court/ESP booking with no times
@@ -331,8 +332,8 @@ def main():
             if len(bill) > 1:
                 lines = ["The bill:"]
                 for a in bill:
-                    s = a["slot"].replace("_", " ")
-                    line = f"  - {s}: {a['name']}"
+                    when = a.get("set_start") or "time TBC"
+                    line = f"  - {when}  {a['name']}"
                     if a.get("set_time"):
                         line += f" — {_setlen(a['set_time'])}"
                     lines.append(line)
@@ -362,26 +363,29 @@ def main():
                         f"  {sched('curfew', 'es')}   {rl['curfew']}",
                     ])
                 if r.get("set_time"):
-                    slot_es = ve.SLOT_LABELS_ES.get((r.get("slot") or "").strip(), slot)
-                    set_line_es = (f"{ve.SET_LENGTH_LABEL_ES}: {_setlen(r['set_time'])}"
-                                   + (f" ({slot_es})" if slot_es else ""))
+                    set_line_es = f"{ve.SET_LENGTH_LABEL_ES}: {_setlen(r['set_time'])}"
                 if len(bill) > 1:
                     lines_es = [ve.BILL_HEADER_ES]
                     for a in bill:
-                        s_es = ve.SLOT_LABELS_ES.get(a["slot"], a["slot"].replace("_", " "))
-                        line = f"  - {s_es}: {a['name']}"
+                        when = a.get("set_start") or ve.TIME_TBC_ES
+                        line = f"  - {when}  {a['name']}"
                         if a.get("set_time"):
                             line += f" — {_setlen(a['set_time'])}"
                         lines_es.append(line)
                     bill_block_es = "\n".join(lines_es)
 
-            # Brian, 2026-09-08: an explicit "bands on the bill" answer (per
-            # booking, so band 1 knows it's multi-band on day one even if
-            # bands 2/3 aren't entered yet) wins over inferring from bill_block
-            # (which only reflects however many rows exist in THIS batch —
-            # wrong for a bill entered one act at a time).
-            band_count = (r.get("band_count") or "").strip()
-            multiband = int(band_count) >= 2 if band_count.isdigit() else bool(bill_block)
+            # Is this a multi-artist night? Counted from the bookings table
+            # (Brian, 2026-09-15), which knows about an artist as soon as staff
+            # logs the booking — so artist 1 knows it's a multi-artist night on
+            # day one even if the others aren't in THIS batch. That's what the
+            # retired "Bands on the Bill" answer was for; it's counted now
+            # rather than typed. Falls back to this batch's own bill.
+            try:
+                with conn.cursor() as cur:
+                    booked_n = db.artist_count_for_event(cur, venue, show_date, series=series)
+            except Exception:
+                booked_n = 0
+            multiband = (booked_n or 0) >= 2 or bool(bill_block)
 
             token = _token(artist_id, venue, show_date, series, r.get("location"),
                            r.get("contact_name"), r.get("contact_email") or r.get("email"))

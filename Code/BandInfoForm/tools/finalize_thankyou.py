@@ -65,12 +65,34 @@ RECAP_ROWS = [
     ("Stage Plot",           "Stage plot", "on file"),
 ]
 
-# Schedule-table row-label fragments per slot (daysheet.find_schedule_table:
-# time in cells[0], label in cells[-1]). A combined cell like "Opener Set
-# Starts/ Direct Support Load-In" is matched as one string against every
-# fragment below — either side can hit. Curfew applies to everyone and is
-# handled separately, always appended last when present.
-SLOT_SCHEDULE_FRAGMENTS = {
+# Schedule-table row-label fragments (daysheet.find_schedule_table: time in
+# cells[0], label in cells[-1]). A combined cell like "Artist 1 Set Starts/
+# Artist 2 Load-In" is matched as one string against every fragment below —
+# either side can hit. Curfew applies to everyone and is handled separately,
+# always appended last when present.
+#
+# Every artist gets BOTH sets of labels: the current "Artist N" ones, and the
+# opener/direct-support/headliner ones the template used until 2026-09-15. This
+# reads docs that were already FILED — a thank-you goes out after the show, so
+# for months yet most of the docs it opens will be old ones. Which legacy slot
+# an artist held depends on how big the bill was (a lone act was the headliner,
+# in column 3), which is exactly what LEGACY_SLOT_BY_POSITION encodes.
+ARTIST_SCHEDULE_FRAGMENTS = {
+    1: [("Load-in", ["Artist 1 Load-In"]),
+        ("Sound check", ["Artist 1 Sound Check"]),
+        ("Set starts", ["Artist 1 Starts", "Artist 1 Set Starts"]),
+        ("Set ends", ["Artist 1 Set End", "Artist 1 End"])],
+    2: [("Load-in", ["Artist 2 Load-In"]),
+        ("Line check", ["Artist 2 Line Check", "Artist 2 Sound Check"]),
+        ("Set starts", ["Artist 2 Starts", "Artist 2 Set Starts"]),
+        ("Set ends", ["Artist 2 Set End", "Artist 2 End"])],
+    3: [("Load-in", ["Artist 3 Load-In"]),
+        ("Sound check", ["Artist 3 Sound Check"]),
+        ("Set starts", ["Artist 3 Starts", "Artist 3 Set Starts"]),
+        ("Set ends", ["Artist 3 End", "Artist 3 Set End"])],
+}
+
+LEGACY_SLOT_FRAGMENTS = {
     "opener": [
         ("Load-in", ["Opener Load-In"]),
         ("Sound check", ["Opener Sound Check"]),
@@ -92,30 +114,54 @@ SLOT_SCHEDULE_FRAGMENTS = {
 }
 
 
-def _artist_slot(venue, show_date, artist_name):
-    """This artist's slot (opener/direct_support/headliner) on the bill at
-    venue/date, or None if it can't be resolved — the schedule block is
-    just omitted in that case, not fatal to the recap."""
+def _legacy_slot(position, bill_size):
+    """The slot this artist would have been filed under before 2026-09-15 —
+    mirrors the retired daysheet._act_col rule exactly: a 1-act bill was the
+    headliner, a 2-act bill was direct support + headliner, a 3-act bill ran
+    opener / direct support / headliner."""
+    if bill_size <= 1:
+        return "headliner"
+    if bill_size == 2:
+        return "headliner" if position >= 2 else "direct_support"
+    return {1: "opener", 2: "direct_support"}.get(position, "headliner")
+
+
+def _artist_position(venue, show_date, artist_name):
+    """(position on the bill, bill size) for this artist at venue/date, or
+    (None, 0) if it can't be resolved — the schedule block is just omitted in
+    that case, not fatal to the recap."""
     with db.get_conn() as conn, conn.cursor() as cur:
         eid = find_event(cur, venue, show_date, artist_name)
         if not eid:
-            return None
+            return None, 0
         acts = db.event_acts(cur, eid)
     target = daysheet.norm(artist_name)
     for a in acts:
         if a.get("artist") and daysheet.norm(a["artist"]["name"]) == target:
-            return a.get("slot")
-    return None
+            return a.get("artist_order"), len(acts)
+    return None, len(acts)
 
 
-def _schedule_lines(doc, slot):
-    """[(human label, time), ...] for this slot's relevant rows plus
-    Curfew, in schedule order. Any single row that can't be matched is
-    just skipped, never fatal to the rest."""
+def _schedule_lines(doc, position, bill_size=0):
+    """[(human label, time), ...] for this artist's rows plus Curfew, in
+    schedule order. Any single row that can't be matched is just skipped,
+    never fatal to the rest."""
     table = daysheet.find_schedule_table(doc)
     if table is None:
         return []
-    fragments = SLOT_SCHEDULE_FRAGMENTS.get(slot, [])
+    fragments = list(ARTIST_SCHEDULE_FRAGMENTS.get(min(position or 1, 3), []))
+    legacy = LEGACY_SLOT_FRAGMENTS.get(_legacy_slot(position or 1, bill_size))
+    if legacy:
+        # same human labels, so merge candidate lists rather than appending
+        # a second set of rows that would print the schedule twice
+        merged = {human: list(cands) for human, cands in fragments}
+        for human, cands in legacy:
+            merged.setdefault(human, []).extend(c for c in cands if c not in merged.get(human, []))
+        # fixed schedule order, so a label that only exists on the legacy side
+        # (a 2-act bill's second artist was the "headliner", with a Sound check
+        # row where Artist 2 now has a Line check one) can't land out of order
+        order = ["Load-in", "Sound check", "Line check", "Set starts", "Set ends"]
+        fragments = [(human, merged[human]) for human in order if human in merged]
     found = {}
     curfew_time = None
     all_rows = []  # every (label, time) row seen, for the single-band fallback below
@@ -138,7 +184,7 @@ def _schedule_lines(doc, slot):
                 found[human] = time_text
     lines = [(human, found[human]) for human, _ in fragments if human in found]
     if not lines and all_rows:
-        # Opener/Direct Support/Headliner labels didn't match anything — a
+        # Neither the Artist N nor the legacy slot labels matched anything — a
         # single-house-band series (Salsa On The Square's "Set #1" / "Dance
         # Instruction #1" / "Set #2" format, confirmed 2026-09-13, is nothing
         # like the standard multi-act schedule) or a template variant this
@@ -186,9 +232,9 @@ def build_recap(venue, show_date, artist_name, series=None):
     except Exception:
         doc = None
     if doc is not None:
-        slot = _artist_slot(venue, show_date, artist_name)
-        if slot:
-            schedule_lines = _schedule_lines(doc, slot)
+        position, bill_size = _artist_position(venue, show_date, artist_name)
+        if position:
+            schedule_lines = _schedule_lines(doc, position, bill_size)
     return schedule_lines, recap_lines
 
 

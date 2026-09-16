@@ -203,19 +203,13 @@ def prefilled_form(token):
     payload = read_prefill_token(token) or {}
     seed = payload.get("s") or {}
     series = seed.get("series") or request.args.get("series")
-    # This act's slot drives a couple of form tweaks (FSQ hides the drum-riser
-    # question for openers/direct support — Brian, 2026-09-11). Looked up live
-    # so it works for links issued before slot was carried anywhere.
-    slot = None
-    if payload.get("a") and DB_OK and seed.get("venue") and seed.get("date"):
-        try:
-            with advance_db.get_conn() as conn, conn.cursor() as cur:
-                slot = advance_db.slot_for(cur, payload["a"], seed["venue"], seed["date"])
-        except Exception as e:
-            _log_db_error("slot_lookup", e)
+    # An act's position on the bill used to tailor its form here — FSQ hid the
+    # drum-riser question from openers and direct support. Every artist is asked
+    # now, worded "if available" (Brian, 2026-09-15), so the form no longer
+    # depends on where an artist falls on the night.
     cfg = forms_config.get_config(
         series_key=series, venue=seed.get("venue") or request.args.get("venue"),
-        location=seed.get("location") or request.args.get("location"), slot=slot,
+        location=seed.get("location") or request.args.get("location"),
         lang=_lang())
     # Brian, 2026-09-14: staff fill in a 3rd-party advance themselves, so no
     # field on it is required (form renders novalidate; /submit skips checks).
@@ -855,7 +849,9 @@ def dashboard_needs():
     return {"items": items, "generated_at": dt.datetime.now().isoformat()}
 
 
-BOOKING_SLOTS = ["headliner", "direct_support", "opener"]
+# BOOKING_SLOTS retired 2026-09-15 — staff no longer picks a slot or a band
+# count. Set Start decides the order (earliest is Artist 1) and the bill counts
+# itself. See advance_db.order_acts.
 # No-series choices (audit #16). The top Series pick decides internal vs 3rd
 # party; the old Event Type field is gone from the form.
 STANDALONE_SERIES = ["Stand-Alone Internal", "3rd Party"]
@@ -998,7 +994,7 @@ def _manual_fill_link(data):
 def _booking_form(error=None, form=None, status=200, edit_booking_id=None):
     return render_template("booking.html", venues=forms_config.VENUES,
                            wp_locations=list(forms_config.WP_LOCATIONS),
-                           slots=BOOKING_SLOTS, series_by_venue=_series_by_venue(),
+                           series_by_venue=_series_by_venue(),
                            standalone_series=STANDALONE_SERIES,
                            locked_schedule_series=_locked_schedule_series(),
                            error=error, form=form or {}, edit_booking_id=edit_booking_id), status
@@ -1026,17 +1022,29 @@ def _booking_row_to_form(b):
     return form
 
 
-def _slot_taken(cur, venue, event_date, slot, artist_name, series=None, exclude_booking_id=None):
-    """Another band already holds this slot on this venue+date (audit #20).
-    A 3rd-party event is its own bill (Brian, 2026-09-14): its slots never
+def _set_start_taken(cur, venue, event_date, set_start, artist_name, series=None,
+                     location=None, exclude_booking_id=None):
+    """Another artist already starts at this exact time on this venue+date.
+
+    This replaced _slot_taken on 2026-09-15 (audit #20's rule, re-pointed at the
+    thing that now matters): set start decides who is Artist 1, so two artists
+    sharing one start time makes the running order a coin flip. Refused here,
+    where a human is sitting in front of the form and can fix it.
+    A 3rd-party event is its own bill (Brian, 2026-09-14): its times never
     collide with the internal show's, and vice versa.
 
     exclude_booking_id (booking edit, 2026-09-14): the row being edited
     still carries its pre-edit values until the UPDATE commits, so a rename
-    that keeps the same slot would otherwise collide with itself — exclude
+    that keeps the same time would otherwise collide with itself — exclude
     it by id rather than by (now stale) name."""
+    if not set_start:
+        return None
     third = advance_db.is_third_party(series)
-    params = [venue, event_date, slot, advance_db.normalize(artist_name), third]
+    # Washington Park runs up to three stages on one date (Main Stage / Porch /
+    # Bandstand), and two of them at 7:00pm is a normal night, not a mistake —
+    # so a clash needs the same location too, not just the same venue.
+    params = [venue, event_date, set_start, (location or "").strip(),
+              advance_db.normalize(artist_name), third]
     exclude_sql = ""
     if exclude_booking_id:
         exclude_sql = " AND b.id <> %s"
@@ -1045,7 +1053,8 @@ def _slot_taken(cur, venue, event_date, slot, artist_name, series=None, exclude_
         r"""SELECT b.artist_name FROM bookings b
             LEFT JOIN artists a ON a.match_key = lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g')))
             LEFT JOIN shows s ON s.artist_id = a.id AND s.venue = b.venue AND s.show_date = b.event_date
-            WHERE b.venue=%s AND b.event_date=%s AND b.slot=%s
+            WHERE b.venue=%s AND b.event_date=%s AND b.event_start=%s
+              AND COALESCE(btrim(b.location),'') = %s
               AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) <> %s
               AND s.cancelled_at IS NULL
               AND (lower(btrim(COALESCE(b.series,''))) = '3rd party') = %s"""
@@ -1065,8 +1074,8 @@ def booking():
       #3  contact email is required unless "Manual band advance" is checked
       #16 Series is required: a named series, "Stand-Alone Internal" or
           "3rd Party"; that pick sets Event Type (named series = Internal)
-      #20 a slot already held by another band that night is refused; a
-          multi-band night has no default slot
+      #20 a set start already taken by another artist that night is refused —
+          it decides the running order, so it has to be unique on the bill
       Set Start / Set End (Brian, 2026-09-15) are required on every booking;
       they aren't stored fields themselves — see _derive_schedule."""
     if request.method == "POST":
@@ -1100,23 +1109,20 @@ def booking():
         if (not data["skip_welcome_email"] and "@" not in data["contact_email"]
                 and not advance_db.is_third_party(data["series"])):
             return _booking_form("Contact email is required (or check Manual band advance).", f, 400)
-        if data["band_count"] not in ("", "1") and not data["slot"]:
-            return _booking_form("Pick a slot — this night has more than one band.", f, 400)
-        if not data["slot"]:
-            data["slot"] = "headliner"
         data["event_type"] = _event_type_for_series(data["series"])
         _derive_schedule(data, f)
         saved = False
         if DB_OK:
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
-                    taken = _slot_taken(cur, data["venue"], advance_db.to_date(data["event_date"]),
-                                        data["slot"], data["artist_name"], series=data["series"])
+                    taken = _set_start_taken(cur, data["venue"], advance_db.to_date(data["event_date"]),
+                                             data.get("event_start"), data["artist_name"],
+                                             series=data["series"], location=data.get("location"))
                     if taken:
-                        slot_h = data["slot"].replace("_", " ")
                         return _booking_form(
-                            f"{taken} is already the {slot_h} on {data['event_date']} — pick another slot.",
-                            f, 409)
+                            f"{taken} already starts at {data['event_start']} on "
+                            f"{data['event_date']} — set start decides the running order, "
+                            f"so two artists can't share one.", f, 409)
                     advance_db.insert_booking(cur, data)
                     conn.commit()
                 saved = True
@@ -1138,15 +1144,15 @@ def booking():
         silent_third = advance_db.is_third_party(data["series"]) and not data["band_emails"]
         fill_link = _manual_fill_link(data) if (data["skip_welcome_email"] or silent_third) else None
         return render_template("booking.html", venues=forms_config.VENUES,
-                               slots=BOOKING_SLOTS, saved=data, urgent=urgent,
+                               saved=data, urgent=urgent,
                                fill_link=fill_link, silent_third=silent_third)
     return _booking_form(form={})[0]
 
 
 @app.route("/booking/<int:booking_id>/edit", methods=["GET", "POST"])
 def booking_edit(booking_id):
-    """Edit a logged booking's own core fields (venue/date/schedule/contact/
-    slot — the bookings row itself), distinct from /show/<id>/edit which
+    """Edit a logged booking's own core fields (venue/date/schedule/contact —
+    the bookings row itself), distinct from /show/<id>/edit which
     edits the BAND'S advance-form answers. Same validation as /booking;
     writes via advance_db.update_booking, which queues an "info changed"
     email to the band (see BAND_FACING_FIELDS) when a band-facing field
@@ -1180,23 +1186,20 @@ def booking_edit(booking_id):
         if (not data["skip_welcome_email"] and "@" not in data["contact_email"]
                 and not advance_db.is_third_party(data["series"])):
             return _booking_form("Contact email is required (or check Manual band advance).", f, 400, booking_id)
-        if data["band_count"] not in ("", "1") and not data["slot"]:
-            return _booking_form("Pick a slot — this night has more than one band.", f, 400, booking_id)
-        if not data["slot"]:
-            data["slot"] = "headliner"
         data["event_type"] = _event_type_for_series(data["series"])
         _derive_schedule(data, f)
         changes, will_notify = {}, False
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
-                taken = _slot_taken(cur, data["venue"], advance_db.to_date(data["event_date"]),
-                                    data["slot"], data["artist_name"], series=data["series"],
-                                    exclude_booking_id=booking_id)
+                taken = _set_start_taken(cur, data["venue"], advance_db.to_date(data["event_date"]),
+                                         data.get("event_start"), data["artist_name"],
+                                         series=data["series"], location=data.get("location"),
+                                         exclude_booking_id=booking_id)
                 if taken:
-                    slot_h = data["slot"].replace("_", " ")
                     return _booking_form(
-                        f"{taken} is already the {slot_h} on {data['event_date']} — pick another slot.",
-                        f, 409, booking_id)
+                        f"{taken} already starts at {data['event_start']} on "
+                        f"{data['event_date']} — set start decides the running order, "
+                        f"so two artists can't share one.", f, 409, booking_id)
                 changes, will_notify = advance_db.update_booking(cur, booking_id, data)
                 conn.commit()
         except Exception as e:
@@ -1207,7 +1210,7 @@ def booking_edit(booking_id):
         scope = f"{data['venue']}|{show_date.isoformat()}" if show_date else None
         _run_pipeline_background(scope)
         return render_template("booking.html", venues=forms_config.VENUES,
-                               slots=BOOKING_SLOTS, saved=data, urgent=False,
+                               saved=data, urgent=False,
                                edited=True, edit_changes=changes, will_notify=will_notify,
                                edit_booking_id=booking_id)
     return _booking_form(form=_booking_row_to_form(existing), edit_booking_id=booking_id)[0]
@@ -1570,7 +1573,7 @@ def show_band_emails(show_id):
 @app.post("/show/<int:show_id>/purge")
 def show_purge(show_id):
     """Irreversible: deletes this one show's submission, uploaded files,
-    booking row, event-act slot, and history entirely (Brian, 2026-09-15 —
+    booking row, event act, and history entirely (Brian, 2026-09-15 —
     the 'complete removal' option on the dashboard's cancel dialog; the
     artist row and any other booking they have elsewhere is untouched — see
     advance_db.purge_show). `confirm_name` must match the artist's name
@@ -1675,11 +1678,10 @@ def show_edit(show_id):
                         AND lower(btrim(regexp_replace(artist_name, '\s+', ' ', 'g'))) = %s
                         ORDER BY id DESC LIMIT 1""", (s["venue"], s["show_date"], s["match_key"]))
         booking = cur.fetchone() or {}
-        slot = advance_db.slot_for(cur, s["artist_id"], s["venue"], s["show_date"])
     series = s.get("show_series") or booking.get("series")
     location = booking.get("location") or ((sub or {}).get("data") or {}).get("location")
     cfg = forms_config.get_config(series_key=series, venue=s["venue"], location=location,
-                                  slot=slot, lang="en")
+                                  lang="en")
     cfg["third_party"] = advance_db.is_third_party(series)
     prefill = {k: v for k, v in ((sub or {}).get("data") or {}).items() if k not in _INTERNAL_KEYS}
     prefill.update({"band_name": s["artist_name"], "venue": s["venue"],
@@ -1905,9 +1907,8 @@ def advance_lifecycle():
                 "lead_phone": r["lead_phone"] or "", "load_in": r["load_in"] or "",
                 "soundcheck": r["soundcheck"] or "", "event_start": r["event_start"] or "",
                 "event_end": r["event_end"] or "", "curfew": r["curfew"] or "",
-                "slot": r["slot"] or "", "set_time": r["set_time"] or "",
+                "set_time": r["set_time"] or "",
                 "email_note": r["email_note"] or "",
-                "band_count": str(r["band_count"]) if r["band_count"] else "",
                 "contact_name": r["contact_name"] or "",
                 "contact_email": r["booking_contact_email"] or "",
             } for r in due_initial]

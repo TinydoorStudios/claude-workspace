@@ -186,21 +186,8 @@
       </label>
       <p class="hint" style="margin:6px 0 0 25px">Band already emailed their info directly — no automated welcome email, you'll fill in their form yourself.</p>
     </div>
-    <div><label>Slot</label>
-      <select name="slot" id="slot_select">
-        <option value="" {% if not form.slot %}selected{% endif %}>Select…</option>
-        {% for s in slots %}<option value="{{ s }}" {% if form.slot==s %}selected{% endif %}>{{ s.replace('_',' ') }}</option>{% endfor %}
-      </select>
-    </div>
     <div><label>Set Length</label><input name="set_time" id="set_time_input" value="{{ form.set_time or '' }}" placeholder="e.g. 60 min" oninput="scheduleTouched.set_time_input=true"></div>
-    <div><label>Bands on the Bill</label>
-      <select name="band_count" id="band_count_select" onchange="onBandCountChange()">
-        <option value="1" {% if (form.band_count or '1')=='1' %}selected{% endif %}>1 (single band)</option>
-        <option value="2" {% if form.band_count=='2' %}selected{% endif %}>2</option>
-        <option value="3" {% if form.band_count=='3' %}selected{% endif %}>3</option>
-      </select>
-    </div>
-    <p class="hint">Multiple bands on one bill? Log each band separately with the same event name, date, and venue.</p>
+    <p class="hint">More than one artist on the bill? Log each one separately with the same event name, date, and venue. Set Start puts them in order on the paperwork — earliest is Artist 1 — so nothing here asks who opens or how many are playing.</p>
 
     <details id="more_detail" {% if form.lead_name or form.load_in or form.email_note %}open{% endif %}>
       <summary>More detail (optional — schedule, contacts, note)</summary>
@@ -345,15 +332,6 @@
     if (!show) { loc.value = ''; }
   }
   onVenueChange();
-  function onBandCountChange() {
-    // A solo act is the headliner by default; a multi-band night has NO
-    // default slot — staff must pick (audit #20).
-    var count = document.getElementById('band_count_select');
-    var slot = document.getElementById('slot_select');
-    if (count.value === '1') { if (!slot.value) slot.value = 'headliner'; slot.required = false; }
-    else { slot.required = true; }
-  }
-  onBandCountChange();
   function onManualChange() {
     // Contact email is required unless this is a manual band advance (audit #3)
     // or a 3rd-party event (Brian, 2026-09-14: we usually don't get a contact).

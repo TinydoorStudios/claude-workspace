@@ -42,7 +42,7 @@ touched at all that run; the next run picks it up. Writes are atomic
 (temp file + os.replace) and re-check the hash right before replacing, so a
 save that lands mid-run is never clobbered.
 
-The filename follows fieldspec.event_display_name (series/event + headliner).
+The filename follows fieldspec.event_display_name (series/event + top of bill).
 When that name changes, the SAME file is renamed in place — never a second
 copy. Lookups go through `filed_docs` by venue + date + event key, not by
 filename sort order. Past shows are never touched.
@@ -72,7 +72,11 @@ from docx import Document
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml.ns import qn
 
-SLOT_COL_NAMES = {1: "Opener", 2: "Direct Support", 3: "Headliner"}
+# Fallback column names when a doc's own act-name row is blank. Artist 1/2/3
+# since 2026-09-15; a doc filed before that reads Opener/Direct Support/
+# Headliner in the template itself, and this is only ever a fallback for a
+# column whose name cell is empty, so it never relabels what's actually filed.
+ACT_COL_NAMES = {1: "Artist 1", 2: "Artist 2", 3: "Artist 3"}
 
 
 # ── small XML helpers ───────────────────────────────────────────────────────
@@ -377,7 +381,7 @@ def merge(T, F, E, prov=None, review=False, frozen=None, force=None, info=None):
                 continue
             section = _t(_tc_text(tT[0])).rstrip(":") or "Act names"
             for i in range(1, len(tT)):
-                col = None if len(tT) == 2 else (names.get(i) or SLOT_COL_NAMES.get(i))
+                col = None if len(tT) == 2 else (names.get(i) or ACT_COL_NAMES.get(i))
                 _compare_cell(ctx, tT[i], tF[i], tE[i], section, col,
                               col_idx=(None if len(tT) == 2 else i),
                               reviewable=section.lower() not in BOOKING_ROWS)
