@@ -1,4 +1,10 @@
 #!/bin/bash
+# DO NOT RUN — retired 2026-09-16 (audit F8). Step 3's smoke test POSTs to
+# /internal/daily-digest and /internal/crew-report for real — those aren't
+# harmless health checks, they send live staff email. The merge this script
+# shipped is already live; the app/tools code it deployed is covered by the
+# normal deploy_app.command going forward.
+#
 # Ship the Daily Digest / Crew Report merge (2026-09-09):
 #   1. redeploy app + tools code (reuses deploy_app.command — daily_digest.py,
 #      crew_report.py, app.py, email_templates/ are all in its tools tarball)

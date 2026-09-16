@@ -567,6 +567,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_booking_edits_pending
 -- advance_status view gains booking_id so the dashboard can link each act to
 -- its bookings row for the new "Edit booking" button. DROP first — CREATE OR
 -- REPLACE can't insert a column ahead of existing ones, only append.
+--
+-- BUG (found 2026-09-15, live dashboard; re-found stale in schema.sql itself
+-- 2026-09-16 audit db-P1): this rewrite had dropped cancelled_at/held_at/
+-- thankyou_sent_at/thankyou_error and, with them, the 'cancelled'/'held'
+-- WHEN branches #4/#17 above had added — a full schema.sql apply (e.g. the
+-- now-retired deploy_recap_extraction.command) would have reinstated this
+-- regressed view on live. Restored from db/migrations/2026-09-14-booking-edits.sql,
+-- keeping this migration's booking_id column.
 DROP VIEW IF EXISTS advance_status;
 CREATE VIEW advance_status AS
 SELECT
@@ -583,11 +591,17 @@ SELECT
     s.followup_draft_created_at,
     s.send_reminder_sent_at,
     s.finalized_at,
+    s.cancelled_at,
+    s.held_at,
+    s.thankyou_sent_at,
+    s.thankyou_error,
     b.id            AS booking_id,
     (SELECT max(sub.submitted_at) FROM submissions sub WHERE sub.show_id = s.id)
                     AS last_submission,
     CASE
+        WHEN s.cancelled_at IS NOT NULL THEN 'cancelled'
         WHEN s.finalized_at IS NOT NULL THEN 'finalized'
+        WHEN s.held_at IS NOT NULL THEN 'held'
         WHEN s.responded_at IS NOT NULL
              OR EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
             THEN 'responded'

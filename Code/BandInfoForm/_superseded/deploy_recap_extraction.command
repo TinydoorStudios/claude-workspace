@@ -1,4 +1,11 @@
 #!/bin/bash
+# DO NOT RUN — retired 2026-09-16 (audit F8/db P1). Step 2 pipes the WHOLE
+# db/schema.sql into the live DB, and schema.sql still carried a stale
+# pre-9/15 advance_status view when this was retired — running this would
+# have reinstated the broken view on production. The recap-extraction
+# feature this script shipped is already live; the app/tools code it
+# deployed is covered by the normal deploy_app.command going forward.
+#
 # Ship the "3 days after a show" advance recap extraction feature end-to-end:
 #   1. redeploy app + tools code (reuses deploy_app.command)
 #   2. apply the schema addition (advance_recaps table) — idempotent

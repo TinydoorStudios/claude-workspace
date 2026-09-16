@@ -161,9 +161,15 @@ if rsync -a \
      --exclude 'venv/' --exclude '__pycache__/' --exclude '*.pyc' \
      --exclude 'app.py.bak.*' --exclude 'data/' --exclude '.git/' \
      --exclude 'tools/_package/' --exclude 'tools/filled/' \
+     --exclude 'advance.env*' --exclude 'db/.env*' --exclude 'backup/*_log.txt' \
      "$APP_DIR/" "$STAGE/app/" >>"$LOG" 2>&1; then
-  # advance.env is a secret; it goes in the encrypted bundle, not here.
-  rm -f "$STAGE/app/advance.env" "$STAGE/app/db/.env"
+  # Belt and suspenders on top of the excludes above — a stray
+  # advance.env.bak.* shipped in the 09-13 archive despite the plain
+  # advance.env exclude already in place (audit 2026-09-16 #2), so this
+  # catches ANY advance.env* / db/.env* that slips past the rsync filter,
+  # not just the exact filenames.
+  find "$STAGE/app" -name 'advance.env*' -delete
+  find "$STAGE/app" -name '.env*' -path '*/db/*' -delete
   ok "app tree ($(human "$STAGE/app"))"
 else
   fail "app tree copy failed"

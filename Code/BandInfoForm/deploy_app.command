@@ -26,7 +26,7 @@ fi
 
   echo "--- stage payloads ---"
   tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   app.py advance_db.py forms_config.py i18n.py es_translate.py mailer.py status_labels.py templates || exit 1
-  tar -C "$HERE/tools" -czf /tmp/adv_tools.tgz draft_emails.py backfill.py event.py daysheet.py sheet.py import_sheet.py fieldspec.py build_template.py dump_followups.py status_sheet.py package_run.py venue_email.py staffing.py extract_advance_recap.py seed_bookings.py append_bookings.py merge_status.py run_now.py run_again.py status_log.py daily_digest.py crew_report.py regen_show.py finalize_thankyou.py docmerge.py holds.py migrate_filed_docs.py import_riffpay.py dayahead.py booking_update.py doc_review.py email_templates lists doc_templates staging || exit 1
+  tar -C "$HERE/tools" -czf /tmp/adv_tools.tgz draft_emails.py backfill.py event.py daysheet.py sheet.py import_sheet.py fieldspec.py build_template.py dump_followups.py status_sheet.py package_run.py venue_email.py staffing.py extract_advance_recap.py seed_bookings.py append_bookings.py merge_status.py run_now.py run_again.py status_log.py daily_digest.py crew_report.py regen_show.py finalize_thankyou.py docmerge.py holds.py migrate_filed_docs.py import_riffpay.py dayahead.py booking_update.py doc_review.py missing_reports.py email_templates lists doc_templates staging || exit 1
   tar -C "$HERE" -czf /tmp/adv_ops.tgz ops db/migrations || exit 1
 
   echo "--- copy to VM ---"
@@ -58,7 +58,7 @@ fi
     # systemd units + timers (reference copies live in ops/)
     sudo cp /opt/band-advance/ops/*.service /opt/band-advance/ops/*.timer /etc/systemd/system/
     sudo systemctl daemon-reload
-    sudo systemctl enable --now advance-nightly-run.timer advance-db-nightly.timer advance-lifecycle-watchdog.timer dropbox-cache-guard.timer >/dev/null 2>&1
+    sudo systemctl enable --now advance-nightly-run.timer advance-db-nightly.timer advance-lifecycle-watchdog.timer dropbox-cache-guard.timer dropbox.service >/dev/null 2>&1
     sudo systemctl restart band-advance && sleep 3
     echo \"service: \$(systemctl is-active band-advance)\"
     curl -s http://localhost:8097/healthz; echo

@@ -1,0 +1,20 @@
+# Reference copy of /etc/systemd/system/dropbox.service (audit 2026-09-16 #5).
+# Dropbox has no packaged autostart of its own; without this unit the daemon
+# only runs if someone starts it by hand, and the pipeline keeps "filing"
+# docs to a local folder nobody sees after a reboot, with no error anywhere
+# in the stack.
+[Unit]
+Description=Dropbox daemon (band-advance sheet + filed docs)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=brian
+Environment=HOME=/home/brian
+ExecStart=/home/brian/.dropbox-dist/dropboxd
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -6,6 +6,8 @@ then written to Postgres best-effort. A DB outage logs a warning and the artist
 still gets the thank-you page. The disk JSON remains the durable record and the
 backfill tool can replay anything the DB missed.
 """
+import hmac
+import ipaddress
 import json
 import re
 import subprocess
@@ -40,7 +42,9 @@ import os
 SECRET = os.environ.get("ADVANCE_SECRET", "dev-insecure-secret-change-me")
 GATE_PASS = os.environ.get("ADVANCE_GATE_PASS", "lockdown")
 # Second standing passcode (Brian, 2026-09-12) — either one opens the gate.
-GATE_PASS_2 = os.environ.get("ADVANCE_GATE_PASS_2", "1313")
+# No source-default: a guessable default landed in git history once already
+# (audit 2026-09-16 #2/#7) — the real value lives only in advance.env now.
+GATE_PASS_2 = os.environ.get("ADVANCE_GATE_PASS_2", "")
 VALID_GATE_PASSES = {p for p in (GATE_PASS, GATE_PASS_2) if p}
 INTERNAL_TOKEN = os.environ.get("ADVANCE_INTERNAL_TOKEN", "")
 PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
@@ -103,6 +107,54 @@ except Exception as e:  # pragma: no cover
 
 def _slug(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", (s or "band").lower()).strip("-")[:40] or "band"
+
+
+# Extension -> magic bytes the file must actually start with (audit
+# 2026-09-16, security #1 / app #15). secure_filename() alone only strips
+# path characters and a client-side accept= is trivially bypassed; either
+# uploader copies whatever lands here straight into the real 3CDC Dropbox
+# venue folder as "the band's stage plot" for staff to double-click.
+UPLOAD_MAGIC = {
+    ".pdf": (b"%PDF",),
+    ".png": (b"\x89PNG",),
+    ".jpg": (b"\xff\xd8",),
+    ".jpeg": (b"\xff\xd8",),
+    ".docx": (b"PK",),
+    ".xlsx": (b"PK",),
+    ".doc": (b"\xd0\xcf",),
+}
+UPLOAD_MAX_BYTES = 15 * 1024 * 1024
+
+
+def _save_upload(upload, stamp, slug):
+    """Validate + save one uploaded stage plot. Returns (stored_name, dest)
+    or aborts 400/413. Shared by both upload sites (/submit and the staff
+    booking-answers path) so neither can drift from the other again."""
+    orig_ext = Path(upload.filename or "").suffix.lower()
+    safe = secure_filename(upload.filename or "") or ""
+    safe_ext = Path(safe).suffix.lower()
+    # A non-Latin filename ("план.pdf") loses its extension too —
+    # secure_filename() strips everything but ASCII — so fall back to the
+    # original name's extension rather than rejecting a real file outright.
+    ext = safe_ext or orig_ext
+    if ext not in UPLOAD_MAGIC:
+        abort(400, "Stage plot must be a PDF, image, Word, or Excel file.")
+    head = upload.stream.read(8)
+    upload.stream.seek(0)
+    if not any(head.startswith(sig) for sig in UPLOAD_MAGIC[ext]):
+        abort(400, "That file doesn't look like a real "
+                    f"{ext.lstrip('.').upper()} — please re-export and try again.")
+    upload.stream.seek(0, 2)  # SEEK_END
+    size = upload.stream.tell()
+    upload.stream.seek(0)
+    if size > UPLOAD_MAX_BYTES:
+        abort(413, "Stage plot is too large (15 MB max) — please compress it and try again.")
+    if not safe or not safe_ext:
+        safe = f"plot{ext}"
+    stored = f"{stamp}__{slug}__{safe}"
+    dest = UPLOADS / stored
+    upload.save(dest)
+    return stored, dest
 
 
 def us_date(d):
@@ -356,10 +408,7 @@ def submit():
 
     file_info = None
     if has_upload:
-        safe = secure_filename(upload.filename)
-        stored = f"{stamp}__{slug}__{safe}"
-        dest = UPLOADS / stored
-        upload.save(dest)
+        stored, dest = _save_upload(upload, stamp, slug)
         rec["stage_plot_file"] = stored
         file_info = {
             "filename": upload.filename, "stored_name": stored,
@@ -694,6 +743,11 @@ GATED_PREFIXES = ("/staff", "/search", "/artist", "/file", "/submission", "/book
 
 GATE_MAX_FAILS = 5
 GATE_WINDOW_MIN = 15
+# Global throttle (audit 2026-09-16 #2): a distributed attempt spread across
+# many /64s or /24s never trips any single lockout, so cap total failures
+# across every IP too.
+GATE_GLOBAL_MAX_FAILS = 30
+GATE_NOTIFY_COOLDOWN_MIN = 60
 
 
 @app.before_request
@@ -704,9 +758,27 @@ def _gate():
 
 
 def _client_ip():
-    return (request.headers.get("CF-Connecting-IP")
-            or (request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
-            or request.remote_addr or "unknown")
+    # CF-Connecting-IP is only trustworthy from Cloudflare's own hop — which,
+    # once gunicorn binds 127.0.0.1 (audit #6/#23), is the only thing that can
+    # reach us as 127.0.0.1. A LAN client on the public port used to be able
+    # to spoof this header outright (audit 2026-09-16 #7).
+    if request.remote_addr == "127.0.0.1":
+        cf = request.headers.get("CF-Connecting-IP")
+        if cf:
+            return cf
+    return request.remote_addr or "unknown"
+
+
+def _lockout_net(ip):
+    """Collapse an address to the block it locks out with — one attacker has
+    far more than one address across a /64 (IPv6) or /24 (IPv4), so keying
+    lockouts on the bare IP let them route around it for free (audit #2)."""
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return ip
+    prefix = 64 if addr.version == 6 else 24
+    return str(ipaddress.ip_network(f"{ip}/{prefix}", strict=False))
 
 
 def _safe_next(nxt):
@@ -716,10 +788,10 @@ def _safe_next(nxt):
     return url_for("staff")
 
 
-def _gate_locked(cur, ip):
+def _gate_locked(cur, net):
     cur.execute("""SELECT locked_at FROM gate_lockouts
                    WHERE ip=%s AND locked_at > now() - (%s || ' minutes')::interval""",
-                (ip, GATE_WINDOW_MIN))
+                (net, GATE_WINDOW_MIN))
     return cur.fetchone() is not None
 
 
@@ -731,45 +803,60 @@ def gate():
     shares them. If the database is down the gate still works, unthrottled —
     never lock staff out over a DB outage."""
     ip = _client_ip()
+    net = _lockout_net(ip)
     if request.method == "POST":
         locked = False
         if DB_OK:
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
-                    locked = _gate_locked(cur, ip)
+                    locked = _gate_locked(cur, net)
             except Exception as e:
                 _log_db_error("gate_check", e)
         if locked:
             return render_template("gate.html",
                                    error=f"Too many attempts — try again in {GATE_WINDOW_MIN} minutes."), 429
-        ok = request.form.get("passcode") in VALID_GATE_PASSES
+        posted = request.form.get("passcode") or ""
+        ok = any(hmac.compare_digest(posted, p) for p in VALID_GATE_PASSES)
         if DB_OK:
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
                     cur.execute("INSERT INTO gate_attempts (ip, ok) VALUES (%s,%s)", (ip, ok))
                     if not ok:
                         cur.execute("""SELECT count(*) AS n FROM gate_attempts
-                                       WHERE ip=%s AND NOT ok
+                                       WHERE ip::inet <<= %s::cidr AND NOT ok
                                          AND attempted_at > now() - (%s || ' minutes')::interval
                                          AND attempted_at > COALESCE((SELECT locked_at FROM gate_lockouts
                                                                       WHERE ip=%s), '-infinity')""",
-                                    (ip, GATE_WINDOW_MIN, ip))
-                        if cur.fetchone()["n"] >= GATE_MAX_FAILS:
+                                    (net, GATE_WINDOW_MIN, net))
+                        net_fails = cur.fetchone()["n"]
+                        cur.execute("""SELECT count(*) AS n FROM gate_attempts
+                                       WHERE NOT ok
+                                         AND attempted_at > now() - (%s || ' minutes')::interval""",
+                                    (GATE_WINDOW_MIN,))
+                        global_fails = cur.fetchone()["n"]
+                        if net_fails >= GATE_MAX_FAILS or global_fails >= GATE_GLOBAL_MAX_FAILS:
                             cur.execute("""INSERT INTO gate_lockouts (ip, locked_at, notified_at)
                                            VALUES (%s, now(), NULL)
-                                           ON CONFLICT (ip) DO UPDATE SET locked_at=now(), notified_at=NULL""",
-                                        (ip,))
+                                           ON CONFLICT (ip) DO UPDATE SET locked_at=now()""",
+                                        (net,))
                             locked = True
                     conn.commit()
                 if locked:
-                    sent, _ = mailer.alert(
-                        "Advance staff login locked out — repeated wrong passcodes",
-                        f"<p>{GATE_MAX_FAILS} wrong passcodes from IP <b>{mailer.esc(ip)}</b> within "
-                        f"{GATE_WINDOW_MIN} minutes. That IP is locked out for {GATE_WINDOW_MIN} minutes.</p>")
-                    if sent:
-                        with advance_db.get_conn() as conn, conn.cursor() as cur:
-                            cur.execute("UPDATE gate_lockouts SET notified_at=now() WHERE ip=%s", (ip,))
-                            conn.commit()
+                    with advance_db.get_conn() as conn, conn.cursor() as cur:
+                        cur.execute("SELECT notified_at FROM gate_lockouts WHERE ip=%s", (net,))
+                        row = cur.fetchone()
+                    cooled_down = (not row or not row["notified_at"]
+                                   or row["notified_at"] <
+                                   dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=GATE_NOTIFY_COOLDOWN_MIN))
+                    if cooled_down:
+                        sent, _ = mailer.alert(
+                            "Advance staff login locked out — repeated wrong passcodes",
+                            f"<p>{GATE_MAX_FAILS} wrong passcodes from <b>{mailer.esc(net)}</b> within "
+                            f"{GATE_WINDOW_MIN} minutes. That block is locked out for {GATE_WINDOW_MIN} minutes.</p>")
+                        if sent:
+                            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                                cur.execute("UPDATE gate_lockouts SET notified_at=now() WHERE ip=%s", (net,))
+                                conn.commit()
             except Exception as e:
                 _log_db_error("gate_record", e)
         if ok:
@@ -1067,10 +1154,7 @@ def _record_booking_band_answers(f, files, data, existing_artist_id=None):
     file_info = None
     if has_upload:
         stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-        safe = secure_filename(upload.filename)
-        stored = f"{stamp}__{_slug(rec['band_name'])}__{safe}"
-        dest = UPLOADS / stored
-        upload.save(dest)
+        stored, dest = _save_upload(upload, stamp, _slug(rec["band_name"]))
         rec["stage_plot_file"] = stored
         file_info = {"filename": upload.filename, "stored_name": stored,
                     "mime": upload.mimetype, "size": dest.stat().st_size if dest.exists() else None}
@@ -2070,7 +2154,8 @@ LIFECYCLE_LOCK_KEY = 874201913
 
 
 def _internal_auth():
-    if not INTERNAL_TOKEN or request.headers.get("X-Advance-Token") != INTERNAL_TOKEN:
+    token = request.headers.get("X-Advance-Token") or ""
+    if not INTERNAL_TOKEN or not hmac.compare_digest(token, INTERNAL_TOKEN):
         abort(403)
 
 
@@ -2461,6 +2546,40 @@ def crew_report_endpoint():
         _log_db_error("crew_report", e)
         return {"error": e.__class__.__name__}, 500
     return {"subject": "3CDC Crew Report — Next 14 Days", "html": html, "to": "blloyd@3cdc.org"}
+
+
+@app.post("/internal/missing-reports")
+def missing_reports_endpoint():
+    """Diff endpoint for n8n's 'Report Reminder' workflow (daily noon). n8n
+    holds the Google Sheets OAuth credential for the private Form Responses
+    sheet and POSTs the submitted rows here; this endpoint reads the PUBLIC
+    staffing roster itself (staffing.collect_days()) and returns who's still
+    missing a report. Re-added 2026-09-16 — the 09-14 build added this route
+    straight on the VM and never committed it, so the 09-15 deploy overwrote
+    it and the workflow errored daily until this audit caught it. Token-
+    protected, same as the other /internal endpoints. Doesn't touch
+    advance-db at all (pure staffing-sheet + posted-rows diff), so no DB_OK
+    gate."""
+    _internal_auth()
+    body = request.get_json(silent=True) or {}
+    submissions = body.get("submissions") or []
+    days = body.get("days") or 7
+    sys.path.insert(0, str(TOOLS_DIR))
+    from missing_reports import build_missing
+    try:
+        return build_missing(submissions, days=days)
+    except Exception as e:
+        _log_db_error("missing_reports", e)
+        return {"error": e.__class__.__name__}, 500
+
+
+@app.errorhandler(413)
+def _too_large(e):
+    lang = (request.form.get("form_lang") or request.args.get("lang") or "en")
+    msg = ("El archivo es demasiado grande. Por favor comprímalo e intente de nuevo."
+           if lang == "es" else
+           "That file is too large. Please compress it and try again.")
+    return msg, 413
 
 
 @app.get("/healthz")

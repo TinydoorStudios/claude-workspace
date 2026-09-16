@@ -7,3 +7,4 @@ Type=oneshot
 User=brian
 EnvironmentFile=/opt/band-advance/advance.env
 ExecStart=/bin/bash -c 'curl -sS -m 60 -X POST -H "X-Advance-Token: $ADVANCE_INTERNAL_TOKEN" http://127.0.0.1:8097/internal/lifecycle-watchdog'
+ExecStart=/opt/band-advance/ops/dropbox_status_check.sh
