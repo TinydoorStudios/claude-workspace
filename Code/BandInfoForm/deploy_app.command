@@ -144,16 +144,17 @@ for d in "${TOOLS_DIRS[@]}"; do SHIPPED_DIRS+=("tools/$d"); done
     # $APP_DIR/backup pre-dates this deploy script ever shipping it, and
     # got here owned by a Mac-side UID (501/staff) that doesn't map to any
     # real account on the VM — fix that once here rather than failing on
-    # it every single deploy. Unconditional (no `[ -d ... ] &&` guard —
-    # under `set -e` a false test there doesn't abort the script, so it
-    # can silently no-op and leave the ownership broken).
+    # it every single deploy. Unconditional, no test-and-skip guard.
     sudo mkdir -p $APP_DIR/backup
     sudo chown -R \"\$(id -un)\":\"\$(id -gn)\" $APP_DIR/backup
     # overlays the staged tree onto the live one — additive, same as the
     # old tar extraction (nothing outside what's shipped, e.g. venv/,
     # data/, advance.env, db/.env, is ever touched or removed).
     rsync -a $APP_DIR.new/ $APP_DIR/
-    rm -rf $APP_DIR.new
+    # sudo: removing a directory ENTRY under /opt needs write on /opt
+    # itself, which the deploy user doesn't have, same reason the mkdir
+    # above needed it.
+    sudo rm -rf $APP_DIR.new
     echo '$NEW_SHA' | sudo tee $APP_DIR/.deployed_commit >/dev/null
 
     # systemd units + timers (reference copies live in ops/)
