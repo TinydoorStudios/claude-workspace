@@ -100,7 +100,7 @@ The database is the spine both halves touch.
 | Form config | `app/forms_config.py` | venue/series form variants (one engine, many variants) |
 | Database | `advance-db` docker container, `127.0.0.1:5433` | dedicated Postgres 16 (isolated from n8n's PG) |
 | Email drafts | `tools/draft_emails.py` | batch list → NEW/RETURNING → draft `.md` files. **Never sends.** |
-| Events | `tools/event.py` + `events`/`event_acts` tables | group up to 3 band submissions into opener/support/headliner slots |
+| Events | `tools/event.py` + `events`/`event_acts` tables | put up to 3 artists on a bill; Artist 1/2/3 is derived from set start |
 | Day-sheet fill | `tools/daysheet.py` | event → filled 513 Airwaves day-sheet `.docx` (writes band cells per act column) |
 | Doc fill (generic) | `tools/docfill.py` | single submission → filled `.docx` (docxtpl) — stand-in template |
 | Packager | `tools/package_run.py` | the VM entrypoint — sheet → full `Advancing/` tree (events, day-sheets, emails, status) under `_package/` |
@@ -140,9 +140,13 @@ draft prefills from the June submission.
 
 ## Events and the day-sheet
 
-The advance form is per-band; the 513 Airwaves day-sheet is per-event with three act
-columns (Opener / Direct Support / Headliner) — and most bills are 1–2 acts. An
-**event** groups band submissions into slots; `daysheet.py` then writes each act's
+The advance form is per-artist; the day-sheet is per-event with three act columns
+(ARTIST 1 / ARTIST 2 / ARTIST 3) — and most bills are 1–2 acts. Position on the bill
+is **derived from set start** (Brian, 2026-09-15): earliest is Artist 1, latest is
+Artist 3, nothing declares it and nothing stores it, so an artist booked later with
+an earlier start renumbers the bill by itself — one artist alone is Artist 1, in
+column 1. `advance_db.order_acts` is the only place that decides it. An **event**
+groups artists onto one bill; `daysheet.py` then writes each act's
 **band-provided** cells (Stage Plot, Engineer, Monitors/IEM, Scenic, Merch, Parking,
 Drink Tix, Dressing-room tent, Backline, Contact) into that act's column of your real
 template. The schedule and internal cells (PA, consoles, lead, "are we paying them?")
@@ -150,8 +154,8 @@ are left exactly as the template has them — those aren't band data, and you fi
 
 ```
 python3 event.py create --name "513 Airwaves w/ Inhaler" --venue "Fountain Square" --date 2026-09-20
-python3 event.py add-act --event 1 --slot headliner --artist "Buffalo Wabs and the Price Hill Hustle"
-python3 event.py add-act --event 1 --slot opener    --artist "The Cincy Suns"
+python3 event.py add-act --event 1 --artist "Buffalo Wabs and the Price Hill Hustle" --set-start 9:00pm
+python3 event.py add-act --event 1 --artist "The Cincy Suns" --set-start 7:00pm
 python3 daysheet.py --event 1        # -> tools/filled/<event>__daysheet.docx
 ```
 
@@ -304,7 +308,9 @@ What changed in how the system behaves:
   as a notice ("doc says X, new info says Y"). Docs open in Word (`~$` owner file) are
   skipped that run. Writes are atomic and re-check the file hash before replacing. Every doc
   is registered in `filed_docs`; lookups go through the registry, never filename sort order.
-  When the headliner changes, the same file is renamed in place. Past shows are never touched.
+  When the last artist of the night changes, the same file is renamed in place (an artist
+  added with an EARLIER start just becomes Artist 1 and renames nothing). Past shows are
+  never touched.
   A booking's run files only that show (`run_now.py --scope "Venue|YYYY-MM-DD"`); a submit
   files only its show; "Run again" files every current show — all blank-cells-only.
 - **One send path** (`app/mailer.py`). A send counts only when n8n's "Confirm Sent" node saw
@@ -330,8 +336,11 @@ What changed in how the system behaves:
   latest stage plot (`stage_plot_carried_from`).
 - **Booking form**: contact email required unless Manual band advance; Series required —
   a named series, "Stand-Alone Internal" or "3rd Party" (that pick sets Event Type; the
-  Event Type field is gone); a slot already held that night is refused; multi-band nights
-  have no default slot. "Run again" runs in the background and the page polls.
+  Event Type field is gone); Set Start / Set End are required, and a set start already
+  taken by another artist on that bill is refused — it decides the running order, so it
+  has to be unique. Slot and "Bands on the Bill" were removed 2026-09-15: order comes
+  from set start and the bill counts itself. "Run again" runs in the background and the
+  page polls.
 - **Content**: vehicle counts reach the doc Parking row, sheet, artist page, notify email and
   thank-you; day-of contact is the staffing sheet's mix engineer (+ "don't advance with them
   before show day") with Lead/"week of the show" fallbacks; Salsa: no riser question, stage-
@@ -381,7 +390,7 @@ Built, staging-tested (70/70, `tools/staging/`) and deployed the same night. Wha
   a recap; `dayahead_sent_at` / `dayahead_error` on the show.
 - **"Needs you"**: `advance_db.needs_attention` feeds a panel at the top of the dashboard
   (`/dashboard/needs`) and a section at the top of the 7am digest. Doc notices, submission
-  matches, slot clashes, the 3-day unresponded list and thank-you failures are queued in
+  matches, set-start clashes, the 3-day unresponded list and thank-you failures are queued in
   `digest_items` and ride the digest instead of their own email. Send failures, holds, the
   watchdog and the Status Log alert stay real-time. A send failure already emailed in the
   last 7 days is suppressed (`send_failures.suppressed`).
