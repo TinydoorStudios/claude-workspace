@@ -36,7 +36,7 @@ NEW_SHA="$(git -C "$HERE" rev-parse HEAD)"
 APP_FILES=(app.py advance_db.py forms_config.py i18n.py es_translate.py mailer.py status_labels.py)
 TOOLS_FILES=(
   draft_emails.py backfill.py event.py daysheet.py sheet.py import_sheet.py fieldspec.py
-  build_template.py dump_followups.py status_sheet.py package_run.py venue_email.py staffing.py
+  build_template.py status_sheet.py package_run.py venue_email.py staffing.py
   extract_advance_recap.py seed_bookings.py append_bookings.py merge_status.py run_now.py
   run_again.py status_log.py daily_digest.py crew_report.py regen_show.py finalize_thankyou.py
   docmerge.py holds.py migrate_filed_docs.py import_riffpay.py dayahead.py booking_update.py
