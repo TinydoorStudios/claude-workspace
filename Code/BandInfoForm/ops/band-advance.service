@@ -3,14 +3,23 @@
 # Spanish translation can't kill a band's submission mid-request, and a 120s
 # graceful shutdown so a restart lets in-flight requests finish.
 #
-# Bound to 127.0.0.1, not 0.0.0.0 (audit 2026-09-16 security #6): the app was
-# reachable on the LAN port directly, so anything on the network could spoof
-# CF-Connecting-IP and skip Cloudflare (and its bot/rate protections)
-# entirely — the gate's own IP-trust fix (app.py _client_ip) only actually
-# holds with this bind change deployed alongside it. n8n now reaches this
-# app via host.docker.internal:8097 (extra_hosts in n8n's docker-compose.yml
-# on the VM, NOT this repo — see the batch-3 report for the exact deploy
-# order) instead of the LAN IP every workflow JSON used to carry.
+# Bound to 127.0.0.1 + the Docker bridge gateway, not 0.0.0.0 (audit
+# 2026-09-16 security #6): the app was reachable on the LAN port directly,
+# so anything on the network could spoof CF-Connecting-IP and skip
+# Cloudflare (and its bot/rate protections) entirely — the gate's own
+# IP-trust fix (app.py _client_ip) only actually holds with this bind
+# change deployed alongside it.
+#
+# 172.17.0.1 (docker0's host-side address — confirm with `ip -4 addr show
+# docker0` if this VM's bridge subnet ever changes) is required alongside
+# 127.0.0.1, not instead of it: n8n reaches this app via
+# host.docker.internal (extra_hosts: host-gateway in n8n's
+# docker-compose.yml on the VM, NOT this repo), which resolves to the
+# bridge gateway INSIDE the container — a strict 127.0.0.1-only bind
+# refuses that connection outright (it isn't loopback traffic from the
+# kernel's point of view), even though DNS resolves correctly. Neither
+# address is reachable from another machine on the LAN, which is the
+# actual security property this bind change is for.
 [Unit]
 Description=3CDC Band Advance Form
 After=network.target docker.service
@@ -19,7 +28,7 @@ After=network.target docker.service
 User=brian
 WorkingDirectory=/opt/band-advance
 EnvironmentFile=/opt/band-advance/advance.env
-ExecStart=/opt/band-advance/venv/bin/gunicorn --worker-class gthread -w 4 --threads 4 --timeout 120 --graceful-timeout 120 -b 127.0.0.1:8097 app:app
+ExecStart=/opt/band-advance/venv/bin/gunicorn --worker-class gthread -w 4 --threads 4 --timeout 120 --graceful-timeout 120 -b 127.0.0.1:8097 -b 172.17.0.1:8097 app:app
 Restart=always
 
 [Install]
