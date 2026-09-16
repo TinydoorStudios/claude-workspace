@@ -845,11 +845,28 @@ def newest_submission(cur, artist_id):
     return cur.fetchone()
 
 
-def played_within(cur, artist_id, ref_date, months=6):
-    """Returns the newest prior submission if this band has a submission whose
-    show_date is within `months` before ref_date, else None. This is the
-    returning-artist test — deliberately cross-venue."""
-    sub = newest_submission(cur, artist_id)
+def played_within(cur, artist_id, ref_date, months=6, exclude_show_id=None):
+    """Returns the newest PRIOR submission if this band has one whose show_date
+    is within `months` before ref_date, else None. This is the returning-artist
+    test — deliberately cross-venue.
+
+    exclude_show_id (Brian, 2026-09-16): the show being welcomed right now, so a
+    submission recorded for THIS SAME SHOW doesn't count as "their last show".
+    That situation didn't used to exist — a submission only ever showed up
+    before a welcome sent if staff filled the band's own form in by hand via
+    the old separate link — but the booking form's own "band's own answers"
+    section (2026-09-16) creates one at BOOKING time, before any welcome has
+    gone out. First case that hit it: Jet Jurgensmeyer, booked with their
+    answers typed in directly, got called "returning" with "their last show"
+    recap being the same show being welcomed — worse, cross-contaminated with
+    a bill-mate's data via the unrelated column-reassignment bug (see
+    docmerge's per-column diff, which is position- not artist-keyed)."""
+    cur.execute(
+        """SELECT * FROM submissions WHERE artist_id=%s AND show_id IS DISTINCT FROM %s
+           ORDER BY submitted_at DESC LIMIT 1""",
+        (artist_id, exclude_show_id),
+    )
+    sub = cur.fetchone()
     if not sub:
         return None
     last = sub.get("show_date") or (sub.get("submitted_at").date()

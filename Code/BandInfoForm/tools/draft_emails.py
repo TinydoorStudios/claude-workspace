@@ -253,7 +253,8 @@ def main():
             with conn.cursor() as cur:
                 artist_id = db.upsert_artist(cur, name, email=email)
                 show_id = db.upsert_show(cur, artist_id, venue, show_date, series=series)
-                prior = db.played_within(cur, artist_id, show_date, months=args.months)
+                prior = db.played_within(cur, artist_id, show_date, months=args.months,
+                                         exclude_show_id=show_id)
             conn.commit()
 
             if args.mark_sent:
