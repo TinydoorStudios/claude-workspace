@@ -651,14 +651,24 @@ def fill_engineer(grid, event, n, acts=None):
     names = {}
     if venue and date:
         try:
-            det = event.get("details") or {}
+            # event_start for staffing's own-day disambiguation (a double-
+            # booked date on the sheet, resolved by whether the booking's
+            # start falls inside that row's own time range) — the EARLIEST
+            # real act's own set_start, since 2026-09-15 there's no single
+            # event-level start any more (each act carries its own). Bug
+            # fixed 2026-09-16: this read event.details.event_start, which
+            # moved onto the acts that day and left this always empty —
+            # FSQ 9/25 (a same-day 3rd-party booking sharing the sheet's
+            # date with Final Fridays) is exactly the case that needed the
+            # hint and silently stopped getting one.
+            real = sorted((a for a in (acts or []) if a.get("artist") and not a.get("_cancelled")),
+                          key=lambda a: a.get("artist_order") or 0)
+            anchor_start = real[0].get("set_start") if real else None
             names = staffing.engineers_for(
                 venue, date.isoformat(),
                 series=event.get("series"), event_name=event.get("name"),
-                artist_name=next((a["artist"]["name"] for a in (acts or [])
-                                  if a.get("artist") and not a.get("_cancelled")),
-                                 None),
-                event_start=det.get("event_start"))
+                artist_name=real[0]["artist"]["name"] if real else None,
+                event_start=anchor_start)
         except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the fill
             print(f"[daysheet] engineer lookup failed: {e!r}", file=sys.stderr)
             names = {}
