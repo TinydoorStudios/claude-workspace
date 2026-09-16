@@ -1186,6 +1186,14 @@ def update_booking(cur, booking_id, data: dict):
                 # keep the earliest "old" so the eventual email reflects the
                 # whole span of edits since it was last sent, not just the last one
                 merged[f] = {"old": merged[f]["old"], "new": d["new"]} if f in merged else d
+            # A field edited back to where it started is not a change (Brian,
+            # 2026-09-15: "Set length: 120 -> 120 min" was about to go to a band
+            # as news). Dropping it here rather than at send time keeps the
+            # stored diff honest too — what's queued is what the band will read.
+            merged = {f: d for f, d in merged.items() if d["old"] != d["new"]}
+            if not merged:
+                cur.execute("DELETE FROM booking_edits WHERE id=%s", (pending["id"],))
+                return changes, False
             cur.execute(
                 """UPDATE booking_edits SET changes=%s::jsonb, edited_by=%s, edited_at=now(),
                                              notify=%s WHERE id=%s""",
