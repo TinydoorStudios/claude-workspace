@@ -45,10 +45,19 @@ def _fmt(field, v):
     return v
 
 
+# The order a band reads a day in, not whatever order the diff came out of the
+# database (Brian, 2026-09-15: the email listed Curfew before Load-in).
+FIELD_ORDER = ["event_date", "venue", "location", "artist_name", "load_in",
+               "soundcheck", "event_start", "event_end", "curfew", "set_time"]
+
+
 def build_email(r):
     changes = r["changes"]
+    ordered = sorted(changes.items(),
+                     key=lambda kv: (FIELD_ORDER.index(kv[0])
+                                     if kv[0] in FIELD_ORDER else len(FIELD_ORDER), kv[0]))
     lines = [f"  {FIELD_LABELS.get(f, f)}: {_fmt(f, d['old'])}  ->  {_fmt(f, d['new'])}"
-             for f, d in changes.items()]
+             for f, d in ordered]
     subject = (f"Updated booking details — {r['artist_name']} at {r['venue']} "
                f"({r['event_date'].strftime('%-m/%-d')})")
     body = (f"Hello {r['artist_name']},\n\n"

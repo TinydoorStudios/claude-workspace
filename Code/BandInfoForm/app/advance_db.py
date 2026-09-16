@@ -371,6 +371,20 @@ def mark_advance_held_as_draft(cur, show_id):
     )
 
 
+def mark_advance_sent_by_hand(cur, show_id, days_out=None):
+    """Brian sent the held draft himself out of Outlook (Brian, 2026-09-15).
+
+    This is the other half of "draft, don't send": clearing the checkbox tells
+    the system to SEND the welcome, which is wrong once a human already has.
+    This says the band has been contacted without sending anything — the show
+    leaves 'queued', and the 7/3/2/1-day reminder ladder starts working again,
+    which it can't while the system believes nobody has written to them."""
+    mark_advance_drafted(cur, show_id)
+    cur.execute("UPDATE shows SET advance_held_draft_at = NULL WHERE id = %s", (show_id,))
+    if days_out is not None:
+        mark_stale_followup_tiers_skipped(cur, show_id, days_out)
+
+
 def clear_advance_held_draft(cur, show_id):
     """Un-ticking "draft, don't send" puts the show back in the normal queue —
     the next lifecycle run sends the welcome for real."""
@@ -881,8 +895,14 @@ def artist_shows(cur, artist_id):
     2026-09-09; it had been silently rendering blank ever since. The view
     carries every column the template needs (show_date/venue/show_series)
     plus the real computed `state`, the same one the dashboard reads."""
+    # advance_held_draft_at is joined from `shows` rather than added to the view
+    # (2026-09-15): the view is recreated wholesale by migration and adding a
+    # column to it for one button on one page isn't worth that churn. It drives
+    # the artist page's "I sent it" action — see app.show_advance_sent.
     cur.execute(
-        "SELECT * FROM advance_status WHERE artist_id=%s ORDER BY show_date DESC NULLS LAST",
+        """SELECT v.*, s.advance_held_draft_at
+           FROM advance_status v JOIN shows s ON s.id = v.show_id
+           WHERE v.artist_id=%s ORDER BY v.show_date DESC NULLS LAST""",
         (artist_id,),
     )
     return cur.fetchall()
@@ -1160,6 +1180,17 @@ def insert_booking(cur, data: dict):
     return cur.fetchone()["id"]
 
 
+# What a booking contributes to advance-list.xlsx — everything the sheet has a
+# column for that the booking form owns. Band-detail columns (Monitors, Stage
+# Type, ...) are deliberately absent: those are the band's answers or Brian's
+# own sheet overrides, and the booking has no opinion on them.
+SHEET_OWNED_FIELDS = [
+    "event_name", "event_date", "venue", "location", "series", "event_type",
+    "paying_band", "lead_name", "lead_phone", "load_in", "soundcheck",
+    "event_start", "event_end", "curfew", "set_time", "artist_name",
+    "contact_email", "email_note",
+]
+
 # Fields a band actually sees/relies on, vs. staff-facing bookkeeping
 # (contact info, entered_by, email_note, lead/paying-band, series, event
 # name, band_count). Changing one of these on an already-logged booking is
@@ -1209,13 +1240,23 @@ def update_booking(cur, booking_id, data: dict):
                                  draft_only = %(draft_only)s
             WHERE id = %(id)s""", vals)
 
+    def _as_text(v):
+        return v.isoformat() if isinstance(v, dt.date) else (v or "")
+
     changes = {}
     for f in BAND_FACING_FIELDS:
-        old, new = before.get(f), vals.get(f)
-        old_s = old.isoformat() if isinstance(old, dt.date) else (old or "")
-        new_s = new.isoformat() if isinstance(new, dt.date) else (new or "")
+        old_s, new_s = _as_text(before.get(f)), _as_text(vals.get(f))
         if old_s != new_s:
             changes[f] = {"old": old_s, "new": new_s}
+
+    # Anything the SHEET carries for this booking that just changed has to be
+    # pushed back into advance-list.xlsx, or the next pipeline run rebuilds the
+    # bill from the old row and undoes the edit (2026-09-15). Wider than
+    # BAND_FACING_FIELDS: the series or the event name never reaches a band,
+    # but it does reach the sheet.
+    if any(_as_text(before.get(f)) != _as_text(vals.get(f)) for f in SHEET_OWNED_FIELDS):
+        cur.execute("UPDATE bookings SET sheet_dirty = true WHERE id = %s AND seeded_at IS NOT NULL",
+                    (booking_id,))
     event_date = vals.get("event_date") or before.get("event_date")
     in_window = bool(event_date) and 0 <= (event_date - dt.date.today()).days <= 21
     notify = bool(changes) and in_window
@@ -1357,6 +1398,38 @@ def unseeded_bookings(cur):
     """Bookings not yet appended to the sheet, oldest first."""
     cur.execute("SELECT * FROM bookings WHERE seeded_at IS NULL ORDER BY id")
     return cur.fetchall()
+
+
+def edited_bookings(cur):
+    """Bookings already in the sheet whose details have been edited since —
+    each with `_old_ident`, the (artist, venue, date) the sheet row was written
+    under, so a renamed band or a moved date can still be found there instead of
+    leaving an orphan row behind."""
+    cur.execute("""SELECT b.*, e.changes AS _changes FROM bookings b
+                   LEFT JOIN LATERAL (
+                       SELECT changes FROM booking_edits
+                       WHERE booking_id = b.id ORDER BY id DESC LIMIT 1
+                   ) e ON true
+                   WHERE b.sheet_dirty AND b.seeded_at IS NOT NULL
+                   ORDER BY b.id""")
+    rows = cur.fetchall()
+    for r in rows:
+        ch = r.pop("_changes", None) or {}
+        date = r.get("event_date")
+        r["_old_ident"] = {
+            "artist_name": (ch.get("artist_name") or {}).get("old") or r.get("artist_name"),
+            "venue": (ch.get("venue") or {}).get("old") or r.get("venue"),
+            "event_date": ((ch.get("event_date") or {}).get("old")
+                           or (date.isoformat() if date else "")),
+        }
+    return rows
+
+
+def mark_bookings_synced(cur, ids):
+    """Their sheet row now matches the booking."""
+    if not ids:
+        return
+    cur.execute("UPDATE bookings SET sheet_dirty = false WHERE id = ANY(%s)", (list(ids),))
 
 
 def mark_bookings_seeded(cur, ids):

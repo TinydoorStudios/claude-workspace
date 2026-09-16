@@ -95,6 +95,12 @@
           <button class="minor-btn" type="submit" title="Creates an Outlook draft to the band, addressed, with their answers pasted below">Email band ✉</button>
         </form>
         {% endif %}
+        {% if s.advance_held_draft_at %}
+        <form method="post" action="{{ url_for('show_advance_sent', show_id=s.show_id) }}"
+              title="The welcome is sitting in Production@3cdc.org drafts. Use this once you've sent it by hand — it marks the band as contacted without sending anything, and restarts the reminder schedule.">
+          <button class="minor-btn" type="submit">Advance drafted — I sent it ✓</button>
+        </form>
+        {% endif %}
         {% if s.band_emails is defined and s.state not in ('cancelled', 'finalized') %}
         <form method="post" action="{{ url_for('show_band_emails', show_id=s.show_id) }}"
               title="3rd Party: automated band emails (welcome, reminders, day-before, thank-you) are off unless turned on">

@@ -284,6 +284,16 @@ EVENT_DETAIL_KEYS = ["location", "event_type", "paying_band", "mc", "dj",
 # Per-act schedule, read off that artist's own sheet row / booking.
 ACT_SCHEDULE_KEYS = ["load_in", "soundcheck", "event_start", "event_end"]
 
+# What an edited booking is allowed to write back over its existing sheet row
+# (append_bookings.py --edited, 2026-09-15). The booking form owns these; the
+# BAND_FIELDS columns are the band's own answers or Brian's sheet overrides and
+# are never touched by a write-back.
+SHEET_WRITEBACK_KEYS = ["event_name", "event_date", "venue", "location", "series",
+                        "event_type", "paying_band", "lead_name", "lead_phone",
+                        "load_in", "soundcheck", "event_start", "event_end",
+                        "curfew", "set_time", "artist_name", "contact_email",
+                        "email_note"]
+
 GROUPS = [
     ("EVENT — fill once per event", len(EVENT_FIELDS)),
     ("ACT", len(ACT_FIELDS)),

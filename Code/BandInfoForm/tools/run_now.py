@@ -79,6 +79,24 @@ def one_pass(sheet, nyquist, scope, summary):
         finally:
             bk_file.unlink(missing_ok=True)
 
+    # 1b. push bookings edited since they were seeded back over their sheet rows
+    #     (2026-09-15). Has to run BEFORE the rebuild below, which reads the
+    #     sheet: without it an edit made in the app loses to its own stale row
+    #     and the bill silently reverts — including, now, its running order.
+    ed = run("seed_bookings.py", "--edited")
+    edited = json.loads(ed.stdout or "[]")
+    if edited:
+        ed_file = HERE / ".edited_tmp.json"
+        ed_file.write_text(ed.stdout)
+        try:
+            synced = run("append_bookings.py", "--list", sheet, "--edited", ed_file)
+            ids = synced.stdout.strip()
+            if ids:
+                run("seed_bookings.py", "--synced", ids)
+                summary["edits_synced"] += len(ids.split(","))
+        finally:
+            ed_file.unlink(missing_ok=True)
+
     # 2. rebuild events/drafts/status and file docs in place (scoped if asked)
     out = HERE / "_package"
     cmd = ["package_run.py", sheet, "--out", "_package"]
@@ -128,7 +146,8 @@ def main():
 
     lock = acquire_lock()
     try:
-        summary = {"seeded": 0, "events": 0, "emails": 0, "followups": 0, "plots": 0, "failed": 0}
+        summary = {"seeded": 0, "edits_synced": 0, "events": 0, "emails": 0,
+                   "followups": 0, "plots": 0, "failed": 0}
         for _ in range(MAX_PASSES):
             one_pass(sheet, nyquist, args.scope, summary)
             if unseeded_count() == 0:

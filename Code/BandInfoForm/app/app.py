@@ -1615,6 +1615,25 @@ def show_band_emails(show_id):
     return _back(url_for("artist_detail", artist_id=s["artist_id"]))
 
 
+@app.post("/show/<int:show_id>/advance-sent")
+def show_advance_sent(show_id):
+    """"I sent it myself" for a welcome that was held as a draft (Brian,
+    2026-09-15). Stamps the show as advanced WITHOUT sending anything, which
+    clearing the draft-only checkbox can't do — that one means "go ahead and
+    send it", and would put a second copy in front of the band."""
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.get_show(cur, show_id)
+        if not s:
+            abort(404)
+        days_out = ((s["show_date"] - dt.date.today()).days
+                    if s.get("show_date") else None)
+        advance_db.mark_advance_sent_by_hand(cur, show_id, days_out)
+        conn.commit()
+    return _back(url_for("artist_detail", artist_id=s["artist_id"]))
+
+
 @app.post("/show/<int:show_id>/purge")
 def show_purge(show_id):
     """Irreversible: deletes this one show's submission, uploaded files,

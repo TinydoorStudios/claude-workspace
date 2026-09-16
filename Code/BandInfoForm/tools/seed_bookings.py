@@ -3,9 +3,13 @@
 
   seed_bookings.py --json          # print bookings not yet in the sheet (JSON)
   seed_bookings.py --seed 1,2,3    # stamp those booking ids as seeded
+  seed_bookings.py --edited        # print bookings edited SINCE seeding (JSON)
+  seed_bookings.py --synced 1,2,3  # stamp those as matching the sheet again
 
-generate.command fetches the JSON, appends the rows to the local spreadsheet
-(append_bookings.py), then calls --seed so they never re-append.
+The caller fetches the JSON, writes the rows into the local spreadsheet
+(append_bookings.py), then stamps them so they aren't handled twice. --edited /
+--synced are the 2026-09-15 write-back: an edit made in the app has to reach the
+sheet, or the next pipeline run rebuilds the bill from the old row.
 """
 import json
 import sys
@@ -25,6 +29,17 @@ def main():
         with db.get_conn() as conn, conn.cursor() as cur:
             rows = db.unseeded_bookings(cur)
         print(json.dumps(rows, default=str))
+    elif "--edited" in args:
+        with db.get_conn() as conn, conn.cursor() as cur:
+            rows = db.edited_bookings(cur)
+        print(json.dumps(rows, default=str))
+    elif "--synced" in args:
+        i = args.index("--synced")
+        ids = [int(x) for x in args[i + 1].split(",") if x.strip().isdigit()]
+        with db.get_conn() as conn, conn.cursor() as cur:
+            db.mark_bookings_synced(cur, ids)
+            conn.commit()
+        print(f"synced {len(ids)} booking(s)", file=sys.stderr)
     elif "--seed" in args:
         i = args.index("--seed")
         ids = [int(x) for x in args[i + 1].split(",") if x.strip().isdigit()]
@@ -33,7 +48,8 @@ def main():
             conn.commit()
         print(f"seeded {len(ids)} booking(s)", file=sys.stderr)
     else:
-        print("usage: seed_bookings.py --json | --seed <ids>", file=sys.stderr)
+        print("usage: seed_bookings.py --json | --seed <ids> | --edited | --synced <ids>",
+              file=sys.stderr)
         sys.exit(2)
 
 
