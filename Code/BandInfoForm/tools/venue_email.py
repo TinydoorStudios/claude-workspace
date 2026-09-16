@@ -93,7 +93,7 @@ VENUE_EMAIL = {
         "load_in": """\
 Load-In & Parking:
 The load-in process at Fountain Square has changed — please review the attached document and acknowledge understanding on the form. Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
-We will follow up with QR codes that serve as your Fountain Square Garage validations (5 included). Each vehicle needs its own QR code before arriving; scan at the kiosk on entry or exit (please don't pay). Garage clearance is 6'8". Need more validations or large-vehicle parking? Note it on the form.""",
+We will follow up with QR codes that serve as your Fountain Square Garage validations. Each vehicle needs its own QR code before arriving; scan at the kiosk on entry or exit (please don't pay). Garage clearance is 6'8". Need more validations or large-vehicle parking? Note it on the form.""",
         # 3rd-party version (Brian, 2026-09-16): same load-in line and the
         # attached document, but no garage-QR/validation paragraph — that
         # process is for a touring band's own vehicles, and a 3rd-party event
@@ -155,7 +155,7 @@ VENUE_EMAIL_ES = {
         "load_in": """\
 Carga y estacionamiento:
 El proceso de carga en Fountain Square ha cambiado — por favor revisen el documento adjunto y confirmen que lo entendieron en el formulario. Llamen o envíen un mensaje de texto a su contacto del día del evento cuando estén a unos 5 minutos de llegar, y preséntense en persona en cuanto lleguen.
-Les enviaremos códigos QR que funcionan como sus validaciones del estacionamiento Fountain Square Garage (incluye 5). Cada vehículo necesita su propio código QR antes de llegar; escaneen en el quiosco al entrar o salir (por favor no paguen). La altura máxima del estacionamiento es de 6'8". ¿Necesitan más validaciones o espacio para vehículos grandes? Indíquenlo en el formulario.""",
+Les enviaremos códigos QR que funcionan como sus validaciones del estacionamiento Fountain Square Garage. Cada vehículo necesita su propio código QR antes de llegar; escaneen en el quiosco al entrar o salir (por favor no paguen). La altura máxima del estacionamiento es de 6'8". ¿Necesitan más validaciones o espacio para vehículos grandes? Indíquenlo en el formulario.""",
         # 3rd-party version — see load_in_third_party in VENUE_EMAIL (English) above.
         "load_in_third_party": """\
 Carga y estacionamiento:
