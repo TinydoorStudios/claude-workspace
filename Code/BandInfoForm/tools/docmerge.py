@@ -255,13 +255,15 @@ def _differs_meaningfully(e_text, f_text):
 BOOKING_ROWS = {"act names", "set length"}
 
 
-def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column, col_idx=None, reviewable=False):
+def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column, col_idx=None, reviewable=False,
+                  legacy_key=None):
     # Keyed by COLUMN INDEX, not the band's display name (2026-09-14: a
     # case-only rename of RatBoys changed the header text and orphaned every
     # "…|RatBoys" key, so the band's real answers were treated as hand edits).
-    # Legacy name keys are still honoured on read.
+    # Legacy name keys are still honoured on read; `legacy_key` names one
+    # outright when the old key had a different shape entirely.
     key = f"{section}|col{col_idx}" if col_idx else f"{section}|"
-    legacy = f"{section}|{column}" if column else None
+    legacy = legacy_key or (f"{section}|{column}" if column else None)
     tT, tF, tE = _t(_tc_text(t_tc)), _t(_tc_text(f_tc)), _t(_tc_text(e_tc))
     if tF == tT:
         # the pipeline has nothing for this cell; keep ownership only if the
@@ -395,25 +397,60 @@ def merge(T, F, E, prov=None, review=False, frozen=None, force=None, info=None):
 
     sT, sF, sE = (daysheet.find_schedule_table(d) for d in (T, F, E))
     if sT is not None and sF is not None and sE is not None:
-        def labels(tbl):
-            return [daysheet.norm(_tc_text(r._tr.tc_lst[-1])) for r in tbl.rows if r._tr.tc_lst]
-        LT, LF, LE = labels(sT), labels(sF), labels(sE)
+        # 2026-09-16 rewrite. This used to decide what to do by comparing the
+        # schedule's LABEL LISTS (template vs fresh vs filed) and did nothing at
+        # all unless they lined up. That held while labels were fixed template
+        # text. Since 2026-09-15 the labels carry artist names ("Joe Jordan
+        # Load-In") and drop the half of a row nobody plays — so they change the
+        # moment the bill changes, and adding a second artist to a filed doc
+        # skipped the whole schedule: Augustana (FSQ 9/25) reached the AUDIO
+        # columns and never reached the day's schedule.
+        #
+        # Now the table is matched by SHAPE. Same row count means row i is the
+        # same slot of the day in both docs: its label is pipeline-owned and
+        # always rewritten from the fresh build (nobody hand-types "Joe Jordan
+        # Load-In"), and its time goes through the ordinary cell merge, keyed by
+        # row position so a rename can't orphan it.
+        def label_of(row):
+            tcs = row._tr.tc_lst
+            return _t(_tc_text(tcs[-1])) if tcs else ""
 
-        def all_times_blank_like_template(tbl_e):
-            for re_, rt in zip(tbl_e.rows, sT.rows):
-                if _t(_tc_text(re_._tr.tc_lst[0])) != _t(_tc_text(rt._tr.tc_lst[0])):
-                    return False
-            return True
+        def time_of(row):
+            tcs = row._tr.tc_lst
+            return _t(_tc_text(tcs[0])) if tcs else ""
 
-        def times_owned(tbl_e):
-            for i, re_ in enumerate(tbl_e.rows):
-                v = _t(_tc_text(re_._tr.tc_lst[0]))
-                if v and ctx.prov.get(f"Schedule|row{i}") != v:
-                    return False
-            return True
+        def time_owned(i, row, old_label):
+            v = time_of(row)
+            return bool(v) and (ctx.prov.get(f"Schedule|row{i}") == v
+                                or ctx.owned(f"Schedule row{i}|", f"Schedule: {old_label}|") == v)
 
-        if LF != LT and LE == LT and (all_times_blank_like_template(sE) or times_owned(sE)):
-            # a locked series schedule replaces the template rows wholesale
+        if len(sE.rows) == len(sF.rows):
+            for i, (rf, re_) in enumerate(zip(sF.rows, sE.rows)):
+                f_tcs, e_tcs = rf._tr.tc_lst, re_._tr.tc_lst
+                if not f_tcs or not e_tcs:
+                    continue
+                old_label = label_of(re_)
+                if label_of(rf) != old_label:
+                    _replace_tc_content(ctx, e_tcs[-1], f_tcs[-1])
+                    ctx.changed += 1
+                if not time_of(rf) and time_owned(i, re_, old_label):
+                    # the artist this time belonged to is no longer on the bill
+                    # and the pipeline wrote it — clear it rather than leave a
+                    # time next to a row that now names nobody
+                    _replace_tc_content(ctx, e_tcs[0], f_tcs[0])
+                    ctx.changed += 1
+                    continue
+                _compare_cell(ctx, _blank_like(f_tcs[0]), f_tcs[0], e_tcs[0],
+                              f"Schedule row{i}", None,
+                              legacy_key=f"Schedule: {old_label}|")
+                v = time_of(re_)
+                if v and ctx.prov.get(f"Schedule|row{i}") == v:
+                    ctx.newprov[f"Schedule|row{i}"] = v
+        elif all(not time_of(r) or time_owned(i, r, label_of(r))
+                 for i, r in enumerate(sE.rows)):
+            # Different shape — a series schedule was locked or unlocked since
+            # this doc was filed — and nothing in the filed table is a human's:
+            # replace the rows wholesale.
             tbl_el = sE._tbl
             for r in list(sE.rows):
                 tbl_el.remove(r._tr)
@@ -421,16 +458,13 @@ def merge(T, F, E, prov=None, review=False, frozen=None, force=None, info=None):
                 tbl_el.append(ctx.prepare_copy(r._tr))
                 ctx.newprov[f"Schedule|row{i}"] = _t(_tc_text(r._tr.tc_lst[0]))
             ctx.changed += 1
-        elif LE == LF:
-            base = sT if LF == LT else sF
-            for i, (rb, rf, re_) in enumerate(zip(base.rows, sF.rows, sE.rows)):
-                label = _t(_tc_text(rf._tr.tc_lst[-1]))
-                t_tc = rb._tr.tc_lst[0] if LF == LT else _blank_like(rf._tr.tc_lst[0])
-                _compare_cell(ctx, t_tc, rf._tr.tc_lst[0], re_._tr.tc_lst[0],
-                              f"Schedule: {label}", None)
-                v = _t(_tc_text(re_._tr.tc_lst[0]))
-                if v and ctx.prov.get(f"Schedule|row{i}") == v:
-                    ctx.newprov[f"Schedule|row{i}"] = v
+        else:
+            # Different shape AND hand-typed times in the filed table. Silently
+            # skipping this is how a schedule goes stale unnoticed, so say so.
+            ctx.notice("Schedule", None,
+                       "hand-typed times in a schedule whose rows no longer match",
+                       "rebuild the schedule block by hand, or clear it and re-run",
+                       "Schedule|shape")
     if info is not None:
         info["settled"], info["forced"] = ctx.settled, ctx.forced
     return ctx.changed, ctx.notices, ctx.newprov

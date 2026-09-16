@@ -708,9 +708,34 @@ def _shift_house_time(s, minutes):
     return out[:-1]  # '4:00pm' -> '4:00p'
 
 
+def _schedule_role(rank, n):
+    """Which of the template's 3 fixed schedule-row groups (1/2/3) a REAL
+    performer at position `rank` of `n` real acts belongs to.
+
+    This is NOT the AUDIO column (artist_order) — those stay literal (Brian,
+    2026-09-15: a lone artist is ARTIST 1 in column 1, plainly). The schedule
+    rows are different: they're fixed template slots, and "Artist 3" rows sit
+    both early (Load-In/Sound Check) and late (Starts/End) because the top of
+    the bill checks in FIRST no matter how many artists are actually playing
+    (Brian, 2026-09-16 — this is exactly the retired pre-Artist-1/2/3 slot
+    rule: opener/direct-support/headliner, headliner always column 3, applied
+    here only to which schedule rows an act's time lands in).
+      - 1 real act: role 3 (all of it — the old "everything under Headliner").
+      - 2 real acts: earliest is role 1, the top of the bill is role 3.
+      - 3 real acts: role IS rank — the template's own opener/support/headliner
+        order, unchanged from the day this was written."""
+    if n <= 1:
+        return 3
+    if n == 2:
+        return 3 if rank >= 2 else 1
+    return min(rank, 3)
+
+
 def _artist_schedule_times(acts, event):
-    """{artist_order: {load-in/sound check/set starts/set ends: time}} — each
-    artist's OWN schedule, off its own booking.
+    """{schedule role: {load-in/sound check/set starts/set ends: time}} — each
+    real performer's OWN schedule, off its own booking, filed under the
+    schedule ROLE its position in the night earns it (see _schedule_role) —
+    not its AUDIO column.
 
     Before 2026-09-15 there was no such thing: load_in / soundcheck /
     event_start / event_end were collapsed onto the EVENT as "first non-empty
@@ -723,11 +748,13 @@ def _artist_schedule_times(acts, event):
     written before the per-act columns existed keep filling in."""
     out = {}
     det = event.get("details") or {}
-    real = [a for a in (acts or []) if not a.get("_cancelled")]
-    for a in real:
-        col = min(a.get("artist_order") or 1, 3)
-        fallback = det if len(real) == 1 else {}
-        out[col] = {
+    real = sorted((a for a in (acts or []) if not a.get("_cancelled") and a.get("artist")),
+                 key=lambda a: a.get("artist_order") or 0)
+    n = len(real)
+    for rank, a in enumerate(real, start=1):
+        role = _schedule_role(rank, n)
+        fallback = det if n == 1 else {}
+        out[role] = {
             "load-in": a.get("load_in") or fallback.get("load_in"),
             "sound check": a.get("soundcheck") or fallback.get("soundcheck"),
             "line check": a.get("soundcheck") or fallback.get("soundcheck"),
@@ -805,28 +832,44 @@ def name_schedule_labels(table, acts):
     """Put the real artist names into the schedule rows: '4:30pm Artist 3
     Load-In' becomes '4:30pm RatBoys Load-In' (Brian, 2026-09-15).
 
-    Driven by the SAME artist_order that decides the AUDIO columns, so a name in
-    the schedule can't drift from the name at the top of its column — they are
-    two renderings of one list.
+    Keyed by SCHEDULE ROLE (see _schedule_role), the same mapping
+    _artist_schedule_times uses to place times — a name in the schedule can't
+    drift from the time next to it, because both come from one role map. This
+    is deliberately NOT the AUDIO column (artist_order): on a 2-artist bill the
+    top of the bill is ARTIST 2 in its column but role 3 in the schedule, since
+    it checks in first no matter how many artists are playing (2026-09-16).
 
-    A position nobody occupies (a 2-artist bill has no Artist 3) has its half of
+    Real (non-cancelled) acts take roles by rank among themselves. A cancelled
+    act keeps its OWN artist_order as a fallback role, filling whichever slot
+    the real acts didn't claim — so on a 2-act bill with the earlier act
+    cancelled, its name still occupies the "Artist 1" rows the real headliner
+    (now role 3) doesn't need, rather than vanishing. If every role is already
+    spoken for, the cancelled act is left off the schedule entirely; its
+    column header is what says CANCELLED, and its rows never carried times.
+
+    A position nobody occupies (a 2-artist bill has no role 2) has its half of
     the label dropped rather than printed: the row goes blank instead of reading
-    "Artist 3 Load-In" with no time beside it, and a changeover row naming one
+    "Artist 2 Load-In" with no time beside it, and a changeover row naming one
     real artist and one empty position keeps the real half ("Ricky Nye Set
     Starts", not "... / Artist 2 Load-In"). The row itself stays — blank, like
     any other unfilled row — because the table's shape is what docmerge lines an
     already-filed doc up against.
 
-    A cancelled act keeps its name here; its column header is what says
-    CANCELLED, and its rows have no times.
-
     Runs LAST, after the times are in, and over whatever rows the table ended
     up with — so it covers a locked series schedule (which replaces every row
     wholesale from the series file) exactly the same as the template's own."""
+    real = sorted((a for a in (acts or []) if a.get("artist") and not a.get("_cancelled")),
+                 key=lambda a: a.get("artist_order") or 0)
+    n = len(real)
     names = {}
+    for rank, a in enumerate(real, start=1):
+        names[_schedule_role(rank, n)] = a["artist"]["name"]
     for a in acts or []:
-        if a.get("artist") and a.get("artist_order"):
-            names[min(a["artist_order"], 3)] = a["artist"]["name"]
+        if not a.get("artist") or not a.get("_cancelled"):
+            continue
+        role = min(a.get("artist_order") or 1, 3)
+        if role not in names:
+            names[role] = a["artist"]["name"]
     if not names:
         return
     for row in table.rows:
