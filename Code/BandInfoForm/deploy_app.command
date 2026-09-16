@@ -109,8 +109,12 @@ for d in "${TOOLS_DIRS[@]}"; do SHIPPED_DIRS+=("tools/$d"); done
   echo "--- stage into $APP_DIR.new, migrate, then swap ---"
   $SSH "
     set -e
-    rm -rf $APP_DIR.new
-    mkdir -p $APP_DIR.new/tools
+    # /opt itself isn't writable by the deploy user, only inside
+    # \$APP_DIR — sudo the create, then hand it back so the rest of this
+    # (plain tar/rsync) doesn't need sudo sprinkled everywhere.
+    sudo rm -rf $APP_DIR.new
+    sudo mkdir -p $APP_DIR.new/tools
+    sudo chown -R \"\$(id -un)\":\"\$(id -gn)\" $APP_DIR.new
     tar -C $APP_DIR.new       -xzf /tmp/adv_app.tgz
     tar -C $APP_DIR.new/tools -xzf /tmp/adv_tools.tgz
     tar -C $APP_DIR.new       -xzf /tmp/adv_ops.tgz
