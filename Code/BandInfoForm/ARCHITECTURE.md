@@ -305,8 +305,9 @@ What changed in how the system behaves:
 - **Filed advance docs are never overwritten** (`tools/docmerge.py`). A show's doc is
   created once; every later pass only fills cells still identical to the blank universal
   template. A value that differs from what the doc says is left alone and emailed to Brian
-  as a notice ("doc says X, new info says Y"). Docs open in Word (`~$` owner file) are
-  skipped that run. Writes are atomic and re-check the file hash before replacing. Every doc
+  as a notice ("doc says X, new info says Y"). The `~$` owner-file check for docs open
+  in Word never fires on the VM — Dropbox doesn't sync `~$` files — so since 2026-09-16
+  the real guard is a notice for any "(conflicted copy)" beside the doc (see below). Writes are atomic and re-check the file hash before replacing. Every doc
   is registered in `filed_docs`; lookups go through the registry, never filename sort order.
   When the last artist of the night changes, the same file is renamed in place (an artist
   added with an EARLIER start just becomes Artist 1 and renames nothing). Past shows are
@@ -399,3 +400,47 @@ Built, staging-tested (70/70, `tools/staging/`) and deployed the same night. Wha
 - **Regen serializes with package runs** (`regen_show` takes the `run_now` lock) — a submit
   during a run used to find "no event" and skip the doc.
 - **Deploy guards**: both deploy scripts refuse unless `main` is checked out (`ADVANCE_DEPLOY_BRANCH` overrides). The `advance-system` branch and its `.worktrees/advance-system` checkout were merged into `main` and deleted 2026-09-14 (pipeline-fix) — the workspace is single-branch now.
+
+## Provenance by artist + sheet removals (2026-09-16, audit root causes A and B)
+
+Full record: `~/Documents/Claude/Handoffs/handoff-2026-09-17-band-advance-opus-fixes.md`.
+
+**Removals reach the sheet.** `purge_show` and `merge_shows` write a `sheet_removals`
+tombstone (venue, date, match_key). `run_now.one_pass` applies it first, before anything
+reads the sheet: `append_bookings.py --remove` deletes the row (its `_advance_meta` entries
+follow), `seed_bookings.py --removed` stamps it applied and renames a doc that lost its
+last act to "PURGED - …" / "SUPERSEDED - …" in its own folder (never deleted; a digest line
+says so). Until applied, `import_sheet.py` and `draft_emails.py` skip that ident, and neither
+ever mints a show or artist for a past-dated row. A fresh `/booking` for the same ident
+cancels a pending tombstone. Purge and merge kick a pipeline run immediately.
+
+**A booking takes its show with it.** `update_booking` → `carry_show_with_booking`: a rename
+renames the artist row in place when this is its only show (else moves the show to the
+new-name artist, merging if that artist already has the date); a venue/date change moves the
+show row. Stamps stay on the show, so no second welcome. `reregister_docs_for_move` moves
+the filed-doc registry row when the old date is left with no show (the next filing pass
+renames the file into the new month folder); `merge_shows` does the same, or retires the
+old doc when the new date already has one. `edited_bookings._old_ident` reads every edit
+since `bookings.synced_at`.
+
+**Doc provenance is keyed by artist.** `filed_docs.columns` = `{column: artist_id}` the doc
+was last written with (`daysheet.column_map`; legacy docs fall back to reading their own
+header). Every artist cell is keyed `Section|a<artist_id>` in `filed_docs.cells`,
+notices, frozen/force and "Keep doc"; `Section|colN` and `Section|<band>` are read as
+aliases. When the fresh map differs, `docmerge._rehome_columns` moves each column's cell XML
+(hand edits included) to the artist's new column before merging; a column its artist left
+gets the template back. The act-name header stays positional (`Act names|colN`).
+
+Other rules in the same pass: a pipeline value the fresh build no longer has goes back to
+the template (cancelled/removed act; not Engineer/Consoles under a real artist). A pipeline
+value somebody deleted is a "(cleared by hand)" notice, never a refill; "Keep doc" keeps it
+empty. `_differs_meaningfully` compares tokens in order, checkbox glyphs included. A 4th act
+is left off the doc with a "Bill size" notice. Consoles prints only under occupied columns and
+never raises a notice. Notices label from the fresh header. Resolving a doc's last open
+decision stamps `filed_docs.reviewed_at`; review mode counts from
+`GREATEST(written_at, reviewed_at)`. Conflicted copies of a filed doc, `advance-list.xlsx` or
+the Show Status Log raise a notice + digest line.
+
+Staging: `run_tests_extra.py` x-d (reorder + 4th act), x-g (purge), x-j (rename), x-k (merge),
+x-l (hand edit travels), x-m (cancel retracts), x-n (conflicted copy).
+
