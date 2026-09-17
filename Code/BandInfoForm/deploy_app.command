@@ -105,6 +105,11 @@ _local_git_path() {
     LOCAL_MANIFEST="$(mktemp)"; REMOTE_MANIFEST="$(mktemp)"
     for p in "${ALL_PATHS[@]}"; do
       lp="$(_local_git_path "$p")"
+      # a file this deploy ships for the first time didn't exist at the last
+      # deployed commit, so there's nothing on the VM it could have drifted
+      # from — without this skip, `git show` of a missing path hashes to the
+      # empty-string sha and every new file reads as "drifted"
+      git -C "$HERE" cat-file -e "$PREV_SHA:${REPO_PREFIX}$lp" 2>/dev/null || continue
       sha="$(git -C "$HERE" show "$PREV_SHA:${REPO_PREFIX}$lp" 2>/dev/null | shasum -a 256 | awk '{print $1}')"
       [ -n "$sha" ] && echo "$sha  $p" >> "$LOCAL_MANIFEST"
     done
