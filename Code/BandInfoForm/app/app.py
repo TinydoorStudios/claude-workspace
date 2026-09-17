@@ -1156,6 +1156,18 @@ def _locked_schedule_series():
         return []
 
 
+def _series_schedule_defaults():
+    """Best-effort — an empty dict just means no series pre-fills the
+    schedule-time fields (they fall back to being hidden, as before)."""
+    try:
+        sys.path.insert(0, str(TOOLS_DIR))
+        import venue_email as ve
+        return ve.all_schedule_defaults()
+    except Exception as e:
+        _log_db_error("series_schedule_defaults", e)
+        return {}
+
+
 def _series_by_venue():
     """Best-effort — an empty dict just means the form falls back to the
     stand-alone choices + '+ Add new series…'. The stand-alone choices are
@@ -1300,6 +1312,7 @@ def _booking_form(error=None, form=None, status=200, edit_booking_id=None, show_
                            series_by_venue=_series_by_venue(),
                            standalone_series=STANDALONE_SERIES,
                            locked_schedule_series=_locked_schedule_series(),
+                           series_schedule_defaults=_series_schedule_defaults(),
                            error=error, form=form or {}, edit_booking_id=edit_booking_id,
                            show_id=show_id), status
 
@@ -1439,6 +1452,22 @@ def _validate_booking_data(f):
             and not advance_db.is_third_party(data["series"])):
         return None, "Contact email is required (or check Manual band advance)."
     data["event_type"] = _event_type_for_series(data["series"])
+    # A series with a fixed schedule (Salsa On The Square, Brian, 2026-09-17)
+    # pre-fills curfew with its baked-in value — load_in/soundcheck/
+    # event_start/event_end aren't defaulted here because _derive_schedule
+    # (right below) already derives all four from Set Start/Set End, which
+    # by this point are required and present in `f` (checked above) — the
+    # booking form's JS fills those two natively for a locked series, same
+    # source (venue_email.SERIES_SCHEDULE_DEFAULTS) as this curfew default.
+    # Blanks only — a staffer who typed an explicit curfew still wins.
+    try:
+        sys.path.insert(0, str(TOOLS_DIR))
+        import venue_email as ve
+        curfew_default = ve.schedule_defaults_for(data["series"]).get("curfew")
+        if curfew_default and not data.get("curfew"):
+            data["curfew"] = curfew_default
+    except Exception as e:  # noqa: BLE001 — a missing default just leaves the field blank
+        _log_db_error("schedule_defaults_for", e)
     _derive_schedule(data, f)
     # audit 2026-09-16 #20 (root cause C): reject a bare "H:MM" with no
     # am/pm outright — Set Start/Set End are native <input type=time>
@@ -2493,9 +2522,10 @@ def advance_lifecycle():
                 # sends it. The show is NOT stamped as advanced — the band
                 # hasn't been contacted — so the reminder cadence stays shut
                 # until the box is cleared. See advance_db.mark_advance_held_as_draft.
+                welcome_to = ve.with_extra_recipients(r["email"], r["series"])
                 if r.get("draft_only"):
                     ok, err, link = _create_outlook_draft(
-                        r["email"], subject, body=body.lstrip("\n"),
+                        welcome_to, subject, body=body.lstrip("\n"),
                         attachments=ve.venue_attachments(r["venue"]))
                     if not ok:
                         fail(r["show_id"], "welcome_draft", err)
@@ -2506,7 +2536,7 @@ def advance_lifecycle():
                     held_drafts.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
                                         "show_date": us_date(r["show_date"]), "link": link})
                     continue
-                ok, err = _send_outlook_email(r["email"], subject, body=body.lstrip("\n"),
+                ok, err = _send_outlook_email(welcome_to, subject, body=body.lstrip("\n"),
                                               attachments=ve.venue_attachments(r["venue"]))
                 if not ok:
                     if err and err.startswith("TIMEOUT:"):
@@ -2608,7 +2638,7 @@ def advance_lifecycle():
             doc_links = ve.venue_doc_links_text(r["venue"])
             if doc_links:
                 body = f"{body}\n\n{doc_links}"
-            ok, err = _send_outlook_email(r["email"], subject, body=body)
+            ok, err = _send_outlook_email(ve.with_extra_recipients(r["email"], r["series"]), subject, body=body)
             if not ok:
                 fail(show_id, f"followup_{tier}", err)
                 continue

@@ -363,7 +363,7 @@ def send_for_show(show_id):
             bilingual = bool(s.get("show_series")) and ve.is_bilingual_series(s["show_series"])
             subject, body = build_email(s["artist_name"], s["venue"], s["show_date"],
                                         schedule_lines, recap_lines, bilingual=bilingual)
-            ok, err = mailer.send(email, subject, body=body)
+            ok, err = mailer.send(ve.with_extra_recipients(email, s.get("show_series")), subject, body=body)
             if ok:
                 record(True, None)
                 print(f"sent to {email}")

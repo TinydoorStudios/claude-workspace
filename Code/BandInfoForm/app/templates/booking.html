@@ -225,7 +225,7 @@
         </div>
         <div><label>Day-of Lead</label><input name="lead_name" value="{{ form.lead_name or '' }}"></div>
         <div><label>Lead Phone</label><input name="lead_phone" value="{{ form.lead_phone or '' }}"></div>
-        <div class="full hint" id="schedule_locked_note" style="display:none;margin-top:2px">This series has a fixed schedule — the times are locked in and don't need to be entered here.</div>
+        <div class="full hint" id="schedule_locked_note" style="display:none;margin-top:2px">This series has a fixed schedule — Set Start/Set End above and the times below are pre-filled. Edit a field only if this week's differs.</div>
         <div id="schedule_fields" style="display:contents">
           <div><label>Load-In</label><input name="load_in" id="load_in_input" value="{{ form.load_in or '' }}" placeholder="e.g. 4:30p" oninput="scheduleTouched.load_in_input=true"></div>
           <div><label>Sound Check</label><input name="soundcheck" id="soundcheck_input" value="{{ form.soundcheck or '' }}" placeholder="e.g. 5:00p" oninput="scheduleTouched.soundcheck_input=true"></div>
@@ -328,6 +328,13 @@
   // enforcement is server-side (venue_email.schedule_block_for), this only
   // keeps staff from typing times that would be silently ignored.
   var LOCKED_SCHEDULE_SERIES = {{ locked_schedule_series | tojson }};
+  // A locked series' fixed Set Start / Set End / curfew (Brian, 2026-09-17) —
+  // venue_email.SERIES_SCHEDULE_DEFAULTS, keyed exactly as typed in the Series
+  // dropdown. Load-In/Sound Check/Start/End/Set Length aren't here — they're
+  // derived from set_start/set_end by the SAME calcSetTimes() a staffer's own
+  // typed Set Start/End would trigger; see updateScheduleLock. A locked series
+  // with no entry here falls back to hiding the fields (the old behavior).
+  var SERIES_SCHEDULE_DEFAULTS = {{ series_schedule_defaults | tojson }};
   // Series -> venue (Brian, 2026-09-13): a series belongs to one venue in
   // practice — the Series dropdown's own optgroups above are already
   // grouped by venue — so picking an existing series is authoritative for
@@ -350,11 +357,34 @@
     var custom = document.getElementById('seriesCustom');
     var current = sel.value === '__custom__' ? custom.value : sel.value;
     var locked = LOCKED_SCHEDULE_SERIES.some(function (s) { return normSeries(s) === normSeries(current); });
-    document.getElementById('schedule_fields').style.display = locked ? 'none' : 'contents';
+    var defaultsKey = Object.keys(SERIES_SCHEDULE_DEFAULTS).find(function (s) { return normSeries(s) === normSeries(current); });
+    var defaults = defaultsKey ? SERIES_SCHEDULE_DEFAULTS[defaultsKey] : null;
     document.getElementById('schedule_locked_note').style.display = locked ? 'block' : 'none';
-    if (locked) {
+    if (locked && defaults) {
+      // Fixed schedule with known times (Salsa On The Square) — fix #1,
+      // 2026-09-17: filling only the "More detail" fields left Set
+      // Start/Set End (the required fields up top) blank, so the form still
+      // couldn't submit. Fill those two first (blank-check — they aren't
+      // part of the scheduleTouched tracking below, unlike the fields
+      // calcSetTimes derives), then run the SAME calcSetTimes() a staffer's
+      // own typed Set Start/End would trigger, so Load-In/Sound
+      // Check/Start/End/Set Length come from one place. curfew isn't
+      // derived by calcSetTimes, so it gets the same blank-check directly.
+      document.getElementById('schedule_fields').style.display = 'contents';
+      ['set_start', 'set_end', 'curfew'].forEach(function (field) {
+        if (defaults[field] === undefined) return;
+        var el = document.getElementById(field + '_input');
+        if (el && !el.value) el.value = defaults[field];
+      });
+      calcSetTimes();
+      document.getElementById('more_detail').open = true;
+    } else if (locked) {
+      // Locked but no discrete-field defaults registered — old behavior.
+      document.getElementById('schedule_fields').style.display = 'none';
       SCHEDULE_FIELD_IDS.forEach(function (id) { document.getElementById(id).value = ''; scheduleTouched[id] = false; });
       document.getElementById('more_detail').open = true;
+    } else {
+      document.getElementById('schedule_fields').style.display = 'contents';
     }
   }
 

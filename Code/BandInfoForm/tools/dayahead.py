@@ -217,7 +217,7 @@ def send_due(fail=None):
         doc_links = ve.venue_doc_links_text(r["venue"])
         if doc_links:
             body = f"{body}\n\n{doc_links}"
-        ok, err = mailer.send(email, subject, body=body)
+        ok, err = mailer.send(ve.with_extra_recipients(email, r.get("series")), subject, body=body)
         with db.get_conn() as conn, conn.cursor() as cur:
             if ok:
                 cur.execute("UPDATE shows SET dayahead_sent_at = now(), dayahead_error = NULL WHERE id=%s",

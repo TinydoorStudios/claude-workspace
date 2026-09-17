@@ -455,6 +455,49 @@ def locked_schedule_series(root=None):
     return sorted(out)
 
 
+# A locked-schedule series' fixed times, for the booking form to pre-fill —
+# Brian, 2026-09-17: those raw fields aren't just email input (schedule_block_for
+# always wins there regardless); staffing/crew_report read them directly, so a
+# locked series shouldn't leave them blank. NOT parsed from a series .md
+# file's free-text "## Schedule" section — that prose isn't a reliable
+# field-by-field source — so keep this BY HAND in sync with the times in
+# that section. A locked series with no entry here just falls back to the
+# old behavior (the booking form hides the fields instead of filling them).
+#
+# set_start/set_end (24h "HH:MM", the native <input type=time> format) are
+# the top-of-form REQUIRED fields — fix #1, 2026-09-17: the first cut of this
+# only filled the five "More detail" fields below them (load_in/soundcheck/
+# event_start/event_end), so Set Start/Set End stayed blank and the form
+# still couldn't submit. The booking form's own calcSetTimes() derives those
+# four (plus Set Length) from set_start/set_end the same way it always has
+# for Set Start/End typed by hand — so they aren't repeated here; only
+# curfew needs its own entry, since nothing derives that one.
+SERIES_SCHEDULE_DEFAULTS = {
+    "Salsa On The Square": {
+        "set_start": "19:00", "set_end": "22:00", "curfew": "11:00p",
+    },
+}
+
+
+def schedule_defaults_for(series):
+    """{field: value} for this series' pre-filled booking-form schedule — {}
+    if none configured. Case/whitespace-insensitive, same as every other
+    series lookup in this module. `field` is 'set_start' / 'set_end' (native
+    time-input format) or 'curfew' (free text) — see SERIES_SCHEDULE_DEFAULTS'
+    docstring for why load_in/soundcheck/event_start/event_end aren't here."""
+    if not series:
+        return {}
+    key = next((s for s in SERIES_SCHEDULE_DEFAULTS if _norm_series(s) == _norm_series(series)), None)
+    return dict(SERIES_SCHEDULE_DEFAULTS.get(key, {}))
+
+
+def all_schedule_defaults():
+    """{series: {field: value}} for every series with defaults configured —
+    the whole table at once, for the booking form's JS to look up client-side
+    without a round trip per series pick."""
+    return {k: dict(v) for k, v in SERIES_SCHEDULE_DEFAULTS.items()}
+
+
 # Series whose advance email goes out English-then-Spanish in ONE message
 # (draft_emails.py), with two form links — Brian, 2026-09-12, Salsa On The
 # Square is the first and so far only one. Every other series is completely
@@ -467,6 +510,41 @@ BILINGUAL_SERIES = {"Salsa On The Square"}
 
 def is_bilingual_series(series):
     return _norm_series(series) in {_norm_series(s) for s in BILINGUAL_SERIES}
+
+
+# Series whose band-facing emails (welcome, reminder, thank-you) always carry
+# an extra recipient on top of the band's own contact — Brian, 2026-09-17:
+# Salsa On The Square's day-of contact (Nick Radina) gets a copy of every one
+# of these so he sees exactly what the band was told. Keyed the same way as
+# BILINGUAL_SERIES (as the series is literally typed in the advance-list
+# sheet's `series` column); the value is a list so a series can ever need
+# more than one extra recipient.
+SERIES_EXTRA_RECIPIENTS = {
+    "Salsa On The Square": ["NRadina@gmail.com"],
+}
+
+
+def with_extra_recipients(to, series):
+    """`to` (a single address, or an already comma-joined string — see
+    ADVANCE_FSQ_PARKING_NOTICE_TO for the existing convention this follows)
+    with this series' SERIES_EXTRA_RECIPIENTS appended, comma-joined the same
+    way. A series with no entry, or no `to` to start with, returns `to`
+    unchanged — never invents a send to nobody. Case/whitespace-insensitive
+    on the series name, same as every other series lookup in this module,
+    and never adds an address already present. Every call site that emails a
+    band for a welcome, reminder, or thank-you should route its `to` through
+    this before handing it to mailer.send / the Outlook-draft path, so a new
+    blanket recipient for a series is a one-line addition here, not a hunt
+    through every send site."""
+    if not to or not series:
+        return to
+    key = next((s for s in SERIES_EXTRA_RECIPIENTS if _norm_series(s) == _norm_series(series)), None)
+    extra = SERIES_EXTRA_RECIPIENTS.get(key, []) if key else []
+    if not extra:
+        return to
+    have = {a.strip().lower() for a in to.split(",") if a.strip()}
+    add = [a for a in extra if a.strip().lower() not in have]
+    return to if not add else ", ".join([to] + add)
 
 
 # Spanish equivalents of the handful of short labels draft_emails.py builds
