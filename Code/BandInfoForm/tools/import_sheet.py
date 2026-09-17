@@ -146,29 +146,50 @@ def main():
                 # its own schedule and the read path orders them. Same start
                 # time twice is still a typo worth telling Brian about.
                 by_start = {}
+                # audit 2026-09-16 #23 / Brian 2026-09-17: a cancelled act's
+                # sheet row can still be sitting there (cancelling a show only
+                # sets shows.cancelled_at — nothing removes its sheet row or
+                # booking). It keeps its own column, marked CANCELLED (M4) —
+                # UNLESS a real booking has since taken its exact set start,
+                # in which case that new band's act replaces it outright
+                # rather than crowding in as an extra column. Two passes: the
+                # first just learns which acts are cancelled and which start
+                # times a REAL act now owns, so the second pass (which
+                # actually adds acts) can tell a cancelled act apart from one
+                # that's been taken over.
+                cancelled_flags, real_starts = {}, set()
                 for a in acts:
-                    if not (a.get("artist_name") or "").strip():
+                    name = (a.get("artist_name") or "").strip()
+                    if not name or db.removal_ident(name, evenue, edate) in removed:
                         continue
-                    # audit 2026-09-16 #23: a cancelled act's sheet row can
-                    # still be sitting there (cancelling a show only sets
-                    # shows.cancelled_at — nothing removes its sheet row or
-                    # booking) — it shouldn't be able to clash with, or
-                    # crowd out, a real act's set start.
-                    if db.removal_ident(a["artist_name"], evenue, edate) in removed:
-                        print(f"  skip {a['artist_name']} {edate}: removed in the app, sheet row pending deletion")
+                    show = db.show_for_booking(cur, name, evenue, to_date(edate))
+                    cancelled = bool(show and show.get("cancelled_at"))
+                    cancelled_flags[id(a)] = cancelled
+                    if not cancelled:
+                        st = db.parse_clock((a.get("event_start") or "").strip())
+                        if st is not None:
+                            real_starts.add(st)
+                for a in acts:
+                    name = (a.get("artist_name") or "").strip()
+                    if not name:
                         continue
-                    show = db.show_for_booking(cur, a["artist_name"], evenue, to_date(edate))
-                    if show and show.get("cancelled_at"):
+                    if db.removal_ident(name, evenue, edate) in removed:
+                        print(f"  skip {name} {edate}: removed in the app, sheet row pending deletion")
+                        continue
+                    cancelled = cancelled_flags.get(id(a), False)
+                    start_min = db.parse_clock((a.get("event_start") or "").strip())
+                    if cancelled and start_min is not None and start_min in real_starts:
+                        print(f"  skip {name} {edate}: cancelled, a new booking took its {a.get('event_start')} slot")
                         continue
                     start = (a.get("event_start") or "").strip()
-                    if start:
+                    if start and not cancelled:
                         prior = by_start.get(db.parse_clock(start))
-                        if prior and db.normalize(prior) != db.normalize(a["artist_name"]):
-                            print(f"  ! same set start: {a['artist_name']} and {prior} both start "
+                        if prior and db.normalize(prior) != db.normalize(name):
+                            print(f"  ! same set start: {name} and {prior} both start "
                                   f"{start} on {ename or '(unnamed)'} {edate} — both kept")
-                            clashes.append((evenue, edate, ename, start, prior, a["artist_name"]))
+                            clashes.append((evenue, edate, ename, start, prior, name))
                         else:
-                            by_start[db.parse_clock(start)] = a["artist_name"]
+                            by_start[db.parse_clock(start)] = name
                     if to_date(edate) and to_date(edate) < today:
                         # a past row never mints an artist — only an act for a
                         # band already on file (the recap/status paths read those)

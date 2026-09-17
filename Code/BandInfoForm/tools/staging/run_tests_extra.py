@@ -368,9 +368,11 @@ def tx_hand_edit_travels():
 # ── (m) cancelled act returns its column to the template ────────────────────
 @test("x-m: cancelling an act gives its column back to the template")
 def tx_cancel_retracts():
-    # import_sheet.py leaves a cancelled act off the bill (audit #23), so the
-    # later act's column is the one that empties — it must read as template,
-    # not keep the cancelled band's answers under a blank header
+    # daysheet.py never fills a cancelled act's cells (Brian, 2026-09-17: the
+    # act itself keeps its own column, header marked CANCELLED — see x-o for
+    # the case where a new booking takes its exact slot instead), so the
+    # column's VALUES must still read as template, not the cancelled band's
+    # old answers under a blank header.
     login()
     venue, d = "Fountain Square", TODAY + dt.timedelta(days=39)
     A, B = "Retract Act Alpha", "Retract Act Bravo"
@@ -391,6 +393,41 @@ def tx_cancel_retracts():
           f"B's column back to the template ({cells.get(('monitors', 2))!r}, {cells.get(('backline', 2))!r}, {cells.get(('band contact — cell', 2))!r})")
     check(cells.get(("monitors", 1)) == "3 wedges" and "alpha" in (cells.get(("backline", 1)) or ""), "A untouched")
     check(_notice_count(venue, d) == n_not, f"no notices from the retraction ({_notice_count(venue, d) - n_not})")
+
+
+@test("x-o: a new booking into a cancelled act's exact slot takes over its column outright")
+def tx_cancel_slot_takeover():
+    # Brian, 2026-09-17: cancelling an artist keeps them on the bill (their
+    # own column, header CANCELLED — x-m) right up until someone else is
+    # booked into their exact venue+date+set-start, at which point the new
+    # band replaces them outright — no leftover CANCELLED column sitting
+    # next to the new act, nothing of the cancelled band's answers in reach.
+    login()
+    venue, d = "Fountain Square", TODAY + dt.timedelta(days=40)
+    A, B, C = "Takeover Act Alpha", "Takeover Act Bravo", "Takeover Act Charlie"
+    post("/booking", booking_data(A, venue, d, "19:00", "19:45", monitors="3", backline="alpha kit", contact_phone="555-0301"))
+    post("/booking", booking_data(B, venue, d, "20:00", "20:45", monitors="5", backline="bravo kit", contact_phone="555-0302"))
+    check(wait_run_now(), "2-act doc filed")
+    sa = show_for(A, venue, d)
+    post(f"/show/{sa['id']}/cancel")
+    check(run_tool("run_now.py").returncode == 0, "run after cancel")
+    names, _cells, _ = _grid_cells(venue, d)
+    check(len(names) == 2 and any(n.startswith("CANCELLED") for n in names.values()),
+          f"A still on the bill, cancelled ({names})")
+    # Charlie books the exact slot Alpha's show was cancelled from
+    post("/booking", booking_data(C, venue, d, "19:00", "19:45", monitors="7", backline="charlie kit", contact_phone="555-0303"))
+    check(wait_run_now(), "run after the takeover booking")
+    n_acts = q("""SELECT count(*) AS n FROM event_acts ea JOIN events e ON e.id=ea.event_id
+                  WHERE e.venue=%s AND e.event_date=%s""", (venue, d), one=True)["n"]
+    check(n_acts == 2, f"still exactly 2 acts on the bill, not 3 ({n_acts})")
+    names, cells, _ = _grid_cells(venue, d)
+    print(f"      headers after takeover: {names}")
+    check(not any("Alpha" in n for n in names.values()), f"Alpha is nowhere in the headers ({names})")
+    check(any(C in n for n in names.values()), f"Charlie is on the bill ({names})")
+    col_c = _col_of(names, C)
+    check(cells.get(("monitors", col_c)) == "7 wedges", f"Charlie's own answers filled his column ({cells.get(('monitors', col_c))!r})")
+    col_b = _col_of(names, B)
+    check(cells.get(("monitors", col_b)) == "5 wedges", f"Bravo untouched ({cells.get(('monitors', col_b))!r})")
 
 
 # ── (n) conflicted copy ──────────────────────────────────────────────────────
