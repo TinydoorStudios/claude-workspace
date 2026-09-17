@@ -57,6 +57,8 @@ def _fname_needing_fix(target_s: str):
     to do. Otherwise the plain stage-plot filename it should point at."""
     if target_s.startswith(FALLBACK_PREFIX):
         return unquote(target_s.rsplit("/", 1)[-1])
+    if "dropbox.com" in target_s.lower():
+        return None
     if target_s.lower().startswith(("http://", "https://")):
         return None
     return unquote(target_s)
@@ -88,13 +90,19 @@ def fix_doc(path: Path, venue: str, event_date: dt.date, dry_run: bool) -> int:
         if rel.get("TargetMode") != "External":
             continue
         target_s = rel.get("Target") or ""
-        fname = _fname_needing_fix(target_s)
-        if fname is None:
-            continue
-        local_path = (fs.real_dropbox_root() / fs.real_venue_folder(venue) /
-                      fs.real_month_folder(venue, event_date) / fname)
-        new_url = fs.dropbox_shared_link(local_path) or (
-            f"{FALLBACK_PREFIX}{quote(venue)}/{event_date.isoformat()}/{quote(fname)}")
+        # already a real Dropbox link, just needs dl=0 (lands on the "shared
+        # with me" web preview) swapped for dl=1 (opens/downloads the file
+        # directly) — no need to call the API again for this one.
+        if "dropbox.com" in target_s.lower() and "dl=0" in target_s:
+            new_url = target_s.replace("dl=0", "dl=1")
+        else:
+            fname = _fname_needing_fix(target_s)
+            if fname is None:
+                continue
+            local_path = (fs.real_dropbox_root() / fs.real_venue_folder(venue) /
+                          fs.real_month_folder(venue, event_date) / fname)
+            new_url = fs.dropbox_shared_link(local_path) or (
+                f"{FALLBACK_PREFIX}{quote(venue)}/{event_date.isoformat()}/{quote(fname)}")
         if new_url == target_s:
             continue
         # target_s is ElementTree's UN-escaped view of the attribute (& not
