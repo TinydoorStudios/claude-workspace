@@ -109,7 +109,10 @@ def tx_edit_page():
         if f'name="{name}"' not in html:
             check(False, f"field {name} missing from the merged edit page")
     check('name="set_start" id="set_start_input" value="19:11"' in html, "set_start prefilled 19:11")
-    check(f'name="artist_name" id="artist_name_input" value="{band}"' in html, "artist prefilled")
+    # locked on /show/<id>/edit (audit #10): the visible input is disabled
+    # and carries no name, a separate hidden input carries the real value
+    check(f'id="artist_name_input" value="{band}" disabled' in html
+          and f'type="hidden" name="artist_name" value="{band}"' in html, "artist prefilled (locked)")
     check(f'value="{d.isoformat()}"' in html, "date prefilled")
     check('name="monitors" min="0" step="1" value="3"' in html, "monitors prefilled from the band-answers submission")
     check('value="Flat stage" selected' in html, "stage_type prefilled")
@@ -173,7 +176,8 @@ def tx_no_booking():
         return
     check(booking_for(band, venue, d) is None, "no booking row yet")
     st, html = get(f"/show/{s['id']}/edit")
-    check(st == 200 and f'name="artist_name" id="artist_name_input" value="{band}"' in html,
+    check(st == 200 and f'id="artist_name_input" value="{band}" disabled' in html
+          and f'type="hidden" name="artist_name" value="{band}"' in html,
           f"edit page loads without a booking ({st})")
     check('name="monitors" min="0" step="1" value="2"' in html, "band's own monitors answer prefilled")
     check('<option value="Jazz on the Square" selected' in html, "series taken from the show")
