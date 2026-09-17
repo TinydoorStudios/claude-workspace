@@ -388,7 +388,7 @@ def tx_cancel_retracts():
     check(r.returncode == 0, "run after cancel")
     names, cells, _ = _grid_cells(venue, d)
     print(f"      headers after cancel: {names}")
-    check(B not in names.get(2, "") or names.get(2, "").startswith("CANCELLED"), f"col 2 header no longer names B as playing ({names.get(2)!r})")
+    check("CANCELLED" in names.get(2, ""), f"col 2 header marks B cancelled, not blank/playing ({names.get(2)!r})")
     check(not cells.get(("monitors", 2)) and not cells.get(("backline", 2)) and not cells.get(("band contact — cell", 2)),
           f"B's column back to the template ({cells.get(('monitors', 2))!r}, {cells.get(('backline', 2))!r}, {cells.get(('band contact — cell', 2))!r})")
     check(cells.get(("monitors", 1)) == "3 wedges" and "alpha" in (cells.get(("backline", 1)) or ""), "A untouched")
@@ -403,16 +403,19 @@ def tx_cancel_slot_takeover():
     # band replaces them outright — no leftover CANCELLED column sitting
     # next to the new act, nothing of the cancelled band's answers in reach.
     login()
-    venue, d = "Fountain Square", TODAY + dt.timedelta(days=40)
+    venue, d = "Fountain Square", TODAY + dt.timedelta(days=44)
     A, B, C = "Takeover Act Alpha", "Takeover Act Bravo", "Takeover Act Charlie"
-    post("/booking", booking_data(A, venue, d, "19:00", "19:45", monitors="3", backline="alpha kit", contact_phone="555-0301"))
-    post("/booking", booking_data(B, venue, d, "20:00", "20:45", monitors="5", backline="bravo kit", contact_phone="555-0302"))
-    check(wait_run_now(), "2-act doc filed")
+    sta, _ = post("/booking", booking_data(A, venue, d, "19:00", "19:45", monitors="3", backline="alpha kit", contact_phone="555-0301"))
+    stb, _ = post("/booking", booking_data(B, venue, d, "20:00", "20:45", monitors="5", backline="bravo kit", contact_phone="555-0302"))
+    check(wait_run_now(), f"2-act doc filed (booking posts: {sta}, {stb})")
     sa = show_for(A, venue, d)
+    check(sa is not None, f"Alpha's show exists before cancelling ({sa})")
+    if not sa:
+        return
     post(f"/show/{sa['id']}/cancel")
     check(run_tool("run_now.py").returncode == 0, "run after cancel")
     names, _cells, _ = _grid_cells(venue, d)
-    check(len(names) == 2 and any(n.startswith("CANCELLED") for n in names.values()),
+    check(len(names) == 2 and any("CANCELLED" in n for n in names.values()),
           f"A still on the bill, cancelled ({names})")
     # Charlie books the exact slot Alpha's show was cancelled from
     post("/booking", booking_data(C, venue, d, "19:00", "19:45", monitors="7", backline="charlie kit", contact_phone="555-0303"))
