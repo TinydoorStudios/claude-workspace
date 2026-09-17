@@ -34,6 +34,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from urllib.parse import quote, unquote
+from xml.sax.saxutils import escape as xml_escape
 
 HERE = Path(__file__).resolve().parent
 for _c in (HERE.parent, HERE.parent / "app"):
@@ -96,15 +97,25 @@ def fix_doc(path: Path, venue: str, event_date: dt.date, dry_run: bool) -> int:
             f"{FALLBACK_PREFIX}{quote(venue)}/{event_date.isoformat()}/{quote(fname)}")
         if new_url == target_s:
             continue
-        old_attr = f'Target="{target_s}"'.encode("utf-8")
+        # target_s is ElementTree's UN-escaped view of the attribute (& not
+        # &amp;) — both the search and replacement need the real XML-escaped
+        # form, or a literal & from a Dropbox query string (?rlkey=...&dl=0)
+        # breaks the document the moment it's written back (caught only by
+        # actually re-opening the .docx — found the hard way on the first
+        # run of this fix, repaired by hand, not by this script).
+        old_attr = f'Target="{xml_escape(target_s)}"'.encode("utf-8")
         if new_rels.count(old_attr) != 1:
             print(f"  ! {path.name}: Target attribute not uniquely matched, skipping this link ({target_s!r})")
             continue
-        new_attr = f'Target="{new_url}"'.encode("utf-8")
+        new_attr = f'Target="{xml_escape(new_url)}"'.encode("utf-8")
         new_rels = new_rels.replace(old_attr, new_attr, 1)
         fixed += 1
     if not fixed:
         return 0
+    # Never write bytes that aren't even well-formed XML (a raw & from a
+    # Dropbox query string broke this the first time this script ran, and
+    # nothing here caught it until a doc failed to open afterward).
+    ET.fromstring(new_rels)
     if dry_run:
         return fixed
 
@@ -115,6 +126,10 @@ def fix_doc(path: Path, venue: str, event_date: dt.date, dry_run: bool) -> int:
             data = new_rels if info.filename == rels_path else zin.read(info.filename)
             zout.writestr(info, data)
     shutil.move(tmp_path, path)
+    # Belt and suspenders: confirm the doc genuinely still opens before
+    # calling this a success, not just that the rels XML parses in isolation.
+    from docx import Document
+    Document(str(path))
     return fixed
 
 
