@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/band-advance/venv/bin/python3
 """Extra staging tests for the 2026-09-16 work (merged edit page, band answers
 on the booking form, docmerge column drift, fill_engineer anchor, played_within
 exclusion, purge + rerun, ambiguous clock times, late-booking path).

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/band-advance/venv/bin/python3
 """Staging test suite (review 2026-09-14). Runs ON THE VM against the clone
 setup.sh builds: app on :8198, stub mail on :8199, database advance_test,
 Dropbox copy under ~/advtest/Dropbox. Nothing here can reach n8n or Graph
