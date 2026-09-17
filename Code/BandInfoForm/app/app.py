@@ -1001,7 +1001,13 @@ def dashboard_data():
     """JSON feed the dashboard polls. Rows sharing a venue+date are grouped
     into one bill (same assumption `shows`' own unique constraint makes —
     artist+venue+date is the booking key) so a multi-band night reads as one
-    card, not three separate ones."""
+    card, not three separate ones — UNLESS they're actually different events
+    on the same venue+date (Brian, 2026-09-17: a 3rd-party event and the
+    normal internal bill can share a date — Sept 30 FSQ — and always need
+    their own cards). event_acts is the source of truth for which event a
+    show landed on; before the pipeline has run once for a brand-new
+    booking there's no event_acts row yet, so a 3rd-party/internal split by
+    series is the fallback bucket."""
     if not DB_OK:
         return {"error": "db-unavailable", "bills": [], "generated_at": dt.datetime.now().isoformat()}, 503
     try:
@@ -1011,20 +1017,31 @@ def dashboard_data():
                            WHERE kind='diff' AND resolved_at IS NULL AND event_date >= CURRENT_DATE
                            GROUP BY venue, event_date""")
             open_reviews = {(r["event_date"], r["venue"]): r["n"] for r in cur.fetchall()}
+            cur.execute("""SELECT s.id AS show_id, ev.id AS event_id, ev.name AS event_name
+                           FROM shows s
+                           JOIN event_acts ea ON ea.artist_id = s.artist_id
+                           JOIN events ev ON ev.id = ea.event_id
+                             AND ev.venue = s.venue AND ev.event_date = s.show_date
+                           WHERE s.show_date >= CURRENT_DATE""")
+            show_events = {r["show_id"]: (r["event_id"], r["event_name"]) for r in cur.fetchall()}
     except Exception as e:
         _log_db_error("dashboard_data", e)
         return {"error": "query-failed", "bills": [], "generated_at": dt.datetime.now().isoformat()}, 500
 
     bills, order = {}, []
     for r in rows:
-        key = (r["show_date"], r["venue"])
+        event_id, event_name = show_events.get(r["show_id"], (None, None))
+        third = advance_db.is_third_party(r["show_series"])
+        bucket = event_id if event_id is not None else ("3rd-party" if third else "internal")
+        key = (r["show_date"], r["venue"], bucket)
+        review_key = (r["show_date"], r["venue"])
         if key not in bills:
             bills[key] = {
                 "date": r["show_date"].isoformat() if r["show_date"] else None,
                 "venue": r["venue"] or "Venue TBD",
-                "series": r["show_series"] or "",
+                "series": event_name or r["show_series"] or "",
                 "days_until": r["days_until_show"],
-                "reviews": open_reviews.get(key, 0),
+                "reviews": open_reviews.get(review_key, 0),
                 "acts": [],
             }
             order.append(key)
