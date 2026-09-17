@@ -2130,11 +2130,22 @@ def show_edit(show_id):
             _log_db_error("show_edit_save", e)
             return _booking_form("Couldn't save — the database is unreachable. Try again shortly.",
                                  f, 503, show_id=show_id)
-        band_answers_saved = _record_booking_band_answers(
-            f, request.files, data, existing_artist_id=s["artist_id"]) is not None
+        answer_result = _record_booking_band_answers(
+            f, request.files, data, existing_artist_id=s["artist_id"])
+        band_answers_saved = answer_result is not None
         show_date = advance_db.to_date(data.get("event_date"))
         scope = f"{data['venue']}|{show_date.isoformat()}" if show_date else None
         _run_pipeline_background(scope)
+        # staff-typed band answers file into the doc exactly like a real
+        # submission would (audit #10 test gap, found running the staging
+        # suite 2026-09-16): without this, a staff edit's submission row
+        # never got its doc regenerated or doc_checked_at stamped, leaving
+        # doc-review's "waiting" state stuck forever for it.
+        if answer_result:
+            _regen_submitted_show(
+                {"venue": data["venue"], "show_date": data["event_date"],
+                 "band_name": answer_result.get("artist_name") or data["artist_name"]},
+                submission_id=answer_result.get("submission_id"))
         return render_template("booking.html", venues=forms_config.VENUES,
                                saved=data, urgent=False, band_answers_saved=band_answers_saved,
                                edited=True, edit_changes=changes, will_notify=will_notify,
