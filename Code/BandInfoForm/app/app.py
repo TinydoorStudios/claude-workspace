@@ -1945,6 +1945,11 @@ def show_cancel(show_id):
         if s.get("hold_reason") == "missing from the advance sheet":
             advance_db.release_candidate_holds(cur, show_id)
         conn.commit()
+    # Brian, 2026-09-17: used to wait for the 06:30 nightly run to rename the
+    # filed doc and mark the act header — same-day fix, matching purge's own
+    # immediate trigger just below.
+    if s.get("show_date"):
+        _run_pipeline_background(f"{s['venue']}|{s['show_date'].isoformat()}")
     return _back(url_for("artist_detail", artist_id=s["artist_id"]))
 
 

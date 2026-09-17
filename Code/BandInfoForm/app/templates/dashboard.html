@@ -169,8 +169,12 @@
   <div class="modal" id="cancelModal">
     <button class="modal-close" id="btnModalClose" aria-label="Close">✕</button>
     <h3 id="cancelModalTitle">Cancel show</h3>
-    <p id="cancelModalBody">Choose how to cancel this show.</p>
-    <div class="modal-actions" id="cancelModalChoices">
+    <p id="cancelModalBody">Are you sure you want to cancel this show?</p>
+    <div class="modal-actions" id="cancelModalAreYouSure">
+      <button class="modal-btn" id="btnAreYouSureYes">Yes, cancel it</button>
+      <button class="modal-btn" id="btnAreYouSureNo">No, never mind</button>
+    </div>
+    <div class="modal-actions" id="cancelModalChoices" hidden>
       <button class="modal-btn" id="btnKeep">Mark Cancelled
         <small>Keeps the paperwork on file. Shows as Cancelled, nothing more gets emailed for it. Reversible from the artist page.</small>
       </button>
@@ -305,8 +309,9 @@ function openCancelModal(showId, btn){
   const band = btn.closest(".act").querySelector(".band").textContent;
   cancelModalState = {showId, band, btn};
   document.getElementById("cancelModalTitle").textContent = "Cancel " + band;
-  document.getElementById("cancelModalBody").textContent = "Choose how to cancel this show.";
-  document.getElementById("cancelModalChoices").hidden = false;
+  document.getElementById("cancelModalBody").textContent = "Are you sure you want to cancel this show?";
+  document.getElementById("cancelModalAreYouSure").hidden = false;
+  document.getElementById("cancelModalChoices").hidden = true;
   document.getElementById("purgeConfirm").hidden = true;
   document.getElementById("purgeConfirmInput").value = "";
   document.getElementById("purgeConfirmName").textContent = band;
@@ -322,6 +327,14 @@ function closeCancelModal(){
 document.getElementById("btnModalClose").onclick = closeCancelModal;
 document.getElementById("cancelModalBackdrop").onclick = e => {
   if (e.target.id === "cancelModalBackdrop") closeCancelModal();
+};
+
+document.getElementById("btnAreYouSureNo").onclick = closeCancelModal;
+document.getElementById("btnAreYouSureYes").onclick = () => {
+  const band = (cancelModalState && cancelModalState.band) || "";
+  document.getElementById("cancelModalBody").textContent = "Choose how to cancel " + band + ".";
+  document.getElementById("cancelModalAreYouSure").hidden = true;
+  document.getElementById("cancelModalChoices").hidden = false;
 };
 
 document.getElementById("btnKeep").onclick = async () => {
