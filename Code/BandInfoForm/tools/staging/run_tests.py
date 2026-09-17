@@ -322,7 +322,11 @@ def t_bilingual_reminder():
     x("DELETE FROM submissions WHERE show_id=%s", (sid,))
     n0 = mail_count()
     st, _ = post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
-    sent = [m for m in sends_since(n0) if m["payload"].get("to") == "salsa@example.test"]
+    # with_extra_recipients (venue_email.py) can append a series-wide CC to
+    # "to" (comma-joined) — match on membership, not exact equality, or a
+    # future addition to SERIES_EXTRA_RECIPIENTS for Salsa breaks this.
+    sent = [m for m in sends_since(n0)
+            if "salsa@example.test" in {a.strip().lower() for a in (m["payload"].get("to") or "").split(",")}]
     check(len(sent) == 1, f"tier-3 reminder sent once ({len(sent)})")
     body = sent[0]["payload"].get("body", "") if sent else ""
     check("ESPAÑOL" in body and "?lang=es" in body, "reminder carries the Spanish half + Spanish form link")
