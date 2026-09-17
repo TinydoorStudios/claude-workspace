@@ -105,10 +105,17 @@ def dropbox_shared_link(local_path):
         dbx = dropbox.Dropbox(app_key=app_key, app_secret=app_secret,
                               oauth2_refresh_token=refresh_token)
         try:
-            return dbx.sharing_create_shared_link_with_settings(dbx_path).url
+            url = dbx.sharing_create_shared_link_with_settings(dbx_path).url
         except dropbox.exceptions.ApiError:
             links = dbx.sharing_list_shared_links(path=dbx_path, direct_only=True).links
-            return links[0].url if links else None
+            url = links[0].url if links else None
+        # Brian, 2026-09-17: dl=0 (Dropbox's default) lands on the "shared
+        # with me" web preview page — dl=1 opens/downloads the file itself,
+        # which is what lets the Dropbox app intercept the link and launch
+        # the file directly instead.
+        if url and "dl=0" in url:
+            url = url.replace("dl=0", "dl=1")
+        return url
     except Exception:
         return None
 
