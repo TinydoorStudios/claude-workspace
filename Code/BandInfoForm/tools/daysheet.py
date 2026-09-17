@@ -1208,8 +1208,14 @@ def build(event_id, template=None, stageplot_names=None):
             if ci >= len(row.cells):
                 continue
             if label == "stage plot" and saved_plot:
-                plot_url = (f"{PUBLIC_URL}/stage-plot/{quote(event.get('venue') or '')}/"
-                            f"{event['event_date'].isoformat()}/{quote(saved_plot)}")
+                venue = event.get("venue") or ""
+                local_plot_path = (fs.real_dropbox_root() / fs.real_venue_folder(venue) /
+                                   fs.real_month_folder(venue, event["event_date"]) / saved_plot)
+                # Brian, 2026-09-17: prefer a real dropbox.com link (opens in
+                # the actual Dropbox app/site) over the app-served fallback.
+                plot_url = fs.dropbox_shared_link(local_plot_path) or (
+                    f"{PUBLIC_URL}/stage-plot/{quote(venue)}/"
+                    f"{event['event_date'].isoformat()}/{quote(saved_plot)}")
                 set_cell_link(row.cells[ci], text, plot_url)
             elif isinstance(text, Checkbox):
                 cell = row.cells[ci]

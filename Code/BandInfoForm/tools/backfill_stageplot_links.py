@@ -7,16 +7,21 @@ resolved it against "wherever the folder lives" on disk, which only works
 with real local filesystem access next to the doc. Broken outright on a
 phone, fragile even on desktop when Dropbox hadn't downloaded the sibling
 file yet. New docs get the fix automatically (daysheet.set_cell_link now
-writes a stable /stage-plot/<venue>/<date>/<file> URL); docmerge never
-rewrites a doc whose visible cell text hasn't changed, so an already-filed
-doc's stale relationship never gets touched by a normal pipeline run.
+writes a real dropbox.com shared link, falling back to a stable app-served
+/stage-plot/<venue>/<date>/<file> URL only when the Dropbox API call
+fails); docmerge never rewrites a doc whose visible cell text hasn't
+changed, so an already-filed doc's stale relationship never gets touched
+by a normal pipeline run.
 
 This script edits ONLY the hyperlink relationship XML (word/_rels/
 document.xml.rels) — the external Target for any relationship that isn't
-already a full URL — and never touches cell text, hand edits, or anything
-else in the document. set_cell_link is the ONLY thing that ever writes a
-relative-path external hyperlink into one of these docs, so any non-http
-External relationship found here is unambiguously a stage-plot link.
+already a real (non-app-served) http(s) URL — and never touches cell
+text, hand edits, or anything else in the document. set_cell_link is the
+ONLY thing that ever writes one of these external hyperlinks, so any
+matching relationship found here is unambiguously a stage-plot link. Also
+upgrades an already-fixed app-served fallback link to a real Dropbox link
+now that DROPBOX_* credentials exist, if one wasn't available yet the
+first time this ran.
 
     python3 backfill_stageplot_links.py [--dry-run]
 """
@@ -43,9 +48,24 @@ PUBLIC_URL = __import__("os").environ.get("ADVANCE_PUBLIC_URL", "https://advance
 RELS_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 
 
+FALLBACK_PREFIX = f"{PUBLIC_URL}/stage-plot/"
+
+
+def _fname_needing_fix(target_s: str):
+    """None if this Target is already a real (non-app-served) URL — nothing
+    to do. Otherwise the plain stage-plot filename it should point at."""
+    if target_s.startswith(FALLBACK_PREFIX):
+        return unquote(target_s.rsplit("/", 1)[-1])
+    if target_s.lower().startswith(("http://", "https://")):
+        return None
+    return unquote(target_s)
+
+
 def fix_doc(path: Path, venue: str, event_date: dt.date, dry_run: bool) -> int:
-    """Rewrites any non-http External relationship Target in place. Returns
-    the number of links fixed (0 if the doc had none needing it).
+    """Rewrites any relationship Target that isn't already a real URL in
+    place — a bare relative filename, or the app-served fallback (upgraded
+    to a real Dropbox link when one's available). Returns the number of
+    links fixed (0 if the doc had none needing it).
 
     Finds the relationships to fix via a real XML parse (attribute order in
     python-docx's own output isn't guaranteed — Target before TargetMode in
@@ -67,14 +87,19 @@ def fix_doc(path: Path, venue: str, event_date: dt.date, dry_run: bool) -> int:
         if rel.get("TargetMode") != "External":
             continue
         target_s = rel.get("Target") or ""
-        if target_s.lower().startswith(("http://", "https://")):
+        fname = _fname_needing_fix(target_s)
+        if fname is None:
+            continue
+        local_path = (fs.real_dropbox_root() / fs.real_venue_folder(venue) /
+                      fs.real_month_folder(venue, event_date) / fname)
+        new_url = fs.dropbox_shared_link(local_path) or (
+            f"{FALLBACK_PREFIX}{quote(venue)}/{event_date.isoformat()}/{quote(fname)}")
+        if new_url == target_s:
             continue
         old_attr = f'Target="{target_s}"'.encode("utf-8")
         if new_rels.count(old_attr) != 1:
             print(f"  ! {path.name}: Target attribute not uniquely matched, skipping this link ({target_s!r})")
             continue
-        fname = unquote(target_s)
-        new_url = f"{PUBLIC_URL}/stage-plot/{quote(venue)}/{event_date.isoformat()}/{quote(fname)}"
         new_attr = f'Target="{new_url}"'.encode("utf-8")
         new_rels = new_rels.replace(old_attr, new_attr, 1)
         fixed += 1

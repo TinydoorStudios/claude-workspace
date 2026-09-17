@@ -84,6 +84,35 @@ def real_dropbox_root():
     return REAL_DROPBOX_ROOT
 
 
+def dropbox_shared_link(local_path):
+    """A real dropbox.com shared link for a file already synced to Dropbox
+    (Brian, 2026-09-17 — the stage-plot link in a filed advance doc should
+    open the actual file in Dropbox, not proxy it through the app server).
+    Needs DROPBOX_APP_KEY/DROPBOX_APP_SECRET/DROPBOX_REFRESH_TOKEN in the
+    environment (band-advance-stageplot app, Full Dropbox scope, sharing.
+    write+read); returns None on any failure — missing config, API error,
+    network — so callers always have the app-served /stage-plot/... URL to
+    fall back to. Never the only way to reach the file."""
+    app_key = os.environ.get("DROPBOX_APP_KEY")
+    app_secret = os.environ.get("DROPBOX_APP_SECRET")
+    refresh_token = os.environ.get("DROPBOX_REFRESH_TOKEN")
+    if not (app_key and app_secret and refresh_token):
+        return None
+    try:
+        rel = Path(local_path).resolve().relative_to(REAL_DROPBOX_ROOT.resolve())
+        dbx_path = "/" + str(rel).replace(os.sep, "/")
+        import dropbox
+        dbx = dropbox.Dropbox(app_key=app_key, app_secret=app_secret,
+                              oauth2_refresh_token=refresh_token)
+        try:
+            return dbx.sharing_create_shared_link_with_settings(dbx_path).url
+        except dropbox.exceptions.ApiError:
+            links = dbx.sharing_list_shared_links(path=dbx_path, direct_only=True).links
+            return links[0].url if links else None
+    except Exception:
+        return None
+
+
 def nyquist_root():
     """The Nyquist cockpit (advance-list.xlsx, Series Email Templates, Show
     Status Log) — always under the same Dropbox root as the venue folders."""
