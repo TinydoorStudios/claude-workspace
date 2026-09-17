@@ -22,11 +22,11 @@ External relationship found here is unambiguously a stage-plot link.
 """
 import argparse
 import datetime as dt
-import re
 import shutil
 import sys
 import tempfile
 import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from urllib.parse import quote, unquote
 
@@ -40,34 +40,44 @@ import advance_db as db
 import fieldspec as fs
 
 PUBLIC_URL = __import__("os").environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
-REL_RE = re.compile(rb'(<Relationship[^>]*?TargetMode="External"[^>]*?Target=")([^"]*)("[^>]*/>)')
+RELS_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 
 
 def fix_doc(path: Path, venue: str, event_date: dt.date, dry_run: bool) -> int:
     """Rewrites any non-http External relationship Target in place. Returns
-    the number of links fixed (0 if the doc had none needing it)."""
+    the number of links fixed (0 if the doc had none needing it).
+
+    Finds the relationships to fix via a real XML parse (attribute order in
+    python-docx's own output isn't guaranteed — Target before TargetMode in
+    practice, not after), then does an exact literal substring replace of
+    just each old Target="..." on the RAW bytes rather than re-serializing
+    the tree, so everything else in the file — attribute order, quoting,
+    whitespace — stays byte-identical."""
     with zipfile.ZipFile(path) as z:
         rels_path = "word/_rels/document.xml.rels"
         if rels_path not in z.namelist():
             return 0
         rels = z.read(rels_path)
-        names = z.namelist()
         infos = z.infolist()
 
+    root = ET.fromstring(rels)
+    new_rels = rels
     fixed = 0
-
-    def repl(m):
-        nonlocal fixed
-        prefix, target, suffix = m.groups()
-        target_s = target.decode("utf-8")
+    for rel in root.findall(f"{{{RELS_NS}}}Relationship"):
+        if rel.get("TargetMode") != "External":
+            continue
+        target_s = rel.get("Target") or ""
         if target_s.lower().startswith(("http://", "https://")):
-            return m.group(0)
+            continue
+        old_attr = f'Target="{target_s}"'.encode("utf-8")
+        if new_rels.count(old_attr) != 1:
+            print(f"  ! {path.name}: Target attribute not uniquely matched, skipping this link ({target_s!r})")
+            continue
         fname = unquote(target_s)
         new_url = f"{PUBLIC_URL}/stage-plot/{quote(venue)}/{event_date.isoformat()}/{quote(fname)}"
+        new_attr = f'Target="{new_url}"'.encode("utf-8")
+        new_rels = new_rels.replace(old_attr, new_attr, 1)
         fixed += 1
-        return prefix + new_url.encode("utf-8") + suffix
-
-    new_rels = REL_RE.sub(repl, rels)
     if not fixed:
         return 0
     if dry_run:
