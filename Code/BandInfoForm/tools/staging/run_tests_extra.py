@@ -415,8 +415,9 @@ def tx_cancel_slot_takeover():
     post(f"/show/{sa['id']}/cancel")
     check(run_tool("run_now.py").returncode == 0, "run after cancel")
     names, _cells, _ = _grid_cells(venue, d)
-    check(len(names) == 2 and any("CANCELLED" in n for n in names.values()),
-          f"A still on the bill, cancelled ({names})")
+    check(any("CANCELLED" in n and "Alpha" in n for n in names.values())
+          and any("Bravo" in n and "CANCELLED" not in n for n in names.values()),
+          f"A still on the bill, cancelled; B untouched ({names})")
     # Charlie books the exact slot Alpha's show was cancelled from
     post("/booking", booking_data(C, venue, d, "19:00", "19:45", monitors="7", backline="charlie kit", contact_phone="555-0303"))
     check(wait_run_now(), "run after the takeover booking")
