@@ -59,6 +59,7 @@ every venue — no honest single default for either one generalizes):
 import argparse
 import copy
 import itertools
+import os
 import re
 import sys
 from pathlib import Path
@@ -78,6 +79,8 @@ from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
+
+PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
 from urllib.parse import quote
 
 TEMPLATES = HERE / "doc_templates"
@@ -434,8 +437,11 @@ def set_cell(cell, text):
 
 def set_cell_link(cell, text, target):
     """Replace a cell's content with a single clickable hyperlink (blue, underlined).
-    `target` is a relative path — the stage plot sits in the same folder as the doc,
-    so Word resolves it wherever the folder lives."""
+    `target` is a full URL (Brian, 2026-09-17 — was a bare relative filename
+    Word resolved against "wherever the folder lives"; broken opening the
+    doc on a phone, where there's no such local folder access at all, and
+    fragile even on desktop when Dropbox hadn't downloaded the sibling file
+    yet — a stable URL through the app works the same everywhere)."""
     p = cell.paragraphs[0]
     for extra in cell.paragraphs[1:]:
         extra._element.getparent().remove(extra._element)
@@ -1202,7 +1208,9 @@ def build(event_id, template=None, stageplot_names=None):
             if ci >= len(row.cells):
                 continue
             if label == "stage plot" and saved_plot:
-                set_cell_link(row.cells[ci], text, quote(saved_plot))
+                plot_url = (f"{PUBLIC_URL}/stage-plot/{quote(event.get('venue') or '')}/"
+                            f"{event['event_date'].isoformat()}/{quote(saved_plot)}")
+                set_cell_link(row.cells[ci], text, plot_url)
             elif isinstance(text, Checkbox):
                 cell = row.cells[ci]
                 for extra in cell.paragraphs[1:]:

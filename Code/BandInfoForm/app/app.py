@@ -2391,6 +2391,31 @@ def venue_doc(venue, filename):
     return send_from_directory(vdir, filename, as_attachment=False)
 
 
+@app.get("/stage-plot/<venue>/<date>/<path:filename>")
+def stage_plot_file(venue, date, filename):
+    """Serves a filed stage plot by a stable URL (Brian, 2026-09-17). The
+    advance doc's stage-plot hyperlink used to be a bare relative filename
+    (Word resolving it against "wherever the folder lives") — that only
+    works when the viewer has real local filesystem access next to the doc.
+    Opening the doc on a phone (Word mobile, Dropbox's own preview) has no
+    such access at all ("no handler for the stage plot file"), and even on
+    desktop it depended on Dropbox having already materialized the sibling
+    file. No auth, same sensitivity as the public form itself and venue_doc
+    above — the filename must resolve inside that one venue+month's own
+    folder, which is all the path-safety this needs."""
+    sys.path.insert(0, str(TOOLS_DIR))
+    import fieldspec as fs
+    try:
+        d = dt.date.fromisoformat(date)
+    except ValueError:
+        abort(404)
+    folder = (fs.real_dropbox_root() / fs.real_venue_folder(venue) / fs.real_month_folder(venue, d)).resolve()
+    target = (folder / filename).resolve()
+    if folder not in target.parents or not target.is_file():
+        abort(404)
+    return send_from_directory(folder, filename, as_attachment=False)
+
+
 LIFECYCLE_LOCK_KEY = 874201913
 
 
