@@ -362,8 +362,11 @@ def submit():
     # audit 2026-09-16 security #7: rate limit — 5/IP/hour, 60 site-wide/
     # hour. Fails open (never blocks a real submission over a DB hiccup) —
     # abort() lives outside the try so it isn't itself swallowed as an error.
+    # Staging's test suite fires far more than 5 submissions/hour from one
+    # IP on purpose; exempt it the same way ADVANCE_STAGING already gates
+    # other production-only behavior.
     limited = False
-    if DB_OK:
+    if DB_OK and os.environ.get("ADVANCE_STAGING") != "1":
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
                 limited = advance_db.submit_rate_limited(cur, _client_ip())

@@ -67,6 +67,19 @@ def check(cond, msg):
 jar = http.cookiejar.CookieJar(policy=http.cookiejar.DefaultCookiePolicy(secure_protocols=("http", "https")))
 opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
+# audit 2026-09-16 security #4: every gated POST needs the session's CSRF
+# token now — scraped off a page after login() (dashboard.html renders it
+# as a JS constant) and attached to every POST from here on, the same way
+# a real browser's own fetch()/form would carry it.
+_CSRF = [None]
+
+
+def _refresh_csrf():
+    st, body = get("/dashboard")
+    m = re.search(r'const CSRF_TOKEN = "([^"]*)"', body)
+    _CSRF[0] = m.group(1) if m and m.group(1) else None
+    return _CSRF[0]
+
 
 def post(path, data=None, headers=None, json_body=None, follow=True):
     if json_body is not None:
@@ -75,6 +88,8 @@ def post(path, data=None, headers=None, json_body=None, follow=True):
     else:
         body = urllib.parse.urlencode(data or {}).encode()
         hdr = {"Content-Type": "application/x-www-form-urlencoded"}
+    if _CSRF[0]:
+        hdr["X-CSRF"] = _CSRF[0]
     hdr.update(headers or {})
     req = urllib.request.Request(APP + path, data=body, headers=hdr, method="POST")
     try:
@@ -95,6 +110,7 @@ def get(path):
 def login():
     st, _ = post("/gate", {"passcode": os.environ.get("ADVANCE_GATE_PASS", "lockdown")})
     assert st in (200, 302), f"gate login failed: {st}"
+    _refresh_csrf()
 
 
 def mails(since=0):
