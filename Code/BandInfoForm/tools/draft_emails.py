@@ -233,12 +233,26 @@ def main():
 
     summary = []
     with db.get_conn() as conn:
+        with conn.cursor() as cur:
+            removed = db.pending_removal_idents(cur)
+        today = dt.date.today()
         for r in rows:
             try:
                 name = r["name"]
                 venue = r.get("venue")
                 show_date = parse_date(r.get("show_date"))
                 series = r.get("series") or None
+                # root cause A (audit 2026-09-16): never mint a show for a row
+                # the app removed (sheet deletion pending), nor for a past date
+                # — a stale row for a show that's already happened can only
+                # resurrect something deleted, never book anything.
+                if db.removal_ident(name, venue, show_date) in removed:
+                    print(f"  skip {name} {show_date}: removed in the app", file=sys.stderr)
+                    continue
+                if show_date and show_date < today:
+                    with conn.cursor() as cur:
+                        if not db.show_for_booking(cur, name, venue, show_date):
+                            continue
                 # Brian, 2026-09-12: Salsa On The Square's advance email goes out
                 # English-then-Spanish in one message with two form links, no
                 # exceptions asked for elsewhere — every other series is

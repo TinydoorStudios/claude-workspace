@@ -175,7 +175,7 @@
         <small>Keeps the paperwork on file. Shows as Cancelled, nothing more gets emailed for it. Reversible from the artist page.</small>
       </button>
       <button class="modal-btn purge" id="btnPurge">Delete Everything
-        <small>Removes this show's submission, uploaded files, booking, and history from the database. The artist and any other booking they have elsewhere is untouched. Cannot be undone.</small>
+        <small>Removes this show's submission, uploaded files, booking, sheet row and history. The artist and any other booking they have elsewhere is untouched. Cannot be undone.</small>
       </button>
     </div>
     <div class="modal-confirm" id="purgeConfirm" hidden>
@@ -370,11 +370,10 @@ document.getElementById("btnPurgeGo").onclick = async () => {
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || res.status);
     await refresh();
-    const stray = data.summary && data.summary.filed_paths_needing_manual_cleanup;
-    if (stray && stray.length){
-      alert("Deleted. This was the only act left on that bill, so its filed paperwork " +
-            "entry was cleared from tracking too — remove these files from Dropbox by hand:\n" +
-            stray.join("\n"));
+    const retired = data.summary && data.summary.filed_doc_retired;
+    if (retired){
+      alert("Deleted. This was the only act left on that bill, so its advance doc will be " +
+            "renamed \"PURGED - …\" in its folder in a minute (not deleted):\n" + retired);
     }
   }catch(e){
     btn.disabled = false;

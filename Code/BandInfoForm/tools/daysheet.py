@@ -572,11 +572,34 @@ def _active_cols(n):
 
 def _act_col(a, n):
     """Which of the 3 act columns this act's data goes into: its artist_order,
-    which advance_db.order_acts derived from set start. Capped at 3 — a fourth
-    artist on a bill has nowhere to print, and the template is the constraint,
-    not the model. Shared with fill_engineer's per-column TOUR check so the two
-    never drift apart."""
-    return min(a.get("artist_order") or 1, 3)
+    which advance_db.order_acts derived from set start. Shared with
+    fill_engineer's per-column TOUR check so the two never drift apart.
+
+    None for a fourth artist or later (F9, audit 2026-09-16): the template has
+    three columns, and folding act 4 onto column 3 used to overwrite act 3's
+    answers cell by cell under act 4's header. The extra act is left off the
+    doc and docmerge raises a "Bill size" notice instead."""
+    order = a.get("artist_order") or 1
+    return order if order <= 3 else None
+
+
+def column_map(acts, n):
+    """{column index: artist_id} for this bill — which artist each of the
+    three act columns belongs to. docmerge stores it on filed_docs.columns
+    and keys every band-row cell by artist, so a reorder moves an artist's
+    cells with them instead of leaving them under someone else's header
+    (root cause B, audit 2026-09-16)."""
+    out = {}
+    for a in acts or []:
+        ci = _act_col(a, n)
+        if ci and a.get("artist_id"):
+            out[ci] = a["artist_id"]
+    return out
+
+
+def acts_off_the_doc(acts, n):
+    """Acts the three-column template has no room for (artist_order > 3)."""
+    return [a for a in acts or [] if a.get("artist") and _act_col(a, n) is None]
 
 
 def _tour_engineer_cols(acts, n):
@@ -591,7 +614,7 @@ def _tour_engineer_cols(acts, n):
         if a.get("_cancelled"):
             continue
         oe = (merged_fields(a).get("own_engineer") or "").strip().lower()
-        if oe.startswith("yes"):
+        if oe.startswith("yes") and _act_col(a, n):
             cols.add(_act_col(a, n))
     return cols
 
@@ -1002,18 +1025,20 @@ def _consoles_text(event):
     return ""
 
 
-def fill_consoles(grid, event):
-    """Write the Consoles row from _consoles_text() into EVERY act column
-    (Artist 1 / Artist 2 / Artist 3), so the console shows under each artist
-    on the bill (Brian, 2026-09-12). No-op if blank (a venue with no rule) or
-    the row isn't in this template."""
+def fill_consoles(grid, event, n=3):
+    """Write the Consoles row from _consoles_text() into every act column in
+    play (Brian, 2026-09-12: the console shows under each artist on the
+    bill). Only the columns an artist occupies since F15 (audit 2026-09-16) —
+    an empty column no longer reads "FOH: DiGiCo" under nobody. No-op if
+    blank (a venue with no rule) or the row isn't in this template."""
     text = _consoles_text(event)
     if not text:
         return
     for r in grid.rows:
         if norm(r.cells[0].text) == "consoles" and len(r.cells) > 1:
-            for c in r.cells[1:]:
-                set_cell(c, text)
+            for ci in _active_cols(n):
+                if ci < len(r.cells):
+                    set_cell(r.cells[ci], text)
             break
 
 
@@ -1112,7 +1137,7 @@ def build(event_id, template=None, stageplot_names=None):
     fill_header(grid, event)
     fill_event_type(grid, event, n)
     fill_engineer(grid, event, n, acts=acts)
-    fill_consoles(grid, event)
+    fill_consoles(grid, event, n)
     fill_crew_schedule(doc, event, acts)
     fill_lead(doc, event)
 
@@ -1134,6 +1159,8 @@ def build(event_id, template=None, stageplot_names=None):
                 if not a.get("artist"):
                     continue
                 ci = _col(a)
+                if ci is None:
+                    continue
                 if ci < len(r.cells) and len(r.cells[ci].paragraphs) >= 2:
                     label = a["artist"]["name"]
                     if a.get("_cancelled"):
@@ -1142,11 +1169,14 @@ def build(event_id, template=None, stageplot_names=None):
                     set_para_text(_third_line(r.cells[ci]), set_time_range(a))
             break
 
+    for a in acts_off_the_doc(acts, n):
+        print(f"[daysheet] {a['artist']['name']} is act {a.get('artist_order')} of {len(acts)} — "
+              "the template holds 3, left off the doc", file=sys.stderr)
     rows_by_label = act_columns(grid, n)
     filled_acts = 0
     no_riser_series = _series_without_riser(event.get("series"))
     for a in acts:
-        if a.get("_cancelled"):
+        if a.get("_cancelled") or _col(a) is None:
             continue
         mf = merged_fields(a)
         if no_riser_series and not mf.get("stage_type"):

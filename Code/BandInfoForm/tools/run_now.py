@@ -73,6 +73,28 @@ def unseeded_count():
 
 
 def one_pass(sheet, nyquist, scope, summary):
+    # 0. delete the sheet rows of shows purged / merged away in the app (root
+    #    cause A, audit 2026-09-16). First, before anything reads the sheet:
+    #    a row left behind is imported again and the deleted show comes back
+    #    with blank stamps — and gets welcomed again.
+    rm = run("seed_bookings.py", "--removals-json")
+    removals = json.loads(rm.stdout or "[]")
+    if removals:
+        rm_file = HERE / ".removals_tmp.json"
+        rm_file.write_text(rm.stdout)
+        try:
+            removed = run("append_bookings.py", "--list", sheet, "--remove", rm_file)
+            for line in (removed.stderr or "").splitlines():
+                print(line, file=sys.stderr)
+            ids = removed.stdout.strip()
+            if ids:
+                done = run("seed_bookings.py", "--removed", ids)
+                for line in (done.stderr or "").splitlines():
+                    print(line, file=sys.stderr)
+                summary["removed"] += len(ids.split(","))
+        finally:
+            rm_file.unlink(missing_ok=True)
+
     # 1. pull any new staff bookings into the sheet
     bk = run("seed_bookings.py", "--json")
     bookings = json.loads(bk.stdout or "[]")
@@ -154,11 +176,51 @@ def one_pass(sheet, nyquist, scope, summary):
     if status_path.exists():
         run("merge_status.py", "--list", sheet, "--data", status_path)
 
+    # 4b. F2 (audit 2026-09-16): Dropbox never syncs Word/Excel's "~$" lock file,
+    #     so a sheet open on a Mac is invisible here — the "(conflicted copy)"
+    #     it leaves behind isn't. Tell Brian once per copy.
+    report_conflicted_copies([sheet, nyquist / "Show Status Log.xlsx"])
+
     # 5. Show Status Log (best-effort — never blocks the pipeline)
     try:
         run("status_log.py")
     except subprocess.CalledProcessError as e:
         print(f"  ! status_log.py failed (non-fatal): {(e.stderr or '')[-500:]}", file=sys.stderr)
+
+
+def report_conflicted_copies(paths):
+    """One digest line per Dropbox conflicted copy of a shared workbook — its
+    edits exist only in the copy until someone merges them by hand."""
+    try:
+        import docmerge
+        found = [(p, cc) for p in paths for cc in docmerge.conflicted_copies(p)]
+        if not found:
+            return
+        with db.get_conn() as conn, conn.cursor() as cur:
+            for p, cc in found:
+                # event_date is NULL for a workbook, and the UNIQUE index treats
+                # NULLs as distinct — dedupe by hand
+                cur.execute("SELECT 1 FROM doc_notices WHERE kind='conflict' AND cell_key=%s",
+                            (f"conflict:{cc.name}",))
+                if cur.fetchone():
+                    continue
+                nid = db.insert_doc_notice(cur, "", None, p.name.lower(), "conflict",
+                                           "Conflicted copy", cc.name, p.name,
+                                           detail=p.name, cell_key=f"conflict:{cc.name}")
+                if nid:
+                    db.resolve_doc_notice(cur, nid, "auto")
+                    db.mark_doc_notices_notified(cur, [nid])   # rides the digest item below
+                    import mailer
+                    db.queue_digest_item(
+                        cur, "doc", f"Conflicted copy of {p.name}",
+                        f"<p>Dropbox made <b>{mailer.esc(cc.name)}</b> next to "
+                        f"<b>{mailer.esc(p.name)}</b> — somebody saved it while the pipeline "
+                        "was writing it. Anything typed into the copy isn't in the real file; "
+                        "merge it by hand, then delete the copy.</p>")
+                    print(f"  ! conflicted copy: {cc.name}", file=sys.stderr)
+            conn.commit()
+    except Exception as e:  # noqa: BLE001 — a report, never a reason to fail the run
+        print(f"  ! conflicted-copy check failed (non-fatal): {e!r}", file=sys.stderr)
 
 
 def main():
@@ -175,7 +237,7 @@ def main():
 
     lock = acquire_lock()
     try:
-        summary = {"seeded": 0, "edits_synced": 0, "events": 0, "emails": 0,
+        summary = {"seeded": 0, "edits_synced": 0, "removed": 0, "events": 0, "emails": 0,
                    "followups": 0, "plots": 0, "failed": 0}
         for _ in range(MAX_PASSES):
             one_pass(sheet, nyquist, args.scope, summary)

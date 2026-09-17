@@ -328,6 +328,16 @@ def main():
         # sheet alone; only a genuinely found record's own empty fields get
         # cleared below.
         if rec is None:
+            # ...and leaving it alone includes its _advance_meta entries: a
+            # row skipped here used to drop them from meta_new, so the next
+            # import read every band-filled cell in it as a Brian override.
+            for k, c in fill_cols:
+                key = fs.advance_meta_key(band, venue, date, k)
+                prev = meta_prev.get(key)
+                if prev is None:
+                    prev = meta_prev.get(f"r{r}c{c}")
+                if prev is not None:
+                    meta_new[key] = prev
             continue
         bf = rec.get("band_fields", {})
 

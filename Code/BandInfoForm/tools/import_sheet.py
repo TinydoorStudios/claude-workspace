@@ -108,7 +108,13 @@ def main():
 
     events_made = acts_made = 0
     clashes = []
+    today = dt.date.today()
     with db.get_conn() as conn:
+        # root cause A (audit 2026-09-16): a show purged or merged away in the
+        # app whose sheet row hasn't been deleted yet must not come back as an
+        # act (and from there a filed doc).
+        with conn.cursor() as cur:
+            removed = db.pending_removal_idents(cur)
         # audit 2026-09-16 #18: the truncate used to run in package_run.py
         # BEFORE this script was even invoked, so an unreadable/mid-sync
         # sheet (the empty-rows exit above) left events/event_acts wiped
@@ -148,6 +154,9 @@ def main():
                     # shows.cancelled_at — nothing removes its sheet row or
                     # booking) — it shouldn't be able to clash with, or
                     # crowd out, a real act's set start.
+                    if db.removal_ident(a["artist_name"], evenue, edate) in removed:
+                        print(f"  skip {a['artist_name']} {edate}: removed in the app, sheet row pending deletion")
+                        continue
                     show = db.show_for_booking(cur, a["artist_name"], evenue, to_date(edate))
                     if show and show.get("cancelled_at"):
                         continue
@@ -160,8 +169,18 @@ def main():
                             clashes.append((evenue, edate, ename, start, prior, a["artist_name"]))
                         else:
                             by_start[db.parse_clock(start)] = a["artist_name"]
-                    artist_id = db.upsert_artist(cur, a["artist_name"],
-                                                 email=a.get("contact_email"))
+                    if to_date(edate) and to_date(edate) < today:
+                        # a past row never mints an artist — only an act for a
+                        # band already on file (the recap/status paths read those)
+                        cur.execute("SELECT id FROM artists WHERE match_key=%s",
+                                    (db.normalize(a["artist_name"]),))
+                        hit = cur.fetchone()
+                        if not hit:
+                            continue
+                        artist_id = hit["id"]
+                    else:
+                        artist_id = db.upsert_artist(cur, a["artist_name"],
+                                                     email=a.get("contact_email"))
                     # band-detail overrides typed into the sheet (non-empty only)
                     sheet_fields = {k: a[k] for k in fs.BAND_KEYS
                                     if a.get(k) not in (None, "")}

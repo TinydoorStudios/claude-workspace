@@ -18,8 +18,14 @@ A booking whose artist, venue or date was the thing that changed is found by the
 identity its row was WRITTEN under (`_old_ident`), so a rename moves the row it
 already has instead of stranding it.
 
+--remove (root cause A, audit 2026-09-16) deletes the rows of shows that were
+purged or merged away in the app (seed_bookings.py --removals-json), so the next
+rebuild can't resurrect them. Every row matching a removal's ident goes;
+_advance_meta follows the shift. Prints the handled removal ids to STDOUT.
+
   python3 append_bookings.py --list advance-list.xlsx --data bookings.json
   python3 append_bookings.py --list advance-list.xlsx --edited edited.json
+  python3 append_bookings.py --list advance-list.xlsx --remove removals.json
 """
 import argparse
 import json
@@ -29,10 +35,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fieldspec as fs
+import merge_status as ms
 
 from openpyxl import load_workbook
 
 INPUT_SHEET = "Advance List"
+_ADDR = re.compile(r"^r(\d+)c(\d+)$")
 
 
 def _s(v):
@@ -64,6 +72,91 @@ def sheet_index(ws):
     return hrow, key_col
 
 
+def row_ident(ws, r, c_artist, c_venue, c_date):
+    return (norm(ws.cell(r, c_artist).value),
+            norm(ws.cell(r, c_venue).value) if c_venue else "",
+            ms.norm_date(ws.cell(r, c_date).value) if c_date else "")
+
+
+def _meta_prefix(ident):
+    band, venue, date = ident
+    return fs.advance_meta_key(band, venue, date, "")
+
+
+def rekey_meta_ident(meta, old_ident, new_ident):
+    """A row whose band/venue/date changed keeps its band-filled cells: the
+    content-keyed _advance_meta entries move to the new identity (otherwise
+    every tinted cell reads as a Brian override on the next import)."""
+    old_p, new_p = _meta_prefix(old_ident), _meta_prefix(new_ident)
+    if old_p == new_p:
+        return 0
+    moved = 0
+    for k in [k for k in meta if k.startswith(old_p)]:
+        meta[new_p + k[len(old_p):]] = meta.pop(k)
+        moved += 1
+    return moved
+
+
+def remove_rows(sheet_path, data_path):
+    """Delete the sheet rows of purged / merged-away shows."""
+    removals = json.loads(data_path.read_text()) if data_path.exists() else []
+    if not removals:
+        print("no sheet removals pending", file=sys.stderr)
+        print("")
+        return
+    loaded_hash = fs.sheet_hash(sheet_path)
+    wb = load_workbook(sheet_path)
+    ws = wb[INPUT_SHEET] if INPUT_SHEET in wb.sheetnames else wb.worksheets[0]
+    hrow, key_col = sheet_index(ws)
+    c_artist, c_venue, c_date = (key_col.get("artist_name"), key_col.get("venue"),
+                                 key_col.get("event_date"))
+    if not c_artist:
+        print("no Artist Name column; cannot remove rows", file=sys.stderr)
+        sys.exit(1)
+
+    wanted = {}
+    for rm in removals:
+        wanted.setdefault((norm(rm.get("match_key")), norm(rm.get("venue")),
+                           _s(rm.get("event_date"))[:10]), []).append(rm)
+    doomed, idents = [], set()
+    for r in range(hrow + 1, ws.max_row + 1):
+        if not _s(ws.cell(r, c_artist).value):
+            continue
+        ident = row_ident(ws, r, c_artist, c_venue, c_date)
+        if ident in wanted:
+            doomed.append(r)
+            idents.add(ident)
+            print(f"  remove row {r}: {_s(ws.cell(r, c_artist).value)} · {ident[1]} {ident[2]}",
+                  file=sys.stderr)
+    for ident, rms in wanted.items():
+        if ident not in idents:
+            print(f"  no sheet row for {rms[0].get('artist_name') or ident[0]} {ident[2]} — nothing to remove",
+                  file=sys.stderr)
+
+    if doomed:
+        meta = ms.load_meta(wb)
+        new_meta = {}
+        for k, v in meta.items():
+            m = _ADDR.match(k)
+            if m:                              # pre-2026-09-16 address key: follow the shift
+                r, c = int(m.group(1)), m.group(2)
+                if r in doomed:
+                    continue
+                new_meta[f"r{r - sum(1 for d in doomed if d < r)}c{c}"] = v
+            elif not any(k.startswith(_meta_prefix(i)) for i in idents):
+                new_meta[k] = v
+        for r in sorted(doomed, reverse=True):
+            ws.delete_rows(r, 1)
+        ms.save_meta(wb, new_meta)
+        try:
+            fs.safe_save_workbook(wb, sheet_path, loaded_hash)
+        except fs.SheetChangedError as e:
+            print(f"  ! {e} — not saving, re-run to pick up the current sheet", file=sys.stderr)
+            sys.exit(1)
+    print(f"removed {len(doomed)} sheet row(s) for {len(removals)} removal(s)", file=sys.stderr)
+    print(",".join(str(rm["id"]) for rm in removals))
+
+
 def update_edited(sheet_path, data_path):
     """Write edited bookings back over their existing sheet rows."""
     edits = json.loads(data_path.read_text()) if data_path.exists() else []
@@ -87,11 +180,10 @@ def update_edited(sheet_path, data_path):
         a = _s(ws.cell(r, c_artist).value)
         if not a:
             continue
-        ident = (norm(a),
-                 norm(ws.cell(r, c_venue).value) if c_venue else "",
-                 _s(ws.cell(r, c_date).value)[:10] if c_date else "")
-        rows_by_ident.setdefault(ident, r)
+        rows_by_ident.setdefault(row_ident(ws, r, c_artist, c_venue, c_date), r)
 
+    meta = ms.load_meta(wb)
+    meta_moved = 0
     synced, changed_cells, missing = [], 0, []
     for b in edits:
         old = b.get("_old_ident") or {}
@@ -105,6 +197,7 @@ def update_edited(sheet_path, data_path):
         if row is None:
             missing.append(f"{b.get('artist_name')} {b.get('event_date')}")
             continue
+        was = row_ident(ws, row, c_artist, c_venue, c_date)
         for key in fs.SHEET_WRITEBACK_KEYS:
             col = key_col.get(key)
             if col is None:
@@ -118,8 +211,11 @@ def update_edited(sheet_path, data_path):
                       f"{_s(ws.cell(row, col).value)!r} -> {val!r}", file=sys.stderr)
                 ws.cell(row, col).value = val
                 changed_cells += 1
+        meta_moved += rekey_meta_ident(meta, was, row_ident(ws, row, c_artist, c_venue, c_date))
         synced.append(str(b["id"]))
 
+    if meta_moved:
+        ms.save_meta(wb, meta)
     if changed_cells:
         try:
             fs.safe_save_workbook(wb, sheet_path, loaded_hash)
@@ -137,9 +233,13 @@ def main():
     ap.add_argument("--list", required=True, type=Path)
     ap.add_argument("--data", type=Path)
     ap.add_argument("--edited", type=Path)
+    ap.add_argument("--remove", type=Path)
     args = ap.parse_args()
-    if not args.data and not args.edited:
-        ap.error("one of --data or --edited is required")
+    if not (args.data or args.edited or args.remove):
+        ap.error("one of --data, --edited or --remove is required")
+    if args.remove:
+        remove_rows(args.list, args.remove)
+        return
     if args.edited:
         update_edited(args.list, args.edited)
         return

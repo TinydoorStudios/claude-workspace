@@ -6,11 +6,10 @@ exclusion, purge + rerun, ambiguous clock times, late-booking path).
 Promoted from Handoffs/band-advance-audit-2026-09-16/run_tests_extra.py into
 tools/staging/ (audit ops #4) — this is now the real, run-from-here copy.
 
-x-d and x-g are EXPECTED to fail until a following session lands root causes
-B (docmerge column-position provenance) and A (purge/merge/rename never
-touch the sheet) — see that audit's "Not yours" section; this batch
-deliberately left tools/docmerge.py and purge_show/merge_shows alone except
-where a specific numbered item named them. x-h was rewritten instead of left
+x-d and x-g were xfail until root causes B (docmerge column-position
+provenance) and A (purge/merge/rename never touch the sheet) landed — both
+fixed 2026-09-16 (Opus session); x-j (rename) and x-k (merge) were added with
+A, x-l onward with B. x-h was rewritten instead of left
 xfail: root cause C (bare clock times) WAS fixed in this same batch (item
 20), so the old test — which asserted the buggy behavior — no longer
 describes what should happen; it now checks the fix directly.
@@ -261,11 +260,20 @@ def _grid_cells(venue, d):
     return names, out, Path(reg["path"]).name
 
 
-@test("x-d [XFAIL until root cause B lands]: docmerge column drift when an earlier act joins a filed 2-act bill")
+def _notice_count(venue, d):
+    return q("SELECT count(*) AS n FROM doc_notices WHERE venue=%s AND event_date=%s AND kind='diff'",
+             (venue, d), one=True)["n"]
+
+
+def _col_of(names, band):
+    return next((i for i, n in names.items() if band in n), None)
+
+
+@test("x-d: docmerge column drift — an earlier act joins a filed bill, then a 4th act")
 def tx_column_drift():
-    # XFAIL: root cause B (docmerge's per-column provenance is keyed by
-    # column POSITION, not by artist) is explicitly reserved for a
-    # following session — this test is expected to fail until then.
+    # root cause B (audit 2026-09-16), fixed 2026-09-16 (Opus): cells are keyed
+    # by artist and physically follow their artist when the bill reorders; a
+    # 4th act is left off the doc with a Bill size notice (F9).
     login()
     venue, d = "Fountain Square", TODAY + dt.timedelta(days=35)
     A, B, C, D = "Drift Act Alpha", "Drift Act Bravo", "Drift Act Charlie", "Drift Act Delta"
@@ -275,7 +283,10 @@ def tx_column_drift():
     names, cells, fname = _grid_cells(venue, d)
     check(A in names.get(1, "") and B in names.get(2, ""), f"headers A,B ({names})")
     check(cells.get(("monitors", 1)) == "4 wedges" and cells.get(("monitors", 2)) == "6 wedges", "monitors under the right headers")
-    n_not = q("SELECT count(*) AS n FROM doc_notices WHERE venue=%s AND event_date=%s", (venue, d), one=True)["n"]
+    reg = q("SELECT columns FROM filed_docs WHERE venue=%s AND event_date=%s ORDER BY id DESC LIMIT 1", (venue, d), one=True)
+    sa, sb = show_for(A, venue, d), show_for(B, venue, d)
+    check(reg and reg["columns"] == {"1": sa["artist_id"], "2": sb["artist_id"]}, f"filed_docs.columns records the map ({reg and reg['columns']})")
+    n_not = _notice_count(venue, d)
     n0 = mail_count()
 
     # d1: a 3rd act with an EARLIER start, NO band answers (review=False path)
@@ -288,7 +299,8 @@ def tx_column_drift():
     check(ok_cells, f"d1 monitors follow their artist: col1={cells.get(('monitors',1))!r} col2={cells.get(('monitors',2))!r} col3={cells.get(('monitors',3))!r}")
     bl = (cells.get(("backline", 2)), cells.get(("backline", 3)))
     check("alpha" in (bl[0] or "").lower() and "bravo" in (bl[1] or "").lower(), f"d1 backline follows its artist {bl}")
-    n_not1 = q("SELECT count(*) AS n FROM doc_notices WHERE venue=%s AND event_date=%s", (venue, d), one=True)["n"]
+    check(not cells.get(("band contact — cell", 1)), f"d1 C's contact cell is not A's number ({cells.get(('band contact — cell', 1))!r})")
+    n_not1 = _notice_count(venue, d)
     check(n_not1 == n_not, f"d1: zero new doc_notices for unchanged data ({n_not1 - n_not} new)")
     for r in q("SELECT field, doc_value, new_value FROM doc_notices WHERE venue=%s AND event_date=%s AND resolved_at IS NULL", (venue, d)):
         print(f"      notice: {r['field']!r}: doc={r['doc_value']!r} new={r['new_value']!r}")
@@ -297,23 +309,118 @@ def tx_column_drift():
     check(rows_a and rows_a.get("Monitors") == "4 wedges" and rows_b and rows_b.get("Monitors") == "6 wedges",
           f"read_filed_advance by artist: A={rows_a and rows_a.get('Monitors')} B={rows_b and rows_b.get('Monitors')}")
 
-    # d2: a 4th act, EARLIER still, WITH band answers (source=staff -> review mode)
+    # d2: a 4th act, EARLIER still, WITH band answers — D,C,A on the doc, B
+    # (latest start) doesn't fit the 3-column template: a Bill size notice,
+    # never folded onto column 3
     n_not = n_not1
     post("/booking", booking_data(D, venue, d, "18:00", "18:45", monitors="2", backline="delta keys"))
     check(wait_run_now(), "4-act run finished")
     names, cells, fname = _grid_cells(venue, d)
     print(f"      headers after D: {names}")
-    n_not2 = q("SELECT count(*) AS n FROM doc_notices WHERE venue=%s AND event_date=%s", (venue, d), one=True)["n"]
-    check(n_not2 == n_not, f"d2: zero new doc_notices for unchanged data ({n_not2 - n_not} new)")
-    for r in q("SELECT field, doc_value, new_value FROM doc_notices WHERE venue=%s AND event_date=%s AND id > 0 ORDER BY id DESC LIMIT 12", (venue, d)):
-        print(f"      notice: {r['field']!r}: doc={r['doc_value']!r} new={r['new_value']!r}")
-    col = {v: k for k, v in names.items()}
-    ca, cb, cd = (next((i for i, n in names.items() if X in n), None) for X in (A, B, D))
-    print(f"      cols A={ca} B={cb} D={cd}; monitors row = { {i: cells.get(('monitors', i)) for i in range(1, 4)} }")
-    check(ca and cells.get(("monitors", ca)) == "4 wedges", f"d2: A's monitors under A's header ({ca}: {cells.get(('monitors', ca)) if ca else None!r})")
-    check(cb and cells.get(("monitors", cb)) == "6 wedges", f"d2: B's monitors under B's header ({cb}: {cells.get(('monitors', cb)) if cb else None!r})")
-    check(cd is None or cells.get(("monitors", cd)) == "2 wedges", f"d2: D's monitors under D's header ({cd}: {cells.get(('monitors', cd)) if cd else None!r})")
+    ca, cb, cc, cd = (_col_of(names, X) for X in (A, B, C, D))
+    check((cd, cc, ca, cb) == (1, 2, 3, None), f"d2: D,C,A on the doc, B off it (D={cd} C={cc} A={ca} B={cb})")
+    check(cells.get(("monitors", 3)) == "4 wedges", f"d2: column 3 is A's, not overwritten by B ({cells.get(('monitors', 3))!r})")
+    check(cells.get(("monitors", 1)) == "2 wedges", f"d2: D's monitors under D's header ({cells.get(('monitors', 1))!r})")
+    check("bravo" not in " ".join(v for (lab, i), v in cells.items() if v).lower(), "d2: none of B's answers on the doc")
+    n_not2 = _notice_count(venue, d)
+    check(n_not2 == n_not, f"d2: zero new diff notices for unchanged data ({n_not2 - n_not} new)")
+    size = q("SELECT * FROM doc_notices WHERE venue=%s AND event_date=%s AND kind='bill_size'", (venue, d))
+    check(size and B in size[0]["new_value"], f"d2: Bill size notice names the act left off ({[x['new_value'] for x in size]})")
     MAIL_PER_TEST["x-d"] = sends_since(n0)
+
+
+# ── (l) hand edit travels with its artist ───────────────────────────────────
+def _edit_doc_cell(venue, d, label, col, text):
+    from docx import Document
+    reg = q("SELECT path FROM filed_docs WHERE venue=%s AND event_date=%s ORDER BY id DESC LIMIT 1", (venue, d), one=True)
+    path = DROP / reg["path"]
+    doc = Document(str(path))
+    for r in daysheet.find_grid(doc).rows:
+        if daysheet.norm(r.cells[0].text) == label:
+            daysheet.set_cell(r.cells[col], text)
+            break
+    doc.save(str(path))
+
+
+@test("x-l: 1-act doc, hand edit, earlier act added — the edit travels, column 1 is clean, no notices")
+def tx_hand_edit_travels():
+    login()
+    venue, d = "Fountain Square", TODAY + dt.timedelta(days=37)
+    A, B = "Travel Act Alpha", "Travel Act Bravo"
+    post("/booking", booking_data(A, venue, d, "20:00", "20:45", monitors="4", contact_phone="555-0101", backline="two amps"))
+    check(wait_run_now(), "1-act doc filed")
+    _edit_doc_cell(venue, d, "backline", 1, "two amps + Brian's spare DI")
+    n_not = _notice_count(venue, d)
+    post("/booking", booking_data(B, venue, d, "19:00", "19:45"))
+    check(wait_run_now(), "2-act run finished")
+    names, cells, _ = _grid_cells(venue, d)
+    check(B in names.get(1, "") and A in names.get(2, ""), f"headers B,A ({names})")
+    check(not cells.get(("monitors", 1)) and not cells.get(("band contact — cell", 1)) and not cells.get(("backline", 1)),
+          f"column 1 carries none of A's values ({cells.get(('monitors', 1))!r}, {cells.get(('band contact — cell', 1))!r}, {cells.get(('backline', 1))!r})")
+    check(cells.get(("backline", 2)) == "two amps + Brian's spare DI", f"hand edit moved with A ({cells.get(('backline', 2))!r})")
+    check(cells.get(("monitors", 2)) == "4 wedges" and cells.get(("band contact — cell", 2)) == "555-0101", "A's answers under A")
+    check(_notice_count(venue, d) == n_not, f"zero new notices ({_notice_count(venue, d) - n_not})")
+    r = run_tool("run_now.py")
+    names2, cells2, _ = _grid_cells(venue, d)
+    check(r.returncode == 0 and cells2 == cells and _notice_count(venue, d) == n_not, "a second pass changes nothing")
+
+
+# ── (m) cancelled act returns its column to the template ────────────────────
+@test("x-m: cancelling an act gives its column back to the template")
+def tx_cancel_retracts():
+    # import_sheet.py leaves a cancelled act off the bill (audit #23), so the
+    # later act's column is the one that empties — it must read as template,
+    # not keep the cancelled band's answers under a blank header
+    login()
+    venue, d = "Fountain Square", TODAY + dt.timedelta(days=39)
+    A, B = "Retract Act Alpha", "Retract Act Bravo"
+    post("/booking", booking_data(A, venue, d, "19:00", "19:45", monitors="3", backline="alpha kit", contact_phone="555-0201"))
+    post("/booking", booking_data(B, venue, d, "20:00", "20:45", monitors="5", backline="bravo kit", contact_phone="555-0202"))
+    check(wait_run_now(), "2-act doc filed")
+    _names, cells, _ = _grid_cells(venue, d)
+    check(cells.get(("monitors", 2)) == "5 wedges", "B filled")
+    n_not = _notice_count(venue, d)
+    sb = show_for(B, venue, d)
+    post(f"/show/{sb['id']}/cancel")
+    r = run_tool("run_now.py")
+    check(r.returncode == 0, "run after cancel")
+    names, cells, _ = _grid_cells(venue, d)
+    print(f"      headers after cancel: {names}")
+    check(B not in names.get(2, "") or names.get(2, "").startswith("CANCELLED"), f"col 2 header no longer names B as playing ({names.get(2)!r})")
+    check(not cells.get(("monitors", 2)) and not cells.get(("backline", 2)) and not cells.get(("band contact — cell", 2)),
+          f"B's column back to the template ({cells.get(('monitors', 2))!r}, {cells.get(('backline', 2))!r}, {cells.get(('band contact — cell', 2))!r})")
+    check(cells.get(("monitors", 1)) == "3 wedges" and "alpha" in (cells.get(("backline", 1)) or ""), "A untouched")
+    check(_notice_count(venue, d) == n_not, f"no notices from the retraction ({_notice_count(venue, d) - n_not})")
+
+
+# ── (n) conflicted copy ──────────────────────────────────────────────────────
+@test("x-n: a Dropbox conflicted copy beside a filed doc or the sheet raises a notice")
+def tx_conflicted_copy():
+    login()
+    venue, d, A = "Fountain Square", TODAY + dt.timedelta(days=41), "Conflict Copy Band"
+    post("/booking", booking_data(A, venue, d, "19:00", "19:45", monitors="3"))
+    check(wait_run_now(), "doc filed")
+    reg = q("SELECT path FROM filed_docs WHERE venue=%s AND event_date=%s ORDER BY id DESC LIMIT 1", (venue, d), one=True)
+    doc = DROP / reg["path"]
+    cc = doc.with_name(f"{doc.stem} (Andi Schultes's conflicted copy {TODAY.isoformat()}){doc.suffix}")
+    sheet = DROP / "Nyquist" / "advance-list.xlsx"
+    scc = sheet.with_name(f"advance-list (Brian Lloyd's conflicted copy {TODAY.isoformat()}).xlsx")
+    shutil.copy(doc, cc)
+    shutil.copy(sheet, scc)
+    try:
+        r = run_tool("run_now.py")
+        check(r.returncode == 0, "run with conflicted copies present")
+        n = q("SELECT * FROM doc_notices WHERE kind='conflict' AND cell_key=%s", (f"conflict:{cc.name}",))
+        check(len(n) == 1, f"doc conflicted copy -> one notice ({len(n)})")
+        ns = q("SELECT * FROM doc_notices WHERE kind='conflict' AND cell_key=%s", (f"conflict:{scc.name}",))
+        check(len(ns) == 1, f"sheet conflicted copy -> one notice ({len(ns)})")
+        run_tool("run_now.py")
+        n2 = q("SELECT count(*) AS n FROM doc_notices WHERE kind='conflict' AND cell_key IN (%s, %s)",
+               (f"conflict:{cc.name}", f"conflict:{scc.name}"), one=True)["n"]
+        check(n2 == 2, f"a second run doesn't repeat them ({n2})")
+    finally:
+        cc.unlink(missing_ok=True)
+        scc.unlink(missing_ok=True)
 
 
 # ── (e) fill_engineer anchor ─────────────────────────────────────────────────
@@ -377,16 +484,24 @@ def tx_played_within():
 
 
 # ── (g) purge then run_now ───────────────────────────────────────────────────
-@test("x-g [XFAIL until root cause A lands]: purge_show then run_now — nothing references the purged show")
+def sheet_rows_for(band, venue, d):
+    from sheet import read_advance_sheet
+    rows = read_advance_sheet(DROP / "Nyquist" / "advance-list.xlsx")
+    return [r for r in rows if db.normalize(r.get("artist_name")) == db.normalize(band)
+            and (r.get("venue") or "").strip().lower() == venue.lower()
+            and (r.get("event_date") or "")[:10] == d.isoformat()]
+
+
+@test("x-g: purge_show then run_now — sheet row deleted, doc retired, nothing comes back")
 def tx_purge():
-    # XFAIL: root cause A (purge/merge/rename never touch advance-list.xlsx,
-    # so the next sheet-driven run resurrects what this test just deleted)
-    # is explicitly reserved for a following session — expected to fail
-    # until then.
+    # root cause A (audit 2026-09-16), fixed 2026-09-16 (Opus): purge writes a
+    # sheet_removals tombstone, run_now deletes the sheet row before the
+    # rebuild and renames the orphaned doc "PURGED - …".
     login()
     venue, d, band = "Fountain Square", TODAY + dt.timedelta(days=36), "Purge Me Band"
     post("/booking", booking_data(band, venue, d, "19:00", "20:00", monitors="3", vehicle_count="2"))
     check(wait_run_now(), "booked + filed")
+    check(len(sheet_rows_for(band, venue, d)) == 1, "booking reached the sheet")
     s = show_for(band, venue, d)
     sid, aid = s["id"], s["artist_id"]
     x("INSERT INTO fsq_parking_queue (artist_id, show_id, band, venue, show_date, vehicle_count) VALUES (%s,%s,%s,%s,%s,2)", (aid, sid, band, venue, d))
@@ -401,17 +516,121 @@ def tx_purge():
     check(not q("SELECT 1 FROM event_acts WHERE artist_id=%s", (aid,)), "event_acts gone")
     check(not q("SELECT 1 FROM fsq_parking_queue WHERE show_id=%s", (sid,)), "fsq_parking_queue no longer points at the show")
     check(not q("SELECT 1 FROM digest_items WHERE link LIKE %s", (f"%/show/{sid}%",)), "no digest item links the show")
+    tomb = q("SELECT * FROM sheet_removals WHERE venue=%s AND event_date=%s AND match_key=%s",
+             (venue, d, db.normalize(band)), one=True)
+    check(tomb is not None, "sheet_removals tombstone written")
     r = run_tool("run_now.py")
     check(r.returncode == 0, f"run_now after purge exits 0 ({r.stdout[-200:]}{r.stderr[-300:]})")
+    check(wait_run_now(), "background run from the purge finished too")
     back = show_for(band, venue, d)
     check(back is None, f"purged show does NOT come back on the next run (found show {back and back['id']})")
     check(booking_for(band, venue, d) is None, "booking does not come back")
-    check(not q("SELECT 1 FROM event_acts WHERE artist_id=%s", (aid,)), f"event_acts stays clear")
-    print("      sheet row still present:", bool(q("SELECT 1 FROM artists WHERE id=%s", (aid,), one=True)),
-          "| shows for artist:", q("SELECT count(*) AS n FROM shows WHERE artist_id=%s", (aid,), one=True)["n"])
+    check(not q("SELECT 1 FROM event_acts WHERE artist_id=%s", (aid,)), "event_acts stays clear")
+    check(not sheet_rows_for(band, venue, d), "sheet row deleted")
+    tomb = q("SELECT * FROM sheet_removals WHERE id=%s", (tomb["id"],), one=True)
+    check(tomb["applied_at"] is not None, "tombstone stamped applied")
+    for reg in reg_before:
+        p = DROP / reg["path"]
+        retired = p.with_name(f"PURGED - {p.name}")
+        check(not p.exists() and retired.exists(), f"doc renamed PURGED in place ({retired.name})")
     reg_after = q("SELECT id, path FROM filed_docs WHERE venue=%s AND event_date=%s", (venue, d))
-    print(f"      filed_docs after rerun: {[Path(x['path']).name for x in reg_after]}")
+    check(not reg_after, f"no doc re-filed for the date ({[Path(x['path']).name for x in reg_after]})")
+    r = run_tool("run_now.py")
+    check(r.returncode == 0 and show_for(band, venue, d) is None, "second run: still gone")
+    st, _ = post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
     MAIL_PER_TEST["x-g"] = sends_since(n0)
+    check(not [m for m in MAIL_PER_TEST["x-g"] if "purgemeband" in (m["payload"].get("to") or "")],
+          "nothing sent to the purged band")
+
+
+# ── (j) rename in place ──────────────────────────────────────────────────────
+def _book_first_free(band, venue, d, email, times=(("19:17", "7:17p"), ("20:17", "8:17p"), ("21:17", "9:17p"))):
+    st = None
+    for hhmm, house in times:
+        st, _ = post("/booking", booking_data(band, venue, d, hhmm, "22:00", event_start=house, contact_email=email))
+        if st == 200:
+            return hhmm, house
+    check(False, f"couldn't book {band} on any free start ({st})")
+    return None, None
+
+
+@test("x-j: renaming a booked band moves its artist, show, sheet row and doc — no second welcome")
+def tx_rename():
+    login()
+    venue, d = "Fountain Square", TODAY + dt.timedelta(days=14)
+    A, B, email = "Renamee Typpo Band", "Renamee Typo Band", "renamee@example.test"
+    hhmm, house = _book_first_free(A, venue, d, email)
+    if not hhmm:
+        return
+    check(wait_run_now(), "booked + filed")
+    n0 = mail_count()
+    post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
+    s = show_for(A, venue, d)
+    check(s and s["advance_draft_created_at"], "welcomed under the typo name")
+    check(any((m["payload"].get("subject") or "").startswith("Welcome") for m in sends_to(n0, email)),
+          "the one welcome went out")
+    b = booking_for(A, venue, d)
+    check(daysheet.read_filed_advance(venue, d, A) is not None, "doc carries A")
+    n1 = mail_count()
+    st, _ = post(f"/booking/{b['id']}/edit",
+                 booking_data(B, venue, d, hhmm, "22:00", event_start=house, contact_email=email))
+    check(st == 200, f"rename saved ({st})")
+    check(wait_run_now(), "run after the rename finished")
+    arts = q("SELECT id, name FROM artists WHERE match_key IN (%s, %s)", (db.normalize(A), db.normalize(B)))
+    check(len(arts) == 1 and arts[0]["name"] == B and arts[0]["id"] == s["artist_id"],
+          f"one artist, renamed in place ({arts})")
+    shows = q("SELECT * FROM shows WHERE artist_id=%s AND venue=%s AND show_date=%s", (s["artist_id"], venue, d))
+    check(len(shows) == 1 and shows[0]["id"] == s["id"], f"one show, same id ({[x['id'] for x in shows]})")
+    check(shows and shows[0]["advance_draft_created_at"] == s["advance_draft_created_at"], "welcome stamp intact")
+    check(not sheet_rows_for(A, venue, d) and len(sheet_rows_for(B, venue, d)) == 1, "sheet row moved to the new name")
+    check(daysheet.read_filed_advance(venue, d, B) is not None and daysheet.read_filed_advance(venue, d, A) is None,
+          "filed doc names B, not A")
+    check(not q("SELECT 1 FROM shows WHERE held_at IS NOT NULL AND id=%s", (s["id"],)), "show not held as an orphan")
+    post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
+    welcomes = [m for m in sends_to(n1, email) if (m["payload"].get("subject") or "").startswith(("Welcome", "Bienvenidos"))]
+    check(not welcomes, f"no second welcome ({len(welcomes)})")
+    MAIL_PER_TEST["x-j"] = sends_since(n0)
+
+
+# ── (k) merge a typo'd show into the real one ────────────────────────────────
+@test("x-k: merge_shows — typo side's sheet row deleted, stamps carried, nothing resurrects")
+def tx_merge():
+    login()
+    venue, d = "Fountain Square", TODAY + dt.timedelta(days=15)
+    A, B = "Mergee Typpo Act", "Zebra Crossing Quartet"
+    email = "mergeetyppo@example.test"
+    if not _book_first_free(A, venue, d, email, times=(("19:19", "7:19p"), ("20:19", "8:19p"), ("21:19", "9:19p")))[0]:
+        return
+    check(wait_run_now(), "typo booking filed")
+    n0 = mail_count()
+    post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
+    old = show_for(A, venue, d)
+    check(old and old["advance_draft_created_at"], "typo show welcomed")
+    st, _ = submit_form(B, venue, d, monitors="5")
+    check(st in (200, 302), f"real band submits under the right name ({st})")
+    wait_regen()
+    new = show_for(B, venue, d)
+    check(new is not None, "real show exists")
+    if not (old and new):
+        return
+    st, _ = post(f"/show/{old['id']}/merge/{new['id']}")
+    check(st in (200, 302), f"merge answered ({st})")
+    check(show_for(A, venue, d) is None and booking_for(A, venue, d) is None, "typo show + booking gone")
+    check(q("SELECT 1 FROM sheet_removals WHERE match_key=%s AND reason='merge'", (db.normalize(A),), one=True),
+          "merge tombstone written")
+    check(wait_run_now(), "run after merge finished")
+    r = run_tool("run_now.py")
+    check(r.returncode == 0, f"explicit run_now ok ({r.stderr[-300:]})")
+    check(show_for(A, venue, d) is None, "typo show does not resurrect")
+    check(not sheet_rows_for(A, venue, d), "typo sheet row deleted")
+    new = show_for(B, venue, d)
+    check(new and new["advance_draft_created_at"] == old["advance_draft_created_at"], "welcome stamp carried to the real show")
+    n1 = mail_count()
+    post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
+    welcomes = [m for m in sends_since(n1) if (m["payload"].get("subject") or "").startswith(("Welcome", "Bienvenidos"))
+                and any(k in (m["payload"].get("to") or "") for k in ("mergee", "zebracrossing"))]
+    check(not welcomes, f"no welcome to either side after the merge ({len(welcomes)})")
+    MAIL_PER_TEST["x-k"] = sends_since(n0)
 
 
 # ── (h) ambiguous clock times ────────────────────────────────────────────────

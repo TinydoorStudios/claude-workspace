@@ -711,10 +711,14 @@ def _run_pipeline_background(scope=None):
         log_path = BASE / "data" / "run_now_background.log"
         log_path.parent.mkdir(parents=True, exist_ok=True)
         with open(log_path, "a") as logf:
+            label = scope if isinstance(scope, str) else ", ".join(scope or [])
             logf.write(f"\n--- {dt.datetime.now().isoformat(timespec='seconds')}"
-                       f"{' (' + scope + ')' if scope else ''} ---\n")
+                       f"{' (' + label + ')' if label else ''} ---\n")
             logf.flush()
-            cmd = [sys.executable, "run_now.py"] + (["--scope", scope] if scope else [])
+            scopes = [scope] if isinstance(scope, str) else list(scope or [])
+            cmd = [sys.executable, "run_now.py"]
+            for sc in scopes:
+                cmd += ["--scope", sc]
             subprocess.Popen(
                 cmd, cwd=TOOLS_DIR,
                 stdout=logf, stderr=subprocess.STDOUT,
@@ -2003,6 +2007,12 @@ def show_purge(show_id):
             return {"ok": False, "error": "name-mismatch"}, 400
         summary = advance_db.purge_show(cur, show_id)
         conn.commit()
+    # root cause A (audit 2026-09-16): the sheet row goes now, not whenever the
+    # next pipeline run happens to come along — the tombstone already stops a
+    # resurrection, this just keeps the sheet honest and re-files what's left
+    # of the bill without this act.
+    if summary and summary.get("show_date"):
+        _run_pipeline_background(f"{summary['venue']}|{summary['show_date']}")
     return {"ok": True, "summary": summary}
 
 
@@ -2056,9 +2066,14 @@ def show_merge(show_id, target_id):
         tgt = advance_db.get_show(cur, target_id)
         if not tgt or not advance_db.get_show(cur, show_id):
             abort(404)
+        old = advance_db.get_show(cur, show_id)
         advance_db.merge_shows(cur, show_id, target_id)
         advance_db.release_candidate_holds(cur, show_id)
         conn.commit()
+    _run_pipeline_background([f"{x['venue']}|{x['show_date'].isoformat()}"
+                              for x in {(old["venue"], old["show_date"]): old,
+                                        (tgt["venue"], tgt["show_date"]): tgt}.values()
+                              if x.get("show_date")])
     return redirect(url_for("artist_detail", artist_id=tgt["artist_id"]))
 
 

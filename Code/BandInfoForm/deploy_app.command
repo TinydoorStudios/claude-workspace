@@ -48,7 +48,7 @@ TOOLS_FILES=(
   extract_advance_recap.py seed_bookings.py append_bookings.py merge_status.py run_now.py
   run_again.py status_log.py daily_digest.py crew_report.py regen_show.py finalize_thankyou.py
   docmerge.py holds.py migrate_filed_docs.py import_riffpay.py dayahead.py booking_update.py
-  doc_review.py missing_reports.py
+  doc_review.py missing_reports.py backfill_doc_columns.py
 )
 TOOLS_DIRS=(email_templates lists doc_templates staging)
 SHIPPED_FILES=("${APP_FILES[@]}" requirements.txt db/schema.sql)

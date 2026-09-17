@@ -1242,6 +1242,7 @@ def insert_booking(cur, data: dict):
     # again.
     upd = ", ".join(f"{k} = EXCLUDED.{k}" for k in BOOKING_FIELDS
                     if k not in ("venue", "event_date", "artist_name"))
+    clear_sheet_removals(cur, vals.get("venue"), vals.get("event_date"), vals.get("artist_name"))
     cur.execute(
         f"""INSERT INTO bookings ({cols}) VALUES ({ph})
             ON CONFLICT (venue, event_date, (lower(btrim(regexp_replace(artist_name, '\\s+', ' ', 'g')))))
@@ -1331,6 +1332,8 @@ def update_booking(cur, booking_id, data: dict):
                                  band_emails = %(band_emails)s,
                                  draft_only = %(draft_only)s
             WHERE id = %(id)s""", vals)
+    if vals.get("artist_name") and vals.get("venue") and vals.get("event_date"):
+        carry_show_with_booking(cur, before, vals)
 
     def _as_text(v):
         return v.isoformat() if isinstance(v, dt.date) else (v or "")
@@ -1392,6 +1395,65 @@ def update_booking(cur, booking_id, data: dict):
                    VALUES (%s, %s::jsonb, %s, %s)""",
                 (booking_id, _json.dumps(changes), edited_by, notify))
     return changes, notify
+
+
+def carry_show_with_booking(cur, before, after):
+    """A booking renamed or moved after its show exists takes the show with it
+    (root cause A / F8, audit 2026-09-16). Without this only the bookings row
+    changed: the next run upserted a second artist + show under the new
+    identity with blank stamps and welcomed the band again, while holds.py
+    later parked the original as an orphan.
+
+    Rename: the artists row is renamed in place when this show is its only
+    one (match_key regenerates, every stamp stays on the show). When the
+    artist has other shows, or the new name already belongs to another artist
+    row (the match_key collision upsert_artist(known_id=) also guards), this
+    show moves to that artist instead — renaming a shared row would detach
+    the band's other bookings. Venue/date: the show row moves, and its filed
+    doc follows when nothing else is left on the old bill. If the target
+    artist already has a show on the new venue+date (a band submission got
+    there first), the two are merged. Returns the surviving show id or None."""
+    old_name, old_venue, old_date = before.get("artist_name"), before.get("venue"), before.get("event_date")
+    new_name, new_venue = after.get("artist_name"), after.get("venue")
+    new_date = to_date(after.get("event_date"))
+    renamed = normalize(old_name) != normalize(new_name)
+    moved = (old_venue, old_date) != (new_venue, new_date)
+    if not (renamed or moved) or not new_date:
+        return None
+    show = show_for_booking(cur, old_name, old_venue, old_date)
+    if not show:
+        return None
+    old_artist = show["artist_id"]
+    target_artist = old_artist
+    if renamed:
+        cur.execute("SELECT id FROM artists WHERE match_key=%s", (normalize(new_name),))
+        hit = cur.fetchone()
+        if hit:
+            target_artist = hit["id"]
+        else:
+            cur.execute("SELECT count(*) AS n FROM shows WHERE artist_id=%s AND id<>%s",
+                        (old_artist, show["id"]))
+            if cur.fetchone()["n"] == 0:
+                cur.execute("UPDATE artists SET name=%s WHERE id=%s", (new_name.strip(), old_artist))
+            else:
+                target_artist = upsert_artist(cur, new_name.strip(), email=after.get("contact_email"))
+    there = show_for_artist_at(cur, target_artist, new_venue, new_date)
+    if there and there["id"] != show["id"]:
+        merge_shows(cur, show["id"], there["id"], tombstone=False)
+        return there["id"]
+    cur.execute("UPDATE shows SET artist_id=%s, venue=%s, show_date=%s WHERE id=%s",
+                (target_artist, new_venue, new_date, show["id"]))
+    if target_artist != old_artist:
+        cur.execute("UPDATE submissions SET artist_id=%s WHERE show_id=%s", (target_artist, show["id"]))
+        cur.execute("""UPDATE files SET artist_id=%s WHERE submission_id IN
+                       (SELECT id FROM submissions WHERE show_id=%s)""", (target_artist, show["id"]))
+        cur.execute("""DELETE FROM artists a WHERE a.id=%s
+                       AND NOT EXISTS (SELECT 1 FROM shows WHERE artist_id=a.id)
+                       AND NOT EXISTS (SELECT 1 FROM submissions WHERE artist_id=a.id)""",
+                    (old_artist,))
+    if moved:
+        reregister_docs_for_move(cur, old_venue, old_date, new_venue, new_date, retire=False)
+    return show["id"]
 
 
 _BOOKING_EDIT_SHOW_JOIN = r"""
@@ -1554,23 +1616,33 @@ def edited_bookings(cur):
     """Bookings already in the sheet whose details have been edited since —
     each with `_old_ident`, the (artist, venue, date) the sheet row was written
     under, so a renamed band or a moved date can still be found there instead of
-    leaving an orphan row behind."""
-    cur.execute("""SELECT b.*, e.changes AS _changes FROM bookings b
+    leaving an orphan row behind.
+
+    audit 2026-09-16 (db P2): this used to read only the NEWEST booking_edits
+    row, so a rename followed by a load-in edit before the next sync lost the
+    old name and the sheet row couldn't be found. Now every edit since the row
+    last matched the sheet (`synced_at`, else `seeded_at`) counts, earliest
+    `old` per field."""
+    cur.execute("""SELECT b.*, COALESCE(e.all_changes, '[]'::jsonb) AS _changes FROM bookings b
                    LEFT JOIN LATERAL (
-                       SELECT changes FROM booking_edits
-                       WHERE booking_id = b.id ORDER BY id DESC LIMIT 1
+                       SELECT jsonb_agg(changes ORDER BY id) AS all_changes FROM booking_edits
+                       WHERE booking_id = b.id
+                         AND edited_at > COALESCE(b.synced_at, b.seeded_at, '-infinity'::timestamptz)
                    ) e ON true
                    WHERE b.sheet_dirty AND b.seeded_at IS NOT NULL
                    ORDER BY b.id""")
     rows = cur.fetchall()
     for r in rows:
-        ch = r.pop("_changes", None) or {}
+        earliest = {}
+        for ch in r.pop("_changes", None) or []:
+            for f in ("artist_name", "venue", "event_date"):
+                if f in (ch or {}) and f not in earliest and (ch[f] or {}).get("old"):
+                    earliest[f] = ch[f]["old"]
         date = r.get("event_date")
         r["_old_ident"] = {
-            "artist_name": (ch.get("artist_name") or {}).get("old") or r.get("artist_name"),
-            "venue": (ch.get("venue") or {}).get("old") or r.get("venue"),
-            "event_date": ((ch.get("event_date") or {}).get("old")
-                           or (date.isoformat() if date else "")),
+            "artist_name": earliest.get("artist_name") or r.get("artist_name"),
+            "venue": earliest.get("venue") or r.get("venue"),
+            "event_date": earliest.get("event_date") or (date.isoformat() if date else ""),
         }
     return rows
 
@@ -1579,7 +1651,8 @@ def mark_bookings_synced(cur, ids):
     """Their sheet row now matches the booking."""
     if not ids:
         return
-    cur.execute("UPDATE bookings SET sheet_dirty = false WHERE id = ANY(%s)", (list(ids),))
+    cur.execute("UPDATE bookings SET sheet_dirty = false, synced_at = now() WHERE id = ANY(%s)",
+                (list(ids),))
 
 
 def mark_bookings_seeded(cur, ids):
@@ -1587,6 +1660,108 @@ def mark_bookings_seeded(cur, ids):
         return
     cur.execute("UPDATE bookings SET seeded_at = now() WHERE id = ANY(%s)",
                 (list(ids),))
+
+
+# ── sheet removals (root cause A, audit 2026-09-16) ─────────────────────────
+# A purged or merged-away show has to leave advance-list.xlsx too, or the next
+# run imports the row again and the show comes back with blank stamps. The
+# tombstone is applied by run_now.one_pass before the rebuild reads the sheet;
+# until it is, import_sheet.py and draft_emails.py skip that ident.
+
+def removal_ident(name, venue, event_date):
+    """(match_key, venue lowercased, YYYY-MM-DD) — the same shape holds._ident
+    and append_bookings.py compare sheet rows on."""
+    d = event_date.isoformat() if isinstance(event_date, dt.date) else str(event_date or "")[:10]
+    return (normalize(name), (venue or "").strip().lower(), d)
+
+
+def add_sheet_removal(cur, venue, event_date, match_key, artist_name=None, reason="purge",
+                      doc_path=None):
+    cur.execute(
+        """INSERT INTO sheet_removals (venue, event_date, match_key, artist_name, reason, doc_path)
+           VALUES (%s,%s,%s,%s,%s,%s) RETURNING id""",
+        (venue, event_date, match_key, artist_name, reason, doc_path))
+    return cur.fetchone()["id"]
+
+
+def pending_sheet_removals(cur):
+    cur.execute("SELECT * FROM sheet_removals WHERE applied_at IS NULL ORDER BY id")
+    return cur.fetchall()
+
+
+def pending_removal_idents(cur):
+    return {removal_ident(r["match_key"], r["venue"], r["event_date"])
+            for r in pending_sheet_removals(cur)}
+
+
+def mark_sheet_removals_applied(cur, ids):
+    """Stamp these applied and return their rows (doc_path/reason for the
+    caller that retires the filed doc)."""
+    if not ids:
+        return []
+    cur.execute("""UPDATE sheet_removals SET applied_at = now()
+                   WHERE id = ANY(%s) AND applied_at IS NULL RETURNING *""", (list(ids),))
+    return cur.fetchall()
+
+
+def clear_sheet_removals(cur, venue, event_date, artist_name):
+    """A band re-booked on the same venue+date after a purge is a real booking:
+    a still-pending removal would otherwise delete its fresh sheet row."""
+    d = to_date(event_date) if not isinstance(event_date, dt.date) else event_date
+    if not (venue and d and artist_name):
+        return
+    cur.execute("""DELETE FROM sheet_removals WHERE applied_at IS NULL
+                   AND venue=%s AND event_date=%s AND match_key=%s""",
+                (venue, d, normalize(artist_name)))
+
+
+def _registry_row_for_event(cur, venue, event_date, event_key, n_events_same_day):
+    """Same rule as docmerge.locate: exact key, else the only doc that day when
+    that day has only one event."""
+    row = get_filed_doc(cur, venue, event_date, event_key)
+    if row:
+        return row
+    rows = filed_docs_for(cur, venue, event_date)
+    return rows[0] if len(rows) == 1 and n_events_same_day <= 1 else None
+
+
+def reregister_docs_for_move(cur, old_venue, old_date, new_venue, new_date, retire=True):
+    """A show moved to another venue/date (F8, audit 2026-09-16). When that
+    leaves the old venue+date with no show at all, its one filed doc belongs
+    to the moved show: re-point the registry row (and its notices) at the new
+    venue+date — docmerge's next pass for that event finds it through
+    `locate` and renames it into the new month folder, hand edits intact.
+    When the new venue+date already has its own doc, the old one is retired
+    instead (registry row dropped, path returned for the caller to rename);
+    `retire=False` leaves it registered where it was. Returns the retired
+    path or None."""
+    if not (old_date and new_date) or (old_venue, old_date) == (new_venue, new_date):
+        return None
+    cur.execute("SELECT count(*) AS n FROM shows WHERE venue=%s AND show_date=%s",
+                (old_venue, old_date))
+    if cur.fetchone()["n"]:
+        return None     # other acts are still on that bill; the doc stays theirs
+    rows = filed_docs_for(cur, old_venue, old_date)
+    if len(rows) != 1:
+        return None
+    reg = rows[0]
+    if not filed_docs_for(cur, new_venue, new_date):
+        cur.execute("UPDATE doc_notices SET venue=%s, event_date=%s "
+                    "WHERE venue=%s AND event_date=%s AND event_key=%s",
+                    (new_venue, new_date, old_venue, old_date, reg["event_key"]))
+        cur.execute("UPDATE filed_docs SET venue=%s, event_date=%s WHERE id=%s",
+                    (new_venue, new_date, reg["id"]))
+        return None
+    if not retire:
+        return None
+    _drop_registry_row(cur, reg)
+    return reg["path"]
+
+
+def _drop_registry_row(cur, reg):
+    cur.execute("DELETE FROM doc_notices WHERE venue=%s AND event_date=%s AND event_key=%s",
+                (reg["venue"], reg["event_date"], reg["event_key"]))
+    cur.execute("DELETE FROM filed_docs WHERE id=%s", (reg["id"],))
 
 
 def get_or_create_short_link(cur, token):
@@ -1667,28 +1842,33 @@ def filed_docs_for(cur, venue, event_date):
 
 
 def upsert_filed_doc(cur, venue, event_date, event_key, path, sha256, seeded=False,
-                     reg_id=None, keep_written_at=False, cells=None):
+                     reg_id=None, keep_written_at=False, cells=None, columns=None):
     """`cells` (review 2026-09-14, H2): the per-cell provenance map — what
-    the pipeline last wrote, keyed by section|column[|paragraph]. None
-    leaves the stored map alone."""
+    the pipeline last wrote, keyed by section|a<artist_id>[|paragraph].
+    `columns` (root cause B, 2026-09-16): {column: artist_id} the doc was
+    written with. None leaves either stored map alone."""
     import json
     cells_json = json.dumps(cells) if cells is not None else None
+    cols_json = json.dumps({str(k): v for k, v in columns.items()}) if columns is not None else None
     if reg_id:
         cur.execute(
             """UPDATE filed_docs SET event_key=%s, path=%s, sha256=%s,
                    written_at = CASE WHEN %s THEN written_at ELSE now() END,
-                   cells = COALESCE(%s::jsonb, cells)
+                   cells = COALESCE(%s::jsonb, cells),
+                   columns = COALESCE(%s::jsonb, columns)
                WHERE id=%s""",
-            (event_key, path, sha256, keep_written_at, cells_json, reg_id))
+            (event_key, path, sha256, keep_written_at, cells_json, cols_json, reg_id))
         return reg_id
     cur.execute(
-        """INSERT INTO filed_docs (venue, event_date, event_key, path, sha256, seeded, cells)
-           VALUES (%s,%s,%s,%s,%s,%s,COALESCE(%s::jsonb, '{}'::jsonb))
+        """INSERT INTO filed_docs (venue, event_date, event_key, path, sha256, seeded, cells, columns)
+           VALUES (%s,%s,%s,%s,%s,%s,COALESCE(%s::jsonb, '{}'::jsonb),COALESCE(%s::jsonb, '{}'::jsonb))
            ON CONFLICT (venue, event_date, event_key) DO UPDATE SET
                path=EXCLUDED.path, sha256=EXCLUDED.sha256, written_at=now(),
-               cells = COALESCE(%s::jsonb, filed_docs.cells)
+               cells = COALESCE(%s::jsonb, filed_docs.cells),
+               columns = COALESCE(%s::jsonb, filed_docs.columns)
            RETURNING id""",
-        (venue, event_date, event_key, path, sha256, seeded, cells_json, cells_json))
+        (venue, event_date, event_key, path, sha256, seeded, cells_json, cols_json,
+         cells_json, cols_json))
     return cur.fetchone()["id"]
 
 
@@ -1736,7 +1916,21 @@ def get_doc_notice(cur, notice_id):
 
 def resolve_doc_notice(cur, notice_id, resolution):
     cur.execute("""UPDATE doc_notices SET resolved_at=now(), resolution=%s, apply_error=NULL
-                   WHERE id=%s AND resolved_at IS NULL""", (resolution, notice_id))
+                   WHERE id=%s AND resolved_at IS NULL
+                   RETURNING venue, event_date, event_key, kind""", (resolution, notice_id))
+    row = cur.fetchone()
+    if row and row["kind"] == "diff":
+        # F11 (audit 2026-09-16): the last open decision on a doc closes its
+        # review — docmerge's resubmission check counts from here, not from the
+        # last pipeline write, or review mode never switches off again
+        cur.execute(
+            """UPDATE filed_docs f SET reviewed_at = now()
+               WHERE f.venue=%s AND f.event_date=%s AND f.event_key=%s
+                 AND NOT EXISTS (SELECT 1 FROM doc_notices n
+                                 WHERE n.venue=f.venue AND n.event_date=f.event_date
+                                   AND n.event_key=f.event_key AND n.kind='diff'
+                                   AND n.resolved_at IS NULL)""",
+            (row["venue"], row["event_date"], row["event_key"]))
 
 
 def keep_doc_value(cur, notice):
@@ -1747,12 +1941,23 @@ def keep_doc_value(cur, notice):
     key = notice.get("cell_key")
     if not key or key.startswith("plot:"):
         return
-    cur.execute("""SELECT id, cells FROM filed_docs WHERE venue=%s AND event_date=%s AND event_key=%s""",
+    cur.execute("""SELECT id, cells, columns FROM filed_docs WHERE venue=%s AND event_date=%s AND event_key=%s""",
                 (notice["venue"], notice["event_date"], notice["event_key"]))
     reg = cur.fetchone()
     if not reg:
         return
-    cells = {k: v for k, v in (reg["cells"] or {}).items() if k.lower() != key.lower()}
+    drop = {key.lower()}
+    # a notice recorded under a pre-2026-09-16 column key gives up the
+    # artist-keyed cell too — ownership moved to `Section|a<id>` since
+    m = re.match(r"^(.*)\|col(\d)(\|\d+)?$", key)
+    if m and (reg.get("columns") or {}).get(m.group(2)):
+        drop.add(f"{m.group(1)}|a{reg['columns'][m.group(2)]}{m.group(3) or ''}".lower())
+    cells = {k: v for k, v in (reg["cells"] or {}).items() if k.lower() not in drop}
+    if notice.get("doc_value") == "(cleared by hand)":
+        # docmerge F10: keeping a hand-cleared cell keeps it EMPTY — ownership
+        # stays recorded (as a marker, never the template text) so the next
+        # pass still reads it as cleared on purpose instead of refilling it
+        cells[key] = "\u2205 kept blank"
     import json
     cur.execute("UPDATE filed_docs SET cells=%s::jsonb WHERE id=%s", (json.dumps(cells), reg["id"]))
 
@@ -2010,13 +2215,13 @@ def purge_show(cur, show_id):
     they have elsewhere, other venues/dates, is untouched).
 
     Deletes, in order: this show's uploaded files -> its submissions -> its
-    event_acts row (and the event itself, plus the filed_docs/doc_notices
-    REGISTRY rows, if this was the only act left on that bill) -> the
-    matching bookings row -> the shows row (cascades advance_reminders /
-    followup_queue / advance_recaps / send_failures automatically, per their
-    FKs). Never touches physical files — a filed .docx/.md on Dropbox, or a
-    stage-plot upload's copy on the NAS — those are named in the returned
-    summary for a human to remove by hand.
+    event_acts row (and the event itself, plus that event's filed_docs /
+    doc_notices REGISTRY row, if this was the only act left on that bill) ->
+    the matching bookings row -> the shows row (cascades advance_reminders /
+    advance_recaps / send_failures automatically, per their FKs). Then writes
+    a sheet_removals tombstone: the next run_now pass deletes the sheet row
+    and renames an orphaned filed doc "PURGED - …" (root cause A, audit
+    2026-09-16). Never deletes a physical file.
 
     Returns a summary dict, or None if the show doesn't exist."""
     show = get_show(cur, show_id)
@@ -2048,11 +2253,14 @@ def purge_show(cur, show_id):
     booking_deleted = cur.fetchone() is not None
 
     # this act on the event's day-sheet bill, and the event itself
-    # (+ its filed-doc registry rows) if that was the only act left on it —
-    # the physical file stays; only the registry pointer to it is cleared.
-    filed_paths = []
+    # (+ its filed-doc registry row) if that was the only act left on it.
+    # audit 2026-09-16 (root cause A): the registry row is matched on the
+    # event's own key, not venue+date — a same-date 3rd-party event's doc
+    # used to go with it. The doc itself is renamed "PURGED - …" in its own
+    # folder when the sheet removal is applied (never deleted).
+    retired_path = None
     cur.execute(
-        """SELECT ea.id, ea.event_id FROM event_acts ea
+        """SELECT ea.id, ea.event_id, e.name, e.series FROM event_acts ea
            JOIN events e ON e.id = ea.event_id
            WHERE ea.artist_id=%s AND e.venue=%s AND e.event_date=%s""",
         (artist_id, venue, show_date))
@@ -2062,13 +2270,22 @@ def purge_show(cur, show_id):
         cur.execute("SELECT count(*) AS n FROM event_acts WHERE event_id=%s", (act_row["event_id"],))
         if cur.fetchone()["n"] == 0:
             cur.execute("DELETE FROM events WHERE id=%s", (act_row["event_id"],))
-            cur.execute("SELECT path FROM filed_docs WHERE venue=%s AND event_date=%s",
+            cur.execute("SELECT count(*) AS n FROM events WHERE venue=%s AND event_date=%s",
                         (venue, show_date))
-            filed_paths = [r["path"] for r in cur.fetchall()]
-            cur.execute("DELETE FROM filed_docs WHERE venue=%s AND event_date=%s", (venue, show_date))
-            cur.execute("DELETE FROM doc_notices WHERE venue=%s AND event_date=%s", (venue, show_date))
+            others = cur.fetchone()["n"]
+            reg = _registry_row_for_event(cur, venue, show_date,
+                                          normalize(act_row["name"] or act_row["series"] or ""),
+                                          others + 1)
+            if reg:
+                retired_path = reg["path"]
+                _drop_registry_row(cur, reg)
 
     cur.execute("DELETE FROM shows WHERE id=%s", (show_id,))
+
+    if artist_row and show_date:
+        cur.execute("SELECT match_key FROM artists WHERE id=%s", (artist_id,))
+        add_sheet_removal(cur, venue, show_date, cur.fetchone()["match_key"], artist_name,
+                          reason="purge", doc_path=retired_path)
 
     return {
         "artist_name": artist_name,
@@ -2077,7 +2294,7 @@ def purge_show(cur, show_id):
         "submissions_deleted": submissions_deleted,
         "files_deleted": files_deleted,
         "booking_deleted": booking_deleted,
-        "filed_paths_needing_manual_cleanup": filed_paths,
+        "filed_doc_retired": retired_path,
     }
 
 
@@ -2103,10 +2320,19 @@ def release_candidate_holds(cur, orphan_show_id):
                 (f"possible correction of show {orphan_show_id}",))
 
 
-def merge_shows(cur, old_id, new_id):
+def merge_shows(cur, old_id, new_id, tombstone=True):
     """Typo fix: everything recorded against old_id moves to new_id, then the
     old record is deleted. Send history carries over, so the corrected show
-    never gets a second welcome or repeat reminders."""
+    never gets a second welcome or repeat reminders.
+
+    Root cause A (audit 2026-09-16): the typo'd side's sheet row is tombstoned
+    (sheet_removals) so it can't resurrect the old show on the next run, and
+    when the old venue+date is left with no show at all its filed doc follows
+    the show — re-registered under the new venue+date if that date has no doc
+    yet (the next filing pass renames it into the new month folder, hand
+    edits intact), else renamed "SUPERSEDED - …" in place. `tombstone=False`
+    is for update_booking's rename-in-place, where the sheet row is being
+    rewritten, not removed."""
     cur.execute("SELECT * FROM shows WHERE id=%s", (old_id,))
     old = cur.fetchone()
     cur.execute("SELECT * FROM shows WHERE id=%s", (new_id,))
@@ -2144,6 +2370,7 @@ def merge_shows(cur, old_id, new_id):
              -- corrected show's day-before go out a second time.
              advance_held_draft_at = COALESCE(n.advance_held_draft_at, o.advance_held_draft_at),
              dayahead_sent_at = COALESCE(n.dayahead_sent_at, o.dayahead_sent_at),
+             cancelled_at = COALESCE(n.cancelled_at, o.cancelled_at),
              held_at = NULL, hold_reason = NULL, hold_dismissed_at = now()
            FROM shows o WHERE n.id=%s AND o.id=%s""", (new_id, old_id))
     # audit 2026-09-16 #23: the old show's own bookings row (if staff had
@@ -2159,6 +2386,11 @@ def merge_shows(cur, old_id, new_id):
                  AND lower(btrim(regexp_replace(b.artist_name, '\\s+', ' ', 'g'))) = %s""",
             (old["venue"], old["show_date"], old_artist["match_key"]))
     cur.execute("DELETE FROM shows WHERE id=%s", (old_id,))
+    retired = reregister_docs_for_move(cur, old["venue"], old["show_date"],
+                                       new["venue"], new["show_date"], retire=tombstone)
+    if tombstone and old_artist and old["show_date"]:
+        add_sheet_removal(cur, old["venue"], old["show_date"], old_artist["match_key"],
+                          old_artist["name"], reason="merge", doc_path=retired)
     if old["artist_id"] != new["artist_id"]:
         cur.execute("""DELETE FROM artists a WHERE a.id=%s
                        AND NOT EXISTS (SELECT 1 FROM shows WHERE artist_id=a.id)
