@@ -434,6 +434,47 @@ def tx_cancel_slot_takeover():
     check(cells.get(("monitors", col_b)) == "5 wedges", f"Bravo untouched ({cells.get(('monitors', col_b))!r})")
 
 
+@test("x-p: an orphaned stage-plot hyperlink is cleared when a column's occupant changes")
+def tx_orphan_hyperlink():
+    # docmerge merges the fresh build (F) into the filed doc (E). A hyperlink
+    # in a grid cell is only ever pipeline-written (set_cell_link, stage
+    # plots) — when the fresh build has no plot for that column (its occupant
+    # changed to a band with none), the stale link must be cleared, not kept
+    # as if it were a hand edit. Brian, FSQ 9/18: LimeLght replaced Wishy in
+    # column 2 but the doc kept a stale Jet Jurgensmeyer plot link there.
+    import docmerge
+    from docx import Document
+    from docx.oxml.ns import qn
+
+    def sp_cell(doc, col):
+        grid = daysheet.find_grid(doc)
+        for r in grid.rows:
+            if daysheet.norm(r.cells[0].text) == "stage plot":
+                return r.cells[col]
+        return None
+
+    def has_link(cell):
+        return next(cell._tc.iter(qn("w:hyperlink")), None) is not None
+
+    T = Document(str(daysheet.UNIVERSAL_TEMPLATE))
+    E = Document(str(daysheet.UNIVERSAL_TEMPLATE))
+    F = Document(str(daysheet.UNIVERSAL_TEMPLATE))
+
+    # E: a stale stage-plot link left in column 2 by a dropped band
+    daysheet.set_cell_link(sp_cell(E, 2), "See DB — dropped-band-stageplot.pdf",
+                           "https://www.dropbox.com/scl/fi/x/dropped-band-stageplot.pdf?dl=1")
+    check(has_link(sp_cell(E, 2)), "setup: E column 2 starts with a stage-plot hyperlink")
+
+    # F (fresh build) has nothing in column 2 — the new occupant has no plot
+    changed, _notices, _prov = docmerge.merge(T, F, E, cols={1: 11, 2: 22, 3: 33},
+                                              old_cols={1: 11, 2: 22, 3: 33})
+    check(not has_link(sp_cell(E, 2)), f"orphaned hyperlink cleared from column 2 (changed={changed})")
+    check(not daysheet.full_cell_text(sp_cell(E, 2)).strip(),
+          f"column 2 stage-plot cell reads blank ({daysheet.full_cell_text(sp_cell(E, 2))!r})")
+    check(not has_link(sp_cell(E, 1)) and not has_link(sp_cell(E, 3)),
+          "columns 1 and 3 (never linked) untouched")
+
+
 # ── (n) conflicted copy ──────────────────────────────────────────────────────
 @test("x-n: a Dropbox conflicted copy beside a filed doc or the sheet raises a notice")
 def tx_conflicted_copy():

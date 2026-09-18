@@ -347,6 +347,22 @@ def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column, key=None, aliases=(),
     prev = ctx.owned(*keys)
     if tF == tT:
         # the pipeline has nothing for this cell
+        if (next(e_tc.iter(qn("w:hyperlink")), None) is not None
+                and not any(k.lower() in ctx.frozen for k in keys)):
+            # A hyperlink in a grid cell is only ever pipeline-written
+            # (set_cell_link, stage plots) — never hand-typed. The fresh build
+            # has nothing here, so it's an orphaned link left behind when the
+            # column's occupant changed: a dropped band's stage-plot link
+            # survived under the band that replaced it, since the pipeline
+            # doesn't own it under the new occupant's key and a non-blank cell
+            # is otherwise left alone (Brian, FSQ 9/18 — LimeLght replaced
+            # Wishy but kept a stale Jet Jurgensmeyer plot link). Give it back
+            # to the template. (tE, hyperlink display text, can look "blank" to
+            # the text branches below, so this must run first.)
+            _replace_tc_content(ctx, e_tc, t_tc)
+            ctx.settle(keys)
+            ctx.changed += 1
+            return
         if prev is not None and prev == tE and tE != tT and band_row \
                 and not any(k.lower() in ctx.frozen for k in keys):
             # F7: it was the pipeline's value (a cancelled or removed act, an
