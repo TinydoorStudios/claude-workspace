@@ -414,15 +414,24 @@ def submit():
         if not has_existing:
             abort(400, "Please provide a stage plot upload or a description — at least one is required.")
 
-    # WP location monitor cap — hard limit (Brian, 2026-09-06)
-    if f.get("venue") == "Washington Park" and f.get("location") in forms_config.WP_LOCATIONS:
-        cap = forms_config.WP_LOCATIONS[f["location"]]["monitor_cap"]
-        try:
-            requested = int(f.get("monitors") or 0)
-        except ValueError:
-            requested = 0
-        if requested > cap:
-            abort(400, f"{f['location']} is limited to {cap} monitors — please enter {cap} or fewer.")
+    # WP location monitor cap — hard limit (Brian, 2026-09-06). Resolve the
+    # stage the same way the form renderer does (explicit location, else the
+    # series->stage binding), so a WP booking whose location field is blank
+    # still gets capped by its series' stage instead of sailing past uncapped
+    # (Brian, 2026-09-18 — Jazz At The Porch was entering 3 wedges on a 2-cap
+    # stage because the series wasn't bound and this check only saw a blank
+    # location).
+    if f.get("venue") == "Washington Park":
+        stage = forms_config.resolve_wp_location(
+            "Washington Park", f.get("location"), f.get("show_series"))
+        if stage:
+            cap = forms_config.WP_LOCATIONS[stage]["monitor_cap"]
+            try:
+                requested = int(f.get("monitors") or 0)
+            except ValueError:
+                requested = 0
+            if requested > cap:
+                abort(400, f"{stage} is limited to {cap} monitors — please enter {cap} or fewer.")
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     slug = _slug(band_name)

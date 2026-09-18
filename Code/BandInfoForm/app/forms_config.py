@@ -77,6 +77,7 @@ WP_LOCATIONS = {
 SERIES_LOCATION = {
     "Neo Soul Nights": "Bandstand",
     "Blues & Brews": "Porch",
+    "Jazz At The Porch": "Porch",
 }
 
 # Show series -> overrides. `blocks` toggles optional sections; `intro` overrides
@@ -126,6 +127,24 @@ SERIES = {
 }
 
 
+def resolve_wp_location(venue, location, series_key):
+    """The concrete WP stage for a booking, or None if not WP / not resolvable.
+
+    An explicit booking location wins; otherwise fall back to the series->stage
+    binding, because a WP booking's location field is often blank (it lives on
+    the event, not the show). This is the SINGLE source of truth for "which WP
+    stage" — both the form renderer (get_config) and the server-side monitor-cap
+    check call it, so an unmapped series fails safe (capped by its stage) in
+    both places instead of failing open only server-side (Brian, 2026-09-18).
+    """
+    if venue != "Washington Park":
+        return None
+    if location in WP_LOCATIONS:
+        return location
+    resolved = SERIES_LOCATION.get((series_key or "").strip())
+    return resolved if resolved in WP_LOCATIONS else None
+
+
 def get_config(series_key=None, venue=None, location=None, lang="en"):
     base = dict(SERIES["default"])
     cfg = dict(base)
@@ -157,11 +176,10 @@ def get_config(series_key=None, venue=None, location=None, lang="en"):
     # didn't pass a concrete WP location (e.g. a prefill token whose location is
     # blank), so the form still hides the right questions and applies the right
     # monitor cap (Brian, 2026-09-11).
-    if venue == "Washington Park" and location not in WP_LOCATIONS:
-        location = SERIES_LOCATION.get((series_key or "").strip(), location)
-    if venue == "Washington Park" and location in WP_LOCATIONS:
-        loc = WP_LOCATIONS[location]
-        cfg["location"] = location
+    resolved = resolve_wp_location(venue, location, series_key)
+    if resolved:
+        loc = WP_LOCATIONS[resolved]
+        cfg["location"] = resolved
         cfg["monitor_cap"] = loc["monitor_cap"]
         cfg["blocks"] = dict(cfg["blocks"])
         cfg["blocks"]["lighting"] = loc["lighting"]
