@@ -56,12 +56,12 @@ for f in "${TOOLS_FILES[@]}"; do SHIPPED_FILES+=("tools/$f"); done
 # tools/ ships a curated subset (above), not the whole directory, so the
 # drift check walks it explicitly too — a blanket `git ls-tree tools`
 # would flag files that were never part of any deploy in the first place.
-SHIPPED_DIRS=(templates static ops db/migrations backup)
+SHIPPED_DIRS=(templates ops db/migrations backup)
 for d in "${TOOLS_DIRS[@]}"; do SHIPPED_DIRS+=("tools/$d"); done
 # remote path -> local git-path prefix, for the two flattened cases above.
 _local_git_path() {
   case "$1" in
-    templates/*|static/*) echo "app/$1" ;;
+    templates/*) echo "app/$1" ;;
     *)
       for f in "${APP_FILES[@]}"; do [ "$1" = "$f" ] && { echo "app/$1"; return; }; done
       echo "$1"
@@ -96,9 +96,9 @@ _local_git_path() {
       # — query ls-tree against the real local path, then strip it back to
       # the remote spelling so ALL_PATHS stays in remote-path convention
       # throughout (matching _local_git_path's own "app/" special case).
-      ld="$d"; case "$d" in templates|static) ld="app/$d";; esac
+      ld="$d"; [ "$d" = "templates" ] && ld="app/templates"
       while IFS= read -r p; do
-        case "$d" in templates|static) p="${p#app/}";; esac
+        [ "$d" = "templates" ] && p="${p#app/}"
         ALL_PATHS+=("$p")
       done < <(git -C "$HERE" ls-tree -r --name-only "$PREV_SHA" -- "$ld" 2>/dev/null)
     done
@@ -132,7 +132,7 @@ _local_git_path() {
   fi
 
   echo "--- stage payloads ---"
-  tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   "${APP_FILES[@]}" templates static || exit 1
+  tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   "${APP_FILES[@]}" templates || exit 1
   tar -C "$HERE/tools" -czf /tmp/adv_tools.tgz "${TOOLS_FILES[@]}" "${TOOLS_DIRS[@]}" || exit 1
   # db/schema.sql, backup/ and requirements.txt now ship too (audit ops #4)
   # — they used to just sit in git, never actually reaching the VM through
