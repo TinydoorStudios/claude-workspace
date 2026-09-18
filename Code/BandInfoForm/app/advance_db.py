@@ -9,6 +9,7 @@ Uses psycopg 3. Connection string comes from ADVANCE_DB_URL, e.g.
 import os
 import re
 import datetime as dt
+from difflib import SequenceMatcher
 
 import psycopg
 from psycopg.rows import dict_row
@@ -823,20 +824,23 @@ def _name_tokens(name):
 
 def names_plausible(typed, booked):
     """Review 2026-09-14 (H5): is `typed` plausibly the same act as `booked`?
-    True when one normalized name contains the other, or at least half of
-    the meaningful words overlap. Gate on auto-attaching a submission to the
-    one unanswered booking — before this, ANY typed name attached to whoever
-    hadn't answered yet."""
+    True when one normalized name contains the other, at least half of the
+    meaningful words overlap, or the two spellings are a close edit-distance
+    match (a typo like "LimeLght" for "LimeLight", Brian FSQ 9/18, shares no
+    whole token so the overlap test alone misses it). Gate on auto-attaching a
+    submission to the one unanswered booking — before this, ANY typed name
+    attached to whoever hadn't answered yet. Only ever consulted when there is
+    exactly one unanswered booking at the venue+date (see record_submission),
+    so a high full-string similarity there is a safe bet on the same act."""
     a, b = normalize(typed), normalize(booked)
     if not a or not b:
         return False
     if a == b or a in b or b in a:
         return True
     ta, tb = _name_tokens(a), _name_tokens(b)
-    if not ta or not tb:
-        return False
-    overlap = len(ta & tb)
-    return overlap / min(len(ta), len(tb)) >= 0.5
+    if ta and tb and len(ta & tb) / min(len(ta), len(tb)) >= 0.5:
+        return True
+    return SequenceMatcher(None, a, b).ratio() >= 0.85
 
 
 def get_artist(cur, artist_id):

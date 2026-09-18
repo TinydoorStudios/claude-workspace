@@ -235,6 +235,11 @@ def t_plausible():
     check(not np("Zebra Cakes", "The Blue Jays"), "unrelated name rejected")
     check(not np("DJ Bravo", "Special Request Band"), "9/11 pair rejected")
     check(np("Jazz Retro Nouveau", "Jazz Retro Nouveau, feat. Jack Garrett"), "feat. stripped")
+    # a one-letter typo shares no whole token, so the overlap test misses it —
+    # the edit-distance clause catches it (Brian, FSQ 9/18: LimeLght/LimeLight)
+    check(np("LimeLght", "LimeLight"), "one-letter typo caught")
+    check(np("Ratboyz", "RatBoys"), "close spelling caught")
+    check(not np("Cats", "Dogs"), "genuinely different short names still rejected")
 
 
 @test("48h reminder gap (M1)")
