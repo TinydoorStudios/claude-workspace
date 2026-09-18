@@ -4,77 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ t('page_title') }}</title>
-<style>
-  :root{
-    color-scheme: dark;
-    --navy:#1A3A5C; --accent:#4da3ff; --ink:#e6edf3; --muted:#8b97a6;
-    --line:#2a323d; --bg:#0d1117; --card:#161b22; --card2:#1c232d; --req:#f87171;
-    --gap:26px;               /* the single spacing value between every question */
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-    font-size:15px;line-height:1.45;}
-  .wrap{max-width:680px;margin:0 auto;padding:0 16px 64px;}
-  header{background:var(--navy);color:#fff;padding:28px 0;margin-bottom:24px;}
-  header .wrap{padding-bottom:0;}
-  header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.2px;}
-  header p{margin:6px 0 0;font-size:14px;color:#c7d6e6;}
-  .langtoggle{margin-top:10px;}
-  .langtoggle a{color:#dbe8f4;font-size:13px;font-weight:600;text-decoration:underline;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
-    padding:28px 26px;box-shadow:0 1px 2px rgba(16,24,40,.04);}
-  .returning{max-width:680px;margin:0 auto 18px;padding:0 16px;}
-  .returning .box{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.35);border-radius:10px;
-    padding:14px 16px;font-size:14px;color:#86efac;}
-
-  .field{margin-bottom:var(--gap);}
-  .field:last-child{margin-bottom:0;}
-  label.q{display:block;font-weight:600;font-size:15px;margin-bottom:6px;}
-  .req{color:var(--req);margin-left:2px;}
-  form.third-party .req{display:none;}
-  .help{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.4;}
-
-  input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],select,textarea{
-    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
-    font:inherit;color:var(--ink);background:var(--card2);}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
-    box-shadow:0 0 0 3px rgba(77,163,255,.2);}
-  textarea{min-height:84px;resize:vertical;}
-  input[type=file]{width:100%;font-size:14px;padding:8px 0;}
-
-  .section{margin:34px 0 18px;padding-bottom:8px;border-bottom:2px solid var(--navy);}
-  .section:first-of-type{margin-top:4px;}
-  .section h2{margin:0;font-size:13px;font-weight:700;text-transform:uppercase;
-    letter-spacing:.08em;color:var(--navy);}
-
-  .ack{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;}
-  .ack ul{margin:8px 0 0;padding-left:18px;}
-  .ack li{margin:4px 0;font-size:13.5px;color:var(--muted);}
-  .checkrow{display:flex;gap:10px;align-items:flex-start;margin-top:12px;}
-  .checkrow input{margin-top:3px;flex:0 0 auto;width:17px;height:17px;}
-  .checkrow label{font-size:14px;font-weight:600;}
-
-  .locked{background:#20293a;color:var(--muted);cursor:not-allowed;}
-  .lockhint{font-size:12.5px;color:var(--muted);margin:6px 0 0;}
-  .hidden{display:none;}
-  .conditional{border-left:3px solid var(--accent);padding-left:14px;margin-left:2px;
-    background:rgba(77,163,255,.06);border-radius:0 8px 8px 0;padding-top:14px;padding-bottom:2px;padding-right:12px;}
-
-  button{background:var(--navy);color:#fff;border:0;border-radius:8px;
-    padding:13px 22px;font-size:15px;font-weight:600;cursor:pointer;margin-top:30px;}
-  button:hover{background:#234b70;}
-  .staffbar{max-width:680px;margin:0 auto 18px;padding:0 16px;}
-  .staffbar .box{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.4);border-radius:10px;
-    padding:14px 16px;font-size:14px;color:#fcd34d;}
-  .staffbar a{color:#fcd34d;}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='advance.css') }}?v=1">
 </head>
-<body>
+<body class="page-form">
 {% macro v(name) %}{{ prefill.get(name, '') }}{% endmacro %}
 {% set other_lang = 'en' if lang == 'es' else 'es' %}
 <header><div class="wrap">
-  <h1>{{ t('header_h1') }}</h1>
+  <h1>{{ t('header_h1') }}<span class="cursor"></span></h1>
   <p>{{ cfg.intro }}</p>
   <p id="techpack" class="hidden" style="margin-top:8px;font-size:13px;">
     <a id="techpacklink" href="#" target="_blank" rel="noopener"

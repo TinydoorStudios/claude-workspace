@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advance — Design Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:#050607;color:#e7ebef;
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;-webkit-font-smoothing:antialiased;}
+  .pagehead{max-width:1180px;margin:0 auto;padding:30px 22px 6px;}
+  .pagehead h1{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em;}
+  .pagehead p{margin:6px 0 0;color:#8b939d;font-size:14px;}
+
+  .grid{max-width:1180px;margin:0 auto;padding:20px;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:start;}
+
+  /* ---------- variant cell ---------- */
+  .cell{border:1px solid #1c2027;border-radius:14px;overflow:hidden;background:var(--v-bg);
+    font-family:var(--v-font,"Inter",sans-serif);color:var(--v-ink);}
+  .cell .tag{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    padding:12px 16px;background:#0a0c0f;border-bottom:1px solid #1c2027;color:#e7ebef;font-family:"Inter",sans-serif;}
+  .cell .tag b{font-size:13px;font-weight:700;letter-spacing:.02em;}
+  .cell .tag span{font-size:11px;color:#6b7683;font-family:"JetBrains Mono",monospace;letter-spacing:.06em;}
+  .body{padding:16px 16px 18px;}
+
+  /* legend / labels */
+  .lg{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--v-accent);
+    font-family:var(--v-legfont,"Inter",sans-serif);}
+  .mini-head{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+  .mini-head .led{width:9px;height:9px;border-radius:50%;background:var(--v-accent);box-shadow:var(--v-ledglow);}
+  .mini-head h2{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em;color:var(--v-ink);
+    font-family:var(--v-dispfont,var(--v-font,"Inter"));}
+
+  .swatches{display:flex;gap:6px;margin:12px 0 16px;}
+  .swatches i{width:26px;height:16px;border-radius:4px;display:block;border:1px solid rgba(255,255,255,.08);}
+
+  .strip{display:flex;align-items:center;gap:10px;margin:16px 0 12px;}
+  .strip::after{content:"";flex:1;height:1px;background:var(--v-ridge);}
+
+  .f{margin-bottom:12px;}
+  .f label{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--v-ink);}
+  .f label .n{font-family:"JetBrains Mono",monospace;font-size:9.5px;color:var(--v-faint);
+    border:1px solid var(--v-ridge);border-radius:4px;padding:1px 5px;}
+  .f input{width:100%;padding:10px 12px;border:1px solid var(--v-ridge);border-radius:var(--v-r,6px);
+    font:inherit;font-size:13.5px;color:var(--v-ink);background:var(--v-recess);
+    box-shadow:var(--v-inset);}
+  .f input::placeholder{color:var(--v-faint);}
+  .f input:focus{outline:none;border-color:var(--v-accent);box-shadow:var(--v-inset),0 0 0 3px var(--v-accentsoft);}
+
+  .btn{width:100%;padding:11px;border-radius:var(--v-r,6px);font-size:13px;font-weight:700;letter-spacing:.03em;
+    cursor:pointer;border:1px solid var(--v-btnborder,transparent);
+    background:var(--v-btnbg);color:var(--v-btnink);box-shadow:var(--v-btnshadow);
+    font-family:var(--v-legfont,"Inter",sans-serif);margin-top:4px;text-transform:var(--v-btncase,none);}
+
+  /* bill card */
+  .card{position:relative;margin-top:16px;background:var(--v-card,var(--v-recess));
+    border:1px solid var(--v-ridge);border-radius:var(--v-r,8px);padding:14px 15px 14px 17px;}
+  .card::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;
+    background:var(--v-accent);box-shadow:var(--v-spineglow);}
+  .card .ch{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;}
+  .card .venue{font-size:13px;font-weight:700;color:var(--v-ink);}
+  .card .series{font-size:11px;color:var(--v-muted);margin-top:1px;}
+  .card .badge{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--v-muted);background:var(--v-bg);border:1px solid var(--v-ridge);border-radius:5px;padding:3px 8px;}
+  .acts{display:flex;flex-direction:column;gap:9px;}
+  .act{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .act .band{font-size:12.5px;font-weight:600;color:var(--v-ink);}
+  .stat{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;font-family:var(--v-legfont,"Inter",sans-serif);}
+  .stat .dot{width:7px;height:7px;border-radius:50%;}
+  .stat.g{color:var(--v-green);} .stat.g .dot{background:var(--v-green);box-shadow:var(--v-dotglow-g);}
+  .stat.r{color:var(--v-red);}   .stat.r .dot{background:var(--v-red);box-shadow:var(--v-dotglow-r);}
+  .stat.a{color:var(--v-amber);} .stat.a .dot{background:var(--v-amber);box-shadow:var(--v-dotglow-a);}
+  .stat.c{color:var(--v-accent);}.stat.c .dot{background:var(--v-accent);box-shadow:var(--v-ledglow);}
+
+  /* ============ VARIANT TOKENS ============ */
+
+  /* 1 — CYAN CONSOLE */
+  .v-cyan{
+    --v-bg:#08090b; --v-panel:#0e1013; --v-recess:#060708; --v-card:#0e1013;
+    --v-ridge:#232830; --v-ink:#e7ebef; --v-muted:#8b939d; --v-faint:#5b636d;
+    --v-accent:#38c8ff; --v-accentsoft:rgba(56,200,255,.28);
+    --v-ledglow:0 0 10px rgba(56,200,255,.5),0 0 3px #38c8ff; --v-spineglow:0 0 10px rgba(56,200,255,.4);
+    --v-green:#34d17a; --v-red:#ff5d52; --v-amber:#ffb02e;
+    --v-dotglow-g:0 0 7px rgba(52,209,122,.5); --v-dotglow-r:0 0 7px rgba(255,93,82,.5); --v-dotglow-a:0 0 7px rgba(255,176,46,.5);
+    --v-inset:inset 0 2px 6px rgba(0,0,0,.55); --v-legfont:"JetBrains Mono",monospace;
+    --v-btnbg:linear-gradient(180deg,#1b8fbf,#136d95); --v-btnink:#eafaff; --v-btnborder:#2aa6d6;
+    --v-btnshadow:0 1px 0 rgba(255,255,255,.22) inset; --v-btncase:uppercase; --v-r:6px;
+  }
+  /* 2 — AMBER ANALOG (Neve/API warmth) */
+  .v-amber{
+    --v-bg:#0b0906; --v-recess:#080604; --v-card:#12100b;
+    --v-ridge:#2c2519; --v-ink:#f2 e8 d9; --v-ink:#f3ead9; --v-muted:#a9977f; --v-faint:#6e6046;
+    --v-accent:#ffab2e; --v-accentsoft:rgba(255,171,46,.25);
+    --v-ledglow:0 0 10px rgba(255,171,46,.5),0 0 3px #ffab2e; --v-spineglow:0 0 10px rgba(255,171,46,.4);
+    --v-green:#8fd14a; --v-red:#ff6a4d; --v-amber:#ffce4a;
+    --v-dotglow-g:0 0 7px rgba(143,209,74,.5); --v-dotglow-r:0 0 7px rgba(255,106,77,.5); --v-dotglow-a:0 0 7px rgba(255,206,74,.5);
+    --v-inset:inset 0 2px 6px rgba(0,0,0,.55); --v-legfont:"JetBrains Mono",monospace;
+    --v-btnbg:linear-gradient(180deg,#e69422,#b06f12); --v-btnink:#1a1206; --v-btnborder:#f0a53a;
+    --v-btnshadow:0 1px 0 rgba(255,255,255,.3) inset; --v-btncase:uppercase; --v-r:6px;
+  }
+  /* 3 — DIGICO SLATE (the desk: flat, bright, multi-color strips) */
+  .v-slate{
+    --v-bg:#12161c; --v-recess:#0c0f14; --v-card:#161b22;
+    --v-ridge:#2b323c; --v-ink:#eef2f7; --v-muted:#93a0b0; --v-faint:#5f6b79;
+    --v-accent:#3fa9ff; --v-accentsoft:rgba(63,169,255,.25);
+    --v-ledglow:none; --v-spineglow:none;
+    --v-green:#37c26a; --v-red:#ff5b57; --v-amber:#ffb43c;
+    --v-dotglow-g:none; --v-dotglow-r:none; --v-dotglow-a:none;
+    --v-inset:none; --v-legfont:"Barlow Condensed",sans-serif; --v-dispfont:"Barlow Condensed",sans-serif;
+    --v-btnbg:#2f7fd6; --v-btnink:#fff; --v-btnborder:#3fa9ff; --v-btnshadow:none; --v-btncase:none; --v-r:5px;
+  }
+  .v-slate .lg,.v-slate .stat,.v-slate .btn{letter-spacing:.06em;font-weight:700;}
+  .v-slate .mini-head h2{font-size:21px;letter-spacing:.01em;}
+  /* 4 — STEALTH MONO (graphite, one hue, no glow, minimal) */
+  .v-stealth{
+    --v-bg:#111213; --v-recess:#0b0c0d; --v-card:#161718;
+    --v-ridge:#26282b; --v-ink:#e9eaec; --v-muted:#8a8d92; --v-faint:#5a5d62;
+    --v-accent:#e8552f; --v-accentsoft:rgba(232,85,47,.22);
+    --v-ledglow:none; --v-spineglow:none;
+    --v-green:#7d8792; --v-red:#e8552f; --v-amber:#c9b070;
+    --v-dotglow-g:none; --v-dotglow-r:none; --v-dotglow-a:none;
+    --v-inset:none; --v-legfont:"Inter",sans-serif; --v-r:4px;
+    --v-btnbg:#e8552f; --v-btnink:#fff; --v-btnborder:transparent; --v-btnshadow:none; --v-btncase:uppercase;
+  }
+  .v-stealth .card::before{width:2px;background:var(--v-faint);}
+  .v-stealth .stat.g .dot,.v-stealth .stat .dot{box-shadow:none;}
+  .v-stealth .lg{letter-spacing:.22em;color:var(--v-faint);}
+  /* 5 — TERMINAL (phosphor, mono everywhere) */
+  .v-term{
+    --v-bg:#050807; --v-recess:#030504; --v-card:#080c0a;
+    --v-ridge:#153020; --v-ink:#c8f4d8; --v-muted:#5f9e79; --v-faint:#3c6b50;
+    --v-accent:#33ffa0; --v-accentsoft:rgba(51,255,160,.22);
+    --v-ledglow:0 0 10px rgba(51,255,160,.6),0 0 3px #33ffa0; --v-spineglow:0 0 10px rgba(51,255,160,.4);
+    --v-green:#33ffa0; --v-red:#ff5f6d; --v-amber:#ffe14a;
+    --v-dotglow-g:0 0 7px rgba(51,255,160,.6); --v-dotglow-r:0 0 7px rgba(255,95,109,.5); --v-dotglow-a:0 0 7px rgba(255,225,74,.5);
+    --v-inset:inset 0 0 0 1px rgba(51,255,160,.04); --v-font:"JetBrains Mono",monospace; --v-legfont:"JetBrains Mono",monospace;
+    --v-btnbg:transparent; --v-btnink:#33ffa0; --v-btnborder:#33ffa0; --v-btnshadow:0 0 14px rgba(51,255,160,.15) inset; --v-btncase:uppercase; --v-r:4px;
+  }
+  .v-term .mini-head h2::before{content:"> ";color:var(--v-accent);}
+  .v-term .f label::before{content:"[ ";color:var(--v-faint);}
+  .v-term .f label{gap:2px;}
+</style>
+</head>
+<body>
+
+<div class="pagehead">
+  <h1>Five dark directions — same components, pick a lane</h1>
+  <p>Each shows a header, two fields, the primary button, and a dashboard bill card with status LEDs. Any accent is a one-line swap later.</p>
+</div>
+
+<div class="grid">
+
+  <!-- 1 CYAN CONSOLE -->
+  <div class="cell v-cyan">
+    <div class="tag"><b>1 · Cyan Console</b><span>the one you saw</span></div>
+    <div class="body">
+      <div class="mini-head"><span class="led"></span><h2>Tell us about your show</h2></div>
+      <div class="swatches"><i style="background:#08090b"></i><i style="background:#0e1013"></i><i style="background:#232830"></i><i style="background:#38c8ff"></i><i style="background:#34d17a"></i></div>
+      <div class="strip"><span class="lg">The Basics</span></div>
+      <div class="f"><label><span class="n">01</span>Band / artist name</label><input placeholder="As it should appear on the marquee"></div>
+      <div class="f"><label><span class="n">02</span>Contact name</label><input placeholder="Point person on show day"></div>
+      <button class="btn">Submit advance →</button>
+      <div class="card">
+        <div class="ch"><div><div class="venue">Fountain Square</div><div class="series">Friday Night Live</div></div><span class="badge">Tonight</span></div>
+        <div class="acts">
+          <div class="act"><span class="band">Phanta</span><span class="stat g"><span class="dot"></span>Finalized</span></div>
+          <div class="act"><span class="band">LimeLight</span><span class="stat c"><span class="dot"></span>Responded</span></div>
+          <div class="act"><span class="band">RatBoys</span><span class="stat r"><span class="dot"></span>Plot due</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 AMBER ANALOG -->
+  <div class="cell v-amber">
+    <div class="tag"><b>2 · Amber Analog</b><span>neve / api warmth</span></div>
+    <div class="body">
+      <div class="mini-head"><span class="led"></span><h2>Tell us about your show</h2></div>
+      <div class="swatches"><i style="background:#0b0906"></i><i style="background:#12100b"></i><i style="background:#2c2519"></i><i style="background:#ffab2e"></i><i style="background:#8fd14a"></i></div>
+      <div class="strip"><span class="lg">The Basics</span></div>
+      <div class="f"><label><span class="n">01</span>Band / artist name</label><input placeholder="As it should appear on the marquee"></div>
+      <div class="f"><label><span class="n">02</span>Contact name</label><input placeholder="Point person on show day"></div>
+      <button class="btn">Submit advance →</button>
+      <div class="card">
+        <div class="ch"><div><div class="venue">Fountain Square</div><div class="series">Friday Night Live</div></div><span class="badge">Tonight</span></div>
+        <div class="acts">
+          <div class="act"><span class="band">Phanta</span><span class="stat g"><span class="dot"></span>Finalized</span></div>
+          <div class="act"><span class="band">LimeLight</span><span class="stat c"><span class="dot"></span>Responded</span></div>
+          <div class="act"><span class="band">RatBoys</span><span class="stat r"><span class="dot"></span>Plot due</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 DIGICO SLATE -->
+  <div class="cell v-slate">
+    <div class="tag"><b>3 · DiGiCo Slate</b><span>the desk look</span></div>
+    <div class="body">
+      <div class="mini-head"><span class="led"></span><h2>Tell us about your show</h2></div>
+      <div class="swatches"><i style="background:#12161c"></i><i style="background:#161b22"></i><i style="background:#2b323c"></i><i style="background:#3fa9ff"></i><i style="background:#37c26a"></i></div>
+      <div class="strip"><span class="lg">The Basics</span></div>
+      <div class="f"><label>Band / artist name</label><input placeholder="As it should appear on the marquee"></div>
+      <div class="f"><label>Contact name</label><input placeholder="Point person on show day"></div>
+      <button class="btn">Submit advance</button>
+      <div class="card">
+        <div class="ch"><div><div class="venue">Fountain Square</div><div class="series">Friday Night Live</div></div><span class="badge">Tonight</span></div>
+        <div class="acts">
+          <div class="act"><span class="band">Phanta</span><span class="stat g"><span class="dot"></span>Finalized</span></div>
+          <div class="act"><span class="band">LimeLight</span><span class="stat c"><span class="dot"></span>Responded</span></div>
+          <div class="act"><span class="band">RatBoys</span><span class="stat r"><span class="dot"></span>Plot due</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 STEALTH MONO -->
+  <div class="cell v-stealth">
+    <div class="tag"><b>4 · Stealth Mono</b><span>minimal, one hue</span></div>
+    <div class="body">
+      <div class="mini-head"><span class="led"></span><h2>Tell us about your show</h2></div>
+      <div class="swatches"><i style="background:#111213"></i><i style="background:#161718"></i><i style="background:#26282b"></i><i style="background:#e8552f"></i><i style="background:#7d8792"></i></div>
+      <div class="strip"><span class="lg">The Basics</span></div>
+      <div class="f"><label>Band / artist name</label><input placeholder="As it should appear on the marquee"></div>
+      <div class="f"><label>Contact name</label><input placeholder="Point person on show day"></div>
+      <button class="btn">Submit advance</button>
+      <div class="card">
+        <div class="ch"><div><div class="venue">Fountain Square</div><div class="series">Friday Night Live</div></div><span class="badge">Tonight</span></div>
+        <div class="acts">
+          <div class="act"><span class="band">Phanta</span><span class="stat g"><span class="dot"></span>Finalized</span></div>
+          <div class="act"><span class="band">LimeLight</span><span class="stat c"><span class="dot"></span>Responded</span></div>
+          <div class="act"><span class="band">RatBoys</span><span class="stat r"><span class="dot"></span>Plot due</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 TERMINAL -->
+  <div class="cell v-term">
+    <div class="tag"><b>5 · Terminal</b><span>phosphor / mono</span></div>
+    <div class="body">
+      <div class="mini-head"><span class="led"></span><h2>show_advance</h2></div>
+      <div class="swatches"><i style="background:#050807"></i><i style="background:#080c0a"></i><i style="background:#153020"></i><i style="background:#33ffa0"></i><i style="background:#ffe14a"></i></div>
+      <div class="strip"><span class="lg">The Basics</span></div>
+      <div class="f"><label>band_name ]</label><input placeholder="marquee name"></div>
+      <div class="f"><label>contact ]</label><input placeholder="show-day point person"></div>
+      <button class="btn">submit advance</button>
+      <div class="card">
+        <div class="ch"><div><div class="venue">Fountain Square</div><div class="series">Friday Night Live</div></div><span class="badge">Tonight</span></div>
+        <div class="acts">
+          <div class="act"><span class="band">Phanta</span><span class="stat g"><span class="dot"></span>Finalized</span></div>
+          <div class="act"><span class="band">LimeLight</span><span class="stat c"><span class="dot"></span>Responded</span></div>
+          <div class="act"><span class="band">RatBoys</span><span class="stat r"><span class="dot"></span>Plot due</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

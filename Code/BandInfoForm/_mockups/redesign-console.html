@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advance — Console Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: dark;
+
+    /* ---- matte console palette ---- */
+    --bg:      #08090b;          /* rack black */
+    --panel:   #0e1013;          /* faceplate */
+    --panel-2: #131619;          /* raised control block */
+    --recess:  #060708;          /* inset display well */
+    --ridge:   #202429;          /* defined 1px edge */
+    --ridge-2: #2b3037;          /* stronger edge / hover */
+
+    --ink:     #e7ebef;          /* legend white */
+    --muted:   #8b939d;          /* secondary legend */
+    --faint:   #5b636d;          /* tertiary */
+
+    --led:     #38c8ff;          /* the one vivid accent — channel cyan */
+    --led-dim: #1c6a8c;
+    --led-glow:rgba(56,200,255,.35);
+
+    --amber:  #ffb02e;
+    --green:  #34d17a;
+    --red:    #ff5d52;
+    --violet: #b08bff;
+
+    --r: 8px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;color:var(--ink);background:var(--bg);
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace;}
+  /* uppercase mono micro-legend — the console-print look */
+  .legend{font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:600;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--faint);}
+  a{color:var(--led);text-decoration:none;}
+
+  .demo-label{max-width:1160px;margin:26px auto 0;padding:0 22px;}
+  .demo-divider{max-width:1160px;margin:54px auto;border-top:1px solid var(--ridge);}
+
+  /* ============================ RACK NAV ============================ */
+  .topnav{display:flex;align-items:center;gap:2px;padding:0 16px;height:50px;
+    background:var(--panel);border-bottom:1px solid var(--ridge);
+    font-size:13px;position:sticky;top:0;z-index:20;}
+  .topnav a{color:var(--muted);padding:8px 13px;border-radius:6px;white-space:nowrap;font-weight:500;transition:.12s;}
+  .topnav a:hover{background:var(--panel-2);color:var(--ink);}
+  .topnav a.on{color:#fff;background:var(--panel-2);box-shadow:inset 0 -2px 0 var(--led);border-radius:6px 6px 0 0;}
+  .topnav a.brand{font-weight:700;color:var(--ink);margin-right:14px;padding-left:4px;
+    display:flex;align-items:center;gap:9px;letter-spacing:.02em;}
+  .topnav a.brand .led{width:8px;height:8px;border-radius:50%;background:var(--led);
+    box-shadow:0 0 10px var(--led-glow),0 0 3px var(--led);}
+  .topnav .spacer{flex:1;}
+  .topnav a.dim{color:var(--faint);}
+
+  /* ============================ FACEPLATE HEADER ============================ */
+  header.face{background:
+      linear-gradient(180deg, rgba(255,255,255,.025), transparent 40%),
+      var(--panel);
+    border-bottom:1px solid var(--ridge);position:relative;}
+  header.face::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+    background:linear-gradient(90deg,transparent,var(--led),transparent);opacity:.6;}
+  header.face .wrap{max-width:700px;margin:0 auto;padding:26px 22px 24px;}
+  header.face .row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  header.face .row .led{width:9px;height:9px;border-radius:50%;background:var(--led);
+    box-shadow:0 0 12px var(--led-glow),0 0 4px var(--led);flex:0 0 auto;}
+  header.face .row .legend{color:var(--led);}
+  header.face h1{margin:0;font-size:25px;font-weight:700;letter-spacing:-.015em;color:#fff;}
+  header.face p{margin:9px 0 0;font-size:14px;color:var(--muted);max-width:56ch;}
+  .langtoggle{margin-top:16px;}
+  .langtoggle a{border:1px solid var(--ridge-2);padding:5px 12px;border-radius:6px;
+    font-size:12px;font-weight:600;color:var(--ink);}
+  .langtoggle a:hover{border-color:var(--led);}
+
+  .wrap{max-width:700px;margin:0 auto;padding:0 22px 64px;}
+
+  /* ============================ FORM = FACEPLATE ============================ */
+  .panel{background:var(--panel);border:1px solid var(--ridge);border-radius:var(--r);
+    padding:8px 26px 30px;margin-top:24px;
+    box-shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 20px 60px -30px #000;}
+
+  .strip{display:flex;align-items:center;gap:12px;margin:26px 0 18px;}
+  .strip .legend{color:var(--led);white-space:nowrap;}
+  .strip::before,.strip::after{content:"";height:1px;background:var(--ridge);}
+  .strip::before{width:14px;}
+  .strip::after{flex:1;}
+
+  .field{margin-bottom:20px;}
+  label.q{display:block;font-size:13px;font-weight:600;margin-bottom:8px;color:var(--ink);
+    display:flex;align-items:center;gap:7px;}
+  label.q .n{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--faint);
+    border:1px solid var(--ridge);border-radius:4px;padding:1px 5px;letter-spacing:.05em;}
+  .req{color:var(--red);}
+  .help{font-size:12px;color:var(--muted);margin:7px 0 0;}
+
+  input[type=text],input[type=email],input[type=date],select,textarea{
+    width:100%;padding:11px 13px;border:1px solid var(--ridge);border-radius:6px;
+    font:inherit;color:var(--ink);background:var(--recess);transition:.12s;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.5);}
+  input::placeholder,textarea::placeholder{color:var(--faint);}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--led);
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.5), 0 0 0 3px var(--led-glow);}
+  textarea{min-height:84px;resize:vertical;}
+
+  .conditional{border-left:2px solid var(--led);padding:14px 0 2px 16px;
+    background:linear-gradient(90deg, var(--led-glow), transparent 55%);border-radius:0 6px 6px 0;}
+
+  /* tactile button — bevel + press */
+  .btn{background:linear-gradient(180deg,#1b8fbf,#136d95);color:#eafaff;border:1px solid #2aa6d6;
+    border-radius:6px;padding:12px 24px;font-size:14px;font-weight:700;letter-spacing:.02em;
+    cursor:pointer;margin-top:26px;transition:.1s;
+    box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 8px 22px -10px var(--led-glow);}
+  .btn:hover{background:linear-gradient(180deg,#22a0d4,#157aa5);}
+  .btn:active{transform:translateY(1px);box-shadow:0 1px 3px rgba(0,0,0,.5) inset;}
+
+  /* ============================ DASHBOARD METER-BAR ============================ */
+  .dash-head{background:var(--panel);border-bottom:1px solid var(--ridge);position:relative;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:16px 24px;}
+  .dash-head::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+    background:linear-gradient(90deg,transparent,var(--led),transparent);opacity:.5;}
+  .dash-head .title{display:flex;align-items:center;gap:11px;}
+  .dash-head h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.01em;}
+  .pulse{width:9px;height:9px;border-radius:50%;background:var(--green);
+    box-shadow:0 0 10px rgba(52,209,122,.5),0 0 0 0 rgba(52,209,122,.6);animation:pulse 2.2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 10px rgba(52,209,122,.5),0 0 0 0 rgba(52,209,122,.5);}70%{box-shadow:0 0 10px rgba(52,209,122,.5),0 0 0 9px rgba(52,209,122,0);}100%{box-shadow:0 0 10px rgba(52,209,122,.5),0 0 0 0 rgba(52,209,122,0);}}
+
+  .dashwrap{max-width:1120px;margin:0 auto;padding:0 24px 40px;}
+
+  .chips{display:flex;gap:7px;padding:18px 0 4px;flex-wrap:wrap;}
+  .chip{border:1px solid var(--ridge);background:var(--panel);color:var(--muted);border-radius:6px;
+    padding:6px 13px;font-size:11px;font-family:"JetBrains Mono",monospace;font-weight:600;
+    letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:.12s;}
+  .chip:hover{border-color:var(--ridge-2);color:var(--ink);}
+  .chip.active{background:var(--panel-2);border-color:var(--led);color:#fff;box-shadow:0 0 0 1px var(--led-dim) inset;}
+
+  .needs{margin:16px 0 0;border:1px solid rgba(255,176,46,.3);border-radius:var(--r);
+    background:linear-gradient(180deg,rgba(255,176,46,.06),transparent),var(--panel);padding:14px 18px;}
+  .needs h2{margin:0 0 8px;font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--amber);
+    letter-spacing:.16em;text-transform:uppercase;}
+  .needs li{list-style:none;font-size:13px;padding:6px 0;border-top:1px solid var(--ridge);display:flex;gap:12px;}
+  .needs li:first-child{border-top:0;}
+  .needs .lbl{flex:0 0 170px;font-weight:600;color:var(--amber);font-size:12.5px;}
+
+  .day-head{display:flex;align-items:baseline;gap:12px;margin:30px 0 14px;
+    border-bottom:1px solid var(--ridge);padding-bottom:10px;}
+  .day-head .rel{font-size:14px;font-weight:700;}
+
+  .bills{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;}
+  /* channel-strip card */
+  .bill{position:relative;background:var(--panel);border:1px solid var(--ridge);
+    border-radius:var(--r);padding:16px 18px 16px 20px;transition:.14s;
+    box-shadow:0 14px 40px -30px #000;}
+  .bill::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;
+    background:var(--led);box-shadow:0 0 10px var(--led-glow);}
+  .bill.fsq::before{background:var(--led);box-shadow:0 0 10px var(--led-glow);}
+  .bill.wp::before{background:var(--green);box-shadow:0 0 10px rgba(52,209,122,.4);}
+  .bill.memo::before{background:var(--violet);box-shadow:0 0 10px rgba(176,139,255,.4);}
+  .bill:hover{border-color:var(--ridge-2);}
+  .bill-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:14px;}
+  .venue{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .series{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .days-badge{flex-shrink:0;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);background:var(--recess);
+    border:1px solid var(--ridge);border-radius:5px;padding:4px 9px;white-space:nowrap;}
+
+  .acts{display:flex;flex-direction:column;gap:11px;}
+  .act{display:flex;flex-direction:column;gap:6px;}
+  .band{font-size:13.5px;font-weight:600;}
+  .act-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  /* status = LED + mono legend */
+  .stat{display:inline-flex;align-items:center;gap:7px;font-family:"JetBrains Mono",monospace;
+    font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+  .stat .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;}
+  .stat.ready   {color:var(--led);}    .stat.ready .dot{background:var(--led);box-shadow:0 0 7px var(--led-glow);}
+  .stat.due     {color:var(--red);}    .stat.due .dot{background:var(--red);box-shadow:0 0 7px rgba(255,93,82,.5);}
+  .stat.followup{color:var(--amber);}  .stat.followup .dot{background:var(--amber);box-shadow:0 0 7px rgba(255,176,46,.5);}
+  .stat.responded{color:var(--violet);}.stat.responded .dot{background:var(--violet);box-shadow:0 0 7px rgba(176,139,255,.5);}
+  .stat.finalized{color:var(--green);} .stat.finalized .dot{background:var(--green);box-shadow:0 0 7px rgba(52,209,122,.5);}
+  .stat.queued  {color:var(--faint);}  .stat.queued .dot{background:var(--faint);}
+
+  .finalize-btn{background:linear-gradient(180deg,#1b8fbf,#136d95);color:#eafaff;border:1px solid #2aa6d6;
+    border-radius:5px;padding:4px 12px;font-size:10.5px;font-weight:700;cursor:pointer;
+    font-family:"JetBrains Mono",monospace;letter-spacing:.05em;
+    box-shadow:0 1px 0 rgba(255,255,255,.2) inset;}
+  .cancel-btn{background:transparent;color:var(--faint);border:1px solid var(--ridge);border-radius:5px;
+    padding:3px 11px;font-size:10px;cursor:pointer;font-family:"JetBrains Mono",monospace;letter-spacing:.05em;}
+  .cancel-btn:hover{color:var(--red);border-color:var(--red);}
+</style>
+</head>
+<body>
+
+<div class="demo-label"><span class="legend">Public band form · what the artist sees</span></div>
+
+<header class="face"><div class="wrap">
+  <div class="row"><span class="led"></span><span class="legend">3CDC Production Advance</span></div>
+  <h1>Tell us about your show</h1>
+  <p>A few details so our production team can dial in sound, backline, and stage for your set at Fountain Square.</p>
+  <p class="langtoggle"><a href="#">Ver en español →</a></p>
+</div></header>
+
+<div class="wrap">
+  <form class="panel">
+    <div class="strip"><span class="legend">The Basics</span></div>
+
+    <div class="field">
+      <label class="q"><span class="n">01</span>Band / artist name<span class="req">*</span></label>
+      <input type="text" placeholder="As it should appear on the marquee">
+    </div>
+    <div class="field">
+      <label class="q"><span class="n">02</span>Venue<span class="req">*</span></label>
+      <select><option>Fountain Square</option><option>Washington Park</option></select>
+    </div>
+    <div class="field">
+      <label class="q"><span class="n">03</span>Show date<span class="req">*</span></label>
+      <input type="date" value="2026-09-18">
+    </div>
+    <div class="field">
+      <label class="q"><span class="n">04</span>Contact name<span class="req">*</span></label>
+      <input type="text" placeholder="Who's our point person on show day?">
+      <p class="help">The person we'll text if anything changes at load-in.</p>
+    </div>
+
+    <div class="strip"><span class="legend">Stage &amp; Sound</span></div>
+
+    <div class="field conditional">
+      <label class="q">Stage plot / input list</label>
+      <textarea placeholder="Paste a link or describe your setup — how many inputs, monitor mixes, DI needs…"></textarea>
+      <p class="help">Anything you upload here flows straight to the engineer's channel sheet.</p>
+    </div>
+
+    <button type="button" class="btn">SUBMIT ADVANCE →</button>
+  </form>
+</div>
+
+<div class="demo-divider"></div>
+<div class="demo-label"><span class="legend">Staff dashboard · what the production team sees</span></div>
+
+<nav class="topnav">
+  <a class="brand" href="#"><span class="led"></span>3CDC ADVANCE</a>
+  <a class="on" href="#">Dashboard</a>
+  <a href="#">New Booking</a>
+  <a href="#">Manual Advance</a>
+  <a href="#">Bands</a>
+  <span class="spacer"></span>
+  <a class="dim" href="#">Command Center ↗</a>
+</nav>
+
+<div class="dash-head">
+  <div class="title"><span class="pulse"></span><h1>Advance Dashboard</h1></div>
+  <div class="legend">Live · updated 2 min ago · 6 upcoming shows</div>
+</div>
+
+<div class="dashwrap">
+  <div class="chips">
+    <span class="chip active">All</span>
+    <span class="chip">Needs attention</span>
+    <span class="chip">This week</span>
+    <span class="chip">Fountain Sq</span>
+    <span class="chip">Washington Pk</span>
+  </div>
+
+  <div class="needs">
+    <h2>Needs you</h2>
+    <ul style="margin:0;padding:0;">
+      <li><span class="lbl">Submission match</span><span>“LimeLight” may be booked act “LimeLght” — <a href="#">confirm or split</a></span></li>
+      <li><span class="lbl">Stage plot missing</span><span>RatBoys · FSQ 9/18 — <a href="#">nudge the band</a></span></li>
+    </ul>
+  </div>
+
+  <div class="day-head"><span class="rel">Today</span><span class="legend">Fri · Sep 18</span></div>
+  <div class="bills">
+    <div class="bill fsq">
+      <div class="bill-head">
+        <div><div class="venue">Fountain Square</div><div class="series">Friday Night Live</div></div>
+        <span class="days-badge">Tonight</span>
+      </div>
+      <div class="acts">
+        <div class="act"><div class="band">Phanta</div>
+          <div class="act-status"><span class="stat finalized"><span class="dot"></span>Finalized</span></div></div>
+        <div class="act"><div class="band">LimeLight</div>
+          <div class="act-status"><span class="stat responded"><span class="dot"></span>Responded</span>
+            <button class="finalize-btn">FINALIZE</button></div></div>
+        <div class="act"><div class="band">RatBoys</div>
+          <div class="act-status"><span class="stat due"><span class="dot"></span>Plot due</span>
+            <button class="cancel-btn">CANCEL</button></div></div>
+      </div>
+    </div>
+
+    <div class="bill wp">
+      <div class="bill-head">
+        <div><div class="venue">Washington Park</div><div class="series">Salsa on the Square</div></div>
+        <span class="days-badge">Tonight</span>
+      </div>
+      <div class="acts">
+        <div class="act"><div class="band">Tropicoso</div>
+          <div class="act-status"><span class="stat ready"><span class="dot"></span>Ready to send</span></div></div>
+      </div>
+    </div>
+
+    <div class="bill memo">
+      <div class="bill-head">
+        <div><div class="venue">Memorial Hall</div><div class="series">Jazz at the Memo</div></div>
+        <span class="days-badge">in 2 days</span>
+      </div>
+      <div class="acts">
+        <div class="act"><div class="band">The Faux Frenchmen</div>
+          <div class="act-status"><span class="stat followup"><span class="dot"></span>Follow-up sent</span></div></div>
+        <div class="act"><div class="band">Open — TBA</div>
+          <div class="act-status"><span class="stat queued"><span class="dot"></span>Queued</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

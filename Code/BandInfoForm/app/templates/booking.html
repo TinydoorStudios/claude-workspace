@@ -4,33 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>New Booking</title>
-<style>
-  :root{color-scheme:dark;}
-  body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;}
-  header{background:#1A3A5C;color:#fff;padding:18px 0;}
-  .wrap{max-width:720px;margin:0 auto;padding:0 16px;}
-  header h1{margin:0;font-size:18px;}
-  header p{margin:4px 0 0;font-size:13px;color:#c7d2e5;}
-  .card{background:#161b22;border:1px solid #2a323d;border-radius:12px;padding:22px;margin:22px 0;}
-  form{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
-  .full{grid-column:1 / -1;}
-  label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#8b97a6;margin-bottom:5px;}
-  .req label:after{content:" *";color:#f87171;}
-  input,select,textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #2a323d;border-radius:8px;font:inherit;color:#e6edf3;background:#1c232d;}
-  textarea{min-height:64px;resize:vertical;}
-  details{grid-column:1 / -1;border-top:1px solid #2a323d;padding-top:14px;margin-top:2px;}
-  summary{cursor:pointer;font-weight:600;color:#4da3ff;font-size:14px;margin-bottom:12px;}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
-  button{grid-column:1 / -1;background:#1A3A5C;color:#fff;border:0;border-radius:9px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;}
-  button:hover{background:#234b70;}
-  .banner{border-radius:9px;padding:13px 16px;margin:22px 0;font-size:14px;}
-  .ok{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.35);color:#86efac;}
-  .err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);color:#fca5a5;}
-  .hint{grid-column:1 / -1;color:#8b97a6;font-size:13px;margin:-4px 0 4px;}
-  a.btn{display:inline-block;margin-top:10px;color:#4da3ff;font-weight:600;text-decoration:none;}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='advance.css') }}?v=1">
 </head>
-<body>
+<body class="page-booking">
 {% include '_nav.html' %}
 <header><div class="wrap"><h1>{% if show_id %}Edit Show{% elif edit_booking_id %}Edit Booking{% else %}New Artist Booking{% endif %}</h1><p>3CDC Events — {% if show_id %}logistics and the band's own answers, together.{% elif edit_booking_id %}update this booking's core details.{% else %}log a booking; the band fills the rest on their advance form.{% endif %}</p></div></header>
 <div class="wrap">
