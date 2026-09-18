@@ -67,11 +67,17 @@ def _today_shows(cur, today):
     events = {}
     order = []
     for r in rows:
-        key = (r["venue"], r["event_name"] or "")
+        # an internal bill carries no typed event name — its title is the
+        # series it belongs to (Brian, 2026-09-18: today's shows showed
+        # "(untitled)" instead of "513 Airwaves w/ Inhaler Radio" /
+        # "Neo Soul Nights"). Group and title off the series in that case so
+        # two different series at one venue+day still read as separate shows.
+        title = r["event_name"] or r["series"] or "(untitled)"
+        key = (r["venue"], title)
         ev = events.get(key)
         if ev is None:
             ev = {
-                "event_name": r["event_name"] or "(untitled)",
+                "event_name": title,
                 "venue": r["venue"], "location": r["location"],
                 "series": r["series"], "bands": [],
                 **{f: None for f in SCHEDULE_FIELDS},

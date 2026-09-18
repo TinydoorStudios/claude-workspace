@@ -649,6 +649,19 @@ def t_digest():
     check(st == 200 and '"items"' in body, "dashboard /needs feed answers")
 
 
+@test("digest: a bill with no event name is titled by its series (2026-09-18)")
+def t_digest_series_title():
+    import daily_digest
+    d = TODAY
+    x("""INSERT INTO bookings (artist_name, venue, event_date, series, event_start, event_end)
+         VALUES ('Series Title Band','Fountain Square',%s,'513 Airwaves w/ Inhaler Radio','8:00p','9:00p')""", (d,))
+    with db.get_conn() as conn, conn.cursor() as cur:
+        shows = daily_digest._today_shows(cur, d)
+    mine = [s for s in shows if "Series Title Band" in s["bands"]]
+    check(mine and mine[0]["event_name"] == "513 Airwaves w/ Inhaler Radio",
+          f"blank event name titled by its series, not (untitled) ({mine and mine[0].get('event_name')!r})")
+
+
 @test("Status Log: unreadable file -> skipped, alert after 3 (test gap #5)")
 def t_statuslog():
     log = DROP / "Nyquist" / "Show Status Log.xlsx"
