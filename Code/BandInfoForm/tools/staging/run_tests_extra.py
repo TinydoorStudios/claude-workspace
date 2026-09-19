@@ -108,10 +108,12 @@ def tx_edit_page():
         if f'name="{name}"' not in html:
             check(False, f"field {name} missing from the merged edit page")
     check('name="set_start" id="set_start_input" value="19:11"' in html, "set_start prefilled 19:11")
-    # locked on /show/<id>/edit (audit #10): the visible input is disabled
-    # and carries no name, a separate hidden input carries the real value
-    check(f'id="artist_name_input" value="{band}" disabled' in html
-          and f'type="hidden" name="artist_name" value="{band}"' in html, "artist prefilled (locked)")
+    # editable on /show/<id>/edit again (Brian, 2026-09-19) — one named
+    # input, no disabled twin, no hidden shadow copy
+    check(f'name="artist_name" id="artist_name_input" value="{band}"' in html
+          and 'type="hidden" name="artist_name"' not in html, "artist prefilled and editable")
+    check(f'name="event_date" value="{d.isoformat()}" required>' in html, "event date editable")
+    check('<select name="venue" id="venue_select"' in html, "venue editable")
     check(f'value="{d.isoformat()}"' in html, "date prefilled")
     check('name="monitors" min="0" step="1" value="3"' in html, "monitors prefilled from the band-answers submission")
     check('value="Flat stage" selected' in html, "stage_type prefilled")
@@ -175,8 +177,7 @@ def tx_no_booking():
         return
     check(booking_for(band, venue, d) is None, "no booking row yet")
     st, html = get(f"/show/{s['id']}/edit")
-    check(st == 200 and f'id="artist_name_input" value="{band}" disabled' in html
-          and f'type="hidden" name="artist_name" value="{band}"' in html,
+    check(st == 200 and f'name="artist_name" id="artist_name_input" value="{band}"' in html,
           f"edit page loads without a booking ({st})")
     check('name="monitors" min="0" step="1" value="2"' in html, "band's own monitors answer prefilled")
     check('<option value="Jazz on the Square" selected' in html, "series taken from the show")
@@ -814,6 +815,64 @@ def tx_purge_keeps_event():
     check(show_for(real, venue, d) is not None, "real show untouched")
     for reg in reg_before:
         check((DROP / reg["path"]).exists(), f"doc still in place ({Path(reg['path']).name})")
+
+
+# ── (r) the merged edit page can move and rename a finalized show ───────────
+@test("x-r: a FINALIZED show renamed + moved from the merged edit page carries with it")
+def tx_edit_unlocked():
+    login()
+    venue = "Fountain Square"
+    d1, d2 = TODAY + dt.timedelta(days=40), TODAY + dt.timedelta(days=41)
+    A, B, email = "Unlock Edit Band", "Unlock Edit Band Renamed", "unlockeditband@example.test"
+    clear_date(venue, d1)
+    clear_date(venue, d2)
+    hhmm, house = _book_first_free(A, venue, d1, email,
+                                   times=(("19:40", "7:40p"), ("20:40", "8:40p"), ("21:40", "9:40p")))
+    if not hhmm:
+        return
+    check(wait_run_now(), "booked + filed")
+    n0 = mail_count()
+    st, _ = submit_form(A, venue, d1, monitors="3")
+    check(st in (200, 302) and wait_regen(), f"band answered ({st})")
+    s = show_for(A, venue, d1)
+    if not s:
+        check(False, "no show to finalize")
+        return
+    post(f"/artist/{s['artist_id']}/finalize/{s['id']}", {})
+    fin = q("SELECT finalized_at FROM shows WHERE id=%s", (s["id"],), one=True)["finalized_at"]
+    check(fin is not None, "show finalized")
+
+    # the point of the test: every field is editable on a finalized show
+    st, html = get(f"/show/{s['id']}/edit")
+    check(st == 200 and f'name="artist_name" id="artist_name_input" value="{A}"' in html
+          and 'type="hidden" name="artist_name"' not in html
+          and '<select name="venue" id="venue_select"' in html
+          and f'name="event_date" value="{d1.isoformat()}" required>' in html,
+          "artist / venue / date all editable on a finalized show")
+
+    st, _ = post(f"/show/{s['id']}/edit",
+                 booking_data(B, venue, d2, "19:40", "22:00", event_start="7:40p", contact_email=email))
+    check(st == 200, f"rename + move saved ({st})")
+    check(wait_run_now(), "run after the move finished")
+
+    moved = show_for(B, venue, d2)
+    check(moved and moved["id"] == s["id"], f"same show id at the new date ({moved and moved['id']} vs {s['id']})")
+    check(moved and moved["finalized_at"] is not None, "finalized stamp survived the move")
+    check(moved and moved["advance_draft_created_at"] == s["advance_draft_created_at"], "welcome stamp intact")
+    check(show_for(A, venue, d1) is None, "nothing left behind on the old date")
+    check(not q("SELECT 1 FROM shows WHERE venue=%s AND show_date=%s AND artist_id=%s",
+                (venue, d1, s["artist_id"])), "no forked twin on the old date")
+    arts = q("SELECT id, name FROM artists WHERE match_key IN (%s, %s)", (db.normalize(A), db.normalize(B)))
+    check(len(arts) == 1 and arts[0]["name"] == B and arts[0]["id"] == s["artist_id"],
+          f"one artist, renamed in place ({arts})")
+    subs = q("SELECT count(*) AS n FROM submissions WHERE show_id=%s", (s["id"],), one=True)["n"]
+    check(subs >= 1, f"the band's answers came along ({subs})")
+    check(not sheet_rows_for(A, venue, d1) and len(sheet_rows_for(B, venue, d2)) == 1,
+          "sheet row moved to the new name and date")
+    check(daysheet.read_filed_advance(venue, d2, B) is not None
+          and daysheet.read_filed_advance(venue, d1, A) is None, f"doc filed under {B} on the new date")
+    check(not q("SELECT 1 FROM shows WHERE held_at IS NOT NULL AND id=%s", (s["id"],)), "not held as an orphan")
+    MAIL_PER_TEST["x-r"] = sends_since(n0)
 
 
 @test("x-z: nothing left the box")

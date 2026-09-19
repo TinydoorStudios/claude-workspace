@@ -149,22 +149,17 @@
     <div class="full" id="event_name_field"><label>Event Name</label><input name="event_name" id="event_name_input" value="{{ form.event_name or '' }}" placeholder="e.g. 513 Airwaves w/ Inhaler Radio">
       <p class="hint" id="event_name_hint" style="margin:6px 0 0">Optional.</p>
     </div>
-    <div class="req"><label>Event Date{% if show_id %} <span class="hint" style="text-transform:none;font-weight:400">(locked — Cancel + a new booking to move this show)</span>{% endif %}</label>
-      <input type="date" name="event_date" value="{{ form.event_date or '' }}" required {% if show_id %}readonly{% endif %}>
+    <div class="req"><label>Event Date{% if show_id %} <span class="hint" style="text-transform:none;font-weight:400">(changing it moves this show)</span>{% endif %}</label>
+      <input type="date" name="event_date" value="{{ form.event_date or '' }}" required>
     </div>
-    <div class="req"><label>Venue{% if show_id %} <span class="hint" style="text-transform:none;font-weight:400">(locked)</span>{% endif %}</label>
-      {% if show_id %}
-      <select id="venue_select" onchange="onVenueChange()" disabled>
-        <option value="">Select…</option>
-        {% for v in venues %}<option value="{{ v }}" {% if form.venue==v %}selected{% endif %}>{{ v }}</option>{% endfor %}
-      </select>
-      <input type="hidden" name="venue" value="{{ form.venue or '' }}">
-      {% else %}
+    <div class="req"><label>Venue{% if show_id %} <span class="hint" style="text-transform:none;font-weight:400">(changing it moves this show)</span>{% endif %}</label>
       <select name="venue" id="venue_select" onchange="onVenueChange()" required>
         <option value="">Select…</option>
         {% for v in venues %}<option value="{{ v }}" {% if form.venue==v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+        {# a show on a venue no longer in the list keeps it, rather than the
+           editable select quietly forcing a move somewhere else #}
+        {% if form.venue and form.venue not in venues %}<option value="{{ form.venue }}" selected>{{ form.venue }}</option>{% endif %}
       </select>
-      {% endif %}
     </div>
     <div class="req" id="wp_location_field" style="display:none">
       <label>Location (WP only)</label>
@@ -187,13 +182,8 @@
       </label>
       <p class="hint" style="margin:6px 0 0 25px">Off by default for 3rd Party: no welcome, reminders, day-before or thank-you. Tick it to run the normal band email workflow for this one (needs a contact email).</p>
     </div>
-    <div class="req" id="artist_field"><label>Artist / Band{% if show_id %} <span class="hint" style="text-transform:none;font-weight:400">(locked)</span>{% endif %}</label>
-      {% if show_id %}
-      <input id="artist_name_input" value="{{ form.artist_name or '' }}" disabled>
-      <input type="hidden" name="artist_name" value="{{ form.artist_name or '' }}">
-      {% else %}
+    <div class="req" id="artist_field"><label>Artist / Band{% if show_id %} <span class="hint" style="text-transform:none;font-weight:400">(renames this band everywhere)</span>{% endif %}</label>
       <input name="artist_name" id="artist_name_input" value="{{ form.artist_name or '' }}" placeholder="Band name (exactly)" required>
-      {% endif %}
     </div>
     <div class="req" id="contact_name_field"><label>Contact Name</label><input name="contact_name" id="contact_name_input" value="{{ form.contact_name or '' }}" placeholder="booking contact"></div>
     <div class="req" id="contact_email_field"><label>Contact Email</label><input type="email" name="contact_email" id="contact_email_input" value="{{ form.contact_email or '' }}" placeholder="booking contact — separate two with a comma" multiple required></div>

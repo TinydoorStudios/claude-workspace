@@ -2169,22 +2169,30 @@ def show_edit(show_id):
         data, err = _validate_booking_data(f)
         if err:
             return _booking_form(err, f, 400, show_id=show_id)
-        # Locked (audit 2026-09-16 #10): this page edits the show already
-        # open at show_id, never a different one, no matter what the posted
-        # form carries for these three fields — the docstring above already
-        # says so, but nothing enforced it. A changed venue/date/artist here
-        # used to fork a brand-new show onto the new date (a fresh welcome,
-        # despite the band having already answered) while the original show
-        # sat behind, eventually auto-held as an orphan. A real move goes
-        # through Cancel + a new booking.
-        data["venue"] = s["venue"]
-        data["event_date"] = s["show_date"].isoformat() if s["show_date"] else data["event_date"]
-        data["artist_name"] = s["artist_name"]
+        # Venue / date / artist are editable here again (Brian, 2026-09-19:
+        # "even when finalized I need to be able to edit all fields"). They
+        # were pinned to the show's own values (audit 2026-09-16 #10) because
+        # changing one forked a brand-new show onto the new identity — fresh
+        # welcome, blank stamps — while the original sat behind until holds.py
+        # parked it as an orphan. carry_show_with_booking (root cause A,
+        # 2026-09-17) is the real fix and now covers this page: the show
+        # moves/renames WITH the booking, keeping its stamps, submissions and
+        # filed doc, and merges into any show already sitting on the new
+        # venue+date. update_booking calls it; when this show has no bookings
+        # row yet, the else branch below calls it directly.
+        if not data.get("event_date") and s["show_date"]:
+            data["event_date"] = s["show_date"].isoformat()
+        new_date = advance_db.to_date(data.get("event_date"))
+        moved = (data["venue"], new_date) != (s["venue"], s["show_date"])
+        renamed = advance_db.normalize(data["artist_name"]) != advance_db.normalize(s["artist_name"])
+        old_ident = {"artist_name": s["artist_name"], "venue": s["venue"],
+                     "event_date": s["show_date"]}
         changes, will_notify = {}, False
         booking_id = booking["id"] if booking else None
+        artist_id = s["artist_id"]
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
-                taken = _set_start_taken(cur, data["venue"], advance_db.to_date(data["event_date"]),
+                taken = _set_start_taken(cur, data["venue"], new_date,
                                          data.get("event_start"), data["artist_name"],
                                          series=data["series"], location=data.get("location"),
                                          exclude_booking_id=booking_id)
@@ -2193,23 +2201,55 @@ def show_edit(show_id):
                         f"{taken} already starts at {data['event_start']} on "
                         f"{data['event_date']} — set start decides the running order, "
                         f"so two artists can't share one.", f, 409, show_id=show_id)
+                if renamed or moved:
+                    # A move/rename can land on an identity staff already
+                    # logged a booking for. Shows merge (carry_show_with_
+                    # booking does it); two bookings rows can't — uq_bookings_
+                    # ident owns that key — so say which one to edit instead
+                    # of failing on the constraint. With no bookings row of
+                    # our own, that existing row IS the one to edit.
+                    there = advance_db.find_booking(cur, data["venue"], new_date,
+                                                    data["artist_name"])
+                    if there and there["id"] != booking_id:
+                        if booking_id:
+                            return _booking_form(
+                                f"{data['artist_name']} is already booked at {data['venue']} on "
+                                f"{data['event_date']}. Edit that booking instead of moving this "
+                                f"one onto it.", f, 409, show_id=show_id)
+                        booking_id = there["id"]
+                released_draft = False
                 if booking_id:
                     was_draft_only = bool((advance_db.get_booking(cur, booking_id) or {}).get("draft_only"))
                     changes, will_notify = advance_db.update_booking(cur, booking_id, data)
-                    if was_draft_only and not data["draft_only"]:
-                        advance_db.clear_advance_held_draft(cur, show_id)
+                    released_draft = was_draft_only and not data["draft_only"]
                 else:
                     booking_id = advance_db.insert_booking(cur, data)
+                    if renamed or moved:
+                        advance_db.carry_show_with_booking(cur, old_ident, data)
+                # The show can come out of that under a different id — a merge
+                # into a show already on the new venue+date keeps the one
+                # that was there — so everything below works on the survivor,
+                # not the id this request came in on. The held-draft release
+                # waits for it too: clearing the stamp on a row the merge just
+                # deleted would silently do nothing.
+                survivor = advance_db.show_for_booking(cur, data["artist_name"], data["venue"], new_date)
+                if survivor:
+                    show_id, artist_id = survivor["id"], survivor["artist_id"]
+                if released_draft:
+                    advance_db.clear_advance_held_draft(cur, show_id)
                 conn.commit()
         except Exception as e:
             _log_db_error("show_edit_save", e)
             return _booking_form("Couldn't save — the database is unreachable. Try again shortly.",
                                  f, 503, show_id=show_id)
         answer_result = _record_booking_band_answers(
-            f, request.files, data, existing_artist_id=s["artist_id"])
+            f, request.files, data, existing_artist_id=artist_id)
         band_answers_saved = answer_result is not None
-        show_date = advance_db.to_date(data.get("event_date"))
-        scope = f"{data['venue']}|{show_date.isoformat()}" if show_date else None
+        scope = [f"{data['venue']}|{new_date.isoformat()}"] if new_date else []
+        # A move leaves the old bill an act short — rebuild that doc too, or
+        # it keeps showing a band that isn't playing there any more.
+        if moved and s["show_date"]:
+            scope.append(f"{s['venue']}|{s['show_date'].isoformat()}")
         _run_pipeline_background(scope)
         # staff-typed band answers file into the doc exactly like a real
         # submission would (audit #10 test gap, found running the staging
@@ -2231,8 +2271,8 @@ def show_edit(show_id):
         "contact_email": s.get("last_email") or "",
     })
     # Series/artist name/venue/date come from the SHOW when there's no booking
-    # to read them from yet — locked either way, since this page edits the
-    # show that's already open, not a different one.
+    # to read them from yet. All four are editable (2026-09-19) — a change to
+    # artist/venue/date carries the show itself, see the POST branch.
     if not form.get("series"):
         form["series"] = s.get("show_series") or ""
     return _booking_form(form=form, show_id=show_id)[0]
