@@ -134,6 +134,10 @@ def upsert_artist(cur, name, email=None, phone=None, known_id=None):
             row = cur.fetchone()
             if row and normalize(row["name"]) == normalize(name):
                 name = row["name"]
+        # 2026-09-18: only write when something actually changes. The UPDATE
+        # fires a touch_updated_at trigger, so an unconditional re-write made
+        # artists.updated_at a timestamp of "the last lifecycle run" rather
+        # than "the last real change" — useless as an audit signal.
         cur.execute(
             """
             UPDATE artists SET
@@ -141,13 +145,18 @@ def upsert_artist(cur, name, email=None, phone=None, known_id=None):
                 last_email = COALESCE(%s, last_email),
                 last_phone = COALESCE(%s, last_phone)
             WHERE id = %s
+              AND (name IS DISTINCT FROM %s
+                   OR last_email IS DISTINCT FROM COALESCE(%s, last_email)
+                   OR last_phone IS DISTINCT FROM COALESCE(%s, last_phone))
             RETURNING id
             """,
-            (name, email, phone, known_id),
+            (name, email, phone, known_id, name, email, phone),
         )
-        row = cur.fetchone()
-        if row:
-            return row["id"]
+        if cur.fetchone():
+            return known_id
+        cur.execute("SELECT 1 FROM artists WHERE id = %s", (known_id,))
+        if cur.fetchone():
+            return known_id
     cur.execute(
         """
         INSERT INTO artists (name, last_email, last_phone)
@@ -155,10 +164,20 @@ def upsert_artist(cur, name, email=None, phone=None, known_id=None):
         ON CONFLICT (match_key) DO UPDATE SET
             last_email = COALESCE(EXCLUDED.last_email, artists.last_email),
             last_phone = COALESCE(EXCLUDED.last_phone, artists.last_phone)
+        WHERE artists.last_email IS DISTINCT FROM
+                  COALESCE(EXCLUDED.last_email, artists.last_email)
+           OR artists.last_phone IS DISTINCT FROM
+                  COALESCE(EXCLUDED.last_phone, artists.last_phone)
         RETURNING id
         """,
         (name, email, phone),
     )
+    row = cur.fetchone()
+    if row:
+        return row["id"]
+    # DO UPDATE ... WHERE that matches nothing returns no row (the conflicting
+    # row is unchanged and NOT returned) — fetch its id instead of re-writing.
+    cur.execute("SELECT id FROM artists WHERE match_key = %s", (normalize(name),))
     return cur.fetchone()["id"]
 
 
@@ -170,9 +189,21 @@ def upsert_show(cur, artist_id, venue, show_date, series=None):
         VALUES (%s, %s, %s, %s)
         ON CONFLICT (artist_id, venue, show_date) DO UPDATE SET
             show_series = COALESCE(EXCLUDED.show_series, shows.show_series)
+        WHERE shows.show_series IS DISTINCT FROM
+              COALESCE(EXCLUDED.show_series, shows.show_series)
         RETURNING id
         """,
         (artist_id, venue, show_date, series),
+    )
+    row = cur.fetchone()
+    if row:
+        return row["id"]
+    # No-op conflict: nothing changed, so DO UPDATE ... WHERE skipped the write
+    # and returned nothing. Before 2026-09-18 this updated unconditionally and
+    # every lifecycle re-seed bumped updated_at on every show row.
+    cur.execute(
+        "SELECT id FROM shows WHERE artist_id=%s AND venue=%s AND show_date=%s",
+        (artist_id, venue, show_date),
     )
     return cur.fetchone()["id"]
 
