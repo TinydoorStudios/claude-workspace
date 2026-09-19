@@ -2294,6 +2294,10 @@ def purge_show(cur, show_id):
     # used to go with it. The doc itself is renamed "PURGED - …" in its own
     # folder when the sheet removal is applied (never deleted).
     retired_path = None
+    # set when the event survived the purge because another show still sits on
+    # that venue+date — the caller/log should say so rather than imply the
+    # bill was cleaned up.
+    event_kept = None
     cur.execute(
         """SELECT ea.id, ea.event_id, e.name, e.series FROM event_acts ea
            JOIN events e ON e.id = ea.event_id
@@ -2303,7 +2307,20 @@ def purge_show(cur, show_id):
     if act_row:
         cur.execute("DELETE FROM event_acts WHERE id=%s", (act_row["id"],))
         cur.execute("SELECT count(*) AS n FROM event_acts WHERE event_id=%s", (act_row["event_id"],))
-        if cur.fetchone()["n"] == 0:
+        acts_left = cur.fetchone()["n"]
+        # 2026-09-18: "no acts left" is NOT the same as "nothing left on this
+        # date". A show only gets an event_acts row when the sheet import puts
+        # it on a bill — a real booking that never got one is invisible here.
+        # That collision bit on 2026-09-17: a ghost "MANY" act was the only
+        # event_acts row on the real FSQ 9/26 Moon Festival, whose actual
+        # booking (show 1415) had no act row, so purging the ghost would have
+        # deleted the real event and retired its filed doc. Any OTHER show at
+        # this venue+date keeps the event and the registry row; an empty event
+        # left behind is harmless, a deleted real one is not.
+        cur.execute("SELECT count(*) AS n FROM shows WHERE venue=%s AND show_date=%s AND id<>%s",
+                    (venue, show_date, show_id))
+        shows_left = cur.fetchone()["n"]
+        if acts_left == 0 and shows_left == 0:
             cur.execute("DELETE FROM events WHERE id=%s", (act_row["event_id"],))
             cur.execute("SELECT count(*) AS n FROM events WHERE venue=%s AND event_date=%s",
                         (venue, show_date))
@@ -2314,6 +2331,8 @@ def purge_show(cur, show_id):
             if reg:
                 retired_path = reg["path"]
                 _drop_registry_row(cur, reg)
+        elif acts_left == 0:
+            event_kept = act_row["event_id"]
 
     cur.execute("DELETE FROM shows WHERE id=%s", (show_id,))
 
@@ -2330,6 +2349,7 @@ def purge_show(cur, show_id):
         "files_deleted": files_deleted,
         "booking_deleted": booking_deleted,
         "filed_doc_retired": retired_path,
+        "event_kept": event_kept,
     }
 
 

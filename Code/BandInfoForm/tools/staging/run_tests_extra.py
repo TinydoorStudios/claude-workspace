@@ -776,6 +776,46 @@ def tx_late():
     MAIL_PER_TEST["x-i"] = sends_since(n0)
 
 
+@test("x-m: purging a ghost act does NOT delete an event another show still sits on")
+def tx_purge_keeps_event():
+    # 2026-09-17/18 (MANY on the FSQ 9/26 Moon Festival): a show only gets an
+    # event_acts row when the sheet import puts it on a bill, so "this was the
+    # last act on the event" did not mean "nothing is left on this date". The
+    # ghost act was the ONLY act on a real event whose actual booking had no
+    # act row — purging it took the real event and its filed doc with it.
+    login()
+    venue = "Fountain Square"
+    d = TODAY + dt.timedelta(days=41)
+    ghost, real = "Ghost Act Band", "Real Booking Band"
+    post("/booking", booking_data(real, venue, d, "19:41", "22:00", event_start="7:41p"))
+    check(wait_run_now(), "real booking filed")
+    post("/booking", booking_data(ghost, venue, d, "20:41", "22:00", event_start="8:41p"))
+    check(wait_run_now(), "ghost booking filed")
+    s_real, s_ghost = show_for(real, venue, d), show_for(ghost, venue, d)
+    check(s_real and s_ghost, "both shows seeded")
+    act = q("SELECT id, event_id FROM event_acts WHERE artist_id=%s", (s_ghost["artist_id"],), one=True)
+    check(act is not None, "ghost has an event_acts row")
+    event_id = act["event_id"]
+    # the real booking loses its act row — exactly the state the live DB was in
+    x("DELETE FROM event_acts WHERE artist_id=%s", (s_real["artist_id"],))
+    check(len(q("SELECT 1 FROM event_acts WHERE event_id=%s", (event_id,))) == 1,
+          "ghost act is now the only act on the event")
+    reg_before = q("SELECT id, path FROM filed_docs WHERE venue=%s AND event_date=%s", (venue, d))
+    st, body = post(f"/show/{s_ghost['id']}/purge", json_body={"confirm_name": ghost.lower()})
+    check(st == 200 and json.loads(body).get("ok"), f"purge answered ok ({st} {body[:120]})")
+    check(q("SELECT 1 FROM shows WHERE id=%s", (s_ghost["id"],), one=True) is None, "ghost show gone")
+    check(q("SELECT 1 FROM events WHERE id=%s", (event_id,), one=True) is not None,
+          "the EVENT survives — another show still sits on that venue+date")
+    check(json.loads(body)["summary"].get("event_kept") == event_id, "summary reports the event was kept")
+    check(json.loads(body)["summary"].get("filed_doc_retired") is None, "no filed doc retired")
+    reg_after = q("SELECT id, path FROM filed_docs WHERE venue=%s AND event_date=%s", (venue, d))
+    check({r["id"] for r in reg_after} == {r["id"] for r in reg_before},
+          f"the real booking's filed doc registry row is untouched ({len(reg_before)} -> {len(reg_after)})")
+    check(show_for(real, venue, d) is not None, "real show untouched")
+    for reg in reg_before:
+        check((DROP / reg["path"]).exists(), f"doc still in place ({Path(reg['path']).name})")
+
+
 @test("x-z: nothing left the box")
 def tx_iso():
     bad = [m for m in mails() if not m["path"].startswith("/webhook/")]
