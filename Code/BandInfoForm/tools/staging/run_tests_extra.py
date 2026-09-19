@@ -875,7 +875,7 @@ def tx_edit_unlocked():
     MAIL_PER_TEST["x-r"] = sends_since(n0)
 
 
-@test("x-r: a doc/booking band-name clash raises an artist_name decision that renames everywhere")
+@test("x-s: a doc/booking band-name clash raises an artist_name decision that renames everywhere")
 def tx_artist_name_notice():
     # Brian, 2026-09-19 (FSQ 9/25 "Adopt a mini who dey"): the doc's act-name
     # cell said DJ DIAMOND, the booking, the filename and every other cell
@@ -901,7 +901,16 @@ def tx_artist_name_notice():
     check(hit is not None, "found the act-name cell")
     if hit is None:
         return
-    daysheet.set_cell(hit, (hit.text or "").replace(booked, real))
+    # edit ONLY the band-name paragraph — set_cell would flatten the cell to
+    # one line, which is not what a hand edit in Word does (and not what the
+    # detector should match: a collapsed cell is a different cell)
+    edited = False
+    for para in hit.paragraphs:
+        if para.text.strip().lower() == booked.lower():
+            for i, run in enumerate(para.runs):
+                run.text = real if i == 0 else ""
+            edited = bool(para.runs)
+    check(edited, "hand-edited the band-name line only")
     doc.save(str(path))
     run_tool("regen_show.py", "--venue", venue, "--date", d.isoformat(), "--artist", booked, "--no-mail")
     n = q("""SELECT * FROM doc_notices WHERE venue=%s AND event_date=%s AND kind='artist_name'
