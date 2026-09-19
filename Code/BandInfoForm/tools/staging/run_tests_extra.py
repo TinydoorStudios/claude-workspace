@@ -776,7 +776,7 @@ def tx_late():
     MAIL_PER_TEST["x-i"] = sends_since(n0)
 
 
-@test("x-m: purging a ghost act does NOT delete an event another show still sits on")
+@test("x-q: purging a ghost act does NOT delete an event another show still sits on")
 def tx_purge_keeps_event():
     # 2026-09-17/18 (MANY on the FSQ 9/26 Moon Festival): a show only gets an
     # event_acts row when the sheet import puts it on a bill, so "this was the
