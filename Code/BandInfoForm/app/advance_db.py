@@ -2114,17 +2114,36 @@ def needs_attention(cur):
         out.append({"kind": "hold", "label": "Show on hold",
                     "detail": f"{h['name']} — {h['venue']} {h['show_date']:%m/%d}: {h['hold_reason']}",
                     "link_path": f"/show/{h['id']}/hold", "since": h["held_at"]})
-    cur.execute("""SELECT n.venue, n.event_date, count(*) AS n, min(n.created_at) AS since,
-                          string_agg(n.field, ', ' ORDER BY n.id) AS fields
+    # 2026-09-19: grouped by KIND as well, so a band-name clash gets its own
+    # line at the top of the dashboard instead of being counted as one more
+    # "field" among the ordinary cell diffs — it is a different decision
+    # (which spelling is the band) with a different consequence (a rename
+    # everywhere), and Brian needs to see which one is waiting on him.
+    cur.execute("""SELECT n.venue, n.event_date, n.kind, count(*) AS n,
+                          min(n.created_at) AS since,
+                          string_agg(n.field, ', ' ORDER BY n.id) AS fields,
+                          string_agg(DISTINCT n.doc_value, ' / ') AS doc_values
                    FROM doc_notices n
-                   WHERE n.kind = 'diff' AND n.resolved_at IS NULL AND n.event_date >= CURRENT_DATE
-                   GROUP BY n.venue, n.event_date ORDER BY n.event_date, n.venue""")
+                   WHERE n.kind IN ('diff','artist_name') AND n.resolved_at IS NULL
+                     AND n.event_date >= CURRENT_DATE
+                   GROUP BY n.venue, n.event_date, n.kind
+                   ORDER BY n.kind DESC, n.event_date, n.venue""")
     from urllib.parse import quote
     for n in cur.fetchall():
+        link = f"/doc-review?venue={quote(n['venue'])}&date={n['event_date'].isoformat()}"
+        if n["kind"] == "artist_name":
+            bands = ", ".join(sorted({f.split("—", 1)[-1].strip()
+                                      for f in (n["fields"] or "").split(", ") if f}))
+            out.append({"kind": "artist_name",
+                        "label": "Band name needs deciding",
+                        "detail": f"{n['venue']} {n['event_date']:%m/%d} · the doc and the booking "
+                                  f"disagree on the name ({bands or n['n']}) — picking renames "
+                                  "the band everywhere",
+                        "link_path": link, "since": n["since"]})
+            continue
         out.append({"kind": "doc", "label": "Doc changes to decide",
                     "detail": f"{n['venue']} {n['event_date']:%m/%d} · {n['n']} field(s): {n['fields'][:120]}",
-                    "link_path": f"/doc-review?venue={quote(n['venue'])}&date={n['event_date'].isoformat()}",
-                    "since": n["since"]})
+                    "link_path": link, "since": n["since"]})
     # Welcomes held as a draft (bookings.draft_only — Brian, 2026-09-15). This
     # panel is the only thing that surfaces them: a held show is deliberately
     # silent, no reminders fire, so without a line here a draft nobody sent
