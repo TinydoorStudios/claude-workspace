@@ -67,6 +67,24 @@
     <p class="muted">The doc already has a value here and the newest form answer is different. Nothing in the doc changes until you pick.
       Keep doc leaves the cell as it is, and the pipeline won't touch that cell again. Use new writes the form's answer into the doc.</p>
     {% for n in notices %}
+    {% if n.doc_artist %}
+    <div class="change">
+      <div class="field">Which name is right? — {{ n.booked_artist }} / {{ n.doc_artist }}</div>
+      <p class="muted" style="margin:0 0 8px">The doc and the booking disagree on the band's name. Picking here renames the band everywhere — the artist record, the booking, the advance list row, the doc's own cells and its filename — not just this one cell.</p>
+      <div class="vals">
+        <label class="opt"><span class="lbl"><input type="radio" name="n{{ n.id }}" value="rename">The doc is right</span>
+          <div class="val">{{ n.doc_artist }}</div>
+          <div class="muted" style="margin-top:6px;font-size:12px">Renames the band to this everywhere.</div></label>
+        <label class="opt"><span class="lbl"><input type="radio" name="n{{ n.id }}" value="apply"
+          {{ 'disabled' if (not n.cell_key or (n.apply_requested_at and not n.apply_error)) else '' }}>The booking is right</span>
+          <div class="val">{{ n.booked_artist }}</div>
+          <div class="muted" style="margin-top:6px;font-size:12px">Rewrites the doc's act name to match the booking.</div></label>
+      </div>
+      {% if n.apply_requested_at and not n.apply_error %}<div class="pending">Writing it into the doc…</div>{% endif %}
+      {% if n.apply_error %}<div class="err">Couldn't apply: {{ n.apply_error }}</div>{% endif %}
+      <div class="muted" style="margin-top:6px">{{ n.detail or '' }}</div>
+    </div>
+    {% else %}
     <div class="change">
       <div class="field">{{ n.field }}</div>
       <div class="vals">
@@ -82,6 +100,7 @@
       {% if n.apply_error %}<div class="err">Couldn't apply: {{ n.apply_error }}</div>{% endif %}
       <div class="muted" style="margin-top:6px">{{ n.detail or '' }}</div>
     </div>
+    {% endif %}
     {% endfor %}
     <div class="bar">
       <button class="primary" type="submit">Save decisions</button>
@@ -98,8 +117,9 @@
     <h2>Decided in the last 2 hours</h2>
     <table>
       {% for r in recent %}
-      <tr><td><b>{{ r.field }}</b></td><td>{{ 'Kept doc' if r.resolution == 'kept' else 'Used new' }}</td>
-          <td>{{ r.doc_value if r.resolution == 'kept' else r.new_value }}</td></tr>
+      <tr><td><b>{{ r.field }}</b></td>
+          <td>{% if r.resolution == 'kept' %}Kept doc{% elif r.resolution == 'renamed' %}Renamed the band{% else %}Used new{% endif %}</td>
+          <td>{{ r.doc_value if r.resolution in ('kept', 'renamed') else r.new_value }}</td></tr>
       {% endfor %}
     </table>
   </div>

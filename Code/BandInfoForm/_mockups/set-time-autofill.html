@@ -1,0 +1,170 @@
+<title>Set Time Autofill</title>
+<style>
+  :root{color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;padding-block:0;}
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px 48px;}
+
+  /* ── review banner (not part of the real page) ───────────────────────── */
+  .review{background:linear-gradient(180deg,rgba(240,180,41,.12),rgba(240,180,41,.05));
+    border:1px solid rgba(240,180,41,.35);border-radius:10px;padding:14px 18px;margin:20px 0 22px;}
+  .review .kicker{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#f0b429;margin:0 0 4px;}
+  .review p{margin:0;font-size:13.5px;line-height:1.5;color:#c9d1d9;}
+  .review code{background:rgba(240,180,41,.14);border-radius:4px;padding:1px 5px;font-size:12.5px;color:#f6c65c;}
+
+  header{background:#1A3A5C;padding:18px 0;margin:0 -16px;}
+  header .in{max-width:720px;margin:0 auto;padding:0 16px;}
+  header h1{margin:0;font-size:18px;}
+  header p{margin:4px 0 0;font-size:13px;color:#c7d2e5;}
+
+  .card{background:#161b22;border:1px solid #2a323d;border-radius:12px;padding:22px;margin:22px 0;}
+  .card h2{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7684;}
+  form{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+  .full{grid-column:1 / -1;}
+  label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#8b97a6;margin-bottom:5px;}
+  .req label:after{content:" *";color:#f87171;font-weight:700;}
+  input,select{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #2a323d;border-radius:8px;font:inherit;color:#e6edf3;background:#1c232d;font-variant-numeric:tabular-nums;}
+  input:focus,select:focus{outline:2px solid #4da3ff;outline-offset:-1px;border-color:#4da3ff;}
+  .hint{grid-column:1 / -1;color:#8b97a6;font-size:13px;margin:-4px 0 4px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+  details{grid-column:1 / -1;border-top:1px solid #2a323d;padding-top:14px;margin-top:2px;}
+  summary{cursor:pointer;font-weight:600;color:#4da3ff;font-size:14px;margin-bottom:12px;}
+
+  /* new: Set Start / Set End */
+  .set-field label{color:#e6edf3;}
+  .set-field input{border-color:#3a4a63;background:#182234;}
+
+  /* auto-computed fields */
+  .auto-field{position:relative;}
+  .auto-field label{justify-content:space-between;}
+  .auto-tag{font-size:9.5px;font-weight:800;letter-spacing:.06em;color:#0d1117;background:#f0b429;border-radius:4px;padding:2px 6px;text-transform:uppercase;}
+  .auto-field input{border-style:dashed;border-color:rgba(240,180,41,.5);background:#1c1a15;}
+  .auto-field input:focus{border-style:solid;}
+  .formula{font-size:11.5px;color:#a9834a;margin-top:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+
+  button{grid-column:1 / -1;background:#1A3A5C;color:#fff;border:0;border-radius:9px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;}
+  button:hover{background:#234b70;}
+</style>
+
+<div class="wrap">
+  <div class="review">
+    <p class="kicker">Mock-up for review — not the live booking form</p>
+    <p>Two new required fields, <code>Set Start</code> / <code>Set End</code>, up top. Type in either one and watch
+    Load-In, Sound Check, Start, End and Set Length fill themselves in below. Every auto field stays a normal,
+    editable box — the calc just sets a starting value.</p>
+  </div>
+
+  <header><div class="in"><h1>New Artist Booking</h1><p>3CDC Events — log a booking; the band fills the rest on their advance form.</p></div></header>
+
+  <div class="card">
+    <form onsubmit="return false">
+      <div class="full req"><label>Series</label>
+        <select disabled><option selected>Jazz on the Square</option></select>
+      </div>
+      <div class="full"><label>Event Name</label><input placeholder="e.g. 513 Airwaves w/ Inhaler Radio"></div>
+      <div class="req"><label>Event Date</label><input type="date" value="2026-10-09"></div>
+      <div class="req"><label>Venue</label>
+        <select disabled><option selected>Fountain Square</option></select>
+      </div>
+
+      <div class="req set-field"><label>Set Start</label>
+        <input type="time" id="setStart" value="19:00" oninput="calc()">
+      </div>
+      <div class="req set-field"><label>Set End</label>
+        <input type="time" id="setEnd" value="20:30" oninput="calc()">
+      </div>
+
+      <div class="req"><label>Artist / Band</label><input value="The Blue Jays"></div>
+      <div class="req"><label>Contact Name</label><input value="Marcus Webb" placeholder="booking contact"></div>
+      <div class="req"><label>Contact Email</label><input type="email" value="marcus@thebluejaysband.com"></div>
+      <div class="full req"><label>Entered By</label><input value="Brian" placeholder="your name"></div>
+
+      <div><label>Slot</label>
+        <select disabled><option selected>headliner</option></select>
+      </div>
+      <div class="auto-field"><label>Set Length <span class="auto-tag">auto</span></label>
+        <input id="setLength" readonly>
+        <div class="formula">= Set End − Set Start</div>
+      </div>
+      <div><label>Bands on the Bill</label>
+        <select disabled><option selected>1 (single band)</option></select>
+      </div>
+      <p class="hint">Multiple bands on one bill? Log each band separately with the same event name, date, and venue.</p>
+
+      <details open>
+        <summary>More detail (optional — schedule, contacts, note)</summary>
+        <div class="grid2">
+          <div><label>Paying Band?</label>
+            <select disabled><option selected>Yes</option></select>
+          </div>
+          <div><label>Day-of Lead</label><input value="Marcus Webb"></div>
+          <div><label>Lead Phone</label><input value="312-555-0148"></div>
+
+          <div class="auto-field"><label>Load-In <span class="auto-tag">auto</span></label>
+            <input id="loadIn" oninput="touched.loadIn=true">
+            <div class="formula">= Set Start − 1h</div>
+          </div>
+          <div class="auto-field"><label>Sound Check <span class="auto-tag">auto</span></label>
+            <input id="soundcheck" oninput="touched.soundcheck=true">
+            <div class="formula">= Set Start − 30m</div>
+          </div>
+          <div class="auto-field"><label>Start <span class="auto-tag">auto</span></label>
+            <input id="startField" oninput="touched.startField=true">
+            <div class="formula">= Set Start</div>
+          </div>
+          <div class="auto-field"><label>End <span class="auto-tag">auto</span></label>
+            <input id="endField" oninput="touched.endField=true">
+            <div class="formula">= Set End</div>
+          </div>
+          <div><label>Curfew</label><input placeholder="e.g. 11:00p"></div>
+        </div>
+      </details>
+
+      <button type="button" disabled style="opacity:.55;cursor:default">Log booking (disabled in this preview)</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const touched = {loadIn:false, soundcheck:false, startField:false, endField:false};
+
+function toMinutes(hhmm){
+  if(!hhmm) return null;
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60+m;
+}
+function fmt(mins){
+  mins = ((mins % 1440) + 1440) % 1440;
+  let h = Math.floor(mins/60), m = mins%60;
+  const ap = h < 12 ? 'a' : 'p';
+  h = h % 12; if(h===0) h=12;
+  return `${h}:${String(m).padStart(2,'0')}${ap}`;
+}
+function calc(){
+  const s = toMinutes(document.getElementById('setStart').value);
+  const e = toMinutes(document.getElementById('setEnd').value);
+
+  const set = (id, text) => {
+    const el = document.getElementById(id);
+    if (!el.dataset.everTouched && !touched[id]) el.value = text;
+  };
+  // re-derive on every Set Start/End edit — a downstream field the user
+  // has hand-typed keeps its own value instead of being overwritten
+  if (s !== null){
+    set('loadIn', fmt(s-60));
+    set('soundcheck', fmt(s-30));
+    set('startField', fmt(s));
+  }
+  if (e !== null){
+    set('endField', fmt(e));
+  }
+  const lenEl = document.getElementById('setLength');
+  if (s !== null && e !== null){
+    let d = e - s; if (d <= 0) d += 1440;
+    lenEl.value = `${d} min`;
+  } else {
+    lenEl.value = '';
+  }
+}
+calc();
+</script>

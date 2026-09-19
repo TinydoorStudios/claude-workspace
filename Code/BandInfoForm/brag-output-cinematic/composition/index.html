@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      :root {
+        --bg: #070b11;
+        --card: #131a24;
+        --ink: #eef3f8;
+        --muted: #8b97a6;
+        --accent: #4da3ff;
+        --accent2: #8fd0ff;
+        --green: #3fb950;
+        --line: #26303c;
+        --req: #f87171;
+        --serif: Georgia, "Times New Roman", serif;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; color: var(--ink); font-family: var(--sans);
+      }
+      #root { width: 100%; height: 100%; position: relative; background: var(--bg); }
+
+      .scene { position: absolute; inset: 0; display: flex; align-items: center;
+        justify-content: center; flex-direction: column; }
+      .stage { position: relative; width: 100%; height: 100%; display: flex;
+        align-items: center; justify-content: center; flex-direction: column; opacity: 0; }
+      .stage > *:not(.bgwash):not(.cursor):not(.sweep) { position: relative; z-index: 2; }
+
+      .bgwash { position: absolute; inset: 0; z-index: 0;
+        background:
+          radial-gradient(60% 50% at 50% 42%, rgba(77,163,255,.10) 0%, rgba(77,163,255,0) 60%),
+          radial-gradient(120% 100% at 50% 50%, #0e1622 0%, var(--bg) 70%); }
+
+      /* cinematic letterbox + grain vignette (always on) */
+      .bar { position: absolute; left: 0; right: 0; height: 96px; background: #000; z-index: 80; }
+      .bar.top { top: 0; } .bar.bot { bottom: 0; }
+      .vig { position: absolute; inset: 0; z-index: 70; pointer-events: none;
+        box-shadow: inset 0 0 320px 60px rgba(0,0,0,.75); }
+
+      .kicker { font-size: 24px; letter-spacing: .42em; text-transform: uppercase;
+        color: var(--muted); font-weight: 600; }
+      .glow { text-shadow: 0 0 40px rgba(77,163,255,.45); }
+
+      /* ---------- Scene 1 : cold open ---------- */
+      .co-word { font-family: var(--serif); font-size: 190px; font-weight: 700;
+        letter-spacing: .04em; color: var(--ink); }
+      .co-sub { margin-top: 26px; font-size: 34px; letter-spacing: .34em;
+        text-transform: uppercase; color: var(--muted); }
+
+      /* ---------- Scene 2 : form ---------- */
+      .frame { position: relative; width: 900px; }
+      .formcard { width: 900px; background: var(--card); border: 1px solid var(--line);
+        border-radius: 22px; padding: 46px 50px 42px; box-shadow: 0 40px 100px rgba(0,0,0,.7);
+        overflow: hidden; }
+      .formhead { display: flex; align-items: center; justify-content: space-between; }
+      .formhead h1 { font-size: 46px; font-weight: 700; letter-spacing: -0.02em; }
+      .espill { border: 1px solid var(--line); color: var(--muted); font-size: 20px;
+        padding: 8px 18px; border-radius: 999px; }
+      .formsub { color: var(--muted); font-size: 24px; margin-top: 14px; }
+      .seclabel { font-size: 20px; letter-spacing: .16em; text-transform: uppercase;
+        color: var(--accent); font-weight: 700; margin: 30px 0 14px; }
+      .field { height: 56px; background: #0c131d; border: 1px solid var(--line);
+        border-radius: 12px; margin-bottom: 14px; display: flex; align-items: center;
+        padding: 0 18px; color: var(--muted); font-size: 22px; }
+      .field.small { width: 48%; display: inline-flex; }
+      .fieldrow { display: flex; gap: 4%; }
+      .upload { height: 92px; border: 2px dashed #33506f; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; gap: 14px;
+        color: var(--muted); font-size: 22px; }
+      .submit { margin-top: 26px; height: 68px; border-radius: 12px; background: var(--accent);
+        color: #06203a; font-size: 26px; font-weight: 800; display: flex; align-items: center;
+        justify-content: center; box-shadow: 0 0 0 rgba(77,163,255,.0); }
+      .sweep { position: absolute; top: -20%; left: -40%; width: 40%; height: 140%;
+        background: linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.10) 50%, rgba(255,255,255,0) 100%);
+        transform: skewX(-14deg); z-index: 5; pointer-events: none; }
+      .cursor { position: absolute; width: 42px; height: 42px; z-index: 40;
+        filter: drop-shadow(0 3px 5px rgba(0,0,0,.7)); }
+      .lowerthird { position: absolute; left: 140px; bottom: 150px; z-index: 6; }
+      .lowerthird .big { font-family: var(--serif); font-size: 92px; font-weight: 700; letter-spacing: -0.01em; }
+      .lowerthird .big .em { color: var(--accent); }
+
+      /* ---------- Scene 3 : cascade ---------- */
+      .c-title { font-family: var(--serif); font-size: 62px; font-weight: 700; margin-bottom: 44px; }
+      .row3 { display: flex; gap: 46px; align-items: stretch; }
+      .ocard { width: 430px; background: var(--card); border: 1px solid var(--line);
+        border-radius: 20px; padding: 34px 32px; box-shadow: 0 30px 70px rgba(0,0,0,.6); }
+      .oicon { width: 70px; height: 70px; border-radius: 16px; display: flex; align-items: center;
+        justify-content: center; font-size: 36px; margin-bottom: 22px; background: rgba(77,163,255,.16);
+        box-shadow: 0 0 40px rgba(77,163,255,.25); }
+      .ocard h3 { font-size: 34px; font-weight: 700; }
+      .ocard p { color: var(--muted); font-size: 23px; margin-top: 6px; }
+      .maildot { height: 14px; border-radius: 6px; background: #263140; margin-top: 12px; }
+      .greenbar { height: 44px; border-radius: 10px; background: rgba(63,185,80,.16);
+        border: 1px solid rgba(63,185,80,.45); color: var(--green); font-size: 22px; font-weight: 700;
+        display: flex; align-items: center; padding: 0 16px; margin-top: 22px; }
+      .c-cap { font-size: 34px; color: var(--muted); margin-top: 48px; letter-spacing: .02em; }
+      .c-cap .em { color: var(--ink); font-weight: 600; }
+
+      /* ---------- Scene 4 : dashboard ---------- */
+      .dash { width: 1500px; }
+      .dashtop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+      .dashtitle { display: flex; align-items: center; gap: 16px; }
+      .live { width: 14px; height: 14px; border-radius: 50%; background: var(--green); }
+      .dashtitle h2 { font-family: var(--serif); font-size: 52px; font-weight: 700; letter-spacing: -0.01em; }
+      .needs { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+        padding: 16px 22px; font-size: 24px; color: var(--muted); display: flex; align-items: center; gap: 14px; }
+      .needs b { color: var(--ink); } .needdot { width: 12px; height: 12px; border-radius: 50%; background: var(--req); }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+      .scard { background: var(--card); border: 1px solid var(--line); border-left: 6px solid var(--accent);
+        border-radius: 14px; padding: 22px 24px; }
+      .scard.fsq { border-left-color: var(--accent); background: linear-gradient(90deg, rgba(77,163,255,.12), var(--card) 62%); }
+      .scard.wp { border-left-color: var(--green); background: linear-gradient(90deg, rgba(63,185,80,.12), var(--card) 62%); }
+      .scard .bn { font-size: 30px; font-weight: 700; }
+      .scard .meta { color: var(--muted); font-size: 21px; margin-top: 6px; }
+      .pill { display: inline-block; margin-top: 16px; font-size: 18px; font-weight: 700; padding: 5px 14px; border-radius: 999px; }
+      .pill.done { background: rgba(63,185,80,.18); color: var(--green); }
+      .pill.wait { background: rgba(210,153,34,.18); color: #d29922; }
+      .pill.draft { background: rgba(77,163,255,.18); color: var(--accent); }
+
+      /* ---------- Scene 5 : outro ---------- */
+      .lock { text-align: center; }
+      .lock h1 { font-family: var(--serif); font-size: 110px; font-weight: 800; letter-spacing: -0.01em; }
+      .uline { height: 5px; background: linear-gradient(90deg, rgba(77,163,255,0), var(--accent), rgba(77,163,255,0));
+        border-radius: 4px; margin: 30px auto 0; width: 760px; transform-origin: center; }
+      .lock p { font-family: var(--serif); font-size: 40px; color: var(--muted); margin-top: 34px; font-style: italic; }
+      .fadeblk { position: absolute; inset: 0; background: #000; opacity: 0; z-index: 88; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="23.5" data-width="1920" data-height="1080">
+
+      <!-- ============ SCENE 1 — COLD OPEN (0–4.8) ============ -->
+      <section class="scene clip" data-start="0" data-duration="4.8" data-track-index="0">
+        <div class="stage s1">
+          <div class="bgwash"></div>
+          <div class="co-word glow s1word">Advance.</div>
+          <div class="co-sub s1sub">every band · every venue · every week</div>
+        </div>
+      </section>
+
+      <!-- ============ SCENE 2 — FORM (4.3–9.3) ============ -->
+      <section class="scene clip" data-start="4.3" data-duration="5" data-track-index="0">
+        <div class="stage s2">
+          <div class="bgwash"></div>
+          <div class="frame s2frame">
+            <div class="formcard">
+              <div class="formhead">
+                <h1>Band Advance / Show Details</h1>
+                <div class="espill">Español</div>
+              </div>
+              <div class="formsub">Please complete this so we have everything we need to run your show.</div>
+              <div class="seclabel">Show Basics</div>
+              <div class="fieldrow">
+                <div class="field small">Artist / band name</div>
+                <div class="field small">Show date</div>
+              </div>
+              <div class="field">Venue</div>
+              <div class="seclabel">Stage &amp; Technical</div>
+              <div class="upload">⬆ &nbsp;Upload your stage plot &nbsp;·&nbsp; or describe it</div>
+              <div class="submit s2btn">Submit show details</div>
+              <div class="sweep s2sweep"></div>
+            </div>
+          </div>
+          <svg class="cursor s2cursor" viewBox="0 0 24 24" fill="#eef3f8">
+            <path d="M4 2 L4 20 L9 15 L12.5 22 L15 21 L11.5 14 L18 14 Z"/>
+          </svg>
+          <div class="lowerthird s2lt"><div class="big">One <span class="em">form.</span></div></div>
+        </div>
+      </section>
+
+      <!-- ============ SCENE 3 — CASCADE (8.8–14.8) ============ -->
+      <section class="scene clip" data-start="8.8" data-duration="6" data-track-index="0">
+        <div class="stage s3">
+          <div class="bgwash"></div>
+          <div class="c-title glow s3title">It fills in everything after it.</div>
+          <div class="row3">
+            <div class="ocard s3c1">
+              <div class="oicon">📄</div><h3>Day-sheet</h3><p>auto-filled</p>
+              <div class="maildot" style="width:78%;margin-top:20px"></div>
+              <div class="maildot" style="width:64%"></div>
+              <div class="maildot" style="width:88%"></div>
+            </div>
+            <div class="ocard s3c2">
+              <div class="oicon">✉️</div><h3>Advance email</h3><p>venue-correct, drafted</p>
+              <div class="maildot" style="width:86%;margin-top:20px"></div>
+              <div class="maildot" style="width:70%"></div>
+              <div class="maildot" style="width:92%"></div>
+            </div>
+            <div class="ocard s3c3">
+              <div class="oicon" style="background:rgba(63,185,80,.18);box-shadow:0 0 40px rgba(63,185,80,.25)">✓</div>
+              <h3>Status log</h3><p>updated live</p>
+              <div class="greenbar">● &nbsp;Responded</div>
+            </div>
+          </div>
+          <div class="c-cap s3cap">No one clicked <span class="em">anything.</span></div>
+        </div>
+      </section>
+
+      <!-- ============ SCENE 4 — DASHBOARD (14.3–19.3) ============ -->
+      <section class="scene clip" data-start="14.3" data-duration="5" data-track-index="0">
+        <div class="stage s4">
+          <div class="bgwash"></div>
+          <div class="dash s4dash">
+            <div class="dashtop">
+              <div class="dashtitle"><span class="live"></span><h2>Band Advance — Live</h2></div>
+              <div class="needs"><span class="needdot"></span> <b>Needs you</b> · 1 advance drafted, not sent</div>
+            </div>
+            <div class="grid">
+              <div class="scard fsq s4card"><div class="bn">Sylmar</div><div class="meta">Fountain Square · Sat 9/20</div><span class="pill done">Responded</span></div>
+              <div class="scard wp s4card"><div class="bn">Soul Pocket</div><div class="meta">Washington Park · Fri 9/26</div><span class="pill draft">Advance drafted</span></div>
+              <div class="scard fsq s4card"><div class="bn">Jazz Retro Nouveau</div><div class="meta">Fountain Square · Sat 10/03</div><span class="pill wait">Awaiting form</span></div>
+              <div class="scard wp s4card"><div class="bn">DJ Bravo</div><div class="meta">Washington Park · Fri 10/10</div><span class="pill done">Responded</span></div>
+              <div class="scard fsq s4card"><div class="bn">Corduroy Brown</div><div class="meta">Fountain Square · Sat 10/17</div><span class="pill draft">Advance drafted</span></div>
+              <div class="scard wp s4card"><div class="bn">Karate Girls</div><div class="meta">Washington Park · Fri 10/24</div><span class="pill wait">Awaiting form</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SCENE 5 — OUTRO (18.8–23.5) ============ -->
+      <section class="scene clip" data-start="18.8" data-duration="4.7" data-track-index="0">
+        <div class="stage s5">
+          <div class="bgwash"></div>
+          <div class="lock">
+            <h1 class="glow s5title">3CDC Band Advance</h1>
+            <div class="uline s5line"></div>
+            <p class="s5tag">One form. Every venue. Nothing typed twice.</p>
+          </div>
+          <div class="fadeblk s5fade"></div>
+        </div>
+      </section>
+
+      <!-- persistent cinematic framing -->
+      <div class="vig"></div>
+      <div class="bar top"></div>
+      <div class="bar bot"></div>
+
+      <!-- ============ AUDIO ============ -->
+      <audio id="cin-bed" data-start="0" data-duration="23.5" data-volume="0.4" src="assets/music/bed.mp3"></audio>
+      <audio id="cin-open" data-start="0.35" data-duration="2" data-volume="0.55" src="assets/sfx/bong.ogg"></audio>
+      <audio id="cin-click" data-start="6.85" data-duration="1" data-volume="0.8" src="assets/sfx/click.ogg"></audio>
+      <audio id="cin-casc-1" data-start="9.55" data-duration="1.5" data-volume="0.5" src="assets/sfx/drop.ogg"></audio>
+      <audio id="cin-casc-2" data-start="10.95" data-duration="1.5" data-volume="0.5" src="assets/sfx/drop.ogg"></audio>
+      <audio id="cin-casc-3" data-start="12.35" data-duration="1.5" data-volume="0.5" src="assets/sfx/drop.ogg"></audio>
+      <audio id="cin-dash" data-start="14.75" data-duration="1.5" data-volume="0.45" src="assets/sfx/switch.ogg"></audio>
+      <audio id="cin-outro" data-start="19.05" data-duration="2" data-volume="0.5" src="assets/sfx/bong.ogg"></audio>
+
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const E = "power2.out", SLOW = "power1.inOut";
+
+      function sceneFade(sel, start, dur) {
+        tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: 0.7, ease: SLOW }, start);
+        tl.to(sel, { opacity: 0, duration: 0.6, ease: "power1.in" }, start + dur - 0.6);
+      }
+
+      /* SCENE 1 — cold open (0–4.8) : slow filmic push + glow swell */
+      sceneFade(".s1", 0, 4.8);
+      tl.fromTo(".s1word", { scale: 1.14, opacity: 0 },
+                           { scale: 1, opacity: 1, duration: 2.1, ease: SLOW }, 0.2);
+      tl.fromTo(".s1sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 1.0, ease: E }, 1.5);
+
+      /* SCENE 2 — form (4.3–9.3) : Ken-Burns push-in, light sweep, click */
+      sceneFade(".s2", 4.3, 5);
+      tl.fromTo(".s2frame", { scale: 1.0, y: 10 }, { scale: 1.06, y: -10, duration: 4.6, ease: "none" }, 4.4);
+      tl.fromTo(".s2sweep", { x: 0, opacity: 0 }, { x: 2400, opacity: 1, duration: 1.2, ease: SLOW }, 5.2);
+      tl.set(".s2cursor", { x: 1180, y: 700 }, 4.4);
+      tl.to(".s2cursor", { x: 970, y: 792, duration: 1.6, ease: "power2.inOut" }, 5.2);
+      tl.to(".s2btn", { boxShadow: "0 0 46px rgba(77,163,255,.75)", scale: 0.98, duration: 0.12 }, 6.85);
+      tl.to(".s2btn", { scale: 1, duration: 0.2, ease: E }, 6.98);
+      tl.fromTo(".s2lt", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.7, ease: E }, 7.05);
+
+      /* SCENE 3 — cascade (8.8–14.8) : dramatic staggered reveals */
+      sceneFade(".s3", 8.8, 6);
+      tl.fromTo(".s3title", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.9, ease: E }, 9.0);
+      tl.fromTo(".s3c1", { opacity: 0, scale: 0.9, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: "back.out(1.3)" }, 9.55);
+      tl.fromTo(".s3c2", { opacity: 0, scale: 0.9, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: "back.out(1.3)" }, 10.95);
+      tl.fromTo(".s3c3", { opacity: 0, scale: 0.9, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: "back.out(1.3)" }, 12.35);
+      tl.fromTo(".s3cap", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 13.4);
+
+      /* SCENE 4 — dashboard (14.3–19.3) : slow drift + settle */
+      sceneFade(".s4", 14.3, 5);
+      tl.fromTo(".s4dash", { scale: 1.0 }, { scale: 1.05, duration: 4.8, ease: "none" }, 14.4);
+      tl.fromTo(".s4card", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: E }, 14.9);
+
+      /* SCENE 5 — outro (18.8–23.5) : glow title + line + slow fade */
+      sceneFade(".s5", 18.8, 4.7);
+      tl.fromTo(".s5title", { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 1.1, ease: SLOW }, 19.05);
+      tl.fromTo(".s5line", { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.9, ease: SLOW }, 19.6);
+      tl.fromTo(".s5tag", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.9, ease: E }, 20.0);
+      tl.to(".s5fade", { opacity: 1, duration: 1.1, ease: "power1.in" }, 22.2);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

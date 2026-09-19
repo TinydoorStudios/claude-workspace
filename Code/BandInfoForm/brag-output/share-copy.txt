@@ -1,0 +1,9 @@
+Built the thing that does show paperwork so I don't have to.
+
+A band fills out one form — and the day-sheet fills itself in, a venue-correct advance email drafts itself, and a live status board updates. No one clicked anything. It knows a returning artist, drafts 21 days out and nudges at 7, and a human still approves every send.
+
+3CDC Band Advance. One form. Every venue. Nothing typed twice.
+
+---
+Alt (short, for Slack/X):
+One band form → auto-filled day-sheet + venue-correct advance email + a live status board, all self-triggered. A human approves every send. 3CDC Band Advance: one form, every venue, nothing typed twice.

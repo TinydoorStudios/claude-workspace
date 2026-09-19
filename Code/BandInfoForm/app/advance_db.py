@@ -1934,8 +1934,11 @@ def insert_doc_notice(cur, venue, event_date, event_key, kind, field, new_value,
 def open_doc_notices(cur, venue, event_date, event_key=None):
     """Undecided doc changes for a show (event_key None = every event that
     venue+date)."""
-    sql = ("SELECT * FROM doc_notices WHERE venue=%s AND event_date=%s AND kind='diff' "
-           "AND resolved_at IS NULL")
+    # 'artist_name' joins 'diff' here (2026-09-19): it is a real decision for
+    # Brian — which spelling of the band is right — just one that resolves by
+    # renaming everywhere instead of by writing a single cell.
+    sql = ("SELECT * FROM doc_notices WHERE venue=%s AND event_date=%s "
+           "AND kind IN ('diff','artist_name') AND resolved_at IS NULL")
     params = [venue or "", event_date]
     if event_key is not None:
         sql += " AND event_key=%s"
@@ -1954,7 +1957,7 @@ def resolve_doc_notice(cur, notice_id, resolution):
                    WHERE id=%s AND resolved_at IS NULL
                    RETURNING venue, event_date, event_key, kind""", (resolution, notice_id))
     row = cur.fetchone()
-    if row and row["kind"] == "diff":
+    if row and row["kind"] in ("diff", "artist_name"):
         # F11 (audit 2026-09-16): the last open decision on a doc closes its
         # review — docmerge's resubmission check counts from here, not from the
         # last pipeline write, or review mode never switches off again
@@ -1963,7 +1966,8 @@ def resolve_doc_notice(cur, notice_id, resolution):
                WHERE f.venue=%s AND f.event_date=%s AND f.event_key=%s
                  AND NOT EXISTS (SELECT 1 FROM doc_notices n
                                  WHERE n.venue=f.venue AND n.event_date=f.event_date
-                                   AND n.event_key=f.event_key AND n.kind='diff'
+                                   AND n.event_key=f.event_key
+                                   AND n.kind IN ('diff','artist_name')
                                    AND n.resolved_at IS NULL)""",
             (row["venue"], row["event_date"], row["event_key"]))
 

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      :root {
+        --bg: #0d1117;
+        --card: #161b22;
+        --card2: #1c2430;
+        --ink: #e6edf3;
+        --muted: #8b97a6;
+        --accent: #4da3ff;
+        --navy: #1A3A5C;
+        --green: #3fb950;
+        --line: #2a323d;
+        --req: #f87171;
+      }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: var(--bg);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        color: var(--ink);
+      }
+      #root { width: 100%; height: 100%; position: relative; }
+
+      .scene {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        flex-direction: column;
+      }
+      .stage { position: relative; width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center; flex-direction: column; }
+
+      /* subtle vignette background so cards pop */
+      .bgwash { position: absolute; inset: 0; z-index: 0;
+        background: radial-gradient(120% 90% at 50% 38%, #121a26 0%, var(--bg) 62%); }
+      /* keep all scene content above the absolute vignette */
+      .stage > *:not(.bgwash):not(.cursor):not(.fadeblk) { position: relative; z-index: 1; }
+
+      .kicker { font-size: 26px; letter-spacing: .28em; text-transform: uppercase;
+        color: var(--muted); font-weight: 600; }
+
+      /* ---------- Scene 1 : form ---------- */
+      .formcard { width: 860px; background: var(--card); border: 1px solid var(--line);
+        border-radius: 20px; padding: 44px 48px 40px; box-shadow: 0 30px 80px rgba(0,0,0,.55); position: relative; }
+      .formhead { display: flex; align-items: center; justify-content: space-between; }
+      .formhead h1 { font-size: 44px; font-weight: 700; letter-spacing: -0.02em; }
+      .espill { border: 1px solid var(--line); color: var(--muted); font-size: 20px;
+        padding: 8px 18px; border-radius: 999px; }
+      .formsub { color: var(--muted); font-size: 24px; margin-top: 14px; }
+      .seclabel { font-size: 20px; letter-spacing: .16em; text-transform: uppercase;
+        color: var(--accent); font-weight: 700; margin: 30px 0 14px; }
+      .field { height: 54px; background: #0f1621; border: 1px solid var(--line);
+        border-radius: 12px; margin-bottom: 14px; display: flex; align-items: center;
+        padding: 0 18px; color: var(--muted); font-size: 22px; }
+      .field.small { width: 48%; display: inline-flex; }
+      .fieldrow { display: flex; gap: 4%; }
+      .upload { height: 92px; border: 2px dashed #33506f; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; gap: 14px;
+        color: var(--muted); font-size: 22px; margin-bottom: 8px; }
+      .submit { margin-top: 26px; height: 66px; border-radius: 12px;
+        background: var(--accent); color: #07203a; font-size: 26px; font-weight: 700;
+        display: flex; align-items: center; justify-content: center; }
+      .cursor { position: absolute; width: 40px; height: 40px; z-index: 40;
+        filter: drop-shadow(0 3px 4px rgba(0,0,0,.6)); }
+      .caption { font-size: 40px; font-weight: 600; margin-top: 40px; letter-spacing: -0.01em; }
+      .caption .em { color: var(--accent); }
+
+      /* ---------- Scene 2 : cascade ---------- */
+      .row3 { display: flex; gap: 40px; align-items: stretch; }
+      .ocard { width: 440px; background: var(--card); border: 1px solid var(--line);
+        border-radius: 18px; padding: 32px 30px; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+      .oicon { width: 66px; height: 66px; border-radius: 14px; display: flex;
+        align-items: center; justify-content: center; font-size: 34px; margin-bottom: 20px;
+        background: rgba(77,163,255,.14); }
+      .ocard h3 { font-size: 32px; font-weight: 700; }
+      .ocard p { color: var(--muted); font-size: 23px; margin-top: 6px; }
+      .checks { margin-top: 22px; display: flex; flex-direction: column; gap: 12px; }
+      .crow { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 21px; }
+      .box { width: 26px; height: 26px; border-radius: 6px; border: 2px solid var(--line);
+        display: flex; align-items: center; justify-content: center; position: relative; }
+      .box .mk { color: #07203a; font-size: 18px; font-weight: 900; opacity: 0; }
+      .box.on { background: var(--accent); border-color: var(--accent); }
+      .maildot { height: 14px; border-radius: 6px; background: #24303f; margin-top: 12px; }
+      .greenbar { height: 40px; border-radius: 10px; background: rgba(63,185,80,.14);
+        border: 1px solid rgba(63,185,80,.4); color: var(--green); font-size: 21px; font-weight: 700;
+        display: flex; align-items: center; padding: 0 16px; margin-top: 20px; }
+
+      /* ---------- Scene 3 : features ---------- */
+      .fcard { width: 500px; height: 300px; background: var(--card); border: 1px solid var(--line);
+        border-radius: 18px; padding: 34px 32px; display: flex; flex-direction: column;
+        justify-content: space-between; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+      .fnum { font-size: 22px; font-weight: 800; color: var(--accent); letter-spacing: .1em; }
+      .fcard h3 { font-size: 34px; font-weight: 700; line-height: 1.12; letter-spacing: -0.01em; }
+      .fcard p { color: var(--muted); font-size: 23px; }
+
+      /* ---------- Scene 4 : dashboard ---------- */
+      .dash { width: 1480px; }
+      .dashtop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+      .dashtitle { display: flex; align-items: center; gap: 16px; }
+      .live { width: 14px; height: 14px; border-radius: 50%; background: var(--green);
+        box-shadow: 0 0 0 0 rgba(63,185,80,.5); }
+      .dashtitle h2 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; }
+      .needs { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+        padding: 16px 22px; font-size: 24px; color: var(--muted); display: flex; align-items: center; gap: 14px; }
+      .needs b { color: var(--ink); }
+      .needdot { width: 12px; height: 12px; border-radius: 50%; background: var(--req); }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+      .scard { background: var(--card); border: 1px solid var(--line); border-left: 6px solid var(--accent);
+        border-radius: 14px; padding: 22px 24px; }
+      .scard.fsq { border-left-color: var(--accent); background: linear-gradient(90deg, rgba(77,163,255,.10), var(--card) 60%); }
+      .scard.wp { border-left-color: var(--green); background: linear-gradient(90deg, rgba(63,185,80,.10), var(--card) 60%); }
+      .scard .bn { font-size: 30px; font-weight: 700; }
+      .scard .meta { color: var(--muted); font-size: 21px; margin-top: 6px; }
+      .pill { display: inline-block; margin-top: 16px; font-size: 18px; font-weight: 700;
+        padding: 5px 14px; border-radius: 999px; }
+      .pill.done { background: rgba(63,185,80,.16); color: var(--green); }
+      .pill.wait { background: rgba(210,153,34,.16); color: #d29922; }
+      .pill.draft { background: rgba(77,163,255,.16); color: var(--accent); }
+
+      /* ---------- Scene 5 : outro ---------- */
+      .lock { text-align: center; }
+      .lock h1 { font-size: 96px; font-weight: 800; letter-spacing: -0.03em; }
+      .uline { height: 6px; background: var(--accent); border-radius: 4px; margin: 22px auto 0;
+        width: 620px; transform-origin: center; }
+      .lock p { font-size: 38px; color: var(--muted); margin-top: 30px; letter-spacing: -0.01em; }
+      .fadeblk { position: absolute; inset: 0; background: #000; opacity: 0; z-index: 90; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="21" data-width="1920" data-height="1080">
+
+      <!-- ===================== SCENE 1 — FORM ===================== -->
+      <section class="scene clip" data-start="0" data-duration="4" data-track-index="0">
+        <div class="stage s1">
+          <div class="bgwash"></div>
+          <div class="formcard s1card">
+            <div class="formhead">
+              <h1>Band Advance / Show Details</h1>
+              <div class="espill">Español</div>
+            </div>
+            <div class="formsub">Please complete this so we have everything we need to run your show.</div>
+
+            <div class="seclabel">Show Basics</div>
+            <div class="fieldrow">
+              <div class="field small">Artist / band name</div>
+              <div class="field small">Show date</div>
+            </div>
+            <div class="field">Venue</div>
+
+            <div class="seclabel">Stage &amp; Technical</div>
+            <div class="upload">⬆ &nbsp;Upload your stage plot &nbsp;·&nbsp; or describe it</div>
+
+            <div class="submit s1btn">Submit show details</div>
+          </div>
+
+          <svg class="cursor s1cursor" viewBox="0 0 24 24" fill="#e6edf3">
+            <path d="M4 2 L4 20 L9 15 L12.5 22 L15 21 L11.5 14 L18 14 Z"/>
+          </svg>
+
+          <div class="caption s1cap">A band fills out <span class="em">one form.</span></div>
+        </div>
+      </section>
+
+      <!-- ===================== SCENE 2 — CASCADE ===================== -->
+      <section class="scene clip" data-start="4" data-duration="5.5" data-track-index="0">
+        <div class="stage s2">
+          <div class="bgwash"></div>
+          <div class="kicker s2kick" style="margin-bottom:34px">One submit &nbsp;—&nbsp; everything downstream</div>
+          <div class="row3">
+            <div class="ocard s2c1">
+              <div class="oicon">📄</div>
+              <h3>Day-sheet</h3>
+              <p>auto-filled</p>
+              <div class="checks">
+                <div class="crow"><span class="box b1"><span class="mk">✓</span></span> Monitors &amp; IEMs</div>
+                <div class="crow"><span class="box b2"><span class="mk">✓</span></span> Stage plot &amp; backline</div>
+                <div class="crow"><span class="box b3"><span class="mk">✓</span></span> Merch · parking · contact</div>
+              </div>
+            </div>
+            <div class="ocard s2c2">
+              <div class="oicon">✉️</div>
+              <h3>Advance email</h3>
+              <p>venue-correct, drafted</p>
+              <div class="maildot" style="width:86%"></div>
+              <div class="maildot" style="width:72%"></div>
+              <div class="maildot" style="width:90%"></div>
+              <div class="maildot" style="width:54%"></div>
+            </div>
+            <div class="ocard s2c3">
+              <div class="oicon" style="background:rgba(63,185,80,.16)">✓</div>
+              <h3>Status log</h3>
+              <p>updated live</p>
+              <div class="greenbar">● &nbsp;Responded</div>
+            </div>
+          </div>
+          <div class="caption s2cap" style="font-size:34px">No one clicked <span class="em">anything.</span></div>
+        </div>
+      </section>
+
+      <!-- ===================== SCENE 3 — FEATURES ===================== -->
+      <section class="scene clip" data-start="9.5" data-duration="5" data-track-index="0">
+        <div class="stage s3">
+          <div class="bgwash"></div>
+          <div class="kicker s3kick" style="margin-bottom:40px">Under the hood</div>
+          <div class="row3">
+            <div class="fcard s3c1">
+              <div class="fnum">01</div>
+              <h3>Knows a returning artist</h3>
+              <p>6-month cross-venue lookback — a band never splits into duplicates.</p>
+            </div>
+            <div class="fcard s3c2">
+              <div class="fnum">02</div>
+              <h3>Drafts 21 days out.<br/>Nudges at 7.</h3>
+              <p>Date-driven off the show, fully automatic.</p>
+            </div>
+            <div class="fcard s3c3">
+              <div class="fnum">03</div>
+              <h3>A human approves<br/>every send.</h3>
+              <p>Nothing band-facing goes out on its own.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SCENE 4 — DASHBOARD ===================== -->
+      <section class="scene clip" data-start="14.5" data-duration="4" data-track-index="0">
+        <div class="stage s4">
+          <div class="bgwash"></div>
+          <div class="dash">
+            <div class="dashtop">
+              <div class="dashtitle">
+                <span class="live s4live"></span>
+                <h2>Band Advance — Live</h2>
+              </div>
+              <div class="needs s4needs"><span class="needdot"></span> <b>Needs you</b> · 1 advance drafted, not sent</div>
+            </div>
+            <div class="grid">
+              <div class="scard fsq s4card"><div class="bn">Sylmar</div><div class="meta">Fountain Square · Sat 9/20</div><span class="pill done">Responded</span></div>
+              <div class="scard wp s4card"><div class="bn">Soul Pocket</div><div class="meta">Washington Park · Fri 9/26</div><span class="pill draft">Advance drafted</span></div>
+              <div class="scard fsq s4card"><div class="bn">Jazz Retro Nouveau</div><div class="meta">Fountain Square · Sat 10/03</div><span class="pill wait">Awaiting form</span></div>
+              <div class="scard wp s4card"><div class="bn">DJ Bravo</div><div class="meta">Washington Park · Fri 10/10</div><span class="pill done">Responded</span></div>
+              <div class="scard fsq s4card"><div class="bn">Corduroy Brown</div><div class="meta">Fountain Square · Sat 10/17</div><span class="pill draft">Advance drafted</span></div>
+              <div class="scard wp s4card"><div class="bn">Karate Girls</div><div class="meta">Washington Park · Fri 10/24</div><span class="pill wait">Awaiting form</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SCENE 5 — OUTRO ===================== -->
+      <section class="scene clip" data-start="18.5" data-duration="2.5" data-track-index="0">
+        <div class="stage s5">
+          <div class="bgwash"></div>
+          <div class="lock">
+            <h1 class="s5title">3CDC Band Advance</h1>
+            <div class="uline s5line"></div>
+            <p class="s5tag">One form. Every venue. Nothing typed twice.</p>
+          </div>
+          <div class="fadeblk s5fade"></div>
+        </div>
+      </section>
+
+      <!-- ===================== AUDIO ===================== -->
+      <audio id="sfx-bed" class="bed" data-start="0" data-duration="21" data-volume="0.42" src="assets/music/bed.mp3"></audio>
+      <audio id="sfx-submit-click" data-start="2.78" data-duration="1" data-volume="0.85" src="assets/sfx/click1.ogg"></audio>
+      <audio id="sfx-cascade-1" data-start="4.55" data-duration="1" data-volume="0.6" src="assets/sfx/switch1.ogg"></audio>
+      <audio id="sfx-tick-1" data-start="5.02" data-duration="1" data-volume="0.35" src="assets/sfx/click2.ogg"></audio>
+      <audio id="sfx-tick-2" data-start="5.28" data-duration="1" data-volume="0.35" src="assets/sfx/click2.ogg"></audio>
+      <audio id="sfx-tick-3" data-start="5.54" data-duration="1" data-volume="0.35" src="assets/sfx/click2.ogg"></audio>
+      <audio id="sfx-cascade-2" data-start="5.60" data-duration="1" data-volume="0.6" src="assets/sfx/switch3.ogg"></audio>
+      <audio id="sfx-cascade-3" data-start="6.55" data-duration="1" data-volume="0.6" src="assets/sfx/switch4.ogg"></audio>
+      <audio id="sfx-feat-1" data-start="9.95" data-duration="1" data-volume="0.5" src="assets/sfx/rollover1.ogg"></audio>
+      <audio id="sfx-feat-2" data-start="10.75" data-duration="1" data-volume="0.5" src="assets/sfx/rollover2.ogg"></audio>
+      <audio id="sfx-feat-3" data-start="11.55" data-duration="1" data-volume="0.5" src="assets/sfx/rollover5.ogg"></audio>
+      <audio id="sfx-dash" data-start="15.05" data-duration="1" data-volume="0.5" src="assets/sfx/switch7.ogg"></audio>
+
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const E = "power2.out";
+
+      /* helper: soft scene in/out on each .stage */
+      function sceneFade(sel, start, dur) {
+        tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: E }, start);
+        tl.to(sel, { opacity: 0, duration: 0.3, ease: "power1.in" }, start + dur - 0.3);
+      }
+
+      /* ---------- SCENE 1 (0–4) ---------- */
+      sceneFade(".s1", 0, 4);
+      tl.fromTo(".s1card", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 0.15);
+      // cursor: start lower-right, glide to the submit button, then click
+      tl.set(".s1cursor", { x: 1180, y: 760 }, 0);
+      tl.to(".s1cursor", { x: 955, y: 812, duration: 1.3, ease: "power2.inOut" }, 1.2);
+      tl.to(".s1btn", { scale: 0.97, duration: 0.09, ease: "power1.in" }, 2.78);
+      tl.to(".s1btn", { scale: 1, duration: 0.14, ease: "power1.out" }, 2.87);
+      tl.to(".s1btn", { backgroundColor: "#7cc0ff", duration: 0.12, yoyo: true, repeat: 1 }, 2.78);
+      tl.fromTo(".s1cap", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: E }, 2.95);
+
+      /* ---------- SCENE 2 (4–9.5) ---------- */
+      sceneFade(".s2", 4, 5.5);
+      tl.fromTo(".s2kick", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 4.15);
+      tl.fromTo(".s2c1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.4)" }, 4.55);
+      // checkboxes tick
+      tl.to(".s2c1 .b1", { backgroundColor: "#4da3ff", borderColor: "#4da3ff", duration: 0.12 }, 5.02);
+      tl.to(".s2c1 .b1 .mk", { opacity: 1, duration: 0.12 }, 5.05);
+      tl.to(".s2c1 .b2", { backgroundColor: "#4da3ff", borderColor: "#4da3ff", duration: 0.12 }, 5.28);
+      tl.to(".s2c1 .b2 .mk", { opacity: 1, duration: 0.12 }, 5.31);
+      tl.to(".s2c1 .b3", { backgroundColor: "#4da3ff", borderColor: "#4da3ff", duration: 0.12 }, 5.54);
+      tl.to(".s2c1 .b3 .mk", { opacity: 1, duration: 0.12 }, 5.57);
+      tl.fromTo(".s2c2", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.4)" }, 5.6);
+      tl.fromTo(".s2c3", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.4)" }, 6.55);
+      tl.fromTo(".s2cap", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: E }, 7.5);
+
+      /* ---------- SCENE 3 (9.5–14.5) ---------- */
+      sceneFade(".s3", 9.5, 5);
+      tl.fromTo(".s3kick", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 9.6);
+      tl.fromTo(".s3c1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 9.95);
+      tl.fromTo(".s3c2", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 10.75);
+      tl.fromTo(".s3c3", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 11.55);
+
+      /* ---------- SCENE 4 (14.5–18.5) ---------- */
+      sceneFade(".s4", 14.5, 4);
+      tl.fromTo(".s4 .dashtop", { y: -18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: E }, 14.7);
+      tl.to(".s4live", { boxShadow: "0 0 0 10px rgba(63,185,80,0)", duration: 1.1, repeat: 2 }, 14.9);
+      tl.fromTo(".s4card", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.09, ease: E }, 15.0);
+      tl.fromTo(".s4needs", { scale: 0.96, opacity: 0.4 }, { scale: 1, opacity: 1, duration: 0.4, yoyo: true, repeat: 1, ease: E }, 16.2);
+
+      /* ---------- SCENE 5 (18.5–21) ---------- */
+      sceneFade(".s5", 18.5, 2.5);
+      tl.fromTo(".s5title", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 18.7);
+      tl.fromTo(".s5line", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.inOut" }, 19.05);
+      tl.fromTo(".s5tag", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: E }, 19.3);
+      tl.to(".s5fade", { opacity: 1, duration: 0.7, ease: "power1.in" }, 20.3);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

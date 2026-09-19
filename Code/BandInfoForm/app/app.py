@@ -1023,7 +1023,8 @@ def dashboard_data():
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             rows = advance_db.dashboard_status(cur)
             cur.execute("""SELECT venue, event_date, count(*) AS n FROM doc_notices
-                           WHERE kind='diff' AND resolved_at IS NULL AND event_date >= CURRENT_DATE
+                           WHERE kind IN ('diff','artist_name') AND resolved_at IS NULL
+                             AND event_date >= CURRENT_DATE
                            GROUP BY venue, event_date""")
             open_reviews = {(r["event_date"], r["venue"]): r["n"] for r in cur.fetchall()}
             cur.execute("""SELECT s.id AS show_id, ev.id AS event_id, ev.name AS event_name
@@ -2296,20 +2297,64 @@ def doc_review():
         notices = advance_db.open_doc_notices(cur, venue, d)
         sub = advance_db.get_submission(cur, sub_id) if sub_id else None
         cur.execute("""SELECT field, doc_value, new_value, resolution, resolved_at FROM doc_notices
-                       WHERE venue=%s AND event_date=%s AND kind='diff' AND resolved_at IS NOT NULL
+                       WHERE venue=%s AND event_date=%s AND kind IN ('diff','artist_name')
+                         AND resolved_at IS NOT NULL
                          AND resolved_at > now() - interval '2 hours'
-                         AND resolution IN ('kept', 'applied')
+                         AND resolution IN ('kept', 'applied', 'renamed')
                        ORDER BY resolved_at DESC LIMIT 20""", (venue, d))
         recent = cur.fetchall()
         cur.execute("""SELECT a.name FROM shows s JOIN artists a ON a.id=s.artist_id
                        WHERE s.venue=%s AND s.show_date=%s AND s.cancelled_at IS NULL ORDER BY a.name""",
                     (venue, d))
         bands = [r["name"] for r in cur.fetchall()]
+    # an artist_name notice carries the two spellings for its own card
+    for n in notices:
+        doc_name, booked_name = _notice_artist_names(n)
+        if doc_name:
+            n["doc_artist"], n["booked_artist"] = doc_name, booked_name
     waiting_check = bool(sub and not sub.get("doc_checked_at"))
     applying = any(n.get("apply_requested_at") and not n.get("apply_error") for n in notices)
     return render_template("doc_review.html", venue=venue, d=d, notices=notices, sub=sub,
                            waiting=waiting_check or applying, waiting_check=waiting_check,
                            recent=recent, bands=bands)
+
+
+def _notice_artist_names(n):
+    """(doc_name, booked_name) for an artist_name notice, else (None, None)."""
+    if (n or {}).get("kind") != "artist_name":
+        return None, None
+    sys.path.insert(0, str(TOOLS_DIR))
+    from docmerge import artist_name_conflict
+    pair = artist_name_conflict("Act names", n.get("doc_value"), n.get("new_value"))
+    return pair if pair else (None, None)
+
+
+def _rename_band_from_notice(cur, n, doc_name, booked_name):
+    """Brian picked the DOC's spelling on an artist_name notice: rename the
+    band everywhere, not just in that cell (Brian, 2026-09-19). Goes through
+    update_booking / carry_show_with_booking — the same path Edit Show uses —
+    so the artists row, the show and its stamps, the bookings row, the sheet
+    row and the filed doc all move together; the pipeline run the caller
+    kicks off afterwards rewrites the doc's own cells and filename.
+    Returns None on success, or a message to record as apply_error."""
+    venue, d = n["venue"], n["event_date"]
+    booking = advance_db.find_booking(cur, venue, d, booked_name)
+    clash = advance_db.find_booking(cur, venue, d, doc_name)
+    if clash and (not booking or clash["id"] != booking["id"]):
+        return (f"{doc_name} is already booked at {venue} that night — "
+                "merge those two bookings by hand first.")
+    if booking:
+        data = dict(booking)
+        data["artist_name"] = doc_name
+        advance_db.update_booking(cur, booking["id"], data)
+        return None
+    show = advance_db.show_for_booking(cur, booked_name, venue, d)
+    if not show:
+        return f"no booking or show on file for {booked_name} at {venue} {d}"
+    advance_db.carry_show_with_booking(
+        cur, {"artist_name": booked_name, "venue": venue, "event_date": d},
+        {"artist_name": doc_name, "venue": venue, "event_date": d})
+    return None
 
 
 @app.post("/doc-review/decide")
@@ -2319,10 +2364,22 @@ def doc_review_decide():
     venue = request.form.get("venue") or ""
     d = _review_date(request.form.get("date"))
     apply_ids = []
+    renamed = False
     with advance_db.get_conn() as conn, conn.cursor() as cur:
         for n in advance_db.open_doc_notices(cur, venue, d):
             choice = request.form.get(f"n{n['id']}")
-            if choice == "keep":
+            if choice == "rename":
+                doc_name, booked_name = _notice_artist_names(n)
+                if not doc_name:
+                    continue
+                err = _rename_band_from_notice(cur, n, doc_name, booked_name)
+                if err:
+                    cur.execute("UPDATE doc_notices SET apply_error=%s WHERE id=%s",
+                                (err, n["id"]))
+                else:
+                    advance_db.resolve_doc_notice(cur, n["id"], "renamed")
+                    renamed = True
+            elif choice == "keep":
                 advance_db.keep_doc_value(cur, n)
             elif choice == "apply" and n.get("cell_key"):
                 cur.execute("""UPDATE doc_notices SET apply_requested_at=now(), apply_error=NULL
@@ -2341,6 +2398,10 @@ def doc_review_decide():
                                  start_new_session=True)
         except Exception as e:
             _log_db_error("doc_review_apply", e)
+    if renamed:
+        # the doc's own cells, its filename and the sheet row follow the
+        # rename on the next pass — same background run Edit Show triggers.
+        _run_pipeline_background([f"{venue}|{d.isoformat()}"])
     return redirect(url_for("doc_review", venue=venue, date=d.isoformat()))
 
 

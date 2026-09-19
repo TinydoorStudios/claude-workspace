@@ -875,6 +875,58 @@ def tx_edit_unlocked():
     MAIL_PER_TEST["x-r"] = sends_since(n0)
 
 
+@test("x-r: a doc/booking band-name clash raises an artist_name decision that renames everywhere")
+def tx_artist_name_notice():
+    # Brian, 2026-09-19 (FSQ 9/25 "Adopt a mini who dey"): the doc's act-name
+    # cell said DJ DIAMOND, the booking, the filename and every other cell
+    # said DJ TBD, and the only thing on offer was Keep doc / Use new — either
+    # way the show stays half-renamed. This is now its own decision kind.
+    login()
+    venue = "Fountain Square"
+    d = TODAY + dt.timedelta(days=43)
+    booked, real = "DJ Placeholder", "DJ Realname"
+    post("/booking", booking_data(booked, venue, d, "19:43", "22:00", event_start="7:43p"))
+    check(wait_run_now(), "booking filed")
+    rows, path = doc_rows(venue, d, booked)
+    check(path is not None, "advance doc filed")
+    # hand-edit the act-name cell to a different band name, the way Brian did
+    from docx import Document
+    doc = Document(str(path))
+    grid = daysheet.find_grid(doc)
+    hit = None
+    for r in grid.rows:
+        for c in r.cells[1:]:
+            if booked.lower() in (c.text or "").lower() and "artist" in (c.text or "").lower():
+                hit = c
+    check(hit is not None, "found the act-name cell")
+    if hit is None:
+        return
+    daysheet.set_cell(hit, (hit.text or "").replace(booked, real))
+    doc.save(str(path))
+    run_tool("regen_show.py", "--venue", venue, "--date", d.isoformat(), "--artist", booked, "--no-mail")
+    n = q("""SELECT * FROM doc_notices WHERE venue=%s AND event_date=%s AND kind='artist_name'
+             AND resolved_at IS NULL""", (venue, d))
+    check(len(n) == 1, f"one open artist_name decision ({[(x['kind'], x['field']) for x in n]})")
+    if not n:
+        return
+    st, body = get(f"/doc-review?venue={urllib.parse.quote(venue)}&date={d.isoformat()}")
+    check(st == 200 and "Which name is right?" in body, f"review page shows the name decision ({st})")
+    check(real in body and booked in body, "both spellings offered")
+    st, _ = post("/doc-review/decide", {"venue": venue, "date": d.isoformat(), f"n{n[0]['id']}": "rename"})
+    res = q("SELECT resolution, apply_error FROM doc_notices WHERE id=%s", (n[0]["id"],), one=True)
+    check(res["resolution"] == "renamed" and not res["apply_error"], f"decision resolved as renamed ({res})")
+    check(show_for(real, venue, d) is not None, "the show now belongs to the doc's name")
+    check(show_for(booked, venue, d) is None, "nothing left under the old name")
+    b = booking_for(real, venue, d)
+    check(b is not None, "the bookings row was renamed too")
+    check(wait_run_now(), "the rename's pipeline run finished")
+    check(sheet_rows_for(real, venue, d) and not sheet_rows_for(booked, venue, d),
+          "the sheet row carries the new name")
+    rows2, path2 = doc_rows(venue, d, real)
+    check(path2 is not None and real.lower() in Path(path2).name.lower(),
+          f"the filed doc is named for the new band ({path2 and Path(path2).name})")
+
+
 @test("x-z: nothing left the box")
 def tx_iso():
     bad = [m for m in mails() if not m["path"].startswith("/webhook/")]

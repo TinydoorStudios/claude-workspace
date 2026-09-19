@@ -236,9 +236,19 @@ class _Ctx:
         return new
 
     def notice(self, section, column, doc_value, new_value, key=None):
-        self.notices.append({"field": section + (f" — {column}" if column else ""),
-                             "doc_value": doc_value, "new_value": new_value,
-                             "cell_key": key})
+        item = {"field": section + (f" — {column}" if column else ""),
+                "doc_value": doc_value, "new_value": new_value,
+                "cell_key": key}
+        # Brian, 2026-09-19 (FSQ 9/25 "Adopt a mini who dey": the doc said DJ
+        # DIAMOND, everything else said DJ TBD). An act-name cell that differs
+        # ONLY in the band name is not an ordinary cell diff — the name also
+        # spells the filename, the sheet row, the artists record and every
+        # other cell naming the band, so writing one cell either way leaves
+        # the show half-renamed. Its own kind, so the review page can offer
+        # the rename instead of Keep doc / Use new.
+        if artist_name_conflict(section, doc_value, new_value):
+            item["kind"] = "artist_name"
+        self.notices.append(item)
 
     def action(self, keys, blank, owned, doc, new, reviewable=False, quiet=False):
         """A cell/paragraph whose doc text differs from the fresh build:
@@ -264,6 +274,34 @@ class _Ctx:
         if owned or _differs_meaningfully(doc, new):
             return notice
         return "skip"
+
+
+
+def _is_time_line(v):
+    """A schedule line ('12:00pm–1:30p'), not a band name."""
+    v = _t(v)
+    return bool(v) and bool(re.match(r"^\d{1,2}(:\d{2})?\s*[ap]", v, re.I))
+
+
+def artist_name_conflict(section, doc_value, new_value):
+    """(doc_name, booked_name) when these two act-name cells differ ONLY in
+    the line that holds the band name — otherwise None. Same line count, one
+    differing line, and that line is neither the "ARTIST 1:" label nor a
+    time: anything else (a schedule change, a whole column replaced by a
+    different act) stays an ordinary diff."""
+    if _t(section).lower() != "act names":
+        return None
+    dl = [_t(x) for x in (doc_value or "").splitlines()]
+    nl = [_t(x) for x in (new_value or "").splitlines()]
+    if len(dl) != len(nl) or len(dl) < 2:
+        return None
+    diff = [i for i, (a, b) in enumerate(zip(dl, nl)) if a.casefold() != b.casefold()]
+    if len(diff) != 1 or diff[0] == 0:
+        return None
+    i = diff[0]
+    if not dl[i] or not nl[i] or _is_time_line(dl[i]) or _is_time_line(nl[i]):
+        return None
+    return dl[i], nl[i]
 
 
 def _replace_tc_content(ctx, e_tc, f_tc):
@@ -994,7 +1032,7 @@ def record_and_email_notices(results, send_mail=True):
                     # both filter on it) — anything else is informational
                     # and would otherwise sit "open" forever with no path
                     # that ever resolves it.
-                    if kind != "diff":
+                    if kind not in ("diff", "artist_name"):
                         db.resolve_doc_notice(cur, nid, "auto")
         conn.commit()
         pending = db.unnotified_doc_notices(cur)
