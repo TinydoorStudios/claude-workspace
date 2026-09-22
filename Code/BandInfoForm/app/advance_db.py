@@ -25,6 +25,12 @@ def normalize(name: str) -> str:
     return re.sub(r"\s+", " ", (name or "").strip()).lower()
 
 
+# 2026-09-21 sweep (DBA-3): the lookup key computed IN SQL, identical to the generated
+# artists.match_key in db/schema.sql — keep them in step. normalize() folds NBSP/U+202F
+# (Python's \s), Postgres doesn't, so a Python key misses those rows.
+_SQL_MATCH_KEY = r"lower(btrim(regexp_replace(%s, '\s+', ' ', 'g')))"
+
+
 def to_bool(v):
     """Map the form's Yes/No selects to a real boolean; leave anything else None."""
     if v is None:
@@ -59,6 +65,24 @@ THIRD_PARTY_SILENT_SQL = r"""(lower(btrim(COALESCE(s.show_series,''))) = '3rd pa
                       WHERE bx.venue = s.venue AND bx.event_date = s.show_date
                         AND lower(btrim(regexp_replace(bx.artist_name, '\s+', ' ', 'g'))) = a.match_key
                         AND bx.band_emails))"""
+
+# 2026-09-21 sweep: "the band has answered", for the reminder ladder and the
+# no-response alerts. Staff-typed booking answers (source='staff',
+# stamp_responded=False) aren't the band responding (#9(b)) — except on a
+# Manual band advance, where staff filling the form IS the advance. Aliases s, a.
+BAND_ANSWERED_SQL = r"""EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id
+      AND (sub.source <> 'staff'
+           OR EXISTS (SELECT 1 FROM bookings mb
+                      WHERE mb.venue = s.venue AND mb.event_date = s.show_date
+                        AND lower(btrim(regexp_replace(mb.artist_name, '\s+', ' ', 'g'))) = a.match_key
+                        AND mb.skip_welcome_email)))"""
+
+# 2026-09-21 sweep (PRIOR-25): a held welcome draft is stale once the band has
+# answered (or the show is cancelled). "Answered" mirrors exactly what keeps a show
+# out of shows_due_for_initial_advance, so clearing the stamp never releases a send. Aliases s.
+_HELD_DRAFT_ANSWERED_SQL = """(s.responded_at IS NOT NULL
+      OR EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id AND sub.source <> 'staff'))"""
+_HELD_DRAFT_STALE_SQL = "(s.cancelled_at IS NOT NULL OR " + _HELD_DRAFT_ANSWERED_SQL + ")"
 
 
 def band_emails_on(cur, show_id):
@@ -114,13 +138,14 @@ def upsert_artist(cur, name, email=None, phone=None, known_id=None):
     creating a duplicate artist that orphans the band's whole history. Only
     when known_id doesn't resolve (a deleted row, a bad id) does this fall
     back to the ordinary name-matching insert below, same as when no id is
-    known at all (a brand new artist, or the bare public form)."""
+    known at all (a brand new artist, or the bare public form).
+    2026-09-21 sweep: record_submission no longer passes a differing name here."""
     if known_id:
         # a rename that collides with ANOTHER artist's match_key would violate
         # the unique index and lose the whole submission's DB write — keep
         # the existing name in that case, update contact info only.
-        cur.execute("SELECT 1 FROM artists WHERE match_key = %s AND id <> %s",
-                    (normalize(name), known_id))
+        cur.execute(f"SELECT 1 FROM artists WHERE match_key = {_SQL_MATCH_KEY} AND id <> %s",
+                    (name, known_id))
         if cur.fetchone():
             cur.execute("SELECT name FROM artists WHERE id = %s", (known_id,))
             row = cur.fetchone()
@@ -177,7 +202,7 @@ def upsert_artist(cur, name, email=None, phone=None, known_id=None):
         return row["id"]
     # DO UPDATE ... WHERE that matches nothing returns no row (the conflicting
     # row is unchanged and NOT returned) — fetch its id instead of re-writing.
-    cur.execute("SELECT id FROM artists WHERE match_key = %s", (normalize(name),))
+    cur.execute(f"SELECT id FROM artists WHERE match_key = {_SQL_MATCH_KEY}", (name,))
     return cur.fetchone()["id"]
 
 
@@ -286,7 +311,8 @@ def shows_due_for_initial_advance(cur):
                   b.curfew AS curfew, b.set_time AS set_time,
                   b.email_note AS email_note,
                   b.contact_name AS contact_name, b.contact_email AS booking_contact_email,
-                  COALESCE(b.draft_only, false) AS draft_only
+                  COALESCE(b.draft_only, false) AS draft_only,
+                  b.id AS booking_id
            FROM shows s JOIN artists a ON a.id = s.artist_id
            LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                   AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
@@ -353,7 +379,7 @@ def shows_due_for_followup(cur, days_before=7):
            WHERE s.advance_draft_created_at IS NOT NULL
              AND s.cancelled_at IS NULL AND s.held_at IS NULL
              AND s.responded_at IS NULL
-             AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+             AND NOT """ + BAND_ANSWERED_SQL + """
              AND NOT EXISTS (SELECT 1 FROM advance_reminders r
                              WHERE r.show_id = s.id AND r.days_before = %s)
              AND s.show_date IS NOT NULL
@@ -370,10 +396,11 @@ def shows_due_for_thankyou(cur):
     2026-09-16 #23, Brian's call: automatic, date-driven) — responded, the
     day after the show, not already sent. A short catch-up window (up to a
     week back) tolerates a missed lifecycle run without sending a thank-you
-    that reads as comically late; tools/finalize_thankyou.send_for_show
-    still separately no-ops a cancelled/past/3rd-party-silent show, same
-    skip rules as the manual Finalize path — this only decides WHEN to
-    call it automatically. finalized_at (the human sign-off) is untouched
+    that reads as comically late. 2026-09-21 sweep (PRIOR-2): the lifecycle
+    calls tools/finalize_thankyou.send_for_show(after_show=True), which sends
+    the post-show variant and accepts exactly this window; its past-show
+    refusal applies only to manual Finalize. It still no-ops a cancelled or
+    3rd-party-silent show. finalized_at (the human sign-off) is untouched
     either way — this is independent of it, not a substitute."""
     cur.execute(
         """SELECT s.id AS show_id
@@ -429,8 +456,21 @@ def mark_advance_sent_by_hand(cur, show_id, days_out=None):
 
 def clear_advance_held_draft(cur, show_id):
     """Un-ticking "draft, don't send" puts the show back in the normal queue —
-    the next lifecycle run sends the welcome for real."""
-    cur.execute("UPDATE shows SET advance_held_draft_at = NULL WHERE id = %s", (show_id,))
+    the next lifecycle run sends the welcome for real. 2026-09-21 sweep
+    (PRIOR-25): not once the band has answered — the stamp stays, so the stale
+    draft surfaces in Needs you instead of vanishing from view."""
+    cur.execute("UPDATE shows s SET advance_held_draft_at = NULL WHERE s.id = %s AND NOT "
+                + _HELD_DRAFT_ANSWERED_SQL, (show_id,))
+
+
+def discard_held_draft(cur, show_id):
+    """Staff deleted a stale held welcome from Production@3cdc.org drafts
+    (2026-09-21 sweep, PRIOR-25). Guarded to answered/cancelled shows, so it
+    can never release an unanswered show into the welcome send queue."""
+    cur.execute("UPDATE shows s SET advance_held_draft_at = NULL "
+                "WHERE s.id = %s AND s.advance_draft_created_at IS NULL AND "
+                + _HELD_DRAFT_STALE_SQL + " RETURNING s.id", (show_id,))
+    return cur.fetchone() is not None
 
 
 def mark_followup_sent(cur, show_id, days_before=7, sent=True):
@@ -508,7 +548,7 @@ def shows_due_for_unresponded_alert(cur, days_before=3):
              AND s.cancelled_at IS NULL AND s.held_at IS NULL
              AND NOT (lower(btrim(COALESCE(s.show_series,''))) = '3rd party' AND COALESCE(a.last_email,'') = '')
              AND NOT """ + THIRD_PARTY_SILENT_SQL + r"""
-             AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+             AND NOT """ + BAND_ANSWERED_SQL + r"""
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
              AND (
@@ -535,13 +575,15 @@ def bookings_on(cur, event_date):
     for the daily digest's 'shows today' section. Artists sharing a bill share
     event_name/venue; the caller groups them. Ordered by set start within each
     bill (Artist 1 first), which is sorted in Python because event_start is free
-    text ('7:00pm') — see parse_clock."""
+    text ('7:00pm') — see parse_clock. 2026-09-21 sweep (IDENT-9): each row
+    carries `cancelled` (its show is soft-cancelled) so the digest can drop it."""
     cur.execute(
-        """SELECT id, event_name, venue, location, series, artist_name,
-                  load_in, soundcheck, event_start, event_end, curfew
-           FROM bookings
-           WHERE event_date = %s
-           ORDER BY venue, event_name, id""",
+        """SELECT b.id, b.event_name, b.venue, b.location, b.series, b.artist_name,
+                  b.load_in, b.soundcheck, b.event_start, b.event_end, b.curfew,
+                  (s.cancelled_at IS NOT NULL) AS cancelled
+           FROM bookings b""" + _BOOKING_EDIT_SHOW_JOIN + """
+           WHERE b.event_date = %s
+           ORDER BY b.venue, b.event_name, b.id""",
         (event_date,),
     )
     rows = cur.fetchall()
@@ -661,6 +703,32 @@ def artist_count_for_event(cur, venue, event_date, series=None):
     return (row["n"] or 0) if row else 0
 
 
+def acts_for_event(cur, venue, event_date, series=None, event_name=None):
+    """2026-09-21 sweep (FLOW-15): who's on this bill, from bookings — the welcome's
+    'The bill:' block, which used to list only acts in the same lifecycle batch.
+    Same grouping as artist_count_for_event; cancelled AND held shows excluded (a
+    band-facing list never names an act that isn't playing or isn't confirmed).
+    A 3rd-party bill is its own event: pass event_name. [{name, set_start, set_time}]."""
+    mk = r"lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g')))"
+    sql = (r"""SELECT DISTINCT ON (""" + mk + r""")
+                  COALESCE(a.name, btrim(b.artist_name)) AS name,
+                  COALESCE(b.event_start, '') AS set_start,
+                  COALESCE(b.set_time, '') AS set_time
+            FROM bookings b
+            LEFT JOIN artists a ON a.match_key = """ + mk + r"""
+            LEFT JOIN shows s ON s.artist_id = a.id AND s.venue = b.venue AND s.show_date = b.event_date
+            WHERE b.venue=%s AND b.event_date=%s AND COALESCE(btrim(b.artist_name),'') <> ''
+              AND (lower(btrim(COALESCE(b.series,''))) = '3rd party') = %s
+              AND s.cancelled_at IS NULL AND s.held_at IS NULL""")
+    params = [venue, event_date, is_third_party(series)]
+    if is_third_party(series):
+        sql += r" AND lower(btrim(COALESCE(b.event_name,''))) = lower(btrim(%s))"
+        params.append(event_name or "")
+    sql += " ORDER BY " + mk + ", b.id DESC"
+    cur.execute(sql, params)
+    return cur.fetchall()
+
+
 def get_advance_recap_by_show(cur, show_id):
     cur.execute("SELECT * FROM advance_recaps WHERE show_id=%s", (show_id,))
     return cur.fetchone()
@@ -732,13 +800,14 @@ def record_submission(form: dict, file_info=None, source="form", resolve_booking
                       carry_plot=True, stamp_responded=True):
     """One transaction: resolve which artist+show this submission belongs to,
     insert it, stamp responded_at, link any uploaded file. Returns a dict:
-    {artist_id, show_id, submission_id, artist_name, match, carried_from}.
+    {artist_id, show_id, submission_id, artist_name, match, carried_from, name_kept}.
     Raises on failure — the form treats that as non-fatal.
 
     Resolution (2026-09-13 audit #6):
       1. form["artist_id"] — ONLY set by app.py after verifying the signed
          artist token from the band's own link. Same artist record, even if
-         they edited the name.
+         they edited the name — the edit is NOT applied (2026-09-21 sweep), it
+         comes back as name_kept for Brian to decide.
       2. the typed name matches an artist who is booked at this venue+date.
       3. otherwise, if exactly ONE unresponded booking exists at this
          venue+date, attach to it (match status 'attached_auto'; Brian gets a
@@ -760,12 +829,19 @@ def record_submission(form: dict, file_info=None, source="form", resolve_booking
     if series and series.lower() == "default":
         series = None
     match = None
+    name_kept = None
     with get_conn() as conn:
         with conn.cursor() as cur:
             artist_id = show_id = None
-            if known_id and get_artist(cur, known_id):
-                artist_id = upsert_artist(cur, name, email=form.get("contact_email"),
-                                          phone=form.get("contact_phone"), known_id=known_id)
+            stored = get_artist(cur, known_id) if known_id else None
+            if stored:
+                # 2026-09-21 sweep (DBA-2): never rename the artists row from a form. Bookings and
+                # the sheet kept the old name, so the next run re-minted it as a ghost show that got
+                # welcomed while the real one sat held. Brian decides; Edit Show carries a rename.
+                if normalize(name) != normalize(stored["name"]):
+                    name_kept = name
+                artist_id = upsert_artist(cur, stored["name"], email=form.get("contact_email") or None,
+                                          phone=form.get("contact_phone") or None, known_id=known_id)
             elif resolve_booking and venue and show_date:
                 by_name = find_artist_by_name(cur, name)
                 booked = show_for_artist_at(cur, by_name["id"], venue, show_date) if by_name else None
@@ -786,8 +862,9 @@ def record_submission(form: dict, file_info=None, source="form", resolve_booking
                                  "candidates": [{"show_id": c["show_id"], "artist_name": c["artist_name"]}
                                                 for c in cands]}
             if artist_id is None:
-                artist_id = upsert_artist(cur, name, email=form.get("contact_email"),
-                                          phone=form.get("contact_phone"))
+                # 2026-09-21 sweep (DBA-6): blank means keep — '' through COALESCE wiped last_email/last_phone.
+                artist_id = upsert_artist(cur, name, email=form.get("contact_email") or None,
+                                          phone=form.get("contact_phone") or None)
             if show_id is None:
                 show_id = upsert_show(cur, artist_id, venue, show_date, series=series)
 
@@ -835,13 +912,13 @@ def record_submission(form: dict, file_info=None, source="form", resolve_booking
         conn.commit()
     return {"artist_id": artist_id, "show_id": show_id, "submission_id": sub_id,
             "artist_name": artist["name"] if artist else name, "match": match,
-            "carried_from": carried_from}
+            "carried_from": carried_from, "name_kept": name_kept}
 
 
 # ── queries: prefill, returning-artist logic, search ────────────────────────
 
 def find_artist_by_name(cur, name):
-    cur.execute("SELECT * FROM artists WHERE match_key = %s", (normalize(name),))
+    cur.execute(f"SELECT * FROM artists WHERE match_key = {_SQL_MATCH_KEY}", (name,))
     return cur.fetchone()
 
 
@@ -856,7 +933,8 @@ def _name_tokens(name):
 def names_plausible(typed, booked):
     """Review 2026-09-14 (H5): is `typed` plausibly the same act as `booked`?
     True when one normalized name contains the other, at least half of the
-    meaningful words overlap, or the two spellings are a close edit-distance
+    meaningful words overlap with at least two meaningful words in common (one,
+    when either name is a single word), or the two spellings are a close edit-distance
     match (a typo like "LimeLght" for "LimeLight", Brian FSQ 9/18, shares no
     whole token so the overlap test alone misses it). Gate on auto-attaching a
     submission to the one unanswered booking — before this, ANY typed name
@@ -869,8 +947,12 @@ def names_plausible(typed, booked):
     if a == b or a in b or b in a:
         return True
     ta, tb = _name_tokens(a), _name_tokens(b)
-    if ta and tb and len(ta & tb) / min(len(ta), len(tb)) >= 0.5:
-        return True
+    if ta and tb:
+        # 2026-09-21 sweep (PRIOR-24): one shared word ("Square One" vs "Jazz on the
+        # Square Trio") was half of a two-word name and auto-attached to the wrong band.
+        shared, small = len(ta & tb), min(len(ta), len(tb))
+        if shared >= (1 if small == 1 else 2) and shared / small >= 0.5:
+            return True
     return SequenceMatcher(None, a, b).ratio() >= 0.85
 
 
@@ -885,6 +967,24 @@ def newest_submission(cur, artist_id):
         (artist_id,),
     )
     return cur.fetchone()
+
+
+def submission_for_show(cur, artist_id, venue, show_date):
+    """What a show's paperwork fills from: this show's own newest submission,
+    else (returning-band pre-fill, H2) the artist's newest from any show.
+    2026-09-21 sweep: newest-across-all-shows used to win outright, so a band's
+    later booking overwrote an earlier show's doc/sheet with its answers."""
+    if artist_id and venue and show_date:
+        cur.execute(
+            """SELECT sub.* FROM submissions sub JOIN shows s ON s.id = sub.show_id
+               WHERE s.artist_id=%s AND s.venue=%s AND s.show_date=%s
+               ORDER BY sub.submitted_at DESC LIMIT 1""",
+            (artist_id, venue, show_date),
+        )
+        row = cur.fetchone()
+        if row:
+            return row
+    return newest_submission(cur, artist_id) if artist_id else None
 
 
 def played_within(cur, artist_id, ref_date, months=6, exclude_show_id=None):
@@ -903,10 +1003,18 @@ def played_within(cur, artist_id, ref_date, months=6, exclude_show_id=None):
     recap being the same show being welcomed — worse, cross-contaminated with
     a bill-mate's data via the unrelated column-reassignment bug (see
     docmerge's per-column diff, which is position- not artist-keyed)."""
+    if isinstance(ref_date, str):
+        ref_date = to_date(ref_date)
+    if not ref_date:
+        ref_date = dt.date.today()
+    # 2026-09-21 sweep (DBA-7): only shows on/before ref_date are candidates — a
+    # newer submission for a LATER booking (staff-typed at booking time) used to
+    # win the LIMIT 1, go negative below, and hide the real prior show.
     cur.execute(
         """SELECT * FROM submissions WHERE artist_id=%s AND show_id IS DISTINCT FROM %s
-           ORDER BY submitted_at DESC LIMIT 1""",
-        (artist_id, exclude_show_id),
+             AND COALESCE(show_date, submitted_at::date) <= %s
+           ORDER BY COALESCE(show_date, submitted_at::date) DESC, submitted_at DESC LIMIT 1""",
+        (artist_id, exclude_show_id, ref_date),
     )
     sub = cur.fetchone()
     if not sub:
@@ -915,10 +1023,6 @@ def played_within(cur, artist_id, ref_date, months=6, exclude_show_id=None):
                                     if sub.get("submitted_at") else None)
     if not last:
         return None
-    if isinstance(ref_date, str):
-        ref_date = to_date(ref_date)
-    if not ref_date:
-        ref_date = dt.date.today()
     delta_days = (ref_date - last).days
     if 0 <= delta_days <= months * 31:
         return sub
@@ -963,7 +1067,8 @@ def artist_shows(cur, artist_id):
     # column to it for one button on one page isn't worth that churn. It drives
     # the artist page's "I sent it" action — see app.show_advance_sent.
     cur.execute(
-        """SELECT v.*, s.advance_held_draft_at
+        """SELECT v.*, s.advance_held_draft_at,
+                  """ + _HELD_DRAFT_STALE_SQL + """ AS held_draft_stale
            FROM advance_status v JOIN shows s ON s.id = v.show_id
            WHERE v.artist_id=%s ORDER BY v.show_date DESC NULLS LAST""",
         (artist_id,),
@@ -1173,8 +1278,9 @@ def update_event_details(cur, event_id, details):
     for k, v in (details or {}).items():
         if v not in (None, ""):
             cur_details[k] = v
+    # 2026-09-21 sweep (PRIOR-10): default=str — a stray time/date cell must not crash the import
     cur.execute("UPDATE events SET details=%s WHERE id=%s",
-                (json.dumps(cur_details), event_id))
+                (json.dumps(cur_details, default=str), event_id))
 
 
 def add_act(cur, event_id, artist_id, submission_id=None, set_time=None,
@@ -1199,7 +1305,7 @@ def add_act(cur, event_id, artist_id, submission_id=None, set_time=None,
              sheet_fields=event_acts.sheet_fields || EXCLUDED.sheet_fields
            RETURNING id""",
         (event_id, artist_id, submission_id, set_time, set_start, set_end,
-         load_in, soundcheck, json.dumps(sheet_fields or {})),
+         load_in, soundcheck, json.dumps(sheet_fields or {}, default=str)),   # 2026-09-21 sweep (PRIOR-10)
     )
     return cur.fetchone()["id"]
 
@@ -1220,9 +1326,11 @@ def list_events(cur):
 
 def event_acts(cur, event_id):
     """Acts in column order — Artist 1 first — each stamped `artist_order` and
-    carrying its artist + the submission to fill from (the linked submission, or
-    the artist's newest). Order is computed here, every time, from set start:
+    carrying its artist + the submission to fill from (the linked submission,
+    else this show's own newest, else the artist's newest from any show — see
+    submission_for_show). Order is computed here, every time, from set start:
     see order_acts. `id` is the tiebreak, so the query orders by it."""
+    ev = get_event(cur, event_id) or {}
     cur.execute(
         "SELECT * FROM event_acts WHERE event_id=%s ORDER BY id", (event_id,)
     )
@@ -1232,7 +1340,8 @@ def event_acts(cur, event_id):
         if a.get("submission_id"):
             a["submission"] = get_submission(cur, a["submission_id"])
         elif a.get("artist_id"):
-            a["submission"] = newest_submission(cur, a["artist_id"])
+            a["submission"] = submission_for_show(cur, a["artist_id"], ev.get("venue"),
+                                                  ev.get("event_date"))
         else:
             a["submission"] = None
     return acts
@@ -1338,14 +1447,18 @@ def get_booking(cur, booking_id):
 def update_booking(cur, booking_id, data: dict):
     """Update an existing staff-entered booking in place (the edit-booking
     form, distinct from show_edit's band-submission editor). Any BAND_FACING_
-    FIELDS change, while the show is still inside the 21-day window, is
-    recorded as a booking_edits row — merged into any still-unsent pending
-    row for this booking, so several edits before the next daily lifecycle
-    run collapse into one email instead of several (uq_booking_edits_pending).
+    FIELDS change is recorded as a booking_edits row — merged into any
+    still-unsent pending row for this booking, so several edits before the
+    next daily lifecycle run collapse into one email instead of several
+    (uq_booking_edits_pending). It queues a notice (notify) when the old or
+    new date is inside the 21-day window, or the band was already contacted
+    (welcomed, responded, or a manual band advance); due_booking_edits only
+    sends it once the band has been contacted (2026-09-21 sweep).
 
     Returns (changes, notify) — the diff dict just recorded (empty if
     nothing band-facing changed) and whether it queued a notice (False when
-    changes is empty, or the show is outside the 21-day notify window)."""
+    changes is empty, the show has passed, or it's an uncontacted band with
+    neither date inside the 21-day window)."""
     import json as _json
     before = get_booking(cur, booking_id)
     if not before:
@@ -1394,12 +1507,31 @@ def update_booking(cur, booking_id, data: dict):
     # bill from the old row and undoes the edit (2026-09-15). Wider than
     # BAND_FACING_FIELDS: the series or the event name never reaches a band,
     # but it does reach the sheet.
-    if any(_as_text(before.get(f)) != _as_text(vals.get(f)) for f in SHEET_OWNED_FIELDS):
-        cur.execute("UPDATE bookings SET sheet_dirty = true WHERE id = %s AND seeded_at IS NOT NULL",
-                    (booking_id,))
-    event_date = vals.get("event_date") or before.get("event_date")
-    in_window = bool(event_date) and 0 <= (event_date - dt.date.today()).days <= 21
-    notify = bool(changes) and in_window
+    # 2026-09-21 sweep (FLOW-12): record WHICH fields — the sync writes only those, so
+    # a value Brian typed into the sheet survives an unrelated app edit. A dirty row
+    # with no list is a pending whole-row write (pre-migration) and stays one.
+    sheet_changed = [f for f in SHEET_OWNED_FIELDS if _as_text(before.get(f)) != _as_text(vals.get(f))]
+    if sheet_changed:
+        cur.execute(
+            """UPDATE bookings SET sheet_dirty = true,
+                   sheet_dirty_fields = CASE WHEN sheet_dirty AND cardinality(sheet_dirty_fields) = 0
+                       THEN sheet_dirty_fields
+                       ELSE ARRAY(SELECT DISTINCT unnest(sheet_dirty_fields || %s::text[])) END
+               WHERE id = %s AND seeded_at IS NOT NULL""",
+            (sheet_changed, booking_id))
+    # 2026-09-21 sweep (MAIL-6): notify when the OLD or NEW date is in the
+    # 21-day window, or the band was already contacted — a welcomed show moved
+    # 10 -> 45 days out still hears about it. due_booking_edits gates the send.
+    today = dt.date.today()
+    new_d, old_d = vals.get("event_date") or before.get("event_date"), before.get("event_date")
+
+    def _win(d):
+        return bool(d) and 0 <= (d - today).days <= 21
+    cur_show = (show_for_booking(cur, vals.get("artist_name"), vals.get("venue"), new_d)
+                or show_for_booking(cur, before.get("artist_name"), before.get("venue"), old_d))
+    contacted = bool(vals.get("skip_welcome_email")) or bool(
+        cur_show and (cur_show.get("advance_draft_created_at") or cur_show.get("responded_at")))
+    notify = bool(changes) and bool(new_d) and new_d >= today and (_win(new_d) or _win(old_d) or contacted)
     edited_by = data.get("entered_by") or before.get("entered_by")
     if changes:
         cur.execute(
@@ -1416,7 +1548,16 @@ def update_booking(cur, booking_id, data: dict):
             # 2026-09-15: "Set length: 120 -> 120 min" was about to go to a band
             # as news). Dropping it here rather than at send time keeps the
             # stored diff honest too — what's queued is what the band will read.
-            merged = {f: d for f, d in merged.items() if d["old"] != d["new"]}
+            # 2026-09-21 sweep (DBB-8): clock fields compare as minutes here too,
+            # so 8p -> 9:00pm -> 8:00pm isn't queued as "Start: 8p -> 8:00pm".
+            def _no_change(f, d):
+                if d["old"] == d["new"]:
+                    return True
+                if f in _CLOCK_FIELDS and d["old"] and d["new"]:
+                    o = parse_clock(d["old"])
+                    return o is not None and o == parse_clock(d["new"])
+                return False
+            merged = {f: d for f, d in merged.items() if not _no_change(f, d)}
             if not merged:
                 cur.execute("DELETE FROM booking_edits WHERE id=%s", (pending["id"],))
                 return changes, False
@@ -1445,7 +1586,8 @@ def carry_show_with_booking(cur, before, after):
     row (the match_key collision upsert_artist(known_id=) also guards), this
     show moves to that artist instead — renaming a shared row would detach
     the band's other bookings. Venue/date: the show row moves, and its filed
-    doc follows when nothing else is left on the old bill. If the target
+    doc follows when nothing else is left on the old bill (or is retired
+    SUPERSEDED when the new date already has its own doc). If the target
     artist already has a show on the new venue+date (a band submission got
     there first), the two are merged. Returns the surviving show id or None."""
     old_name, old_venue, old_date = before.get("artist_name"), before.get("venue"), before.get("event_date")
@@ -1461,7 +1603,7 @@ def carry_show_with_booking(cur, before, after):
     old_artist = show["artist_id"]
     target_artist = old_artist
     if renamed:
-        cur.execute("SELECT id FROM artists WHERE match_key=%s", (normalize(new_name),))
+        cur.execute(f"SELECT id FROM artists WHERE match_key = {_SQL_MATCH_KEY}", (new_name,))
         hit = cur.fetchone()
         if hit:
             target_artist = hit["id"]
@@ -1475,6 +1617,8 @@ def carry_show_with_booking(cur, before, after):
     there = show_for_artist_at(cur, target_artist, new_venue, new_date)
     if there and there["id"] != show["id"]:
         merge_shows(cur, show["id"], there["id"], tombstone=False)
+        if moved:   # 2026-09-21 sweep (IDENT-13): merge left the old doc registered
+            _retire_left_behind_doc(cur, old_venue, to_date(old_date), new_venue, new_date, old_name)
         return there["id"]
     cur.execute("UPDATE shows SET artist_id=%s, venue=%s, show_date=%s WHERE id=%s",
                 (target_artist, new_venue, new_date, show["id"]))
@@ -1482,12 +1626,18 @@ def carry_show_with_booking(cur, before, after):
         cur.execute("UPDATE submissions SET artist_id=%s WHERE show_id=%s", (target_artist, show["id"]))
         cur.execute("""UPDATE files SET artist_id=%s WHERE submission_id IN
                        (SELECT id FROM submissions WHERE show_id=%s)""", (target_artist, show["id"]))
+        # 2026-09-21 sweep (DBB-7): or the artist DELETE below cascades the moved show's recap away
+        cur.execute("UPDATE advance_recaps SET artist_id=%s WHERE show_id=%s", (target_artist, show["id"]))
         cur.execute("""DELETE FROM artists a WHERE a.id=%s
                        AND NOT EXISTS (SELECT 1 FROM shows WHERE artist_id=a.id)
                        AND NOT EXISTS (SELECT 1 FROM submissions WHERE artist_id=a.id)""",
                     (old_artist,))
     if moved:
-        reregister_docs_for_move(cur, old_venue, old_date, new_venue, new_date, retire=False)
+        # 2026-09-21 sweep (IDENT-13): retire=True — a doc left behind at the old date is retired
+        _retire_left_behind_doc(cur, old_venue, to_date(old_date), new_venue, new_date, old_name)
+    if target_artist != old_artist:
+        # 2026-09-21 sweep: after the re-register, so a doc that followed the show is re-keyed too
+        remap_doc_artist(cur, new_venue, new_date, old_artist, target_artist)
     return show["id"]
 
 
@@ -1500,20 +1650,26 @@ _BOOKING_EDIT_SILENT_SQL = (
 
 def due_booking_edits(cur):
     """Pending booking-edit notifications ready for the next daily lifecycle
-    run — still inside the 21-day window (an edit queued while urgent, then
-    the window closes some other way before the next run, silently drops
-    the notice rather than sending a stale one). Excludes a show that's
-    since gone cancelled/held, or is 3rd-party without band_emails opted in
-    (audit 2026-09-16 #13) — see skip_stale_booking_edits, which resolves
-    those instead of leaving them pending forever."""
+    run — the show hasn't passed and the band has already been contacted
+    (welcomed, responded, or a manual band advance). 2026-09-21 sweep
+    (MAIL-6): gated on contact, not the 21-day window — a notice for a band
+    whose welcome hasn't gone out (or sits as a held draft) stays pending;
+    the welcome resolves it as carried (resolve_booking_edits_carried), or
+    "I sent it" releases it. Excludes a show that's since gone
+    cancelled/held, or is 3rd-party without band_emails opted in (audit
+    2026-09-16 #13) — see skip_stale_booking_edits, which resolves those
+    instead of leaving them pending forever."""
     cur.execute(
         """SELECT e.id AS edit_id, e.booking_id, e.changes, e.edited_at,
-                  b.artist_name, b.event_date, b.venue, b.contact_email, b.series
+                  b.artist_name, b.event_date, b.venue, b.contact_email, b.series,
+                  a.last_email AS artist_email
            FROM booking_edits e JOIN bookings b ON b.id = e.booking_id"""
         + _BOOKING_EDIT_SHOW_JOIN + """
            WHERE e.notify AND e.sent_at IS NULL
              AND b.event_date IS NOT NULL
-             AND b.event_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 21
+             AND b.event_date >= CURRENT_DATE
+             AND (COALESCE(b.skip_welcome_email, false)
+                  OR s.advance_draft_created_at IS NOT NULL OR s.responded_at IS NOT NULL)
              AND (s.id IS NULL OR (s.cancelled_at IS NULL AND s.held_at IS NULL))
              AND NOT """ + _BOOKING_EDIT_SILENT_SQL + """
            ORDER BY e.id""")
@@ -1524,28 +1680,49 @@ def skip_stale_booking_edits(cur):
     """A pending booking-edit notice whose show has since gone cancelled,
     held, or turned 3rd-party-silent is done, not failed and not stuck
     retrying forever — resolve it the same way a stale followup tier gets
-    pre-skipped (audit 2026-09-16 #13)."""
+    pre-skipped (audit 2026-09-16 #13). 2026-09-21 sweep: a past show too, so
+    a notice for a never-contacted band can't sit pending forever and absorb
+    later edits through uq_booking_edits_pending."""
     cur.execute(
         """SELECT e.id AS edit_id, s.cancelled_at, s.held_at,
+                  COALESCE(b.event_date < CURRENT_DATE, false) AS passed,
                   """ + _BOOKING_EDIT_SILENT_SQL + """ AS silent
            FROM booking_edits e JOIN bookings b ON b.id = e.booking_id"""
         + _BOOKING_EDIT_SHOW_JOIN + """
            WHERE e.notify AND e.sent_at IS NULL
-             AND (s.cancelled_at IS NOT NULL OR s.held_at IS NOT NULL OR """
+             AND (s.cancelled_at IS NOT NULL OR s.held_at IS NOT NULL
+                  OR b.event_date < CURRENT_DATE OR """
         + _BOOKING_EDIT_SILENT_SQL + ")")
     for r in cur.fetchall():
         reason = ("skipped: cancelled" if r["cancelled_at"] else
                   "skipped: held" if r["held_at"] else
+                  "skipped: show passed" if r["passed"] else
                   "skipped: 3rd-party silent")
         cur.execute("UPDATE booking_edits SET sent_at=now(), error=%s WHERE id=%s",
                     (reason, r["edit_id"]))
 
 
-def mark_booking_edit_sent(cur, edit_id, ok, err=None):
-    if ok:
+def mark_booking_edit_sent(cur, edit_id, ok, err=None, unknown=False):
+    # 2026-09-21 sweep: unknown = the send timed out (mailer.outcome_unknown) —
+    # resolve it with the error kept, so the next run never re-sends a maybe-delivered notice.
+    if unknown:
+        cur.execute("UPDATE booking_edits SET sent_at=now(), error=%s WHERE id=%s", (err, edit_id))
+    elif ok:
         cur.execute("UPDATE booking_edits SET sent_at=now(), error=NULL WHERE id=%s", (edit_id,))
     else:
         cur.execute("UPDATE booking_edits SET error=%s WHERE id=%s", (err, edit_id))
+
+
+def resolve_booking_edits_carried(cur, booking_id, asof, reason):
+    """2026-09-21 sweep (MAIL-6): the welcome (or held draft) just built from
+    the booking's current values carries every edit made up to `asof` — resolve
+    those pending notices instead of sending "X -> Y" for an X the band never saw."""
+    if booking_id is None:
+        return
+    cur.execute(
+        """UPDATE booking_edits SET sent_at=now(), error=%s
+           WHERE booking_id=%s AND notify AND sent_at IS NULL AND edited_at <= %s""",
+        (reason, booking_id, asof))
 
 
 def series_by_venue(cur):
@@ -1640,10 +1817,15 @@ def future_bookings(cur):
     invisible to unseeded_bookings (seeded_at is already set), so it just
     falls off the sheet for good and holds.py orphans it — and Restore
     doesn't put it back either. run_now.one_pass re-appends anything whose
-    ident isn't found in a fresh sheet read, regardless of seeded_at."""
-    cur.execute("""SELECT * FROM bookings
-                   WHERE event_date IS NOT NULL AND event_date >= CURRENT_DATE
-                   ORDER BY id""")
+    ident isn't found in a fresh sheet read, regardless of seeded_at.
+    2026-09-21 sweep (IDENT-9): a cancelled show's row is never re-added (if
+    someone deleted it, that was on purpose; Undo cancel brings it back), nor a
+    dirty one — step 1b owns it, and re-adding it under its new ident duplicates it."""
+    cur.execute("""SELECT b.* FROM bookings b""" + _BOOKING_EDIT_SHOW_JOIN + """
+                   WHERE b.event_date IS NOT NULL AND b.event_date >= CURRENT_DATE
+                     AND NOT b.sheet_dirty
+                     AND (s.id IS NULL OR s.cancelled_at IS NULL)
+                   ORDER BY b.id""")
     return cur.fetchall()
 
 
@@ -1657,8 +1839,13 @@ def edited_bookings(cur):
     row, so a rename followed by a load-in edit before the next sync lost the
     old name and the sheet row couldn't be found. Now every edit since the row
     last matched the sheet (`synced_at`, else `seeded_at`) counts, earliest
-    `old` per field."""
-    cur.execute("""SELECT b.*, COALESCE(e.all_changes, '[]'::jsonb) AS _changes FROM bookings b
+    `old` per field. 2026-09-21 sweep (IDENT-3): `sheet_ident`, when stamped,
+    replaces that reconstruction — it's only the fallback for older rows."""
+    # 2026-09-21 sweep (PRIOR-7): _cancelled — step 1b now re-appends a dirty booking
+    # whose row is gone (1c skips dirty ones), except for a cancelled show.
+    cur.execute("""SELECT b.*, COALESCE(e.all_changes, '[]'::jsonb) AS _changes,
+                          (s.cancelled_at IS NOT NULL) AS _cancelled FROM bookings b"""
+                + _BOOKING_EDIT_SHOW_JOIN + """
                    LEFT JOIN LATERAL (
                        SELECT jsonb_agg(changes ORDER BY id) AS all_changes FROM booking_edits
                        WHERE booking_id = b.id
@@ -1668,8 +1855,16 @@ def edited_bookings(cur):
                    ORDER BY b.id""")
     rows = cur.fetchall()
     for r in rows:
+        # 2026-09-21 sweep (IDENT-3): the ident the row was last WRITTEN under wins
+        # — rebuilding it from edit history lost the row after a 2nd rename/revert.
+        si = r.pop("sheet_ident", None)
+        changes = r.pop("_changes", None) or []
+        if si:
+            r["_old_ident"] = {f: si.get(f) or _sheet_txt(r.get(f))
+                               for f in ("artist_name", "venue", "event_date")}
+            continue
         earliest = {}
-        for ch in r.pop("_changes", None) or []:
+        for ch in changes:
             for f in ("artist_name", "venue", "event_date"):
                 if f in (ch or {}) and f not in earliest and (ch[f] or {}).get("old"):
                     earliest[f] = ch[f]["old"]
@@ -1682,19 +1877,90 @@ def edited_bookings(cur):
     return rows
 
 
-def mark_bookings_synced(cur, ids):
-    """Their sheet row now matches the booking."""
-    if not ids:
-        return
-    cur.execute("UPDATE bookings SET sheet_dirty = false, synced_at = now() WHERE id = ANY(%s)",
-                (list(ids),))
+def _sheet_txt(v):
+    return v.isoformat() if isinstance(v, dt.date) else ("" if v is None else str(v))
 
 
-def mark_bookings_seeded(cur, ids):
+def _sheet_ident_of(row):
+    return {"artist_name": row.get("artist_name") or "", "venue": row.get("venue") or "",
+            "event_date": _sheet_txt(row.get("event_date"))[:10]}
+
+
+_SHEET_IDENT_SQL = ("jsonb_build_object('artist_name', artist_name, 'venue', venue, "
+                    "'event_date', to_char(event_date, 'YYYY-MM-DD'))")
+
+
+def _stamp_from_snapshot(cur, ids, snapshot, stamp_col, dirty_expr, keep_first=False,
+                         reset_fields=False):
+    """2026-09-21 sweep (IDENT-3): stamp sheet_ident from the rows the run actually
+    WROTE (its JSON snapshot); an edit that landed mid-run stays sheet_dirty.
+    Returns the ids that had no snapshot row. keep_first: never move a set stamp.
+    reset_fields (FLOW-12): sheet_dirty_fields = just the fields edited mid-run."""
+    import json
+    stamp = f"COALESCE({stamp_col}, now())" if keep_first else "now()"
+    rest = []
+    for i in ids:
+        snap = (snapshot or {}).get(int(i))
+        if snap is None:
+            rest.append(i)
+            continue
+        cur.execute("SELECT * FROM bookings WHERE id=%s FOR UPDATE", (i,))
+        now_row = cur.fetchone()
+        if not now_row:
+            continue
+        changed_fields = [f for f in SHEET_OWNED_FIELDS
+                          if _sheet_txt(now_row.get(f)) != _sheet_txt(snap.get(f))]
+        changed = bool(changed_fields)
+        cur.execute(f"UPDATE bookings SET {stamp_col} = {stamp}, sheet_ident = %s::jsonb, "
+                    f"sheet_dirty = {dirty_expr} WHERE id = %s",
+                    (json.dumps(_sheet_ident_of(snap)), changed, i))
+        if reset_fields:
+            cur.execute("UPDATE bookings SET sheet_dirty_fields = %s::text[] WHERE id = %s",
+                        (changed_fields, i))
+    return rest
+
+
+def mark_bookings_synced(cur, ids, snapshot=None):
+    """Their sheet row now matches the booking. `snapshot` ({id: row} as written
+    to the sheet) keeps a mid-run edit dirty and records sheet_ident."""
     if not ids:
         return
-    cur.execute("UPDATE bookings SET seeded_at = now() WHERE id = ANY(%s)",
-                (list(ids),))
+    rest = _stamp_from_snapshot(cur, ids, snapshot, "synced_at", "%s", reset_fields=True)
+    if rest:
+        cur.execute(f"UPDATE bookings SET sheet_dirty = false, sheet_dirty_fields = '{{}}', "
+                    f"synced_at = now(), "
+                    f"sheet_ident = {_SHEET_IDENT_SQL} WHERE id = ANY(%s)", (list(rest),))
+
+
+def mark_bookings_seeded(cur, ids, snapshot=None):
+    if not ids:
+        return
+    # 2026-09-21 sweep (PRIOR-7): seeded_at = when the row FIRST reached the sheet;
+    # run_now 1c re-stamps every future booking each pass and must not move it.
+    rest = _stamp_from_snapshot(cur, ids, snapshot, "seeded_at", "(sheet_dirty OR %s)",
+                                keep_first=True)
+    if rest:
+        cur.execute(f"UPDATE bookings SET seeded_at = COALESCE(seeded_at, now()), "
+                    f"sheet_ident = {_SHEET_IDENT_SQL} WHERE id = ANY(%s)", (list(rest),))
+
+
+def adopt_sheet_row(cur, booking_id, old_ident):
+    """2026-09-21 sweep (IDENT-2): a booking just created for a sheet-typed show
+    (no bookings row before) takes over that show's hand-typed row, found under
+    `old_ident` — run_now step 1b rewrites it in place (a rename/move included)
+    instead of appending a twin and leaving the old row to re-mint the old show.
+    No such row (a submission-only show): 1b appends it (2026-09-21 sweep, PRIOR-7).
+    2026-09-21 sweep: identity fields only — the booking-less form never showed the row's
+    schedule, so its Set-Start defaults must not overwrite the hand-typed Load-In/Start."""
+    d = old_ident.get("event_date")
+    d = d.isoformat() if isinstance(d, dt.date) else str(d or "")[:10]
+    cur.execute(
+        """UPDATE bookings SET seeded_at = COALESCE(seeded_at, now()), sheet_dirty = true,
+                  sheet_dirty_fields = ARRAY['artist_name', 'venue', 'event_date']::text[],
+                  sheet_ident = jsonb_build_object('artist_name', %s::text, 'venue', %s::text,
+                                                   'event_date', %s::text)
+           WHERE id = %s""",
+        (old_ident.get("artist_name"), old_ident.get("venue"), d, booking_id))
 
 
 # ── sheet removals (root cause A, audit 2026-09-16) ─────────────────────────
@@ -1793,19 +2059,91 @@ def reregister_docs_for_move(cur, old_venue, old_date, new_venue, new_date, reti
     return reg["path"]
 
 
+def _retire_left_behind_doc(cur, old_venue, old_date, new_venue, new_date, artist_name):
+    """2026-09-21 sweep (IDENT-13): a show moved onto a date that already has its own
+    doc leaves the old one registered at the old date for a later booking to inherit.
+    Retire it: a doc-only sheet_removals row (match_key '' matches no sheet row) so
+    run_now step 0 renames it SUPERSEDED. Returns the retired path or None."""
+    path = reregister_docs_for_move(cur, old_venue, old_date, new_venue, new_date, retire=True)
+    if path:
+        add_sheet_removal(cur, old_venue, old_date, "", artist_name,
+                          reason="doc_retire", doc_path=path)
+    return path
+
+
+def remap_doc_artist(cur, venue, event_date, old_id, new_id):
+    """A show changed artist_id (rename onto another artist row, or a merge).
+    2026-09-21 sweep: re-key every filed doc at venue+date so docmerge sees an
+    unchanged column map instead of blanking that column back to the template.
+    Skipped when the new artist already has its own column (two can't merge)."""
+    import json
+    if not (venue and event_date) or old_id is None or new_id is None or old_id == new_id:
+        return
+    old_id, new_id = int(old_id), int(new_id)
+    pat = re.compile(r"\|a%d(?=\||$)" % old_id)
+    rep = "|a%d" % new_id
+
+    def _i(v):
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return None
+
+    for reg in filed_docs_for(cur, venue, event_date):
+        cols = reg.get("columns") or {}
+        ids = {_i(v) for v in cols.values()}
+        if old_id not in ids or new_id in ids:
+            continue
+        new_cols = {k: (new_id if _i(v) == old_id else v) for k, v in cols.items()}
+        cells = reg.get("cells")
+        cells_json = (json.dumps({pat.sub(rep, k): v for k, v in cells.items()})
+                      if cells is not None else None)
+        cur.execute("UPDATE filed_docs SET columns=%s::jsonb, cells=COALESCE(%s::jsonb, cells) "
+                    "WHERE id=%s", (json.dumps(new_cols), cells_json, reg["id"]))
+        cur.execute("SELECT id, cell_key FROM doc_notices WHERE venue=%s AND event_date=%s "
+                    "AND event_key=%s AND cell_key IS NOT NULL",
+                    (reg["venue"], reg["event_date"], reg["event_key"]))
+        for n in cur.fetchall():
+            nk = pat.sub(rep, n["cell_key"])
+            if nk != n["cell_key"]:
+                cur.execute("UPDATE doc_notices SET cell_key=%s WHERE id=%s", (nk, n["id"]))
+
+
 def _drop_registry_row(cur, reg):
     cur.execute("DELETE FROM doc_notices WHERE venue=%s AND event_date=%s AND event_key=%s",
                 (reg["venue"], reg["event_date"], reg["event_key"]))
     cur.execute("DELETE FROM filed_docs WHERE id=%s", (reg["id"],))
 
 
-def get_or_create_short_link(cur, token):
+def rekey_filed_doc(cur, reg, new_key):
+    """2026-09-21 sweep (IDENT-11): the event behind a filed doc was renamed, so
+    its registry row and its notices move together — or Keep doc and Use new
+    lose the doc. An old-key notice whose twin already exists under the new key
+    is dropped first (the notice UNIQUE tuple)."""
+    old, v, d = reg["event_key"], reg["venue"], reg["event_date"]
+    if old == new_key:
+        return
+    cur.execute("""DELETE FROM doc_notices o
+                   WHERE o.venue=%s AND o.event_date=%s AND o.event_key=%s
+                     AND EXISTS (SELECT 1 FROM doc_notices n
+                                 WHERE n.venue=o.venue AND n.event_date=o.event_date
+                                   AND n.event_key=%s AND n.kind=o.kind
+                                   AND n.field=o.field AND n.new_value=o.new_value)""",
+                (v, d, old, new_key))
+    cur.execute("UPDATE doc_notices SET event_key=%s WHERE venue=%s AND event_date=%s AND event_key=%s",
+                (new_key, v, d, old))
+    cur.execute("UPDATE filed_docs SET event_key=%s WHERE id=%s", (new_key, reg["id"]))
+
+
+def get_or_create_short_link(cur, token, key=None):
     """Deterministic short code for a signed /f/<token> prefill link (same token
     -> same code, so re-drafting a show doesn't pile up rows). /s/<code> 302s to
-    the real link — see app.py."""
+    the real link — see app.py.
+    2026-09-21 sweep (MAIL-1): `key` (optional) replaces the token as the code's
+    hash input — timed tokens differ per call; the first token for a key wins."""
     import base64
     import hashlib
-    digest = hashlib.sha256(token.encode()).digest()
+    digest = hashlib.sha256((key or token).encode()).digest()
     code = base64.urlsafe_b64encode(digest)[:8].decode()
     cur.execute(
         "INSERT INTO short_links (code, token) VALUES (%s, %s) "
@@ -1976,29 +2314,59 @@ def keep_doc_value(cur, notice):
     """Brian chose "Keep doc": the decision is closed and the pipeline gives
     up ownership of that cell, so no later pass writes over what the doc says
     (it's treated as hand-typed from here on)."""
-    resolve_doc_notice(cur, notice["id"], "kept")
-    key = notice.get("cell_key")
-    if not key or key.startswith("plot:"):
-        return
-    cur.execute("""SELECT id, cells, columns FROM filed_docs WHERE venue=%s AND event_date=%s AND event_key=%s""",
+    # 2026-09-21 sweep (DOC-3): lock the registry row BEFORE resolving — same order
+    # as docmerge's final write (filed_docs, then doc_notices), so a merge running
+    # right now either sees this 'kept' or has its cells re-read here after it commits.
+    cur.execute("""SELECT id, cells, columns FROM filed_docs WHERE venue=%s AND event_date=%s AND event_key=%s
+                   FOR UPDATE""",
                 (notice["venue"], notice["event_date"], notice["event_key"]))
     reg = cur.fetchone()
-    if not reg:
+    resolve_doc_notice(cur, notice["id"], "kept")
+    key = notice.get("cell_key")
+    if not key or key.startswith("plot:") or not reg:
         return
+    import json
+    cells = _apply_keep(reg["cells"], key, notice.get("doc_value"), reg.get("columns"))
+    cur.execute("UPDATE filed_docs SET cells=%s::jsonb WHERE id=%s", (json.dumps(cells), reg["id"]))
+
+
+def _kept_drop_keys(key, columns):
+    """The provenance keys a "Keep doc" on `key` gives up (lowercased)."""
     drop = {key.lower()}
     # a notice recorded under a pre-2026-09-16 column key gives up the
     # artist-keyed cell too — ownership moved to `Section|a<id>` since
+    cols = {str(k): v for k, v in (columns or {}).items()}
     m = re.match(r"^(.*)\|col(\d)(\|\d+)?$", key)
-    if m and (reg.get("columns") or {}).get(m.group(2)):
-        drop.add(f"{m.group(1)}|a{reg['columns'][m.group(2)]}{m.group(3) or ''}".lower())
-    cells = {k: v for k, v in (reg["cells"] or {}).items() if k.lower() not in drop}
-    if notice.get("doc_value") == "(cleared by hand)":
+    if m and cols.get(m.group(2)):
+        drop.add(f"{m.group(1)}|a{cols[m.group(2)]}{m.group(3) or ''}".lower())
+    return drop
+
+
+def _apply_keep(cells, key, doc_value, columns):
+    """`cells` with the pipeline's ownership of `key` given up (a new dict)."""
+    drop = _kept_drop_keys(key, columns)
+    out = {k: v for k, v in (cells or {}).items() if k.lower() not in drop}
+    if doc_value == "(cleared by hand)":
         # docmerge F10: keeping a hand-cleared cell keeps it EMPTY — ownership
         # stays recorded (as a marker, never the template text) so the next
         # pass still reads it as cleared on purpose instead of refilling it
-        cells[key] = "\u2205 kept blank"
-    import json
-    cur.execute("UPDATE filed_docs SET cells=%s::jsonb WHERE id=%s", (json.dumps(cells), reg["id"]))
+        out[key] = "\u2205 kept blank"
+    return out
+
+
+def reapply_kept_decisions(cur, notice_ids, cells, columns):
+    """2026-09-21 sweep (DOC-3): docmerge's final write re-applies any "Keep doc"
+    Brian clicked on these notices while its pass was running. Otherwise the
+    pass re-owns the cell and a later pass writes the value he rejected."""
+    if not notice_ids:
+        return cells
+    cur.execute("SELECT cell_key, doc_value FROM doc_notices WHERE id = ANY(%s) AND resolution='kept'",
+                (list(notice_ids),))
+    for n in cur.fetchall():
+        key = n.get("cell_key")
+        if key and not key.startswith("plot:"):
+            cells = _apply_keep(cells, key, n.get("doc_value"), columns)
+    return cells
 
 
 def resubmitted_since(cur, venue, event_date, artist_ids, since):
@@ -2154,7 +2522,7 @@ def needs_attention(cur):
                    WHERE s.advance_held_draft_at IS NOT NULL
                      AND s.advance_draft_created_at IS NULL
                      AND s.cancelled_at IS NULL AND s.held_at IS NULL
-                     AND s.responded_at IS NULL
+                     AND NOT """ + _HELD_DRAFT_ANSWERED_SQL + """
                      AND s.show_date >= CURRENT_DATE
                    ORDER BY s.show_date""")
     for r in cur.fetchall():
@@ -2162,12 +2530,31 @@ def needs_attention(cur):
                     "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: "
                               f"waiting in Production@3cdc.org drafts",
                     "link_path": f"/artist/{r['artist_id']}", "since": r["advance_held_draft_at"]})
+    # 2026-09-21 sweep (PRIOR-25): the band answered (or the show was cancelled)
+    # while its welcome sat in drafts — someone could still send that stale nag.
+    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date,
+                          s.advance_held_draft_at, s.cancelled_at
+                   FROM shows s JOIN artists a ON a.id=s.artist_id
+                   WHERE s.advance_held_draft_at IS NOT NULL
+                     AND s.advance_draft_created_at IS NULL
+                     AND s.show_date >= CURRENT_DATE
+                     AND """ + _HELD_DRAFT_STALE_SQL + """
+                   ORDER BY s.show_date""")
+    for r in cur.fetchall():
+        why = "show cancelled" if r["cancelled_at"] else "band already answered"
+        out.append({"kind": "heldraft_stale", "label": "Held welcome is stale",
+                    "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: {why} — delete "
+                              f"the unsent welcome from Production@3cdc.org drafts",
+                    "link_path": f"/artist/{r['artist_id']}", "since": r["advance_held_draft_at"]})
     cur.execute("""SELECT f.*, a.name, s.venue, s.show_date FROM send_failures f
                    JOIN shows s ON s.id=f.show_id JOIN artists a ON a.id=s.artist_id
                    WHERE f.created_at > now() - interval '3 days' AND s.show_date >= CURRENT_DATE
                    ORDER BY f.id DESC""")
     for f in cur.fetchall():
-        out.append({"kind": "send", "label": f"Email not sent ({f['kind']})",
+        # 2026-09-21 sweep: a timed-out send is stamped sent, not retried — say so.
+        label = ("Send outcome unknown — check Sent Items, won't retry"
+                 if f["kind"].endswith("_unknown") else f"Email not sent ({f['kind']})")
+        out.append({"kind": "send", "label": label,
                     "detail": f"{f['name']} — {f['venue']} {f['show_date']:%m/%d}: {f['error']}",
                     "link_path": None, "since": f["created_at"]})
     cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date FROM shows s
@@ -2175,7 +2562,9 @@ def needs_attention(cur):
                    WHERE s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 21
                      AND s.cancelled_at IS NULL AND s.held_at IS NULL AND s.responded_at IS NULL
                      AND COALESCE(a.last_email, '') = ''
-                     AND lower(btrim(COALESCE(s.show_series,''))) <> '3rd party' ORDER BY s.show_date""")
+                     -- 2026-09-21 sweep (PRIOR-16): a 3rd-party show that opted in
+                     -- to band emails is listed too; only silent ones stay hidden
+                     AND NOT """ + THIRD_PARTY_SILENT_SQL + """ ORDER BY s.show_date""")
     for r in cur.fetchall():
         out.append({"kind": "noemail", "label": "No contact email",
                     "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}",
@@ -2183,7 +2572,10 @@ def needs_attention(cur):
     cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date, s.thankyou_error
                    FROM shows s JOIN artists a ON a.id=s.artist_id
                    WHERE s.thankyou_error IS NOT NULL AND s.thankyou_sent_at IS NULL
-                     AND s.show_date >= CURRENT_DATE ORDER BY s.show_date""")
+                     -- 2026-09-21 sweep (PRIOR-2): the automatic thank-you runs on past
+                     -- shows, so its failures show for the catch-up week; skips never do
+                     AND s.show_date >= CURRENT_DATE - 7
+                     AND s.thankyou_error NOT LIKE 'skipped:%' ORDER BY s.show_date""")
     for r in cur.fetchall():
         out.append({"kind": "thankyou", "label": "Thank-you not sent",
                     "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: {r['thankyou_error']}",
@@ -2192,7 +2584,7 @@ def needs_attention(cur):
                    FROM shows s JOIN artists a ON a.id=s.artist_id
                    WHERE s.responded_at IS NULL AND s.cancelled_at IS NULL AND s.held_at IS NULL
                      AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 3
-                     AND NOT EXISTS (SELECT 1 FROM submissions x WHERE x.show_id = s.id)
+                     AND NOT """ + BAND_ANSWERED_SQL + """
                      AND NOT (lower(btrim(COALESCE(s.show_series,''))) = '3rd party' AND COALESCE(a.last_email,'') = '')
                      AND NOT """ + THIRD_PARTY_SILENT_SQL + """
                    ORDER BY s.show_date""")
@@ -2242,6 +2634,11 @@ def queue_fsq_parking(cur, *, artist_id, show_id, band, venue, show_date,
     A full snapshot is stored, not just the ids, so a later edit or purge of
     the show can't change what already went out, or silently drop a pending
     item. Returns the new row's id."""
+    if show_id:
+        # 2026-09-21 sweep (FLOW-10): newest numbers replace an undelivered row, so the
+        # digest never lists a band twice; delivered rows stay, so a later change still goes out
+        cur.execute("DELETE FROM fsq_parking_queue WHERE show_id=%s AND digested_at IS NULL",
+                    (show_id,))
     cur.execute(
         """INSERT INTO fsq_parking_queue
                (artist_id, show_id, band, venue, show_date, contact_name,
@@ -2357,6 +2754,9 @@ def purge_show(cur, show_id):
         elif acts_left == 0:
             event_kept = act_row["event_id"]
 
+    # 2026-09-21 sweep (PIPE-4): a purged orphan releases its 'possible correction'
+    # candidates, same as Cancel/Restore/Merge — else they stay held on a dead id.
+    release_candidate_holds(cur, show_id)
     cur.execute("DELETE FROM shows WHERE id=%s", (show_id,))
 
     if artist_row and show_date:
@@ -2398,6 +2798,20 @@ def release_candidate_holds(cur, orphan_show_id):
                 (f"possible correction of show {orphan_show_id}",))
 
 
+def release_stale_candidate_holds(cur):
+    """'possible correction of show N' holds whose orphan N is gone or no longer
+    held (2026-09-21 sweep, PIPE-4: any path that drops an orphan without
+    releasing its candidates — holds.run sweeps these up nightly)."""
+    cur.execute("""UPDATE shows c SET held_at = NULL, hold_reason = NULL, hold_dismissed_at = now()
+                   WHERE c.held_at IS NOT NULL AND c.cancelled_at IS NULL
+                     AND c.hold_reason ~ '^possible correction of show [0-9]+$'
+                     AND NOT EXISTS (SELECT 1 FROM shows o
+                                     WHERE o.id = substring(c.hold_reason from '([0-9]+)$')::int
+                                       AND o.held_at IS NOT NULL AND o.cancelled_at IS NULL)
+                   RETURNING c.id""")
+    return [r["id"] for r in cur.fetchall()]
+
+
 def merge_shows(cur, old_id, new_id, tombstone=True):
     """Typo fix: everything recorded against old_id moves to new_id, then the
     old record is deleted. Send history carries over, so the corrected show
@@ -2426,9 +2840,11 @@ def merge_shows(cur, old_id, new_id, tombstone=True):
     cur.execute("""INSERT INTO advance_reminders (show_id, days_before, drafted_at, sent)
                    SELECT %s, days_before, drafted_at, sent FROM advance_reminders WHERE show_id=%s
                    ON CONFLICT (show_id, days_before) DO NOTHING""", (new_id, old_id))
-    cur.execute("""UPDATE advance_recaps SET show_id=%s WHERE show_id=%s
+    # 2026-09-21 sweep (DBB-7): artist_id moves too — its ON DELETE CASCADE
+    # would drop the recap when the old artist row is deleted below.
+    cur.execute("""UPDATE advance_recaps SET show_id=%s, artist_id=%s WHERE show_id=%s
                    AND NOT EXISTS (SELECT 1 FROM advance_recaps WHERE show_id=%s)""",
-                (new_id, old_id, new_id))
+                (new_id, new["artist_id"], old_id, new_id))
     cur.execute("UPDATE submission_matches SET booked_show_id=%s WHERE booked_show_id=%s",
                 (new_id, old_id))
     cur.execute(
@@ -2464,8 +2880,12 @@ def merge_shows(cur, old_id, new_id, tombstone=True):
                  AND lower(btrim(regexp_replace(b.artist_name, '\\s+', ' ', 'g'))) = %s""",
             (old["venue"], old["show_date"], old_artist["match_key"]))
     cur.execute("DELETE FROM shows WHERE id=%s", (old_id,))
+    release_candidate_holds(cur, old_id)  # 2026-09-21 sweep (PIPE-4): carry's merge path skipped it
     retired = reregister_docs_for_move(cur, old["venue"], old["show_date"],
                                        new["venue"], new["show_date"], retire=tombstone)
+    if old["artist_id"] != new["artist_id"]:
+        # 2026-09-21 sweep: keep the doc's column + hand edits with the show's new artist id
+        remap_doc_artist(cur, new["venue"], new["show_date"], old["artist_id"], new["artist_id"])
     if tombstone and old_artist and old["show_date"]:
         add_sheet_removal(cur, old["venue"], old["show_date"], old_artist["match_key"],
                           old_artist["name"], reason="merge", doc_path=retired)
@@ -2514,7 +2934,10 @@ def unresponded_shows_at(cur, venue, show_date):
            FROM shows s JOIN artists a ON a.id = s.artist_id
            WHERE s.venue=%s AND s.show_date=%s AND s.cancelled_at IS NULL
              AND s.responded_at IS NULL
-             AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.show_id = s.id)
+             -- 2026-09-21 sweep: staff-typed booking answers never stop the
+             -- real band submission attaching to its booked show
+             AND NOT EXISTS (SELECT 1 FROM submissions sub
+                             WHERE sub.show_id = s.id AND sub.source <> 'staff')
            ORDER BY s.id""", (venue, show_date))
     return cur.fetchall()
 
@@ -2549,8 +2972,11 @@ def reattach_submission(cur, submission_id, target_show_id, delete_empty_source=
     if delete_empty_source:
         _release_show_if_empty(cur, old_show, old_artist)
     else:
+        # 2026-09-21 sweep: staff-typed booking answers never stamp responded_at, so a
+        # show left with only those goes back to unresponded (its reminders resume)
         cur.execute("""UPDATE shows SET responded_at = NULL WHERE id=%s
-                       AND NOT EXISTS (SELECT 1 FROM submissions WHERE show_id=%s)""",
+                       AND NOT EXISTS (SELECT 1 FROM submissions
+                                       WHERE show_id=%s AND source <> 'staff')""",
                     (old_show, old_show))
 
 
@@ -2567,13 +2993,17 @@ def _release_show_if_empty(cur, show_id, artist_id):
     if show_id:
         cur.execute("""SELECT advance_draft_created_at, finalized_at FROM shows WHERE id=%s""", (show_id,))
         row = cur.fetchone()
-        cur.execute("SELECT count(*) AS n FROM submissions WHERE show_id=%s", (show_id,))
-        n = cur.fetchone()["n"]
-        if row and n == 0:
-            if row["advance_draft_created_at"] is None and row["finalized_at"] is None:
-                cur.execute("DELETE FROM shows WHERE id=%s", (show_id,))
-            else:
-                cur.execute("UPDATE shows SET responded_at=NULL WHERE id=%s", (show_id,))
+        # 2026-09-21 sweep: delete only with no submissions at all, but reset responded_at
+        # whenever no band answer remains (staff-typed rows never stamp it)
+        cur.execute("""SELECT count(*) AS n, count(*) FILTER (WHERE source <> 'staff') AS band_n
+                       FROM submissions WHERE show_id=%s""", (show_id,))
+        counts = cur.fetchone()
+        n = counts["n"]
+        if (row and n == 0 and row["advance_draft_created_at"] is None
+                and row["finalized_at"] is None):
+            cur.execute("DELETE FROM shows WHERE id=%s", (show_id,))
+        elif row and counts["band_n"] == 0:
+            cur.execute("UPDATE shows SET responded_at=NULL WHERE id=%s", (show_id,))
     if artist_id:
         cur.execute("""DELETE FROM artists a WHERE a.id=%s
                        AND NOT EXISTS (SELECT 1 FROM shows WHERE artist_id=a.id)

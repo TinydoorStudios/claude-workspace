@@ -11,19 +11,27 @@ GitHub, or on the machine that made it.
 Cold Storage `/mnt/The-Pool/ClaudeBackup/band-advance/`.
 **Retention (swapped 2026-09-10):** Audio NAS is the short-term primary — a flat
 rotating **8**, newest kept, oldest deleted every run. Cold Storage is the
-long-term archive: 12 weekly plus every 1st-of-month for 24 months, a real
-two-year tail. 4 kept locally on the VM.
+long-term archive: 12 weekly plus the first archive of each calendar month for
+24 months, a real two-year tail. 4 kept locally on the VM. (Until 2026-09-21 the
+monthly rule matched only archives dated the 1st, which a Sunday timer rarely
+produces, so the tail barely formed.)
 **Report:** every run emails blloyd@3cdc.org from the n8n workflow
 **Band Advance — Backup Report**, with both boxes' status reported side by side.
 
 **Also, Cold Storage only (added 2026-09-11):** a second, completely different
 kind of backup — a plain, uncompressed mirror of the live Dropbox `Nyquist/`
 folder at `/mnt/The-Pool/ClaudeBackup/band-advance-dropbox-mirror/`. No tar, no
-zip, nothing to extract: in an emergency, every advance doc, template, and
-status sheet is just sitting there, openable directly. It's a true mirror
+zip, nothing to extract: in an emergency, every template, email draft and
+status sheet is just sitting there, openable directly. That one is a true mirror
 (`rsync --delete`) of what's in Dropbox right now, not a version history —
-that's what the tarball archive above is for. Deliberately not also on Audio
-NAS; the tarball archive already covers that box.
+that's what the tarball archive above is for. Since 2026-09-12 the filed
+`Prod Adv.docx` files live in the real `3CDC <Venue>` folders, not `Nyquist/`,
+so they go beside it (added 2026-09-21) to
+`/mnt/The-Pool/ClaudeBackup/band-advance-dropbox-mirror-filed/`, at their
+Dropbox-root-relative paths. Only the docs in the `filed_docs` registry are
+copied, never the whole team folders. That copy accumulates (no `--delete`), so
+a doc deleted or renamed in Dropbox survives there. Deliberately not also on
+Audio NAS; the tarball archive already covers that box.
 
 ---
 
@@ -51,7 +59,8 @@ verifies the sha256 on the Mac, ships it to the VM, and runs the archive's own
 restore. `--list` shows what exists, `--archive NAME` picks one, `--host` aims
 at different hardware, `--fetch-only` just downloads it.
 
-If the Mac is gone too, the archive restores itself on any Debian box:
+If the Mac is gone too, the archive restores itself on any Debian 12 box with
+Docker Compose v2 (from Docker's apt repo):
 
 ```bash
 tar xzf band-advance-YYYYMMDD-HHMMSS.tar.gz
@@ -77,11 +86,16 @@ Everything the pipeline is made of, from the one machine that holds all of it:
   day-sheet templates, the `.j2` email templates, and the list templates, with
   python deps pinned to exactly what was running.
 - **The Dropbox Advancing cockpit** — `advance-list.xlsx`, `Show Status Log.xlsx`,
-  `Blank Advances/`, `Series Email Templates/`, the FSQ and WP venue archives,
+  `Blank Advances/`, `Series Email Templates/`, the email drafts,
   `_template/`, `_bin/`, `generate.command`.
+- **The filed advance docs** — every `<MMDDYY> <Event> Prod Adv.docx` the
+  `filed_docs` registry knows, copied out of the real `3CDC <Venue>` folders
+  (staff hand edits included) into `dropbox/filed/`. `restore.sh` never writes
+  them back into the shared folders; RESTORE.md has the one-line copy.
 - **n8n** — every workflow definition, which ones were switched on (import
-  doesn't carry that, so the restore replays it), the credentials, and the whole
-  n8n database as a backstop.
+  doesn't carry that, so the restore replays it), the credentials (still
+  encrypted with n8n's key — `--with-n8n` imports them), and the whole n8n
+  database as a manual backstop.
 - **Host wiring** — systemd units, both compose files, IPs, versions, and the
   Cloudflare tunnel facts you'd otherwise have to rediscover.
 - **Secrets** — separately, in `secrets.tar.gz.gpg` (AES256, passphrase in
@@ -91,8 +105,9 @@ Everything the pipeline is made of, from the one machine that holds all of it:
 
 Everything except that one file is plaintext, so a restore **always** works.
 If the passphrase is ever lost, `restore.sh` generates fresh credentials and
-carries on: outstanding `/f/<token>` prefill links stop working and the Graph
-credential must be re-entered, and that is the entire cost. A forgotten
+carries on: outstanding `/f/<token>` prefill links stop working and every n8n
+credential (Graph first) must be re-entered, because the archived export can't
+be decrypted without n8n's key. That is the entire cost. A forgotten
 passphrase can never hold the data hostage.
 
 ---
@@ -146,7 +161,8 @@ $VM 'ls -t /var/log/band-advance/*.log | head -1 | xargs tail -40'
 
 Settings can be overridden without editing the script — put them in
 `/etc/band-advance-backup.conf` on the VM (`KEEP_LOCAL`, `NOTIFY`, `NOTIFY_TO`,
-`NOTIFY_ONLY_ON_FAIL`, `NOTIFY_URL`, `TARGETS`, `MIRROR_DIR`).
+`NOTIFY_ONLY_ON_FAIL`, `NOTIFY_URL`, `TARGETS`, `MIRROR_DIR`, `FILED_MIRROR_DIR`,
+`DROPBOX_ROOT`).
 
 Per-box retention lives in the `TARGETS` array, one line per NAS:
 
@@ -154,8 +170,8 @@ Per-box retention lives in the `TARGETS` array, one line per NAS:
 name|ssh-destination|remote-directory|keep|monthly
 ```
 
-`keep` is how many archives that box holds, rotating. `monthly` is extra
-1st-of-month archives kept on top — `0` means a flat rotation, which is what
+`keep` is how many archives that box holds, rotating. `monthly` is how many
+months get their first archive kept on top — `0` means a flat rotation, which is what
 Audio NAS runs (the short-term primary). Cold Storage runs the deeper
 12-weekly-plus-24-monthly profile — the long-term, two-year archive.
 
@@ -183,8 +199,9 @@ actually fine.
 - **The git history.** The deployed code is captured in full, which is what a
   rebuild needs. History lives on GitHub and in the nightly
   `com.tinydoor.claude-backup` rsync of `~/Documents/Claude` to the same NAS.
-- **Dropbox account linking** on a fresh host — manual, and selective sync must
-  be set to `Nyquist/` only before the client is allowed to write.
+- **Dropbox account linking** on a fresh host — manual; afterwards run
+  `ops/dropbox_exclude.sh` (keeps `Nyquist/` + the seven `3CDC <Venue>` folders
+  the advance docs file into) before the client is allowed to write.
 
 ---
 

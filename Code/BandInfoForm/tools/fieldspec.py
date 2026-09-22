@@ -186,7 +186,9 @@ def top_of_bill_name(acts):
     specifically so a submit doesn't have to touch every file) both call
     this and event_display_name below, so there's exactly one place that
     decides what an event's filename looks like, not two copies that can
-    drift apart."""
+    drift apart. 2026-09-21 sweep (DAY-6): those filing callers pass only the
+    acts still playing (docmerge.filing_display_name), so a cancelled
+    headliner never names the file."""
     for a in reversed(acts):
         if a.get("artist"):
             return a["artist"]["name"]
@@ -390,5 +392,18 @@ def safe_save_workbook(wb, path, loaded_hash):
             f"{path} changed on disk since it was loaded — not saving over it")
     path = Path(path)
     tmp = path.with_suffix(path.suffix + f".tmp-{os.getpid()}")
+    reanchor_hyperlinks(wb)
     wb.save(tmp)
     os.replace(tmp, path)
+
+
+def reanchor_hyperlinks(wb):
+    """2026-09-21 sweep (PIPE-1): openpyxl's delete_rows/delete_cols move Cell
+    objects without updating Hyperlink.ref, and the writer emits each link at
+    that stale ref — so a row delete pasted every Stage Plot link below it onto
+    the next band's row. Point each link back at the cell that holds it."""
+    for ws in wb.worksheets:
+        for cell in getattr(ws, "_cells", {}).values():
+            link = getattr(cell, "hyperlink", None)
+            if link is not None and link.ref != cell.coordinate:
+                link.ref = cell.coordinate

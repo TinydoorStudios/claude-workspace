@@ -4,7 +4,8 @@
 A show that is no longer in the advance sheet (row deleted, or a date / venue /
 band name corrected — which makes a NEW show row) must never keep emailing a
 band. After every package run this compares every current show against the
-sheet (plus bookings not seeded into it yet). A show missing from both is put
+sheet (plus every future booking's current details — unseeded, or edited in
+the app and not synced to the sheet yet). A show missing from both is put
 ON HOLD — no sends of any kind — and Brian gets one email with Cancel /
 Restore / "typo for → corrected show" (merge) choices.
 
@@ -55,19 +56,63 @@ def _names_plausible_correction(a, b):
     return SequenceMatcher(None, x, y).ratio() >= 0.6
 
 
+def sheet_correction(b, old_ident, in_sheet, unbooked):
+    """2026-09-21 sweep (PIPE-3): the unbooked future sheet row that looks like Brian's
+    rename/move of booking `b`'s row, or None while that row is still there under b's
+    current ident or `old_ident`. Shared by run_now 1b/1c and the dirty idents below."""
+    ib = _ident(b.get("artist_name"), b.get("venue"), b.get("event_date"))
+    if ib in in_sheet:
+        return None
+    if old_ident and _ident(old_ident.get("artist_name"), old_ident.get("venue"),
+                            old_ident.get("event_date")) in in_sheet:
+        return None
+    return next((u for u in unbooked
+                 if (u[1:] == ib[1:] and u[0] != ib[0]
+                     and _names_plausible_correction(u[0], ib[0]))
+                 or (u[0] == ib[0] and u[1:] != ib[1:])), None)
+
+
 def run(sheet_path, send_mail=True, dry_run=False):
     import mailer
+    # 2026-09-21 sweep (PIPE-4): a candidate held against an orphan that was since
+    # purged/merged away stays held forever otherwise. Sheet-independent, so it runs first.
+    if not dry_run:
+        with db.get_conn() as conn, conn.cursor() as cur:
+            released = db.release_stale_candidate_holds(cur)
+            conn.commit()
+        if released:
+            print(f"  released {len(released)} stale 'possible correction' hold(s): {released}")
     rows = read_advance_sheet(sheet_path)
     idents = {_ident(r.get("artist_name"), r.get("venue"), r.get("event_date")) for r in rows}
     with db.get_conn() as conn, conn.cursor() as cur:
-        for b in db.unseeded_bookings(cur):
-            idents.add(_ident(b.get("artist_name"), b.get("venue"), b.get("event_date")))
+        # 2026-09-21 sweep (FLOW-11): shows BEFORE bookings — an app rename/move commits
+        # both rows in one transaction, so any renamed show read here has its booking below.
         active = [s for s in db.active_future_shows(cur)
                   if s["held_at"] is None and s["hold_dismissed_at"] is None]
         cur.execute("""SELECT DISTINCT sub.show_id FROM submission_matches m
                        JOIN submissions sub ON sub.id = m.submission_id
                        WHERE m.status = 'pending_pick' AND m.resolved_at IS NULL""")
         pending = {r["show_id"] for r in cur.fetchall()}
+        # ...and every dirty future booking's CURRENT ident, not just unseeded ones: one edited
+        # in the app mid-run (sheet_dirty) isn't on the sheet until the next run's step 1b.
+        # 2026-09-21 sweep (PIPE-3): dirty only — a clean one's row is on the sheet (1c re-adds a
+        # lost row), so one that isn't was renamed/moved there by Brian and has to orphan.
+        booked = list(db.unseeded_bookings(cur))
+        cur.execute("SELECT * FROM bookings WHERE event_date >= CURRENT_DATE AND sheet_dirty")
+        dirty = cur.fetchall()
+        # 2026-09-21 sweep (PIPE-3): a dirty one whose row is gone but has a look-alike
+        # correction row isn't re-added by 1b either, so it orphans too and Brian merges.
+        cur.execute("SELECT artist_name, venue, event_date FROM bookings "
+                    "WHERE event_date >= CURRENT_DATE")
+        all_booked = {_ident(b["artist_name"], b["venue"], b["event_date"])
+                      for b in cur.fetchall()}
+        today = dt.date.today().isoformat()
+        unbooked = [i for i in idents if i not in all_booked and i[2] and i[2] >= today]
+        booked += [b for b in dirty
+                   if not (b.get("seeded_at") and b.get("sheet_ident")
+                           and sheet_correction(b, b["sheet_ident"], idents, unbooked))]
+        for b in booked:
+            idents.add(_ident(b.get("artist_name"), b.get("venue"), b.get("event_date")))
 
     if not rows:
         print("  ! holds: sheet read returned no rows — skipped")

@@ -11,6 +11,7 @@ re-run after editing the sheet and it updates in place. Emailing is separate
 """
 import argparse
 import datetime as dt
+import os
 import sys
 from pathlib import Path
 
@@ -22,6 +23,8 @@ for _cand in (HERE.parent, HERE.parent / "app"):
 import advance_db as db
 from sheet import read_advance_sheet
 import fieldspec as fs
+
+PUBLIC_URL = os.environ.get("ADVANCE_PUBLIC_URL", "https://advance.tinydoorstudios.com")
 
 
 def to_date(s):
@@ -70,15 +73,28 @@ def _report_clashes(clashes):
         import mailer
     except ImportError:
         return
-    rows = "".join(f"<li>{mailer.esc(v)} {mailer.esc(d)} — {mailer.esc(e or '')}: <b>{mailer.esc(f1)}</b> and "
-                   f"<b>{mailer.esc(s2)}</b> both start at <i>{mailer.esc(ss or 'no time')}</i>. "
-                   f"Both are in the advance doc, in the order they were entered.</li>"
-                   for _n, v, d, e, ss, f1, s2 in new)
     # review 2026-09-14 (E1): rides the digest, not its own email
     with db.get_conn() as conn, conn.cursor() as cur:
+        # 2026-09-21 sweep (FLOW-12): a booked act's Start is fixed on its Edit page —
+        # a sheet-only fix never reaches the bookings row (band emails) and is
+        # reverted by the next app edit. No link = a hand-typed sheet row.
+        def _edit_link(v, d, name):
+            if not db.find_booking(cur, v, to_date(d), name):
+                return ""
+            show = db.show_for_booking(cur, name, v, to_date(d))
+            return f' (<a href="{PUBLIC_URL}/show/{show["id"]}/edit">edit</a>)' if show else ""
+
+        rows = "".join(f"<li>{mailer.esc(v)} {mailer.esc(d)} — {mailer.esc(e or '')}: <b>{mailer.esc(f1)}</b>"
+                       f"{_edit_link(v, d, f1)} and "
+                       f"<b>{mailer.esc(s2)}</b>{_edit_link(v, d, s2)} both start at "
+                       f"<i>{mailer.esc(ss or 'no time')}</i>. "
+                       f"Both are in the advance doc, in the order they were entered.</li>"
+                       for _n, v, d, e, ss, f1, s2 in new)
         db.queue_digest_item(cur, "set_time_clash", f"Same set start on one bill — {len(new)} to fix",
-                             f"<p>Fix the Start column in advance-list.xlsx — it decides who is "
-                             f"Artist 1:</p><ul>{rows}</ul>")
+                             f"<p>Change one of the two start times. It decides who is Artist 1. "
+                             f"For an act with an edit link, change it there so the sheet, the doc "
+                             f"and the band's emails all agree. An act with no link is a hand-typed "
+                             f"sheet row: fix its Start column in advance-list.xlsx.</p><ul>{rows}</ul>")
         db.mark_doc_notices_notified(cur, [n[0] for n in new])
         conn.commit()
 
@@ -118,11 +134,13 @@ def main():
         # audit 2026-09-16 #18: the truncate used to run in package_run.py
         # BEFORE this script was even invoked, so an unreadable/mid-sync
         # sheet (the empty-rows exit above) left events/event_acts wiped
-        # until the next good run. It lives here now, in the same
-        # transaction as the first group's insert (below) — read_advance_
-        # sheet has already succeeded and rows is non-empty by this point,
-        # and any failure before that first commit rolls the truncate back
-        # too, so a bad run never leaves the model empty.
+        # until the next good run. It lives here now, and (2026-09-21 sweep,
+        # PRIOR-10) the truncate plus the WHOLE rebuild is one transaction with
+        # a single commit after the last group: a bad row anywhere rolls back to
+        # the previous model instead of leaving it half-built. The truncate's
+        # ACCESS EXCLUSIVE lock is held for the import's few seconds — readers
+        # wait rather than see a partial model. 2026-09-21 sweep (PIPE-6): so nothing
+        # in the loop may open a second connection touching events/event_acts (it'd hang).
         with conn.cursor() as cur:
             cur.execute("TRUNCATE events, event_acts RESTART IDENTITY CASCADE;")
         for (ename, edate, evenue), acts in groups.items():
@@ -166,7 +184,7 @@ def main():
                     cancelled = bool(show and show.get("cancelled_at"))
                     cancelled_flags[id(a)] = cancelled
                     if not cancelled:
-                        st = db.parse_clock((a.get("event_start") or "").strip())
+                        st = db.parse_clock(str(a.get("event_start") or "").strip())
                         if st is not None:
                             real_starts.add(st)
                 for a in acts:
@@ -177,11 +195,11 @@ def main():
                         print(f"  skip {name} {edate}: removed in the app, sheet row pending deletion")
                         continue
                     cancelled = cancelled_flags.get(id(a), False)
-                    start_min = db.parse_clock((a.get("event_start") or "").strip())
+                    start_min = db.parse_clock(str(a.get("event_start") or "").strip())
                     if cancelled and start_min is not None and start_min in real_starts:
                         print(f"  skip {name} {edate}: cancelled, a new booking took its {a.get('event_start')} slot")
                         continue
-                    start = (a.get("event_start") or "").strip()
+                    start = str(a.get("event_start") or "").strip()
                     if start and not cancelled:
                         prior = by_start.get(db.parse_clock(start))
                         if prior and db.normalize(prior) != db.normalize(name):
@@ -193,8 +211,9 @@ def main():
                     if to_date(edate) and to_date(edate) < today:
                         # a past row never mints an artist — only an act for a
                         # band already on file (the recap/status paths read those)
-                        cur.execute("SELECT id FROM artists WHERE match_key=%s",
-                                    (db.normalize(a["artist_name"]),))
+                        # 2026-09-21 sweep (DBA-3): key computed in SQL, same as the column
+                        cur.execute(f"SELECT id FROM artists WHERE match_key = {db._SQL_MATCH_KEY}",
+                                    (a["artist_name"],))
                         hit = cur.fetchone()
                         if not hit:
                             continue
@@ -205,14 +224,21 @@ def main():
                     # band-detail overrides typed into the sheet (non-empty only)
                     sheet_fields = {k: a[k] for k in fs.BAND_KEYS
                                     if a.get(k) not in (None, "")}
+                    # 2026-09-21 sweep (PRIOR-8): a Contact Name equal to the booking's was
+                    # seeded by append_bookings (before today), not typed by Brian — no override.
+                    if sheet_fields.get("contact_name"):
+                        bk = db.find_booking(cur, evenue, to_date(edate), name)
+                        if bk and db.normalize(bk.get("contact_name") or "") == \
+                                db.normalize(str(sheet_fields["contact_name"])):
+                            sheet_fields.pop("contact_name")
                     db.add_act(cur, eid, artist_id, set_time=a.get("set_time"),
                                set_start=a.get("event_start"), set_end=a.get("event_end"),
                                load_in=a.get("load_in"), soundcheck=a.get("soundcheck"),
                                sheet_fields=sheet_fields)
                     acts_made += 1
-            conn.commit()
             print(f"  event: {ename or '(unnamed)'} @ {evenue or '?'} {edate or '?'} "
                   f"— {len(acts)} act(s)")
+        conn.commit()
 
     if clashes:
         _report_clashes(clashes)

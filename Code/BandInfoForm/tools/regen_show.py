@@ -14,6 +14,8 @@ his Keep doc / Use new call on /doc-review (2026-09-14).
 """
 import argparse
 import datetime as dt
+import fcntl
+import html
 import sys
 from pathlib import Path
 
@@ -51,25 +53,58 @@ def regen(venue, date, artist, send_mail=True, submission_id=None):
     # and skip the doc. Take the same lock the package run holds — wait for
     # it, then file against the rebuilt model.
     from run_now import acquire_lock
-    lock = acquire_lock()
-    res = None
+    # 2026-09-21 sweep (DOC-6): the lock wait sits inside the try, and a failure is
+    # stamped as one — the page never spins forever or claims "the doc matches the form"
+    lock = res = err = None
     try:
+        lock = acquire_lock()
         res = _regen(venue, date, artist, send_mail=send_mail)
         return res
+    except SystemExit as e:
+        # lock None -> acquire_lock's 600 s timeout; otherwise daysheet.build's sys.exit
+        err = ("busy", e) if lock is None else ("failed", e)
+        raise
+    except Exception as e:
+        err = ("failed", e)
+        raise
     finally:
         if submission_id:
-            _stamp(submission_id, res)
-        try:
-            import fcntl
-            fcntl.flock(lock, fcntl.LOCK_UN)
-            lock.close()
-        except OSError:
-            pass
+            _stamp(submission_id, res, err)
+        if err and err[0] == "failed":
+            _queue_failure(venue, date, artist, err[1])
+        if lock is not None:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_UN)
+                lock.close()
+            except OSError:
+                pass
 
 
-def _stamp(submission_id, res):
-    if res is None:
-        text = "no doc for this show yet"
+def _queue_failure(venue, date, artist, e):
+    """2026-09-21 sweep (DOC-6): a crashed doc check reaches Brian's digest, not
+    just data/regen_show.log. Never raises."""
+    try:
+        with db.get_conn() as conn, conn.cursor() as cur:
+            db.queue_digest_item(
+                cur, "pipeline_failure", f"Advance doc check failed — {artist} @ {venue} {date}",
+                f"<p>regen_show couldn't file the doc for <b>{html.escape(str(artist))}</b> @ "
+                f"{html.escape(str(venue))} {html.escape(str(date))}: {html.escape(repr(e))[:500]}</p>"
+                "<p>See data/regen_show.log. The next pipeline run tries again.</p>")
+            conn.commit()
+    except Exception as e2:  # noqa: BLE001 — the failure path must never itself crash
+        print(f"could not queue the doc-check failure: {e2!r}", file=sys.stderr)
+
+
+def _stamp(submission_id, res, err=None):
+    # 2026-09-21 sweep (DOC-6): "not checked" leads, so the 500-char cut can't drop it
+    if err and err[0] == "busy":
+        text = "not checked — a pipeline run held the lock over 10 minutes"
+    elif err:
+        e = err[1]
+        text = (f"not checked — doc check failed ({type(e).__name__}: {str(e)[:200]}); "
+                "see data/regen_show.log")
+    elif res is None:
+        text = "no event for this show yet — not checked"
     else:
         text = {"created": "doc created", "merged": f"{res.get('filled')} cell(s) written",
                 "unchanged": "no cells written", "locked": "doc is open in Word — not checked",
@@ -105,9 +140,9 @@ def regen_event(eid, send_mail=True, force=None):
 
     d = ev.get("event_date")
     folder = fs.real_dropbox_root() / fs.real_venue_folder(ev.get("venue")) / fs.real_month_folder(ev.get("venue"), d)
-    name = fs.event_display_name(ev, acts)
-    if docmerge.all_acts_cancelled(ev, acts):
-        name = f"CANCELLED - {name}"
+    # 2026-09-21 sweep (DAY-6): same name as package_run — a cancelled headliner
+    # on a live bill doesn't name the file; `acts` below keeps every act
+    name = docmerge.filing_display_name(ev, acts)
     stem = fs.advance_stem(name, d)
 
     stageplot_names, plot_notices = {}, []

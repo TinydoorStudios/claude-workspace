@@ -58,6 +58,7 @@ every venue — no honest single default for either one generalizes):
 """
 import argparse
 import copy
+import functools
 import itertools
 import os
 import re
@@ -155,6 +156,10 @@ def merged_fields(act):
     f = form_fields(act.get("submission"))
     for k, v in (act.get("sheet_fields") or {}).items():
         if v not in (None, ""):
+            # 2026-09-21 sweep (DAY-4): a number typed into the sheet (Contact Phone
+            # 5135550100) arrives as int/float — text it here so .strip() can't crash.
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                v = str(int(v)) if isinstance(v, float) and v.is_integer() else str(v)
             f[k] = v
     return f
 
@@ -247,8 +252,9 @@ def act_row_values(f):
     if f.get("backline"):
         out["backline"] = f["backline"]
     # Salsa stage-escort rep (audit #15) goes under the main contact.
-    esc_name, esc_cell = (f.get("stage_escort_name") or "").strip(), (f.get("stage_escort_cell") or "").strip()
-    name, cell = (f.get("contact_name") or "").strip(), (f.get("contact_phone") or "").strip()
+    # 2026-09-21 sweep (DAY-4): str() — a non-text sheet value must never crash the doc.
+    esc_name, esc_cell = str(f.get("stage_escort_name") or "").strip(), str(f.get("stage_escort_cell") or "").strip()
+    name, cell = str(f.get("contact_name") or "").strip(), str(f.get("contact_phone") or "").strip()
     if esc_name and name and norm(esc_name) == norm(name):
         name = f"{name} (stage escort)"
     elif esc_name:
@@ -619,7 +625,7 @@ def _tour_engineer_cols(acts, n):
     for a in acts or []:
         if a.get("_cancelled"):
             continue
-        oe = (merged_fields(a).get("own_engineer") or "").strip().lower()
+        oe = str(merged_fields(a).get("own_engineer") or "").strip().lower()   # 2026-09-21 sweep (DAY-4)
         if oe.startswith("yes") and _act_col(a, n):
             cols.add(_act_col(a, n))
     return cols
@@ -659,6 +665,16 @@ def fill_event_type(grid, event, n=1):
             return
 
 
+def _staffing_hints(event, acts):
+    """2026-09-21 sweep (RPT-6): the double-booked-day hints staffing needs —
+    one source for the Engineer row and the Crew Call/Curfew rows."""
+    real = sorted((a for a in (acts or []) if a.get("artist") and not a.get("_cancelled")),
+                  key=lambda a: a.get("artist_order") or 0)
+    return {"series": event.get("series"), "event_name": event.get("name"),
+            "artist_name": real[0]["artist"]["name"] if real else None,
+            "event_start": real[0].get("set_start") if real else None}
+
+
 def fill_engineer(grid, event, n, acts=None):
     """Engineer row (FOH – / Mon –), same house value repeated into every
     act column — it's one FOH engineer and one Mon engineer for the whole
@@ -690,14 +706,8 @@ def fill_engineer(grid, event, n, acts=None):
             # FSQ 9/25 (a same-day 3rd-party booking sharing the sheet's
             # date with Final Fridays) is exactly the case that needed the
             # hint and silently stopped getting one.
-            real = sorted((a for a in (acts or []) if a.get("artist") and not a.get("_cancelled")),
-                          key=lambda a: a.get("artist_order") or 0)
-            anchor_start = real[0].get("set_start") if real else None
-            names = staffing.engineers_for(
-                venue, date.isoformat(),
-                series=event.get("series"), event_name=event.get("name"),
-                artist_name=real[0]["artist"]["name"] if real else None,
-                event_start=anchor_start)
+            names = staffing.engineers_for(venue, date.isoformat(),
+                                           **_staffing_hints(event, acts))
         except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the fill
             print(f"[daysheet] engineer lookup failed: {e!r}", file=sys.stderr)
             names = {}
@@ -778,7 +788,10 @@ def _artist_schedule_times(acts, event):
     written before the per-act columns existed keep filling in."""
     out = {}
     det = event.get("details") or {}
-    real = sorted((a for a in (acts or []) if not a.get("_cancelled") and a.get("artist")),
+    # 2026-09-21 sweep (DAY-2): on-doc acts only (artist_order <= 3, as the AUDIO grid) —
+    # a 4th act took role 3 over Artist 3's times while the grid still showed Artist 3.
+    real = sorted((a for a in (acts or []) if not a.get("_cancelled") and a.get("artist")
+                   and (a.get("artist_order") or 1) <= 3),
                  key=lambda a: a.get("artist_order") or 0)
     n = len(real)
     for rank, a in enumerate(real, start=1):
@@ -888,7 +901,10 @@ def name_schedule_labels(table, acts):
     Runs LAST, after the times are in, and over whatever rows the table ended
     up with — so it covers a locked series schedule (which replaces every row
     wholesale from the series file) exactly the same as the template's own."""
-    real = sorted((a for a in (acts or []) if a.get("artist") and not a.get("_cancelled")),
+    # 2026-09-21 sweep (DAY-2): the same on-doc acts _artist_schedule_times places
+    # (artist_order <= 3) — an off-doc 4th act never takes Artist 3's schedule rows.
+    real = sorted((a for a in (acts or []) if a.get("artist") and not a.get("_cancelled")
+                   and (a.get("artist_order") or 1) <= 3),
                  key=lambda a: a.get("artist_order") or 0)
     n = len(real)
     names = {}
@@ -896,6 +912,8 @@ def name_schedule_labels(table, acts):
         names[_schedule_role(rank, n)] = a["artist"]["name"]
     for a in acts or []:
         if not a.get("artist") or not a.get("_cancelled"):
+            continue
+        if (a.get("artist_order") or 1) > 3:
             continue
         role = min(a.get("artist_order") or 1, 3)
         if role not in names:
@@ -928,6 +946,10 @@ def name_schedule_labels(table, acts):
                             and not any(int(t) in names for t in _ARTIST_TOKEN.findall(f)))
                 ]
                 new = " / ".join(k for k in kept if k)
+                if not new:
+                    # 2026-09-21 sweep (DAY-5): nobody plays any half of this row — a
+                    # locked series time (513 Airwaves) must not sit there unlabelled.
+                    set_cell(row.cells[0], "")
         else:
             continue              # Crew Call, Load Out, Curfew — nobody's row
         if new != label:
@@ -977,12 +999,19 @@ def fill_crew_schedule(doc, event, acts=None):
     # derived times. Crew Call and Curfew come from the staffing sheet's Event
     # cell when present (Brian, 2026-09-11, all sites — 'Jazz (3:30-10)'); they
     # fall back to computed (crew = start - 2:00) / booking curfew otherwise.
+    # 2026-09-21 sweep (RPT-6): on a double-booked day nothing disambiguates,
+    # the sheet times are skipped and the computed fallback applies.
     det = event.get("details") or {}
     per_artist = _artist_schedule_times(acts, event)
     # Crew call is anchored on the FIRST load-in of the day — whoever that is —
     # falling back to the earliest set start, then the event's own start.
-    load_ins = [t.get("load-in") for t in per_artist.values() if t.get("load-in")]
-    starts = [t.get("set starts") for t in per_artist.values() if t.get("set starts")]
+    # 2026-09-21 sweep (DAY-2): the anchor still covers every real act, incl. an
+    # off-doc one (artist_order > 3) — per_artist no longer carries it.
+    everyone = [a for a in (acts or []) if a.get("artist") and not a.get("_cancelled")]
+    load_ins = ([t.get("load-in") for t in per_artist.values() if t.get("load-in")]
+                + [a["load_in"] for a in everyone if a.get("load_in")])
+    starts = ([t.get("set starts") for t in per_artist.values() if t.get("set starts")]
+              + [a["set_start"] for a in everyone if a.get("set_start")])
     anchor = (min(load_ins, key=lambda v: (db.parse_clock(v) is None, db.parse_clock(v) or 0))
               if load_ins else None)
     start = (min(starts, key=lambda v: (db.parse_clock(v) is None, db.parse_clock(v) or 0))
@@ -991,7 +1020,7 @@ def fill_crew_schedule(doc, event, acts=None):
     try:
         import staffing
         staff_times = staffing.event_times_for(
-            venue, event.get("event_date"), series=event.get("series")) or {}
+            venue, event.get("event_date"), **_staffing_hints(event, acts)) or {}
     except Exception:
         staff_times = {}
     crew_call = (staff_times.get("crew_call")
@@ -1063,7 +1092,8 @@ def _series_without_riser(series):
     try:
         sys.path.insert(0, str(HERE.parent))
         import forms_config
-        return bool(series) and forms_config.SERIES.get(series, {}).get("drum_riser") is False
+        # 2026-09-21 sweep (APPA-12): the form's own normalized match, any case/spacing
+        return bool(series) and forms_config.series_override(series).get("drum_riser") is False
     except Exception:
         return False
 
@@ -1120,6 +1150,21 @@ def build(event_id, template=None, stageplot_names=None):
         cancelled = {r["artist_id"] for r in cur.fetchall()}
         for a in acts:
             a["_cancelled"] = a.get("artist_id") in cancelled
+            # 2026-09-21 sweep (PRIOR-8): the staff-typed booking contact fills the doc
+            # until the band answers (it's no longer seeded into the sheet as an override).
+            if a.get("artist"):
+                bk = db.find_booking(cur, event.get("venue"), event.get("event_date"),
+                                     a["artist"]["name"])
+                a["_booking_contact_name"] = (bk or {}).get("contact_name")
+
+    # 2026-09-21 sweep (DAY-1): a cancelled act keeps its column only while the
+    # 3-column template has room — never at a real act's expense. Over 3, drop
+    # cancelled acts latest-start first, then re-derive artist_order.
+    if len(acts) > 3 and any(a["_cancelled"] for a in acts):
+        while len(acts) > 3 and any(a["_cancelled"] for a in acts):
+            drop = max((a for a in acts if a["_cancelled"]), key=db.act_sort_key)
+            acts = [a for a in acts if a is not drop]
+        acts = db.order_acts(acts)
 
     # How many artists this bill really has. The bookings table knows about an
     # artist as soon as staff logs the booking — before the act has its own
@@ -1185,6 +1230,8 @@ def build(event_id, template=None, stageplot_names=None):
         if a.get("_cancelled") or _col(a) is None:
             continue
         mf = merged_fields(a)
+        if not mf.get("contact_name") and a.get("_booking_contact_name"):
+            mf["contact_name"] = a["_booking_contact_name"]   # 2026-09-21 sweep (PRIOR-8)
         if no_riser_series and not mf.get("stage_type"):
             mf["stage_type"] = "Flat stage"  # audit #15: no risers for this series
         if a.get("set_time"):
@@ -1317,6 +1364,9 @@ def _act_count_and_column(grid, target_norm, require_name_match):
     return 1, None
 
 
+# 2026-09-21 sweep (DAY-7): cached — the template is fixed for the process, and the
+# recap lookup re-parsed the .docx once per candidate doc. Callers only .get().
+@functools.lru_cache(maxsize=4)
 def _template_defaults(ci):
     """label(norm) -> the pristine universal template's own default text in
     that act column. A filled doc's row that still matches this is unfilled

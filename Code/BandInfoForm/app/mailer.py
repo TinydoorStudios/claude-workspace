@@ -114,6 +114,13 @@ def send(to, subject, body=None, html=None, attachment=None, timeout=90, attachm
     return True, None
 
 
+def outcome_unknown(err):
+    """True when send()'s error is its unknown-outcome marker: the request
+    timed out, so Graph may have sent it anyway. 2026-09-21 sweep: every band
+    send site stamps these as sent (never auto-retried) and records <kind>_unknown."""
+    return bool(err) and str(err).startswith("TIMEOUT:")
+
+
 def alert(subject, html, to=None):
     """Brian's internal alert. (ok, error)."""
     return send(to or ALERT_TO, subject, html=html)

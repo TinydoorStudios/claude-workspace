@@ -12,7 +12,9 @@ venue_email.BILINGUAL_SERIES.
 Recorded on the show (dayahead_sent_at / dayahead_error). A failure goes
 through the same send_failures path as any other send (one alert per
 show/kind/day) and is retried by the next run only while the show is still
-tomorrow, so nothing ever goes out late as "tomorrow".
+tomorrow or today, worded for whichever it is. 2026-09-21 sweep: a send that
+timed out (outcome unknown) is stamped sent with its error kept and flagged
+dayahead_unknown for Brian to check by hand — never retried.
 
     python3 dayahead.py --dry-run --show-id 123     # print, never send
 """
@@ -64,9 +66,8 @@ def due_shows(cur):
 
 
 def _schedule_lines(r, lang="en"):
-    locked = ve.crew_schedule_for(r["venue"], r["series"]) if r.get("series") else []
-    if locked:
-        return [(label, t or "TBD") for label, t in locked]
+    """The booking's own per-act rows, TBD for a blank. 2026-09-21 sweep
+    (RPT-5): no longer the series' crew table — see _schedule_text."""
     out = []
     for key, label in SCHEDULE_ROWS:
         v = (r.get(key) or "").strip()
@@ -77,6 +78,19 @@ def _schedule_lines(r, lang="en"):
             v = v or fs.SCHEDULE_TBD
         out.append((label, v))
     return out
+
+
+def _schedule_text(r, lang="en"):
+    """The Day Schedule block, same rule as the welcome (draft_emails): a
+    series' locked '## Schedule' / '## Schedule (Español)' section verbatim,
+    else the booking's own per-act rows. 2026-09-21 sweep (RPT-5): never the
+    day-sheet crew table (crew_schedule_for is internal: 'Crew Call', 'Artist 3
+    Load-In'), and never English inside the Spanish half — schedule_block_for
+    (lang='es') returns None rather than falling back to English."""
+    block = ve.schedule_block_for(r["venue"], r["series"], lang=lang) if r.get("series") else None
+    if block:
+        return block
+    return "\n".join(f"  {t}    {label}" for label, t in _schedule_lines(r, lang=lang))
 
 
 def _day_of_contact(r):
@@ -152,7 +166,7 @@ def build_email(r):
     blocks = ve.blocks_for(r["venue"], series=r.get("series"), third_party=third_party, **extra)
     if not contact:
         blocks = ve.without_text_on_arrival(blocks, lang="en")
-    sched = "\n".join(f"  {t}    {label}" for label, t in _schedule_lines(r))
+    sched = _schedule_text(r)
     recap = _recap_lines(r)
     greeting = _greeting(r)
     body = (f"{greeting},\n\n"
@@ -175,7 +189,7 @@ def build_email(r):
                                   third_party=third_party, **extra)
         if not contact:
             blocks_es = ve.without_text_on_arrival(blocks_es, lang="es")
-        sched_es = "\n".join(f"  {t}    {label}" for label, t in _schedule_lines(r, lang="es"))
+        sched_es = _schedule_text(r, lang="es")
         greeting_es = _greeting(r, es=True)
         when_word_es = "hoy" if when_word == "today" else "mañana"
         see_you_es = "Nos vemos hoy" if when_word == "today" else "Nos vemos mañana"
@@ -203,7 +217,9 @@ def send_due(fail=None):
     for r in rows:
         email = (r.get("email") or "").strip()
         if not email:
-            if fail and not db.is_third_party(r.get("series")):
+            # 2026-09-21 sweep (PRIOR-16): due_shows already drops silent 3rd-party
+            # shows, so a 3rd-party row here opted in to band emails — say so.
+            if fail:
                 fail(r["show_id"], "dayahead", "no contact email on file")
             continue
         try:
@@ -218,6 +234,16 @@ def send_due(fail=None):
         if doc_links:
             body = f"{body}\n\n{doc_links}"
         ok, err = mailer.send(ve.with_extra_recipients(email, r.get("series")), subject, body=body)
+        if not ok and mailer.outcome_unknown(err):
+            # 2026-09-21 sweep (PRIOR-13): timed out, Graph may have sent it —
+            # stamp it sent (error kept) so the next run can't double-send.
+            with db.get_conn() as conn, conn.cursor() as cur:
+                cur.execute("UPDATE shows SET dayahead_sent_at = now(), dayahead_error = %s WHERE id=%s",
+                            (err, r["show_id"]))
+                conn.commit()
+            if fail:
+                fail(r["show_id"], "dayahead_unknown", err)
+            continue
         with db.get_conn() as conn, conn.cursor() as cur:
             if ok:
                 cur.execute("UPDATE shows SET dayahead_sent_at = now(), dayahead_error = NULL WHERE id=%s",

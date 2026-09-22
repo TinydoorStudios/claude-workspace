@@ -88,6 +88,7 @@ echo "--- 4b. n8n backup-report workflow ---"
 # Resolves the Graph credential id and the internal token on the VM, stamps them
 # into the workflow JSON, imports and publishes it. Same pattern as
 # send_internal_email.command — the secrets never land in the repo copy.
+WFRC=skipped   # 2026-09-21 sweep: step 4b's real outcome, reported in the closing banner
 TOKEN=$($SSH_VM "grep -m1 '^ADVANCE_INTERNAL_TOKEN=' /opt/band-advance/advance.env | cut -d= -f2-" | tail -1)
 if [ -z "$TOKEN" ]; then
   echo "  !! ADVANCE_INTERNAL_TOKEN not found in /opt/band-advance/advance.env — skipping workflow deploy"
@@ -127,22 +128,35 @@ for n in wf["nodes"]:
             "name": "Microsoft Graph - Production@3cdc.org (App-only)"}}
 print(json.dumps(wf, ensure_ascii=False))
 PY
-    scp -q -J tds -i "$VMKEY" /tmp/ba_wf.json "$VM:/tmp/ba_wf.json" && rm -f /tmp/ba_wf.json
-    $SSH_VM '
-      cd /opt/n8n
-      sudo docker compose cp /tmp/ba_wf.json n8n:/tmp/ba_wf.json >/dev/null
-      sudo docker compose exec -T n8n n8n import:workflow --input=/tmp/ba_wf.json 2>&1 | tail -1
-      sudo docker compose exec -T n8n n8n publish:workflow --id=band-advance-backup-report 2>&1 | tail -1
-      sudo docker compose exec -T n8n rm -f /tmp/ba_wf.json; rm -f /tmp/ba_wf.json
-      # n8n only mounts a newly imported webhook route on restart — without this
-      # the first POST to it comes back 404 from a workflow that is actually fine.
-      sudo docker compose restart n8n >/dev/null 2>&1
-      for i in $(seq 1 24); do
-        curl -sf -o /dev/null http://localhost:5678/healthz && break; sleep 5
-      done
-      sleep 15   # routes register noticeably AFTER /healthz answers 200
-    '
-    echo "  workflow imported + published (webhook: band-advance-backup-report)"
+    # 2026-09-21 sweep: `| tail -1` and the closing sleep used to mask a failed
+    # scp/import/publish, and "imported + published" printed regardless.
+    if scp -q -J tds -i "$VMKEY" /tmp/ba_wf.json "$VM:/tmp/ba_wf.json"; then
+      rm -f /tmp/ba_wf.json
+      $SSH_VM '
+        cd /opt/n8n || exit 1
+        rc=0
+        sudo docker compose cp /tmp/ba_wf.json n8n:/tmp/ba_wf.json >/dev/null || rc=1
+        if [ $rc = 0 ]; then out=$(sudo docker compose exec -T n8n n8n import:workflow --input=/tmp/ba_wf.json 2>&1) || rc=1; printf "%s\n" "$out" | tail -1; fi
+        if [ $rc = 0 ]; then out=$(sudo docker compose exec -T n8n n8n publish:workflow --id=band-advance-backup-report 2>&1) || rc=1; printf "%s\n" "$out" | tail -1; fi
+        sudo docker compose exec -T n8n rm -f /tmp/ba_wf.json >/dev/null 2>&1; rm -f /tmp/ba_wf.json
+        [ $rc = 0 ] || exit $rc
+        # n8n only mounts a newly imported webhook route on restart — without this
+        # the first POST to it comes back 404 from a workflow that is actually fine.
+        sudo docker compose restart n8n >/dev/null 2>&1
+        for i in $(seq 1 24); do
+          curl -sf -o /dev/null http://localhost:5678/healthz && break; sleep 5
+        done
+        sleep 15   # routes register noticeably AFTER /healthz answers 200
+      '
+      WFRC=$?
+    else
+      echo "  !! SCP FAILED"; rm -f /tmp/ba_wf.json; WFRC=1
+    fi
+    if [ "$WFRC" = 0 ]; then
+      echo "  workflow imported + published (webhook: band-advance-backup-report)"
+    else
+      echo "  !! workflow import/publish FAILED (exit $WFRC) — the previously published version (if any) is still live"
+    fi
   fi
 fi
 
@@ -171,7 +185,7 @@ for pair in "$NAS_COLD|$DIR_COLD|coldstorage" "$NAS_AUDIO|$DIR_AUDIO|audionas"; 
 done
 
 echo
-echo "=== installer done (backup exit $RC) — $(date) ==="
+echo "=== installer done (backup exit $RC, workflow $WFRC) — $(date) ==="
 echo "Weekly from now on: Sundays 03:15."
 echo "Manual run:  ssh -J tds -i ~/.ssh/proxmox_tds brian@192.168.200.84 'sudo /opt/band-advance/backup/advance_backup.sh'"
 echo "Restore:     ~/Documents/Claude/Code/BandInfoForm/backup/restore_advance.command"

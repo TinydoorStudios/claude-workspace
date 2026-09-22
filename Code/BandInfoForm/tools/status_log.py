@@ -254,7 +254,9 @@ def build(rows, manual_by_id):
         r += 1
     last_row = max(r - 1, hrow + 1)
 
-    tbl = Table(displayName="ShowStatus", ref=f"A{hrow}:{last_letter}{last_row}")
+    # 2026-09-21 sweep: the table spans the hidden Show ID column, so an Excel
+    # sort/filter moves each id with its row and read_manual keys notes right.
+    tbl = Table(displayName="ShowStatus", ref=f"A{hrow}:{id_letter}{last_row}")
     tbl.tableStyleInfo = TableStyleInfo(name="TableStyleLight1", showRowStripes=False)
     ws.add_table(tbl)
 

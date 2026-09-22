@@ -26,8 +26,14 @@ half, same decision already made and documented for the welcome email
 (advance_es.md.j2's own comment: those labels are the filed doc's own
 English column headers, shown once).
 
+2026-09-21 sweep (PRIOR-2): the lifecycle's automatic thank-you (the day
+after a responded show, 7-day catch-up) calls send_for_show(after_show=True),
+which sends a separate post-show message (build_after_show_email) and reads
+no doc. Manual Finalize above is unchanged. Both share thankyou_sent_at, so
+a show gets at most one.
+
     python3 finalize_thankyou.py --dry-run --venue "Fountain Square" \\
-        --date 2026-09-18 --artist Wishy
+        --date 2026-09-18 --artist Wishy [--after-show]
 """
 import argparse
 import datetime as dt
@@ -315,16 +321,51 @@ def build_email(band, venue, show_date, schedule_lines, recap_lines, bilingual):
     return subject, body
 
 
-def send_for_show(show_id):
+def build_after_show_email(band, venue, show_date, bilingual):
+    """(subject, body) for the automatic day-after thank-you (2026-09-21 sweep,
+    PRIOR-2). Post-show copy: no schedule, no recap, no filed doc, no 'See
+    you'. Draft wording for Brian to tune. Same separator as build_email."""
+    subject = f"Thanks for playing {venue} — {band} ({show_date.strftime('%-m/%-d')})"
+    body_en = (
+        f"Hey {band},\n\n"
+        f"Thanks for playing {venue} on {_day_phrase(show_date)}, and for getting the "
+        f"advance squared away ahead of time. It made the whole night run smoother "
+        f"for everybody.\n\n"
+        f"If there's anything from the day you want us to know about (load-in, sound, "
+        f"hospitality, anything), just reply to this email.\n\n"
+        f"Hope to have you back soon.\n\n"
+        f"3CDC Events / Production"
+    )
+    if not bilingual:
+        return subject, body_en
+    body_es = (
+        f"Hola {band},\n\n"
+        f"Gracias por tocar en {venue} el {show_date.strftime('%d/%m/%Y')} y por completar "
+        f"el formulario de avance a tiempo. Eso ayudó a que la noche saliera bien para todos.\n\n"
+        f"Si hay algo del día que quieran contarnos (la carga, el sonido, la hospitalidad, "
+        f"lo que sea), respondan a este correo.\n\n"
+        f"Esperamos verlos de nuevo pronto.\n\n"
+        f"3CDC Events / Production"
+    )
+    sep = "─" * 42
+    return subject, f"{body_en}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
+
+
+def send_for_show(show_id, after_show=False):
     """Worker for Mark Finalized (audit #14): build + send the thank-you for
     one show, record the outcome on the show, email Brian on failure. Skips
-    (records why, sends nothing) for a past or cancelled show."""
+    (records why, sends nothing) for a past or cancelled show.
+
+    2026-09-21 sweep (PRIOR-2): after_show=True is the lifecycle's automatic
+    day-after thank-you — accepts only a show 1-7 days past and sends the
+    post-show copy (build_after_show_email, no doc read). Returns True only
+    when the email was confirmed sent, False on every other path."""
     import mailer
     with db.get_conn() as conn, conn.cursor() as cur:
         s = db.show_with_artist(cur, show_id)
     if not s:
         print(f"no show {show_id}")
-        return
+        return False
 
     def record(sent, error):
         with db.get_conn() as conn, conn.cursor() as cur:
@@ -334,7 +375,7 @@ def send_for_show(show_id):
 
     if s.get("thankyou_sent_at"):
         print("already sent")
-        return
+        return False
     # Brian, 2026-09-14: no thank-you for a 3rd-party event — we rarely talk
     # to those artists at all — unless its booking opted in to band emails.
     # Nothing recorded, so it never shows up as "Thank-you not sent" either.
@@ -342,43 +383,80 @@ def send_for_show(show_id):
         emails_on = db.band_emails_on(cur, show_id)
     if not emails_on:
         print("skipped: 3rd-party event, band emails off")
-        return
+        return False
     if s.get("cancelled_at"):
         record(False, "skipped: show cancelled")
-        return
-    if not s.get("show_date") or s["show_date"] < dt.date.today():
+        return False
+    today = dt.date.today()
+    if after_show:
+        # 2026-09-21 sweep (PRIOR-2): the lifecycle's window (shows_due_for_thankyou),
+        # checked here too so a stray call can't thank a band weeks later.
+        if not s.get("show_date") or not (today - dt.timedelta(days=7) <= s["show_date"]
+                                          <= today - dt.timedelta(days=1)):
+            record(False, "skipped: outside the day-after window")
+            print("skipped: outside the day-after window")
+            return False
+    elif not s.get("show_date") or s["show_date"] < today:
         record(False, "skipped: show already past")
         print("skipped: past show")
-        return
+        return False
     email = (s.get("last_email") or "").strip()
     error = None
+    msg = None
+    bilingual = bool(s.get("show_series")) and ve.is_bilingual_series(s["show_series"])
     if not email:
         error = "no contact email on file"
+    elif after_show:
+        # post-show copy reads no filed doc, so the missing-column fail-closed can't apply
+        msg = build_after_show_email(s["artist_name"], s["venue"], s["show_date"], bilingual)
     else:
         result = build_recap(s["venue"], s["show_date"], s["artist_name"], series=s.get("show_series"))
         if result is None:
             error = "couldn't find this band's column in the filed advance doc"
         else:
             schedule_lines, recap_lines = result
-            bilingual = bool(s.get("show_series")) and ve.is_bilingual_series(s["show_series"])
-            subject, body = build_email(s["artist_name"], s["venue"], s["show_date"],
-                                        schedule_lines, recap_lines, bilingual=bilingual)
-            ok, err = mailer.send(ve.with_extra_recipients(email, s.get("show_series")), subject, body=body)
-            if ok:
-                record(True, None)
-                print(f"sent to {email}")
-                return
-            error = err or "send failed"
+            msg = build_email(s["artist_name"], s["venue"], s["show_date"],
+                              schedule_lines, recap_lines, bilingual=bilingual)
+    if msg:
+        subject, body = msg
+        ok, err = mailer.send(ve.with_extra_recipients(email, s.get("show_series")), subject, body=body)
+        if ok:
+            record(True, None)
+            print(f"sent to {email}")
+            return True
+        if mailer.outcome_unknown(err):
+            # 2026-09-21 sweep (PRIOR-13): timed out, Graph may have sent it —
+            # stamp it sent so shows_due_for_thankyou can't re-send tomorrow.
+            record(True, f"outcome unknown (timed out), verify in Sent Items: {err}")
+            with db.get_conn() as conn, conn.cursor() as cur:
+                db.queue_digest_item(
+                    cur, "thankyou", f"Thank-you may have gone out — {s['artist_name']}",
+                    f"<p>{mailer.esc(s['artist_name'])} @ {mailer.esc(s['venue'])} "
+                    f"{s['show_date'].strftime('%m/%d/%Y')}: Outlook didn't answer in time, so we "
+                    f"don't know if the thank-you reached the band. It won't retry. Check "
+                    f"Production@3cdc.org Sent Items, and if it isn't there, send it by hand.</p>")
+                conn.commit()
+            print(f"outcome unknown: {err}")
+            return False
+        error = err or "send failed"
     record(False, error)
+    # 2026-09-21 sweep (PRIOR-2): the automatic path retries daily for a week —
+    # one digest line per new error, not one per run.
+    if after_show and error == s.get("thankyou_error"):
+        print(f"failed again: {error}")
+        return False
+    what = ("the automatic day-after thank-you didn't go out" if after_show
+            else "was marked Finalized, but the thank-you didn't go out")
     # review 2026-09-14 (E1): rides the digest + dashboard panel, not its own email
     with db.get_conn() as conn, conn.cursor() as cur:
         db.queue_digest_item(
             cur, "thankyou", f"Thank-you email NOT sent — {s['artist_name']}",
             f"<p>{mailer.esc(s['artist_name'])} @ {mailer.esc(s['venue'])} "
-            f"{s['show_date'].strftime('%m/%d/%Y')} was marked Finalized, but the thank-you "
-            f"didn't go out: <b>{mailer.esc(error)}</b>.</p>")
+            f"{s['show_date'].strftime('%m/%d/%Y')}{':' if after_show else ''} {what}: "
+            f"<b>{mailer.esc(error)}</b>.</p>")
         conn.commit()
     print(f"failed: {error}")
+    return False
 
 
 def main():
@@ -389,6 +467,8 @@ def main():
     ap.add_argument("--date", help="YYYY-MM-DD")
     ap.add_argument("--artist")
     ap.add_argument("--dry-run", action="store_true", help="print, never send")
+    ap.add_argument("--after-show", action="store_true",
+                    help="dry run: print the automatic day-after thank-you instead (no doc read)")
     args = ap.parse_args()
     if args.send:
         if not args.show_id:
@@ -398,6 +478,10 @@ def main():
     if not (args.venue and args.date and args.artist):
         ap.error("--venue, --date and --artist are required for a dry run")
     show_date = dt.date.fromisoformat(args.date)
+    if args.after_show:
+        subject, body = build_after_show_email(args.artist, args.venue, show_date, bilingual=False)
+        print(f"Subject: {subject}\n\n{body}")
+        return
 
     result = build_recap(args.venue, show_date, args.artist)
     if result is None:

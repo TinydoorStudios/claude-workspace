@@ -577,9 +577,13 @@ SUMMARY_LABELS_ES = {
 # introduce yourself..." only makes sense when the email names a day-of
 # contact (audit #15). Without one, drop the texting clause and keep the
 # introduce-yourself instruction.
+# 2026-09-21 sweep (PRIOR-15): covers the venue blocks ("your day-of contact") AND the
+# generic DEFAULT/DEFAULT_ES blocks ("them" / "Llámenlo o envíenle"), which used to slip through.
 _TEXT_ON_ARRIVAL = {
-    "en": re.compile(r"Text or call your day-of contact when you're about 5 minutes out,\s*and\s*", re.I),
-    "es": re.compile(r"Llamen o envíen un mensaje de texto a su contacto del día del evento cuando "
+    "en": re.compile(r"Text or call (?:your day-of contact|them) when you're about 5 minutes out,\s*and\s*",
+                     re.I),
+    "es": re.compile(r"(?:Llamen o envíen un mensaje de texto a su contacto del día del evento"
+                     r"|Llámenlo o envíenle un mensaje de texto) cuando "
                      r"estén a unos 5 minutos de llegar,\s*y\s*", re.I),
 }
 

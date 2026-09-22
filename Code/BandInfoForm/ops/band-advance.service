@@ -2,6 +2,8 @@
 # threaded workers with a 120s timeout so a large stage-plot upload or a slow
 # Spanish translation can't kill a band's submission mid-request, and a 120s
 # graceful shutdown so a restart lets in-flight requests finish.
+# 2026-09-21 sweep: TimeoutStopSec must exceed --graceful-timeout 120, or
+# systemd's 90s default SIGKILLs the cgroup before gunicorn's drain ends.
 #
 # Bound to 127.0.0.1 + the Docker bridge gateway, not 0.0.0.0 (audit
 # 2026-09-16 security #6): the app was reachable on the LAN port directly,
@@ -30,6 +32,7 @@ WorkingDirectory=/opt/band-advance
 EnvironmentFile=/opt/band-advance/advance.env
 ExecStart=/opt/band-advance/venv/bin/gunicorn --worker-class gthread -w 4 --threads 4 --timeout 120 --graceful-timeout 120 -b 127.0.0.1:8097 -b 172.17.0.1:8097 app:app
 Restart=always
+TimeoutStopSec=150
 
 [Install]
 WantedBy=multi-user.target

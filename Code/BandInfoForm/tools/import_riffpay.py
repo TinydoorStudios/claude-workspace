@@ -29,6 +29,9 @@ Mapping (Brian, 2026-09-11):
 Cancelled-event reconciliation is deliberately NOT handled here yet (a later
 pass). Other venues open up by adding them to LOCATION_VENUES + SERIES_STAGE.
 
+Re-runs never touch an act already booked at that venue+date (2026-09-21 sweep):
+its booking row and sheet row are left exactly as staff last saved them.
+
 Usage:
   python3 import_riffpay.py riffpay.csv                 # preview only (no writes)
   python3 import_riffpay.py riffpay.csv --sheet X.xlsx --apply
@@ -77,6 +80,19 @@ def norm(v):
 
 def _s(v):
     return "" if v is None else str(v).strip()
+
+
+def same_act(a, b):
+    """Same act on one venue+date: equal names, or one wholly inside the other
+    as whole words ('DJ Bravo' / 'Bravo'). 2026-09-21 sweep: not names_plausible
+    — its token overlap would merge two different 'Soul ...' acts on one bill."""
+    na, nb = norm(a), norm(b)
+    if not na or not nb:
+        return False
+    if na == nb:
+        return True
+    short, long_ = (na, nb) if len(na) <= len(nb) else (nb, na)
+    return re.search(r"(?<![a-z0-9])" + re.escape(short) + r"(?![a-z0-9])", long_) is not None
 
 
 def parse_date(s):
@@ -263,6 +279,7 @@ def act_to_cells(ev, act):
 
 def write_sheet(sheet_path, events, apply):
     from openpyxl import load_workbook
+    loaded_hash = fs.sheet_hash(sheet_path)   # 2026-09-21 sweep (RPT-7): for safe_save_workbook below
     wb = load_workbook(sheet_path)
     ws = wb[INPUT_SHEET] if INPUT_SHEET in wb.sheetnames else wb.worksheets[0]
     hrow = find_header_row(ws)
@@ -284,36 +301,47 @@ def write_sheet(sheet_path, events, apply):
     c_artist = key_col.get("artist_name")
     c_venue = key_col.get("venue")
     c_date = key_col.get("event_date")
-    # existing identities (artist, venue, date) already in the sheet
-    existing, last = set(), hrow
+    # artists already in the sheet, per (venue, date). 2026-09-21 sweep: matched
+    # with same_act, not exact name, and an act already booked in the DB is a dup.
+    existing, last = {}, hrow
     for r in range(hrow + 1, ws.max_row + 1):
         a = _s(ws.cell(r, c_artist).value)
         if a:
             last = r
-            existing.add((norm(a),
-                          norm(ws.cell(r, c_venue).value) if c_venue else "",
-                          _s(ws.cell(r, c_date).value)[:10] if c_date else ""))
+            existing.setdefault((norm(ws.cell(r, c_venue).value) if c_venue else "",
+                                 _s(ws.cell(r, c_date).value)[:10] if c_date else ""),
+                                []).append(norm(a))
 
     appended, dup = 0, 0
     row = last + 1
     for ev in events:
         for act in ev["acts"]:
             cells = act_to_cells(ev, act)
-            ident = (norm(cells["artist_name"]), norm(cells["venue"]),
-                     cells["event_date"][:10])
-            if ident in existing:
+            names = existing.setdefault((norm(cells["venue"]), cells["event_date"][:10]), [])
+            match = next((n for n in names if same_act(cells["artist_name"], n)), None)
+            if act.get("existing_booking") or match:
+                if match and match != norm(cells["artist_name"]) and not act.get("existing_booking"):
+                    # sheet-typed under another spelling: seeding a booking under the
+                    # RiffPay name would have the reconcile add a second row for it
+                    act["sheet_near_match"] = match
+                    print(f"  ~ {cells['artist_name']} looks like sheet row '{match}' — not added")
                 dup += 1
                 continue
             for key, val in cells.items():
                 col = key_col.get(key)
                 if col and val not in (None, ""):
                     ws.cell(row, col).value = val
-            existing.add(ident)
+            names.append(norm(cells["artist_name"]))
             row += 1
             appended += 1
 
     if apply and appended:
-        wb.save(sheet_path)
+        # 2026-09-21 sweep (RPT-7): the one advance-list writer audit #21 missed. A
+        # run_now/Excel write since load aborts here, before main() seeds the DB.
+        try:
+            fs.safe_save_workbook(wb, sheet_path, loaded_hash)
+        except fs.SheetChangedError as e:
+            raise SystemExit(f"{e} — re-run import_riffpay to pick up the current sheet")
     return appended, dup
 
 
@@ -334,14 +362,8 @@ def preview(events):
     print()
 
 
-def seed_bookings(events):
-    """Create a `bookings` row per act so a RiffPay import is a true booking
-    entry (Brian, 2026-09-11). The advance pipeline's email/lifecycle path reads
-    location + schedule from `bookings` (shows LEFT JOIN bookings), so without
-    this the auto-drafted email for a RiffPay show comes out with a null
-    location and a generic schedule. Dedup on venue+date+artist (delete+insert),
-    so re-running is idempotent. Needs the advance DB — run on the VM; best
-    effort, warns and returns 0 if the DB isn't reachable (e.g. run from the Mac)."""
+def _import_db():
+    """advance_db, or None (after a warning) when it isn't importable."""
     for cand in (HERE.parent, HERE.parent / "app"):
         if (cand / "advance_db.py").exists():
             sys.path.insert(0, str(cand))
@@ -349,16 +371,88 @@ def seed_bookings(events):
     try:
         import advance_db as db
     except Exception as e:  # noqa: BLE001
-        print(f"  ! advance_db not importable — bookings NOT seeded ({e})", file=sys.stderr)
-        return 0
-    n = 0
+        print(f"  ! advance_db not importable — bookings NOT checked or seeded ({e})",
+              file=sys.stderr)
+        return None
+    return db
+
+
+def _clock(db, v):
+    m = db.parse_clock(v)
+    return m if m is not None else norm(v)
+
+
+def match_existing_bookings(events):
+    """Read-only: stamp act['existing_booking'] on every act already booked at
+    its venue+date (same_act name match), so write_sheet and seed_bookings
+    leave it alone (2026-09-21 sweep). A shared contact email only warns — one
+    manager can book two acts on one night. False when the DB can't be read;
+    callers then fall back to sheet-only dedup."""
+    db = _import_db()
+    if db is None:
+        return False
+    try:
+        with db.get_conn() as conn, conn.cursor() as cur:
+            rows_by = {}
+            for ev in events:
+                k = (ev["venue"], ev["event_date"])
+                if k not in rows_by:
+                    cur.execute("SELECT id, artist_name, contact_email, event_start FROM bookings "
+                                "WHERE venue=%s AND event_date=%s ORDER BY id", k)
+                    rows_by[k] = cur.fetchall()
+                for act in ev["acts"]:
+                    rows, name = rows_by[k], act["artist_name"]
+                    hit = (next((r for r in rows if norm(r["artist_name"]) == norm(name)), None)
+                           or next((r for r in rows if same_act(name, r["artist_name"])), None))
+                    if hit:
+                        act["existing_booking"] = {"id": hit["id"], "artist_name": hit["artist_name"]}
+                        how = ("already booked as" if norm(hit["artist_name"]) == norm(name)
+                               else "~ looks like booking")
+                        print(f"  = {name} {how} #{hit['id']} '{hit['artist_name']}' — left as is")
+                        if (act.get("event_start")
+                                and _clock(db, hit["event_start"]) != _clock(db, act["event_start"])):
+                            print(f"    RiffPay now says set {act['event_start']}, booking has "
+                                  f"{hit['event_start'] or '(none)'} — change it on Edit booking "
+                                  f"if it moved")
+                        continue
+                    mail = _s(act.get("contact_email")).lower()
+                    twin = mail and next((r for r in rows
+                                          if _s(r["contact_email"]).lower() == mail), None)
+                    if twin:
+                        print(f"  ! {act['artist_name']} shares a contact email with booking "
+                              f"#{twin['id']} '{twin['artist_name']}' — check it isn't the same act")
+    except Exception as e:  # noqa: BLE001
+        print(f"  ! couldn't check existing bookings (DB unreachable?): {e} — "
+              f"deduping against the sheet only", file=sys.stderr)
+        return False
+    return True
+
+
+def seed_bookings(events):
+    """Create a `bookings` row per act so a RiffPay import is a true booking
+    entry (Brian, 2026-09-11). The advance pipeline's email/lifecycle path reads
+    location + schedule from `bookings` (shows LEFT JOIN bookings), so without
+    this the auto-drafted email for a RiffPay show comes out with a null
+    location and a generic schedule. 2026-09-21 sweep: an act already booked at
+    that venue+date (same name, or one name wholly containing the other) is
+    never touched — staff flags, edits and queued notices survive a re-run, and
+    a moved RiffPay set time has to be changed on Edit booking. Needs the
+    advance DB — run on the VM; best effort, warns and returns (0, 0) if the DB
+    isn't reachable (e.g. run from the Mac). Returns (inserted, present)."""
+    db = _import_db()
+    if db is None:
+        return 0, 0
+    inserted, present = 0, 0
     try:
         with db.get_conn() as conn, conn.cursor() as cur:
             for ev in events:
                 for act in ev["acts"]:
-                    cur.execute(
-                        "DELETE FROM bookings WHERE venue=%s AND event_date=%s AND artist_name=%s",
-                        (ev["venue"], ev["event_date"], act["artist_name"]))
+                    # the re-check inside this transaction means insert_booking's
+                    # ON CONFLICT DO UPDATE can never overwrite a staff row
+                    if act.get("existing_booking") or act.get("sheet_near_match") or db.find_booking(
+                            cur, ev["venue"], ev["event_date"], act["artist_name"]):
+                        present += 1
+                        continue
                     db.insert_booking(cur, {
                         "event_name": ev["event_name"], "event_date": ev["event_date"],
                         "venue": ev["venue"], "location": ev["location"],
@@ -371,12 +465,12 @@ def seed_bookings(events):
                         "contact_email": act["contact_email"],
                         "entered_by": "riffpay-import",
                     })
-                    n += 1
+                    inserted += 1
             conn.commit()
     except Exception as e:  # noqa: BLE001
         print(f"  ! bookings NOT seeded (DB unreachable?): {e}", file=sys.stderr)
-        return 0
-    return n
+        return 0, 0
+    return inserted, present
 
 
 def main():
@@ -403,14 +497,17 @@ def main():
     if not args.sheet:
         print("(preview only — pass --sheet PATH [--apply] to write rows)")
         return
+    if not args.no_db:
+        match_existing_bookings(events)   # read-only, so the dry run shows it too
     appended, dup = write_sheet(args.sheet, events, args.apply)
     verb = "Wrote" if args.apply else "Would write"
     print(f"{verb} {appended} new act row(s) to {args.sheet}"
           f"{'' if args.apply else ' (dry run — add --apply)'}; "
           f"{dup} already present.")
     if args.apply and not args.no_db:
-        seeded = seed_bookings(events)
-        print(f"Seeded {seeded} booking row(s) into the DB.")
+        inserted, present = seed_bookings(events)
+        print(f"Seeded {inserted} new booking row(s) into the DB; "
+              f"{present} already booked (left untouched).")
 
 
 if __name__ == "__main__":

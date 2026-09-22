@@ -17,8 +17,9 @@ This script edits ONLY the hyperlink relationship XML (word/_rels/
 document.xml.rels) — the external Target for any relationship that isn't
 already a real (non-app-served) http(s) URL — and never touches cell
 text, hand edits, or anything else in the document. set_cell_link is the
-ONLY thing that ever writes one of these external hyperlinks, so any
-matching relationship found here is unambiguously a stage-plot link. Also
+only pipeline writer of these external hyperlinks, but Word's AutoFormat
+can add mailto:/tel:/http links in Brian's hand edits (2026-09-21 sweep),
+so only scheme-less relative targets are treated as stage-plot links. Also
 upgrades an already-fixed app-served fallback link to a real Dropbox link
 now that DROPBOX_* credentials exist, if one wasn't available yet the
 first time this ran.
@@ -27,6 +28,7 @@ first time this ran.
 """
 import argparse
 import datetime as dt
+import re
 import shutil
 import sys
 import tempfile
@@ -50,16 +52,23 @@ RELS_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 
 
 FALLBACK_PREFIX = f"{PUBLIC_URL}/stage-plot/"
+_URI_SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 
 
 def _fname_needing_fix(target_s: str):
-    """None if this Target is already a real (non-app-served) URL — nothing
-    to do. Otherwise the plain stage-plot filename it should point at."""
+    """None if this Target already carries a URI scheme (a real non-app-served
+    URL, or a hand-inserted mailto:/tel:/file: link Word auto-linked in an
+    edit — never rewritten), is empty, or is an in-document anchor. Otherwise
+    the plain stage-plot filename it should point at."""
     if target_s.startswith(FALLBACK_PREFIX):
         return unquote(target_s.rsplit("/", 1)[-1])
     if "dropbox.com" in target_s.lower():
         return None
-    if target_s.lower().startswith(("http://", "https://")):
+    if not target_s.strip() or target_s.startswith("#"):
+        return None
+    # 2026-09-21 sweep: any scheme (http, mailto:, tel:, file:) is a real or
+    # hand-inserted link, not a stage plot; only scheme-less relative names get rewritten.
+    if _URI_SCHEME.match(target_s):
         return None
     return unquote(target_s)
 

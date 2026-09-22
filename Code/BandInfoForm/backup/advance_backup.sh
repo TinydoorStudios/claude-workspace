@@ -45,11 +45,13 @@ RUN_AS="${RUN_AS:-brian}"
 
 # NAS targets:  name|ssh-destination|remote-directory|keep|monthly
 #   keep    — how many archives this box holds, rotating (oldest deleted)
-#   monthly — extra 1st-of-month archives held on top; 0 means flat rotation
+#   monthly — months for which the first archive of each calendar month is
+#             held on top; 0 means flat rotation
 #
 # Audio NAS is the short-term primary — a flat rotating 8 (Brian, 2026-09-10,
 # swapped from Cold Storage). Cold Storage is the long-term archive: 12 weekly
-# plus a 1st-of-month copy held for 24 months, so there's a real two-year tail.
+# plus the first archive of each calendar month held for 24 months, so there's
+# a real two-year tail.
 TARGETS=(
   "coldstorage|brian@192.168.200.35|/mnt/The-Pool/ClaudeBackup/band-advance|12|24"
   "audionas|brian@192.168.200.36|/mnt/AudioNas/brian/band-advance-backups|8|0"
@@ -77,12 +79,17 @@ NOTIFY_URL="${NOTIFY_URL:-http://localhost:5678/webhook/band-advance-backup-repo
 
 [ -f /etc/band-advance-backup.conf ] && . /etc/band-advance-backup.conf
 
+# 2026-09-21 sweep (OPS-6): filed Prod Adv docs live in the real 3CDC venue folders
+# (filed_docs.path is relative to the Dropbox root), not under Nyquist/. Set after the
+# conf so an overridden DROPBOX_DIR / MIRROR_DIR carries through.
+DROPBOX_ROOT="${DROPBOX_ROOT:-$(dirname "$DROPBOX_DIR")}"
+FILED_MIRROR_DIR="${FILED_MIRROR_DIR:-${MIRROR_DIR}-filed}"
+
 DRY_RUN=0
 [ "${1:-}" = "--dry-run" ] && DRY_RUN=1
 
 # ------------------------------------------------------------- plumbing -----
 STAMP="$(date +%Y%m%d-%H%M%S)"
-DAY_OF_MONTH="$(date +%d)"
 NAME="band-advance-$STAMP"
 STAGE="$WORKROOT/$NAME"
 ARCHIVE="$WORKROOT/$NAME.tar.gz"
@@ -200,8 +207,8 @@ else
 fi
 
 # ============================================================================
-# 4. Dropbox — the Advancing cockpit: the xlsx sheets, the venue archives,
-#    the blank advances, the series email templates, generate.command
+# 4. Dropbox — the Advancing cockpit: the xlsx sheets, the blank advances,
+#    the series email templates, generate.command; then the filed advance docs
 # ============================================================================
 step "4/10  Dropbox Nyquist tree"
 if [ -d "$DROPBOX_DIR" ]; then
@@ -218,6 +225,26 @@ if [ -d "$DROPBOX_DIR" ]; then
   fi
 else
   fail "$DROPBOX_DIR not found — the Advancing cockpit is NOT in this archive"
+fi
+
+# 2026-09-21 sweep (OPS-6): every filed '<MMDDYY> <Event> Prod Adv.docx' (staff hand
+# edits included) from the registry, at its Dropbox-root-relative path. The list lives
+# in WORKROOT because step 8 removes STAGE before step 10's filed-doc mirror needs it.
+FILED_LIST="$WORKROOT/.filed_paths-$STAMP.txt"; : > "$FILED_LIST"
+if docker inspect "$DB_CONTAINER" >/dev/null 2>&1 \
+   && docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
+        "select path from filed_docs where path <> '' and path not like '/%' order by path" \
+        2>>"$LOG" | sed '/^$/d' > "$FILED_LIST" && [ -s "$FILED_LIST" ]; then
+  mkdir -p "$STAGE/dropbox/filed"; cp "$FILED_LIST" "$STAGE/dropbox/filed_paths.txt"
+  rsync -a --files-from="$FILED_LIST" "$DROPBOX_ROOT/" "$STAGE/dropbox/filed/" >>"$LOG" 2>&1; rc=$?
+  n=$(find "$STAGE/dropbox/filed" -type f | wc -l); want=$(grep -c . "$FILED_LIST")
+  case $rc in
+    0)     ok "$n filed advance docs from the 3CDC venue folders" ;;
+    23|24) warn "filed docs: $n of $want copied, the rest are missing from Dropbox (see log)" ;;
+    *)     fail "filed advance docs copy failed (rsync exit $rc)" ;;
+  esac
+else
+  warn "filed_docs registry unreadable or empty, so no filed advance docs in this archive"
 fi
 
 # ============================================================================
@@ -372,7 +399,8 @@ STATUS="COMPLETE"
   printf '  %-34s %s\n' "app/requirements.lock.txt" "exact pinned python deps"
   printf '  %-34s %s\n' "appdata/json/"          "disk-first submission records"
   printf '  %-34s %s\n' "appdata/uploads/"       "every band-uploaded stage plot / input list"
-  printf '  %-34s %s\n' "dropbox/Nyquist/"       "the Advancing cockpit: xlsx sheets, venue archives, blank advances, series email templates"
+  printf '  %-34s %s\n' "dropbox/Nyquist/"       "the Advancing cockpit: xlsx sheets, email drafts, blank advances, series email templates"
+  printf '  %-34s %s\n' "dropbox/filed/"         "every filed Prod Adv .docx from the real 3CDC venue folders, at its Dropbox-root-relative path (list: dropbox/filed_paths.txt)"
   printf '  %-34s %s\n' "n8n/workflows/"         "all n8n workflow definitions"
   printf '  %-34s %s\n' "n8n/workflow_active_state.txt" "which workflows were active (import does NOT carry this)"
   printf '  %-34s %s\n' "n8n/n8n_pg.dump"        "full n8n database"
@@ -483,10 +511,14 @@ else
     #   2. zsh does NOT word-split an unquoted variable, so the doomed list is
     #      passed through a file and read line by line, never expanded inline.
     if [ "$TMONTH" -gt 0 ]; then
-      SELECT_DOOMED="{ find . -maxdepth 1 -name 'band-advance-*.tar.gz' -printf '%f\\n' 2>/dev/null \
-            | grep -vE 'band-advance-[0-9]{6}01-' | sort -r | tail -n +$((TKEEP+1)) ;
-          find . -maxdepth 1 -name 'band-advance-*01-*.tar.gz' -printf '%f\\n' 2>/dev/null \
-            | sort -r | tail -n +$((TMONTH+1)) ; }"
+      # 2026-09-21 sweep (OPS-1): the monthly tail is the FIRST archive of each calendar
+      # month (YYYYMM = chars 14-19 of the name). Matching DD=01 kept almost nothing,
+      # because the timer runs Sundays. An empty keep list prunes nothing, never everything.
+      SELECT_DOOMED="{ find . -maxdepth 1 -name 'band-advance-*.tar.gz' -printf '%f\\n' 2>/dev/null | sort > \"\$D.all\" ;
+          sort -r \"\$D.all\" | head -n $TKEEP > \"\$D.keep\" ;
+          awk '{ m = substr(\$0, 14, 6); if (!(m in s)) { s[m] = 1; print } }' \"\$D.all\" | sort -r | head -n $TMONTH >> \"\$D.keep\" ;
+          [ -s \"\$D.keep\" ] && grep -vxF -f \"\$D.keep\" \"\$D.all\" ;
+          rm -f \"\$D.all\" \"\$D.keep\" ; }"
     else
       SELECT_DOOMED="find . -maxdepth 1 -name 'band-advance-*.tar.gz' -printf '%f\\n' 2>/dev/null \
             | sort -r | tail -n +$((TKEEP+1))"
@@ -507,7 +539,7 @@ else
     REMAIN_LIST="$(printf '%s\n' "$RET_OUT" | sed -n '/^---REMAINING---$/,$p'                | grep -v '^---' )"
     NPRUNED=$(printf '%s\n' "$PRUNED_LIST" | grep -c . )
     NREMAIN=$(printf '%s\n' "$REMAIN_LIST" | grep -c . )
-    ok "$NM: now holding $NREMAIN of $TKEEP$([ "$NPRUNED" -gt 0 ] && echo ", rotated off $NPRUNED")"
+    ok "$NM: now holding $NREMAIN (newest $TKEEP$([ "$TMONTH" -gt 0 ] && echo " + first-of-month for $TMONTH months"))$([ "$NPRUNED" -gt 0 ] && echo ", rotated off $NPRUNED")"
     if [ "$NM" = "coldstorage" ]; then CS_PRUNED="$PRUNED_LIST"; CS_REMAIN="$REMAIN_LIST"; fi
     if [ "$NM" = "audionas" ];    then AN_PRUNED="$PRUNED_LIST"; AN_REMAIN="$REMAIN_LIST"; fi
   done
@@ -552,8 +584,22 @@ else
     else
       fail "mirror: rsync to Cold Storage failed"
     fi
+    # 2026-09-21 sweep (OPS-6): the filed docs from step 4's registry list, beside the
+    # mirror. Deliberately NO --delete: it accumulates, so a doc deleted or renamed in
+    # Dropbox survives here.
+    if [ -s "$FILED_LIST" ]; then
+      ssh $SSH_OPTS "$CS_HOST" "mkdir -p '$FILED_MIRROR_DIR'" 2>>"$LOG"
+      rsync -a --partial --files-from="$FILED_LIST" -e "ssh $SSH_OPTS" \
+            "$DROPBOX_ROOT/" "$CS_HOST:$FILED_MIRROR_DIR/" >>"$LOG" 2>&1; rc=$?
+      case $rc in
+        0)     ok "filed-doc mirror: $(grep -c . "$FILED_LIST") filed advance docs synced to $FILED_MIRROR_DIR" ;;
+        23|24) warn "filed-doc mirror: some filed docs are missing from Dropbox, the rest synced (see log)" ;;
+        *)     fail "filed-doc mirror: rsync to Cold Storage failed (exit $rc)" ;;
+      esac
+    fi
   fi
 fi
+rm -f "$FILED_LIST"
 
 # ------------------------------------------------------------- summary ------
 step "summary"
@@ -642,8 +688,10 @@ PYPAY
         CODE="$(curl -sS -o /tmp/.ba_notify_resp -w '%{http_code}' -X POST \
           -H "x-advance-token: $TOKEN" -H 'Content-Type: application/json' \
           --data @"$PAYLOAD" "$NOTIFY_URL" 2>>"$LOG")"
+        # 2026-09-21 sweep (OPS-10): a 2xx alone isn't a send — the workflow's Confirm Sent
+        # answers {"sent":true} only after Graph returned 202. No retry on 2xx/500: no double-send.
         case "$CODE" in
-          2*) SENT=1; break ;;
+          2*) grep -Eq '"sent"[[:space:]]*:[[:space:]]*true' /tmp/.ba_notify_resp 2>/dev/null && SENT=1; break ;;
           404|000) sleep 5 ;;
           *) break ;;
         esac
@@ -651,7 +699,7 @@ PYPAY
       if [ "$SENT" = 1 ]; then
         log "notify: report sent to $NOTIFY_TO (HTTP $CODE)"
       else
-        warn "notify: report webhook returned HTTP ${CODE:-none} — no email sent"
+        warn "notify: report webhook returned HTTP ${CODE:-none} without a Graph-confirmed send — no email sent"
         head -c 300 /tmp/.ba_notify_resp 2>/dev/null >> "$LOG"
       fi
       rm -f "$PAYLOAD" /tmp/.ba_notify_resp

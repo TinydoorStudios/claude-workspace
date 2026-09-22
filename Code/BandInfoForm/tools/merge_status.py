@@ -29,7 +29,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fieldspec as fs
 
 from openpyxl import load_workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, DEFAULT_FONT
+from openpyxl.cell.cell import MergedCell
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.cell_range import CellRange
 import copy
@@ -97,6 +98,15 @@ def norm_date(v):
 def banding(row):
     return (PatternFill("solid", fgColor=BANDING) if row % 2 == 0
             else PatternFill(fill_type=None))
+
+
+def _drop_link(cell):
+    """2026-09-21 sweep (PIPE-1): remove a cell's hyperlink AND its link styling
+    (a bare `cell.hyperlink = None` left blue underlined text behind)."""
+    if getattr(cell, "hyperlink", None) is None:
+        return
+    cell.hyperlink = None
+    cell.font = copy.copy(DEFAULT_FONT)
 
 
 
@@ -224,6 +234,38 @@ def last_header_col(ws, hrow):
     return last
 
 
+def last_used_col(ws, hrow, after):
+    """Last column > `after` holding a non-empty value in any row other than the
+    header row, ignoring a leftover STATUS group label. Such a column is a
+    headerless hand column: never overwrite it (2026-09-21 sweep, PRIOR-26)."""
+    last = after
+    if ws.max_column <= after:
+        return after
+    for r_off, row in enumerate(ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=after + 1,
+                                             max_col=ws.max_column, values_only=True)):
+        if r_off + 1 == hrow:
+            continue
+        for c_off, v in enumerate(row):
+            s = _s(v)
+            if s and s != STATUS_GROUP_LABEL:
+                last = max(last, after + 1 + c_off)
+    return last
+
+
+def anchor_col(ws, hrow, warned):
+    """The column the STATUS block / an auto-added header goes right of: the last
+    header, or a headerless hand column past it (2026-09-21 sweep, PRIOR-26 — the
+    rebuild blanked such a column). `warned` is a list; the warning prints once."""
+    h = last_header_col(ws, hrow)
+    u = last_used_col(ws, hrow, h)
+    if u > h and not warned:
+        warned.append(True)
+        print(f"  ! column(s) {get_column_letter(h + 1)}-{get_column_letter(u)} have data but "
+              "no header; STATUS block placed to their right (give them a header to silence this)",
+              file=sys.stderr)
+    return max(h, u)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--list", required=True, type=Path)
@@ -272,11 +314,14 @@ def main():
 
     # ── append any auto-add spec column that's missing (audit #7) ───────────
     present = {_s(ws.cell(hrow, c).value) for c in range(1, ws.max_column + 1)}
+    warned = []
     for lbl in AUTO_ADD_LABELS:
         if lbl in present:
             continue
-        col = last_header_col(ws, hrow) + 1
-        src = ws.cell(hrow, col - 1)
+        # 2026-09-21 sweep (PRIOR-26): past any headerless hand column, and styled
+        # from the last real header (col - 1 may now be that hand column)
+        col = anchor_col(ws, hrow, warned) + 1
+        src = ws.cell(hrow, max(1, last_header_col(ws, hrow)))
         h = ws.cell(hrow, col, lbl)
         if src.has_style:
             h.font = copy.copy(src.font)
@@ -295,7 +340,7 @@ def main():
         lbl = _s(ws.cell(hrow, c).value)
         if lbl in spec_labels:
             col_of[lbl] = c
-    n_input = last_header_col(ws, hrow)
+    n_input = anchor_col(ws, hrow, warned)   # 2026-09-21 sweep (PRIOR-26)
     key_col = {fs.LABEL_TO_KEY[lbl]: c for lbl, c in col_of.items()
                if lbl in fs.LABEL_TO_KEY}
     fill_cols = [(k, key_col[k]) for k in FILL_KEYS if k in key_col]
@@ -312,6 +357,21 @@ def main():
     for r in range(data_start, ws.max_row + 1):
         if _s(ws.cell(r, c_artist).value):
             last = r
+
+    # 2026-09-21 sweep (PIPE-1): heal row-shift debris in the Stage Plot column.
+    # A '../…' value is a link target openpyxl copied in on reload (this script
+    # only ever writes the bare filename); a link on an artist-less row is a stray.
+    c_plot = key_col.get("stage_plot_desc")
+    if c_plot:
+        for r in range(data_start, ws.max_row + 1):
+            cell = ws.cell(r, c_plot)
+            if isinstance(cell, MergedCell):
+                continue
+            if _s(cell.value).startswith("../"):
+                cell.value = None
+                _drop_link(cell)
+            elif not _s(ws.cell(r, c_artist).value):
+                _drop_link(cell)
 
     # ── fill the blanks, per data row ────────────────────────────────────────
     for r in range(data_start, last + 1):
@@ -362,17 +422,21 @@ def main():
                     if link:
                         cell.hyperlink = quote(link, safe="/")
                         cell.font = Font(color="0563C1", underline="single")
+                    else:
+                        _drop_link(cell)      # 2026-09-21 sweep (PIPE-1): no stale/foreign link
                     meta_new[key] = B
                 elif managed:                 # he typed over it — it's his now
                     cell.fill = banding(r)
-                    cell.hyperlink = None
+                    _drop_link(cell)
             else:
                 if owned:
                     cell.value = None
                     cell.fill = banding(r)
-                    cell.hyperlink = None
+                    _drop_link(cell)
                 elif managed:
                     cell.fill = banding(r)
+                    if k == "stage_plot_desc":
+                        _drop_link(cell)      # 2026-09-21 sweep (PIPE-1): only pipeline links live here
 
     # ── append the STATUS block ──────────────────────────────────────────────
     start = n_input + 1

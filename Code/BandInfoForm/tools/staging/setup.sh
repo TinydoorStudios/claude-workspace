@@ -11,7 +11,8 @@ SRC=${1:-$LIVE}
 mkdir -p "$T/Dropbox" "$T/code"
 
 echo "1/5 database clone -> advance_test"
-sudo docker exec advance-db psql -U advance -d advance -qc "DROP DATABASE IF EXISTS advance_test;" 2>/dev/null || true
+# 2026-09-21 sweep (TEST-6): FORCE drops past a leftover connection; an error here is real, so let it abort.
+sudo docker exec advance-db psql -U advance -d advance -qc "DROP DATABASE IF EXISTS advance_test WITH (FORCE);"
 sudo docker exec advance-db psql -U advance -d advance -qc "CREATE DATABASE advance_test OWNER advance;"
 sudo docker exec advance-db sh -c "pg_dump -U advance advance | psql -U advance -q advance_test" >/dev/null
 LIVE_URL=$(grep -m1 '^ADVANCE_DB_URL=' "$LIVE/advance.env" | cut -d= -f2-)
@@ -21,7 +22,8 @@ echo "2/5 Dropbox copy (Nyquist + current/next month venue folders)"
 rsync -a --exclude '.dropbox*' "$HOME/Dropbox/Nyquist/" "$T/Dropbox/Nyquist/"
 for v in "3CDC Fountain Square" "3CDC Washington Park" "3CDC Court Street" "3CDC Elm Street Plaza" "3CDC Ziegler Park" "3CDC Imagination Alley" "3CDC Memorial Hall"; do
   mkdir -p "$T/Dropbox/$v"
-  for m in $(date +%m.%Y) $(date -d '+1 month' +%m.%Y); do
+  # 2026-09-21 sweep: anchored on the 1st — a bare '+1 month' on the 29th-31st skips next month
+  for m in $(date +%m.%Y) $(date -d "$(date +%Y-%m-01) +1 month" +%m.%Y); do
     for d in "$HOME/Dropbox/$v/"$m*; do [ -d "$d" ] && rsync -a "$d/" "$T/Dropbox/$v/$(basename "$d")/"; done
   done
 done
@@ -37,6 +39,14 @@ else
 fi
 mkdir -p "$T/code/data/uploads"; rsync -a "$LIVE/data/uploads/" "$T/code/data/uploads/"
 sed "s#__FILLED_BY_SETUP__#$TEST_URL#" "$T/code/tools/staging/advtest.env.template" > "$T/advtest.env"
+# 2026-09-21 sweep: TEST_URL is a blind suffix strip — prove it lands on the clone
+# before anything runs against it (set -e aborts here). Never echo it: it holds the password.
+"$LIVE/venv/bin/python" - "$TEST_URL" <<'PY'
+import sys, psycopg
+with psycopg.connect(sys.argv[1]) as c:
+    d = c.execute("select current_database()").fetchone()[0]
+sys.exit(0 if d == "advance_test" else f"refusing: staging ADVANCE_DB_URL points at database {d!r}, not advance_test")
+PY
 # schema migrations against the clone too
 for m in "$T/code"/db/migrations/*.sql; do sudo docker exec -i advance-db psql -U advance -d advance_test -v ON_ERROR_STOP=1 -q < "$m"; done
 

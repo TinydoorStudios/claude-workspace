@@ -359,6 +359,8 @@ HOUSE_ROWS = {"engineer", "consoles"}
 # rows that never raise a notice: the pipeline fills what it owns, a person's
 # value is left alone silently (F15 — Consoles nagged on every hand value)
 QUIET_ROWS = {"consoles"}
+# daysheet.act_row_values/set_cell_link: the only hyperlink the pipeline writes
+PIPELINE_LINK_PREFIX = "See DB"
 
 
 def _record_paras(ctx, key, tc):
@@ -385,18 +387,20 @@ def _compare_cell(ctx, t_tc, f_tc, e_tc, section, column, key=None, aliases=(),
     prev = ctx.owned(*keys)
     if tF == tT:
         # the pipeline has nothing for this cell
-        if (next(e_tc.iter(qn("w:hyperlink")), None) is not None
+        if (section.lower() == "stage plot" and tE.startswith(PIPELINE_LINK_PREFIX)
+                and next(e_tc.iter(qn("w:hyperlink")), None) is not None
                 and not any(k.lower() in ctx.frozen for k in keys)):
-            # A hyperlink in a grid cell is only ever pipeline-written
-            # (set_cell_link, stage plots) — never hand-typed. The fresh build
-            # has nothing here, so it's an orphaned link left behind when the
-            # column's occupant changed: a dropped band's stage-plot link
-            # survived under the band that replaced it, since the pipeline
-            # doesn't own it under the new occupant's key and a non-blank cell
-            # is otherwise left alone (Brian, FSQ 9/18 — LimeLght replaced
-            # Wishy but kept a stale Jet Jurgensmeyer plot link). Give it back
-            # to the template. (tE, hyperlink display text, can look "blank" to
-            # the text branches below, so this must run first.)
+            # 2026-09-21 sweep (DOC-2): only a Stage Plot link reading "See DB — …"
+            # is pipeline output. Word auto-links typed URLs/emails and Outlook
+            # pastes keep links, so any other hyperlink is hand-typed and falls
+            # through to the branches below (left alone: prev is None).
+            # A pipeline link with nothing behind it in the fresh build is an
+            # orphan left behind when the column's occupant changed: a dropped
+            # band's stage-plot link survived under the band that replaced it,
+            # since the pipeline doesn't own it under the new occupant's key and
+            # a non-blank cell is otherwise left alone (Brian, FSQ 9/18 —
+            # LimeLght replaced Wishy but kept a stale Jet Jurgensmeyer plot
+            # link). Give it back to the template.
             _replace_tc_content(ctx, e_tc, t_tc)
             ctx.settle(keys)
             ctx.changed += 1
@@ -715,9 +719,11 @@ def merge(T, F, E, prov=None, review=False, frozen=None, force=None, info=None,
                     _replace_tc_content(ctx, e_tcs[0], f_tcs[0])
                     ctx.changed += 1
                     continue
+                # 2026-09-21 sweep (DOC-8): the wholesale branch below records
+                # "Schedule|row{i}" — read it too, or its times look hand-typed next pass
                 _compare_cell(ctx, _blank_like(f_tcs[0]), f_tcs[0], e_tcs[0],
                               f"Schedule row{i}", None,
-                              aliases=[f"Schedule: {old_label}|"])
+                              aliases=[f"Schedule: {old_label}|", f"Schedule|row{i}"])
                 v = time_of(re_)
                 if v and ctx.prov.get(f"Schedule|row{i}") == v:
                     ctx.newprov[f"Schedule|row{i}"] = v
@@ -749,19 +755,41 @@ def merge(T, F, E, prov=None, review=False, frozen=None, force=None, info=None,
     return ctx.changed, ctx.notices, ctx.newprov
 
 
-def all_acts_cancelled(ev, acts):
+def cancelled_artist_ids(ev, acts):
+    """The artist_ids on this bill whose show is cancelled (2026-09-21 sweep,
+    DAY-6: split out of all_acts_cancelled so the filename can skip them)."""
+    ids = [a.get("artist_id") for a in acts if a.get("artist_id")]
+    if not ids or not ev.get("event_date"):
+        return set()
+    with db.get_conn() as conn, conn.cursor() as cur:
+        cur.execute("""SELECT artist_id FROM shows WHERE venue=%s AND show_date=%s
+                       AND cancelled_at IS NOT NULL AND artist_id = ANY(%s)""",
+                    (ev.get("venue"), ev.get("event_date"), ids))
+        return {r["artist_id"] for r in cur.fetchall()}
+
+
+def all_acts_cancelled(ev, acts, cancelled=None):
     """Every act on this bill has its show cancelled (review 2026-09-14, M4)
     -> the filed doc is renamed with a CANCELLED marker. One cancelled band
     on a multi-band bill only blanks its own column (daysheet.build)."""
     ids = [a.get("artist_id") for a in acts if a.get("artist_id")]
     if not ids or not ev.get("event_date"):
         return False
-    with db.get_conn() as conn, conn.cursor() as cur:
-        cur.execute("""SELECT artist_id FROM shows WHERE venue=%s AND show_date=%s
-                       AND cancelled_at IS NOT NULL AND artist_id = ANY(%s)""",
-                    (ev.get("venue"), ev.get("event_date"), ids))
-        cancelled = {r["artist_id"] for r in cur.fetchall()}
+    if cancelled is None:
+        cancelled = cancelled_artist_ids(ev, acts)
     return all(i in cancelled for i in ids)
+
+
+def filing_display_name(ev, acts):
+    """The filed doc's display name (package_run + regen_show). 2026-09-21 sweep
+    (DAY-6): named from the acts still playing, so a cancelled headliner never
+    tops the filename; all cancelled -> 'CANCELLED - <Event> - <headliner>'."""
+    cancelled = cancelled_artist_ids(ev, acts)
+    live = [a for a in acts if a.get("artist_id") and a["artist_id"] not in cancelled]
+    name = fs.event_display_name(ev, live or acts)
+    if all_acts_cancelled(ev, acts, cancelled):
+        name = f"CANCELLED - {name}"
+    return name
 
 
 def _blank_like(tc):
@@ -807,13 +835,23 @@ def _abs_from_reg(p):
 def locate(cur, venue, event_date, key, n_events_same_day=1):
     """The registry row for this show's doc, or None. Exact key first; if
     the event name was edited (key changed) and this venue+date has only
-    one registered doc and one event, that doc is still this show's."""
+    one registered doc and one event, that doc is still this show's.
+    2026-09-21 sweep (IDENT-11): on a busier day, a renamed event adopts the
+    one registry row no current event claims, if it is the one unfiled event."""
     row = db.get_filed_doc(cur, venue, event_date, key)
     if row:
         return row
     rows = db.filed_docs_for(cur, venue, event_date)
     if len(rows) == 1 and n_events_same_day == 1:
         return rows[0]
+    cur.execute("SELECT name, series FROM events WHERE venue=%s AND event_date=%s",
+                (venue, event_date))
+    day_keys = {event_key(r) for r in cur.fetchall()}
+    reg_keys = {r["event_key"] for r in rows}
+    orphans = [r for r in rows if r["event_key"] not in day_keys]
+    unfiled = [k for k in day_keys if k not in reg_keys]
+    if len(orphans) == 1 and unfiled == [key]:
+        return orphans[0]
     return None
 
 
@@ -858,6 +896,12 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
 
     with db.get_conn() as conn, conn.cursor() as cur:
         reg = locate(cur, venue, d, key, n_events_same_day)
+        if reg and reg["event_key"] != key and not dry_run:
+            # 2026-09-21 sweep (IDENT-11): renamed event — its notices move with the
+            # registry row, or they stop freezing cells and Keep doc/Use new lose the doc
+            db.rekey_filed_doc(cur, reg, key)
+            conn.commit()
+            reg = dict(reg, event_key=key)
         open_notices = db.open_doc_notices(cur, venue, d, key) if reg else []
         # F11: a doc whose last decision was made after its last write is
         # reviewed as of that decision, not stuck in review mode for good
@@ -945,14 +989,24 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
             return res
     # rename in place when the display name changed — never a second copy,
     # and never a case-only rename (Dropbox on the Mac can't tell them apart)
-    if (existing.name != desired.name and existing.name.lower() != desired.name.lower()
+    # 2026-09-21 sweep (DOC-7): compare folders too — a venue or date move (F8)
+    # carries the doc into the new month folder even when its name is unchanged.
+    moved_dir = str(existing.parent).lower() != str(desired.parent).lower()
+    if ((moved_dir or existing.name.lower() != desired.name.lower())
             and not ci_existing(folder, desired.name)):
         folder.mkdir(parents=True, exist_ok=True)
         os.rename(existing, desired)
-        res["renamed_from"] = existing.name
+        res["renamed_from"] = _rel_to_root(existing) if moved_dir else existing.name
         target = desired
     res["path"] = str(target)
     with db.get_conn() as conn, conn.cursor() as cur:
+        if reg:
+            # 2026-09-21 sweep (DOC-3): a "Keep doc" clicked mid-pass must survive this
+            # write — lock the row (keep_doc_value locks it too), then re-apply it.
+            cur.execute("SELECT columns FROM filed_docs WHERE id=%s FOR UPDATE", (reg["id"],))
+            locked = cur.fetchone()
+            newprov = db.reapply_kept_decisions(cur, [n["id"] for n in open_notices], newprov,
+                                                (locked or {}).get("columns") or reg.get("columns"))
         new_sha = sha256_file(target)
         # keep the recorded hash as "what the pipeline last wrote" — only
         # refresh it when the pipeline itself wrote (or first registers)
@@ -993,7 +1047,9 @@ def file_stage_plot(src, folder, fname, dry_run=False):
     if filecmp.cmp(src, dest, shallow=False):
         return fname, None
     stem, ext = Path(fname).stem, Path(fname).suffix
-    for p in folder.glob(f"{stem} (updated *){ext}"):
+    # 2026-09-21 sweep (DOC-10): escaped — _clean leaves [ ] in band names, and
+    # "Hot Club [Cincy]" as a glob class never matched, so every run made a copy
+    for p in folder.glob(f"{glob_escape(stem)} (updated *){glob_escape(ext)}"):
         if filecmp.cmp(src, p, shallow=False):
             return fname, None
     alt = f"{stem} (updated {dt.datetime.now().strftime('%m%d%y-%H%M')}){ext}"

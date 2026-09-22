@@ -14,17 +14,8 @@ CREATE TABLE IF NOT EXISTS digest_items (
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
     delivered_at TIMESTAMPTZ
 );
--- record fix: tier-7 pre-skips written before the `sent` column existed
-UPDATE advance_reminders r SET sent = false
-  FROM shows s WHERE s.id = r.show_id AND r.days_before = 7
-   AND s.advance_draft_created_at IS NOT NULL
-   AND (s.show_date - s.advance_draft_created_at::date) <= 7 AND r.sent;
--- M1 applied to in-flight shows: pre-skip any tier that would fire within
--- 48h of a welcome sent in the last 2 days (Amador Sisters tier 3 on 9/14)
-INSERT INTO advance_reminders (show_id, days_before, sent)
-SELECT s.id, t.tier, false
-  FROM shows s CROSS JOIN (VALUES (7),(3),(1)) AS t(tier)
- WHERE s.advance_draft_created_at > now() - interval '2 days'
-   AND s.responded_at IS NULL AND s.cancelled_at IS NULL
-   AND t.tier > (s.show_date - s.advance_draft_created_at::date) - 2
-ON CONFLICT (show_id, days_before) DO NOTHING;
+-- 2026-09-21 sweep: the two one-time data fixes that shipped here on 9/14
+-- now live in db/oneoff/2026-09-14-review-data.sql. Deploy re-runs every
+-- migration in the container's UTC psql session, so re-running the M1
+-- pre-skip permanently skipped live reminder tiers for welcomes sent after
+-- 8pm ET. The M1 rule itself lives in advance_db.mark_stale_followup_tiers_skipped.

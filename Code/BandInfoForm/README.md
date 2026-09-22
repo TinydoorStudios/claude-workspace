@@ -25,7 +25,7 @@ tools/      draft_emails.py · docfill.py · backfill.py + templates + example l
 
 ## Redeploy
 
-Edit under `app/` or `tools/`, then run `deploy_app.command` (ships app + tools, restarts).
+Edit under `app/` or `tools/`, commit, then run `deploy_app.command` (ships app + tools, restarts; refuses if shipped files have uncommitted changes).
 Database, env files, and the systemd unit are one-time setup — see ARCHITECTURE.md.
 
 ## Design notes

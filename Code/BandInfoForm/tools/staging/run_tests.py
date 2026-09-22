@@ -42,6 +42,13 @@ import fieldspec as fs  # noqa: E402
 import mailer  # noqa: E402
 import staffing  # noqa: E402
 
+# 2026-09-21 sweep (TEST-3): the suite runs destructive SQL (DROP INDEX,
+# DELETE FROM bookings ...) — refuse outright unless this really is the clone.
+with db.get_conn() as _c:
+    _dbname = _c.execute("SELECT current_database()").fetchone()["current_database"]
+if _dbname != "advance_test":
+    sys.exit(f"refusing to run: ADVANCE_DB_URL points at database {_dbname!r}, not advance_test")
+
 TODAY = dt.date.today()
 RESULTS = []
 ONLY = None
@@ -133,16 +140,40 @@ def sends_since(n):
     return [m for m in mails(n) if m["path"].endswith("/internal-send-outlook")]
 
 
+# 2026-09-21 sweep (TEST-4): wait on a detached staging worker instead of a
+# fixed sleep; scoped by cwd so the live copy of the same tool isn't waited on.
+_CODE_REAL = os.path.realpath(CODE)
+
+
+def staging_pids(pattern):
+    """pgrep -f PIDs whose cwd is inside the staging clone. Live tools run the same command line from /opt/band-advance/tools, so a bare pgrep waits on the live nightly run or a real band's regen."""
+    p = subprocess.run(["pgrep", "-f", pattern], capture_output=True, text=True)
+    out = []
+    for tok in p.stdout.split():
+        try:
+            cwd = os.readlink(f"/proc/{tok}/cwd")
+        except OSError:
+            continue
+        if cwd == _CODE_REAL or cwd.startswith(_CODE_REAL + os.sep):
+            out.append(int(tok))
+    return out
+
+
+def wait_procs(pattern, timeout=120, first_sleep=1.5, poll=1):
+    t0 = time.time()
+    time.sleep(first_sleep)
+    while time.time() - t0 < timeout:
+        if not staging_pids(pattern):
+            return True
+        time.sleep(poll)
+    return False
+
+
 def wait_regen(timeout=120):
     """/submit and attach spawn regen_show.py detached — wait for it."""
-    t0 = time.time()
-    time.sleep(1.5)
-    while time.time() - t0 < timeout:
-        p = subprocess.run(["pgrep", "-f", "regen_show.py"], capture_output=True)
-        if p.returncode != 0:
-            return True
-        time.sleep(1)
-    return False
+    # 2026-09-21 sweep (TEST-8): staging-only PIDs, so a live regen_show on
+    # the live run lock can't turn this into a false timeout FAIL.
+    return wait_procs("regen_show.py", timeout=timeout, first_sleep=1.5, poll=1)
 
 
 def q(sql, params=None, one=False):
@@ -191,14 +222,9 @@ def make_booking(band, venue, date, series="Jazz on the Square", email=None, **k
 
 
 def wait_run_now(timeout=600):
-    t0 = time.time()
-    time.sleep(2)
-    while time.time() - t0 < timeout:
-        p = subprocess.run(["pgrep", "-f", "run_now.py|package_run.py|run_again.py"], capture_output=True)
-        if p.returncode != 0:
-            return True
-        time.sleep(2)
-    return False
+    # 2026-09-21 sweep (TEST-8): staging-only PIDs; the 06:30 live nightly
+    # run_now has the same command line and would hold this wait open.
+    return wait_procs("run_now.py|package_run.py|run_again.py", timeout=timeout, first_sleep=2, poll=2)
 
 
 # ── tests ────────────────────────────────────────────────────────────────────
@@ -306,7 +332,9 @@ def t_lifecycle_dup():
     st, body = post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
     sent = [m for m in sends_since(n0) if m["payload"].get("to") == "twin@example.test"]
     check(st == 200 and len(sent) == 1, f"lifecycle sent the welcome exactly once ({len(sent)}), status {st}")
-    check(sent and sent[0]["payload"].get("attachments") is None or True, "welcome payload shape ok")
+    # 2026-09-21 sweep (TEST-4): was `... or True`, so it could never fail
+    check(bool(sent) and str(sent[0]["payload"].get("subject", "")).startswith("Welcome"),
+          f"the send is the welcome email ({sent and sent[0]['payload'].get('subject')})")
     # restore the index (dedupe first)
     x("""DELETE FROM bookings b USING bookings c WHERE b.id > c.id AND b.venue=c.venue AND b.event_date=c.event_date
          AND lower(btrim(b.artist_name))=lower(btrim(c.artist_name))""")
@@ -418,10 +446,7 @@ def t_provenance():
     check(st == 200 and "5 wedges" in body and "Keep doc" in body, f"review page lists the change ({st})")
     if held:
         st, _ = post("/doc-review/decide", {"venue": venue, "date": d.isoformat(), f"n{held[0]['id']}": "apply"})
-        t0 = time.time()
-        time.sleep(1.5)
-        while time.time() - t0 < 120 and subprocess.run(["pgrep", "-f", "doc_review.py"], capture_output=True).returncode == 0:
-            time.sleep(1)
+        wait_procs("doc_review.py", timeout=120)  # 2026-09-21 sweep (TEST-8): staging PIDs only
         rows, path = doc_rows(venue, d, band)
         check(rows and rows.get("Monitors") == "5 wedges", f"Use new -> Monitors '{rows and rows.get('Monitors')}'")
         res = q("SELECT resolution, apply_error FROM doc_notices WHERE id=%s", (held[0]["id"],), one=True)
@@ -620,6 +645,19 @@ def t_booking_edit_notify():
     check(pending2[0]["changes"]["event_start"] == {"old": "7:04p", "new": "8:30p"},
           f"merged diff keeps first old, latest new ({pending2[0]['changes']})")
 
+    # 2026-09-21 sweep (MAIL-6): the notice now waits until the band has been
+    # contacted (welcome sent, responded, or a manual advance) instead of
+    # keying on the 21-day window. Nothing welcomed this booking in staging,
+    # so stamp its show welcomed the way the 9am run would have.
+    check(wait_run_now(), "the edits' pipeline runs finished (the show exists)")
+    show = q("""SELECT s.id FROM shows s JOIN artists a ON a.id=s.artist_id
+                WHERE a.match_key='edit test band' AND s.venue='Fountain Square' AND s.show_date=%s""",
+             (d,), one=True)
+    check(show is not None, "the booking's show exists to mark welcomed")
+    if show:
+        x("UPDATE shows SET advance_draft_created_at=COALESCE(advance_draft_created_at, now()) WHERE id=%s",
+          (show["id"],))
+
     import booking_update
     n0 = mail_count()
     booking_update.send_due(lambda *a: None)
@@ -642,7 +680,7 @@ def t_digest():
     import daily_digest
     subject, html, _queued_ids = daily_digest.build_digest()
     check("Needs you" in html, "digest renders the Needs-you section")
-    check("Submission needs a booking" in html or "Show on hold" in html or "Doc differs" in html, "needs feed lists open decisions")
+    check("Submission needs a booking" in html or "Show on hold" in html or "Doc changes to decide" in html, "needs feed lists open decisions")
     left = q("SELECT count(*) AS n FROM digest_items WHERE delivered_at IS NULL", one=True)["n"]
     check(left == 0, f"queued items marked delivered ({left} left)")
     st, body = get("/dashboard/needs")
@@ -872,7 +910,9 @@ def t_third_party_optional():
     check(s and s["responded_at"], f"blank advance landed on the booked show ({s})")
     if s:
         post(f"/artist/{s['artist_id']}/finalize/{s['id']}", {})
-        time.sleep(4)
+        # 2026-09-21 sweep (TEST-4): a fixed 4s sleep let the negative checks
+        # below pass before the detached thank-you worker had even run
+        check(wait_procs("finalize_thankyou.py", timeout=60), "thank-you worker finished")
         t = q("SELECT finalized_at, thankyou_sent_at, thankyou_error FROM shows WHERE id=%s", (s["id"],), one=True)
         check(t["finalized_at"] and not t["thankyou_sent_at"] and not t["thankyou_error"],
               f"finalized with no thank-you and nothing flagged ({t})")
@@ -961,6 +1001,26 @@ def t_isolation():
     bad = [m for m in mails() if not m["path"].startswith("/webhook/")]
     check(not bad, f"every mail hit the stub webhooks only ({len(bad)} odd)")
     check(mailer._send_url().startswith("http://127.0.0.1:8199"), "mailer pointed at the stub")
+    # 2026-09-21 sweep (TEST-2): a shell that sourced the live advance.env
+    # leaks whatever advtest.env doesn't blank — check the runner's env AND
+    # the staging gunicorn's inherited env, where the leak actually lands.
+    LIVE_ONLY = ("DROPBOX_APP_KEY", "DROPBOX_APP_SECRET", "DROPBOX_REFRESH_TOKEN", "ADVANCE_SLACK_WEBHOOK",
+                 "GROQ_API_KEY", "ADVANCE_LIFECYCLE_NOW_URL", "ADVANCE_MAIL_DISABLED")
+    for k in LIVE_ONLY:
+        check(not os.environ.get(k), f"{k} is blank in the staging env")
+    for k in ("ADVANCE_NOTIFY_URL", "ADVANCE_CREATE_DRAFT_URL", "ADVANCE_INTERNAL_SEND_URL"):
+        check(os.environ.get(k, "").startswith("http://127.0.0.1:8199/"), f"{k} points at the stub")
+    try:
+        pid = (T / "gunicorn.pid").read_text().strip()
+        genv = dict(kv.split("=", 1) for kv in
+                    Path(f"/proc/{pid}/environ").read_bytes().decode(errors="replace").split("\0") if "=" in kv)
+        leaked = [k for k in LIVE_ONLY if genv.get(k)]
+        check(not leaked, f"staging gunicorn carries no live-only credentials ({leaked})")
+    except OSError:
+        check(False, "could not read the staging gunicorn's environment")
+    log = CODE / "data" / "mail.log"
+    refused = [ln for ln in (log.read_text().splitlines() if log.exists() else []) if "REFUSED (staging" in ln]
+    check(not refused, f"mailer never refused a non-stub url ({len(refused)})")
 
 
 # ── run ──────────────────────────────────────────────────────────────────────

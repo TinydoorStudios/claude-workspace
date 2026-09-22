@@ -18,6 +18,7 @@ Prints one JSON line to stdout on success: seeded/events/emails/followups/plots
 counts. Non-zero exit + {"error": "..."} on failure.
 """
 import argparse
+import datetime as dt
 import fcntl
 import json
 import re
@@ -72,6 +73,45 @@ def unseeded_count():
     return len(json.loads(out.stdout or "[]"))
 
 
+def _drop_sheet_corrections(cur, bookings, sheet):
+    """2026-09-21 sweep (PIPE-3): leave out of the 1c reconcile any booking whose
+    sheet row Brian renamed or moved — an unbooked future row that looks like its
+    correction — so holds.py asks (merge) instead of the band getting a 2nd welcome."""
+    try:
+        import holds
+        from sheet import read_advance_sheet
+        rows = read_advance_sheet(sheet)
+        cur.execute("SELECT artist_name, venue, event_date FROM bookings "
+                    "WHERE event_date >= CURRENT_DATE")
+        booked = {holds._ident(b["artist_name"], b["venue"], b["event_date"])
+                  for b in cur.fetchall()}
+        in_sheet = {holds._ident(r.get("artist_name"), r.get("venue"), r.get("event_date"))
+                    for r in rows}
+        today = dt.date.today().isoformat()
+        # future rows only — a returning band's PAST row must not block the #19 auto-heal
+        unbooked = [i for i in in_sheet if i not in booked and i[2] and i[2] >= today]
+        keep = []
+        for b in bookings:
+            ib = holds._ident(b["artist_name"], b["venue"], b["event_date"])
+            # 2026-09-21 sweep: shared with holds.py; an edited (1b) row counts as present
+            # under the ident it was written under (`_old_ident`) too
+            corr = holds.sheet_correction(b, b.get("_old_ident"), in_sheet, unbooked)
+            if corr is None:
+                keep.append(b)  # on the sheet, or pure row loss: re-append as audit #19 intended
+                continue
+            show = db.show_for_booking(cur, b["artist_name"], b["venue"], b["event_date"])
+            if show and show.get("hold_dismissed_at"):
+                keep.append(b)  # Brian clicked Restore: re-append as before
+                continue
+            print(f"  reconcile: not re-adding {b['artist_name']} @ {b['venue']} {ib[2]}: "
+                  f"sheet row '{corr[0]}' @ {corr[1]} {corr[2]} looks like its correction, "
+                  "holds.py will ask", file=sys.stderr)
+        return keep
+    except Exception as e:  # noqa: BLE001 — never blocks the reconcile
+        print(f"  ! reconcile correction check failed (non-fatal): {e!r}", file=sys.stderr)
+        return bookings
+
+
 def one_pass(sheet, nyquist, scope, summary):
     # 0. delete the sheet rows of shows purged / merged away in the app (root
     #    cause A, audit 2026-09-16). First, before anything reads the sheet:
@@ -105,7 +145,8 @@ def one_pass(sheet, nyquist, scope, summary):
             appended = run("append_bookings.py", "--list", sheet, "--data", bk_file)
             ids = appended.stdout.strip()
             if ids:
-                run("seed_bookings.py", "--seed", ids)
+                # 2026-09-21 sweep (IDENT-3): --snapshot = what was written (sheet_ident)
+                run("seed_bookings.py", "--seed", ids, "--snapshot", bk_file)
                 summary["seeded"] += len(ids.split(","))
         finally:
             bk_file.unlink(missing_ok=True)
@@ -117,13 +158,20 @@ def one_pass(sheet, nyquist, scope, summary):
     ed = run("seed_bookings.py", "--edited")
     edited = json.loads(ed.stdout or "[]")
     if edited:
+        # 2026-09-21 sweep (PIPE-3): 1c's correction check for 1b's re-append too — a row
+        # Brian renamed/moved in the sheet isn't put back; holds.py asks for the merge.
+        with db.get_conn() as conn, conn.cursor() as cur:
+            kept = {b["id"] for b in _drop_sheet_corrections(cur, edited, sheet)}
+        for b in edited:
+            if b["id"] not in kept:
+                b["_no_reappend"] = True
         ed_file = HERE / ".edited_tmp.json"
-        ed_file.write_text(ed.stdout)
+        ed_file.write_text(json.dumps(edited, default=str))
         try:
             synced = run("append_bookings.py", "--list", sheet, "--edited", ed_file)
             ids = synced.stdout.strip()
             if ids:
-                run("seed_bookings.py", "--synced", ids)
+                run("seed_bookings.py", "--synced", ids, "--snapshot", ed_file)
                 summary["edits_synced"] += len(ids.split(","))
         finally:
             ed_file.unlink(missing_ok=True)
@@ -134,9 +182,16 @@ def one_pass(sheet, nyquist, scope, summary):
     # orphans it permanently, Restore included (audit 2026-09-16 #19).
     # append_bookings.py --data already skips any booking whose ident IS
     # still in the sheet, so passing every future booking here is safe —
-    # only ones actually missing get re-appended.
+    # only ones actually missing get re-appended. 2026-09-21 sweep (PRIOR-7):
+    # dirty bookings belong to 1b (synced, or re-appended there when their row
+    # is gone), a cancelled show is never re-added, and the --seed stamp below
+    # can't move seeded_at (COALESCE) — it only records sheet_ident.
+    # 2026-09-21 sweep (PIPE-3): a booking whose row was renamed/moved in the sheet
+    # (a look-alike unbooked future row exists) is left off, so holds.py holds it plus
+    # the corrected show and Brian merges (merge_shows deletes the old booking, so it
+    # can't come back). Restore (hold_dismissed_at) re-appends it; Cancel leaves it off.
     with db.get_conn() as conn, conn.cursor() as cur:
-        future = db.future_bookings(cur)
+        future = _drop_sheet_corrections(cur, db.future_bookings(cur), sheet)
     if future:
         mi_file = HERE / ".reconcile_tmp.json"
         mi_file.write_text(json.dumps(future, default=str))
@@ -144,7 +199,7 @@ def one_pass(sheet, nyquist, scope, summary):
             reconciled = run("append_bookings.py", "--list", sheet, "--data", mi_file)
             ids = reconciled.stdout.strip()
             if ids:
-                run("seed_bookings.py", "--seed", ids)
+                run("seed_bookings.py", "--seed", ids, "--snapshot", mi_file)
         finally:
             mi_file.unlink(missing_ok=True)
 

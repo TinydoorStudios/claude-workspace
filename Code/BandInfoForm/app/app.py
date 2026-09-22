@@ -15,6 +15,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 import datetime as dt
 import mimetypes
 from pathlib import Path
@@ -25,7 +26,8 @@ from flask import (
 )
 from urllib.parse import quote
 from werkzeug.utils import secure_filename
-from itsdangerous import URLSafeTimedSerializer, BadData
+from werkzeug.exceptions import HTTPException
+from itsdangerous import URLSafeTimedSerializer, URLSafeSerializer, BadData
 
 import forms_config
 import i18n
@@ -91,6 +93,9 @@ app.config.update(
 # forever-valid — whoever held it, even months later, could still open and
 # overwrite that artist's record. See PREFILL_TOKEN_MAX_AGE below.
 _signer = URLSafeTimedSerializer(SECRET, salt="advance-prefill")
+# 2026-09-21 sweep (MAIL-1): untimed tokens draft_emails minted until today —
+# read-only fallback in read_prefill_token, never used to sign anything.
+_legacy_signer = URLSafeSerializer(SECRET, salt="advance-prefill")
 # Signed artist id carried on the band form (audit #6) — a plain hidden
 # artist_id could be edited to rename another artist / change their email.
 _artist_signer = URLSafeTimedSerializer(SECRET, salt="advance-artist-id")
@@ -139,29 +144,50 @@ UPLOAD_MAGIC = {
 UPLOAD_MAX_BYTES = 15 * 1024 * 1024
 
 
-def _save_upload(upload, stamp, slug):
-    """Validate + save one uploaded stage plot. Returns (stored_name, dest)
-    or aborts 400/413. Shared by both upload sites (/submit and the staff
-    booking-answers path) so neither can drift from the other again."""
+def _upload_ext(upload):
+    """(ext, secure_filename, its own ext) for one upload."""
     orig_ext = Path(upload.filename or "").suffix.lower()
     safe = secure_filename(upload.filename or "") or ""
     safe_ext = Path(safe).suffix.lower()
     # A non-Latin filename ("план.pdf") loses its extension too —
     # secure_filename() strips everything but ASCII — so fall back to the
     # original name's extension rather than rejecting a real file outright.
-    ext = safe_ext or orig_ext
+    return safe_ext or orig_ext, safe, safe_ext
+
+
+def _upload_problem(upload):
+    """(status, message) when this stage plot would be refused, else None.
+    2026-09-21 sweep (APPB-7): split out of _save_upload so the booking/edit
+    forms can refuse a bad file BEFORE they commit anything."""
+    ext = _upload_ext(upload)[0]
     if ext not in UPLOAD_MAGIC:
-        abort(400, "Stage plot must be a PDF, image, Word, or Excel file.")
+        return 400, "Stage plot must be a PDF, image, Word, or Excel file."
     head = upload.stream.read(8)
     upload.stream.seek(0)
     if not any(head.startswith(sig) for sig in UPLOAD_MAGIC[ext]):
-        abort(400, "That file doesn't look like a real "
-                    f"{ext.lstrip('.').upper()} — please re-export and try again.")
+        return 400, ("That file doesn't look like a real "
+                     f"{ext.lstrip('.').upper()} — please re-export and try again.")
     upload.stream.seek(0, 2)  # SEEK_END
     size = upload.stream.tell()
     upload.stream.seek(0)
     if size > UPLOAD_MAX_BYTES:
-        abort(413, "Stage plot is too large (15 MB max) — please compress it and try again.")
+        return 413, "Stage plot is too large (15 MB max) — please compress it and try again."
+    return None
+
+
+def _booking_upload_problem(files):
+    up = files.get("stage_plot_file")
+    return _upload_problem(up) if up and up.filename else None
+
+
+def _save_upload(upload, stamp, slug):
+    """Validate + save one uploaded stage plot. Returns (stored_name, dest)
+    or aborts 400/413. Shared by both upload sites (/submit and the staff
+    booking-answers path) so neither can drift from the other again."""
+    problem = _upload_problem(upload)
+    if problem:
+        abort(*problem)
+    ext, safe, safe_ext = _upload_ext(upload)
     if not safe or not safe_ext:
         safe = f"plot{ext}"
     stored = f"{stamp}__{slug}__{safe}"
@@ -191,7 +217,21 @@ def read_prefill_token(token):
     try:
         return _signer.loads(token, max_age=PREFILL_TOKEN_MAX_AGE)
     except BadData:
+        pass
+    # 2026-09-21 sweep (MAIL-1): welcome links already in inboxes are untimed
+    # (draft_emails signed them untimed until today). Honour one only up to its
+    # show date, so a forwarded link still dies once the show is past (security #9).
+    try:
+        payload = _legacy_signer.loads(token)
+    except BadData:
         return None
+    if not isinstance(payload, dict):
+        return None
+    try:
+        d = dt.date.fromisoformat(str((payload.get("s") or {}).get("date") or "")[:10])
+    except ValueError:
+        return None
+    return payload if d >= dt.date.today() else None
 
 
 # ── language ─────────────────────────────────────────────────────────────────
@@ -243,14 +283,27 @@ def form():
     )
 
 
+def _link_unavailable():
+    # 2026-09-21 sweep (APPA-6): a DB outage on an emailed /s/ link gets a plain retry
+    # message, not Flask's bare 500. No mailer.alert — it would fire per click, undeduped.
+    msg = ("El formulario no está disponible en este momento. Por favor intente su enlace de nuevo en unos minutos."
+           if _lang() == "es" else
+           "The advance form is briefly unavailable. Please try your link again in a few minutes.")
+    return msg, 503, {"Retry-After": "300"}
+
+
 @app.get("/s/<code>")
 def short_link(code):
     """Short redirect for an emailed /f/<token> link — the signed token is long
     (venue + date + series + signature); emails carry this instead."""
     if not DB_OK:
-        abort(503)
-    with advance_db.get_conn() as conn, conn.cursor() as cur:
-        token = advance_db.resolve_short_link(cur, code)
+        return _link_unavailable()
+    try:
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            token = advance_db.resolve_short_link(cur, code)
+    except Exception as e:
+        _log_db_error("short_link", e)
+        return _link_unavailable()
     if not token:
         abort(404)
     # Carry ?lang= through the redirect (Flask's url_for doesn't inherit the
@@ -267,6 +320,23 @@ def prefilled_form(token):
     addressed); a returning band also gets their prior answers pre-filled."""
     payload = read_prefill_token(token) or {}
     seed = payload.get("s") or {}
+    # 2026-09-21 sweep (IDENT-6): a token carrying show_id seeds + locks the show's
+    # CURRENT venue/date/artist — a link sent before staff moved or re-pointed the
+    # show used to lock the stale identity and mint a phantom show on submit.
+    if seed.get("show_id") and DB_OK:
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                cur_show = advance_db.show_with_artist(cur, int(seed["show_id"]))
+            if cur_show and cur_show["cancelled_at"] is None and cur_show["show_date"]:
+                moved_venue = cur_show["venue"] != seed.get("venue")
+                seed = {**seed, "venue": cur_show["venue"],
+                        "date": cur_show["show_date"].isoformat(),
+                        "series": cur_show.get("show_series") or seed.get("series")}
+                if moved_venue:
+                    seed["location"] = None
+                payload = {**payload, "a": cur_show["artist_id"]}
+        except Exception as e:
+            _log_db_error("prefill_show", e)
     series = seed.get("series") or request.args.get("series")
     # An act's position on the bill used to tailor its form here — FSQ hid the
     # drum-riser question from openers and direct support. Every artist is asked
@@ -366,11 +436,16 @@ def submit():
     # IP on purpose; exempt it the same way ADVANCE_STAGING already gates
     # other production-only behavior.
     limited = False
-    if DB_OK and os.environ.get("ADVANCE_STAGING") != "1":
+    # 2026-09-21 sweep (APPA-3): signed-in staff (3rd-party/manual fills from one
+    # office IP) are exempt, and only ADMITTED attempts are recorded — a blocked
+    # client's retries were eating the site-wide 60/hour and 429ing every band.
+    if DB_OK and os.environ.get("ADVANCE_STAGING") != "1" and not session.get("auth"):
         try:
+            key = _submit_rate_key(_client_ip())
             with advance_db.get_conn() as conn, conn.cursor() as cur:
-                limited = advance_db.submit_rate_limited(cur, _client_ip())
-                advance_db.record_submit_attempt(cur, _client_ip())
+                limited = advance_db.submit_rate_limited(cur, key)
+                if not limited:
+                    advance_db.record_submit_attempt(cur, key)
                 conn.commit()
         except Exception as e:
             _log_db_error("submit_rate_limit", e)
@@ -381,14 +456,17 @@ def submit():
     # edit from the dashboard's Edit form button (signed-in staff only).
     staff_edit = bool(f.get("staff_edit")) and bool(session.get("auth"))
     third = advance_db.is_third_party(f.get("show_series")) or staff_edit
-    if not f.get("band_name") and not third:
+    # 2026-09-21 sweep (APPA-11): strip + cap BEFORE the required check — '   ' passed
+    # it and fell into the 3rd-party name lookup, and the cap loop below was overwritten.
+    raw_name = (f.get("band_name") or "").strip()[:300].strip()
+    if not raw_name and not third:
         abort(400, "Band name is required.")
 
     # The band's own link carries a SIGNED artist id (audit #6). A raw
     # artist_id field is ignored — it could be edited to hijack another
     # artist's record.
     verified_artist_id = verify_artist_token(f.get("artist_token"))
-    band_name = (f.get("band_name") or "").strip() or _third_party_band_name(
+    band_name = raw_name or _third_party_band_name(
         verified_artist_id, f.get("venue"), f.get("show_date"))
 
     # Stage plot: upload OR description is required, not both (Brian,
@@ -498,6 +576,8 @@ def submit():
             _queue_fsq_parking(rec)
     if result and result.get("match"):
         _email_submission_match(result, rec)
+    if result and result.get("name_kept"):
+        _queue_band_name_notice(result, rec)
 
     # 5) File ONLY this show's advance doc, in the background — blank cells
     #    only, never overwriting (audit #1). Uses the artist the submission
@@ -582,6 +662,27 @@ def _email_submission_match(result, rec):
                 conn.commit()
         except Exception as e:
             _log_db_error("match_notified", e)
+
+
+def _queue_band_name_notice(result, rec):
+    """2026-09-21 sweep (DBA-2): a band that edits its name on its own link is
+    no longer renamed by the form — Brian decides, and Edit Show carries it."""
+    typed, kept = rec.get("band_name") or "", result.get("artist_name") or ""
+    link = f"{PUBLIC_URL}/show/{result['show_id']}/edit"
+    subject = f"Band name to decide — “{typed}” (booked as {kept})"
+    body = (f"<p><b>{mailer.esc(kept)}</b> sent their {mailer.esc(rec.get('venue'))} "
+            f"{mailer.esc(rec.get('show_date'))} advance under the name <b>{mailer.esc(typed)}</b>. "
+            f"Nothing was renamed: the booking, the advance list row and the doc still say "
+            f"{mailer.esc(kept)}. If the new name is right, change Artist on Edit Show, which "
+            "renames the booking, sheet row, show and doc together.</p>"
+            f"<p><a href='{link}'>Edit Show →</a></p>")
+    if DB_OK:
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                advance_db.queue_digest_item(cur, "band_name", subject, body, link)
+                conn.commit()
+        except Exception as e:
+            _log_db_error("band_name_notice", e)
 
 
 def _regen_submitted_show(rec, submission_id=None):
@@ -818,10 +919,15 @@ def _gate():
     p = request.path
     if request.method == "POST" and p.startswith(GATED_PREFIXES) and session.get("auth"):
         sent = request.form.get("csrf") or request.headers.get("X-CSRF") or ""
-        if not hmac.compare_digest(sent, session.get("csrf") or ""):
+        # 2026-09-21 sweep (APPA-10): compare bytes — compare_digest(str, str)
+        # raises TypeError on any non-ASCII char, a 500 instead of a 403.
+        if not hmac.compare_digest(sent.encode("utf-8"), (session.get("csrf") or "").encode("utf-8")):
             abort(403)
     if p.startswith(GATED_PREFIXES) and not session.get("auth"):
-        return redirect(url_for("gate", next=p))
+        # 2026-09-21 sweep (APPA-2): carry the query through the gate — an emailed
+        # /doc-review?venue=..&date=.. link lost it and landed on 400 'bad date'.
+        nxt = request.full_path if request.query_string else p
+        return redirect(url_for("gate", next=nxt))
 
 
 @app.after_request
@@ -859,6 +965,16 @@ def _lockout_net(ip):
         return ip
     prefix = 64 if addr.version == 6 else 24
     return str(ipaddress.ip_network(f"{ip}/{prefix}", strict=False))
+
+
+def _submit_rate_key(ip):
+    """2026-09-21 sweep (APPA-3): /submit's per-IP bucket — an IPv6 /64 (one client
+    rotates freely inside it), but the bare IPv4 address: a /24 would lump
+    unrelated bands behind carrier NAT into one 5/hour bucket."""
+    try:
+        return _lockout_net(ip) if ipaddress.ip_address(ip).version == 6 else ip
+    except ValueError:
+        return ip
 
 
 def _safe_next(nxt):
@@ -907,7 +1023,11 @@ def gate():
             return render_template("gate.html",
                                    error=f"Too many attempts — try again in {GATE_WINDOW_MIN} minutes."), 429
         posted = request.form.get("passcode") or ""
-        ok = any(hmac.compare_digest(posted, p) for p in VALID_GATE_PASSES)
+        # 2026-09-21 sweep (APPA-10): bytes, so a non-ASCII typo counts as a normal
+        # failed attempt instead of a 500 that never reaches gate_attempts.
+        ok = any(hmac.compare_digest(posted.encode("utf-8"), p.encode("utf-8")) for p in VALID_GATE_PASSES)
+        global_trip = False
+        net_fails = global_fails = 0
         if DB_OK:
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -931,19 +1051,29 @@ def gate():
                                            ON CONFLICT (ip) DO UPDATE SET locked_at=now()""",
                                         (net,))
                             locked = True
+                            global_trip = net_fails < GATE_MAX_FAILS
                     conn.commit()
                 if locked:
+                    # 2026-09-21 sweep (APPA-9): cooldown is site-wide, not per-net — past the
+                    # global cap every newly failing /24 or /64 locks, and each used to send
+                    # its own synchronous alert. Now at most one lockout alert per cooldown.
                     with advance_db.get_conn() as conn, conn.cursor() as cur:
-                        cur.execute("SELECT notified_at FROM gate_lockouts WHERE ip=%s", (net,))
-                        row = cur.fetchone()
-                    cooled_down = (not row or not row["notified_at"]
-                                   or row["notified_at"] <
-                                   dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=GATE_NOTIFY_COOLDOWN_MIN))
+                        cur.execute("""SELECT 1 FROM gate_lockouts
+                                       WHERE notified_at > now() - (%s || ' minutes')::interval LIMIT 1""",
+                                    (GATE_NOTIFY_COOLDOWN_MIN,))
+                        cooled_down = cur.fetchone() is None
                     if cooled_down:
+                        if global_trip:
+                            body = (f"<p>{global_fails} wrong passcodes site-wide within {GATE_WINDOW_MIN} "
+                                    f"minutes, spread across many networks. Every network that fails a "
+                                    f"passcode now is locked out for {GATE_WINDOW_MIN} minutes (latest: "
+                                    f"<b>{mailer.esc(net)}</b>). No further lockout alerts for "
+                                    f"{GATE_NOTIFY_COOLDOWN_MIN} minutes.</p>")
+                        else:
+                            body = (f"<p>{net_fails} wrong passcodes from <b>{mailer.esc(net)}</b> within "
+                                    f"{GATE_WINDOW_MIN} minutes. That block is locked out for {GATE_WINDOW_MIN} minutes.</p>")
                         sent, _ = mailer.alert(
-                            "Advance staff login locked out — repeated wrong passcodes",
-                            f"<p>{GATE_MAX_FAILS} wrong passcodes from <b>{mailer.esc(net)}</b> within "
-                            f"{GATE_WINDOW_MIN} minutes. That block is locked out for {GATE_WINDOW_MIN} minutes.</p>")
+                            "Advance staff login locked out — repeated wrong passcodes", body)
                         if sent:
                             with advance_db.get_conn() as conn, conn.cursor() as cur:
                                 cur.execute("UPDATE gate_lockouts SET notified_at=now() WHERE ip=%s", (net,))
@@ -1170,6 +1300,36 @@ def _derive_schedule(data, f):
         data["set_time"] = f"{d} min"
 
 
+def _keep_hand_set_schedule(data, f, stored):
+    """2026-09-21 sweep (APPB-3/4): a form that never showed `stored`'s schedule posts
+    Load-In/Sound Check/Set Length as Set-Start defaults (here or in the JS), so merging onto
+    that row keeps each stored value it can't prove was itself derived — i.e. hand-set."""
+    def _mins(v):
+        m = advance_db.parse_clock(v)
+        return None if m is None else m % 1440
+
+    def _expected(start, end):
+        exp = {}
+        if start is not None:
+            exp["load_in"], exp["soundcheck"] = (start - 60) % 1440, (start - 30) % 1440
+            if end is not None:
+                d = end - start
+                exp["set_time"] = f"{d + 1440 if d <= 0 else d} min"
+        return exp
+
+    def _same(k, v, x):
+        return (str(v or "").strip().lower() == x) if k == "set_time" else _mins(v) == x
+
+    new_exp = _expected(_time_to_minutes(f.get("set_start")), _time_to_minutes(f.get("set_end")))
+    old_exp = _expected(_mins(stored.get("event_start")), _mins(stored.get("event_end")))
+    for k in ("load_in", "soundcheck", "set_time"):
+        old_v = stored.get(k)
+        if old_v in (None, "") or k not in new_exp or not _same(k, data.get(k), new_exp[k]):
+            continue
+        if not (k in old_exp and _same(k, old_v, old_exp[k])):
+            data[k] = old_v
+
+
 def _locked_schedule_series():
     """Best-effort — an empty list just means the booking form shows the
     schedule-time fields for every series, never blocks the form from
@@ -1219,7 +1379,7 @@ def _series_by_venue():
     return ordered
 
 
-def _record_booking_band_answers(f, files, data, existing_artist_id=None):
+def _record_booking_band_answers(f, files, data, existing_artist_id=None, prefilled=True):
     """A staffer filled in the band's own questions right on the booking form
     (Brian, 2026-09-16). Builds the same `rec` shape /submit would from a real
     submission and calls record_submission — one system, not two: the answer
@@ -1227,10 +1387,13 @@ def _record_booking_band_answers(f, files, data, existing_artist_id=None):
     submission does.
 
     No-ops (returns None) when none of those fields were touched, and when the
-    touched values exactly match the artist's newest submission already on
-    file — so re-saving a booking's schedule doesn't quietly file a duplicate
-    "the band submitted again" row every time. Never raises: a failure here
-    must not undo the booking save that already happened."""
+    touched values exactly match the answers already on file for this show
+    (advance_db.submission_for_show) — so re-saving a booking's schedule
+    doesn't quietly file a duplicate "the band submitted again" row every time. Never raises: a failure here
+    must not undo the booking save that already happened.
+
+    prefilled=False (2026-09-21 sweep, PRIOR-9): the blank New Booking form —
+    a field left empty there keeps the answer on file instead of clearing it."""
     posted = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_BAND_ANSWER_FIELDS}
     upload = files.get("stage_plot_file")
     has_upload = bool(upload and upload.filename)
@@ -1238,37 +1401,69 @@ def _record_booking_band_answers(f, files, data, existing_artist_id=None):
         return None
     if not DB_OK:
         return None
+    # 2026-09-21 sweep (FLOW-10): function scope, so the FSQ parking check after
+    # record_submission can tell whether the vehicle counts actually changed
+    prior, prior_data = None, {}
+    band_own = {}   # 2026-09-21 sweep: the band's own newest answer for THIS show (contact below)
+    answers = dict(posted)
+
+    def _prior_value(k):
+        v = prior_data.get(k)
+        if v not in (None, ""):
+            return str(v).strip()
+        v = (prior or {}).get(k)
+        if isinstance(v, bool):  # own_iems / merch are BOOLEAN in that column
+            v = "Yes" if v else "No"
+        return str(v or "").strip()
+
     try:
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             artist = (advance_db.get_artist(cur, existing_artist_id) if existing_artist_id
                      else advance_db.find_artist_by_name(cur, data.get("artist_name")))
             if artist:
-                prior = advance_db.newest_submission(cur, artist["id"])
+                # 2026-09-21 sweep: compare against the same answers the prefill shows
+                prior = advance_db.submission_for_show(cur, artist["id"], data.get("venue"),
+                                                       advance_db.to_date(data.get("event_date")))
                 prior_data = (prior or {}).get("data") or {}
-
-                def _prior_value(k):
-                    v = prior_data.get(k)
-                    if v not in (None, ""):
-                        return str(v).strip()
-                    v = (prior or {}).get(k)
-                    if isinstance(v, bool):  # own_iems / merch are BOOLEAN in that column
-                        v = "Yes" if v else "No"
-                    return str(v or "").strip()
+                cur.execute(
+                    """SELECT sub.data FROM submissions sub JOIN shows s ON s.id = sub.show_id
+                       WHERE s.artist_id=%s AND s.venue=%s AND s.show_date=%s
+                         AND sub.source <> 'staff'
+                       ORDER BY sub.submitted_at DESC LIMIT 1""",
+                    (artist["id"], data.get("venue"), advance_db.to_date(data.get("event_date"))))
+                band_own = (cur.fetchone() or {}).get("data") or {}
+                if not prefilled:
+                    answers = {k: posted[k] or _prior_value(k)
+                               for k in advance_db.BOOKING_BAND_ANSWER_FIELDS}
 
                 if not has_upload and all(
-                        posted.get(k, "") == _prior_value(k)
+                        answers.get(k, "") == _prior_value(k)
                         for k in advance_db.BOOKING_BAND_ANSWER_FIELDS):
                     return None  # nothing actually changed since the last answer on file
     except Exception as e:  # noqa: BLE001
         _log_db_error("booking_band_answers_precheck", e)
 
-    rec = dict(posted)
+    # 2026-09-21 sweep (PRIOR-9): this becomes the newest submission the doc/sheet
+    # read, so carry the band's own-only keys (changed_notes, form_lang, *_es_original)
+    # from the one on file — dropping them retracted them from the paperwork.
+    _not_carried = {"band_name", "venue", "show_date", "show_series", "location", "artist_id",
+                    "artist_token", "staff_edit", "website", "csrf", "stage_plot_file",
+                    "stage_plot_carried_from", "contact_name", "contact_email"}
+    rec = {k: v for k, v in prior_data.items()
+           if not k.startswith("_") and k not in _not_carried
+           and k not in advance_db.BOOKING_BAND_ANSWER_FIELDS and v not in (None, "")}
+    rec.update(answers)
     rec["band_name"] = data.get("artist_name") or ""
     rec["venue"] = data.get("venue") or ""
     rec["show_date"] = data.get("event_date") or ""
     rec["show_series"] = data.get("series") or ""
-    rec["contact_name"] = data.get("contact_name") or ""
-    rec["contact_email"] = data.get("contact_email") or ""
+    rec["location"] = data.get("location") or ""
+    # 2026-09-21 sweep: the band's own contact for this show outranks the booking contact
+    # (PRIOR-8's doc rule), or a staff save retracts it and repoints artists.last_email
+    rec["contact_name"] = (band_own.get("contact_name") or data.get("contact_name")
+                           or prior_data.get("contact_name") or "")
+    rec["contact_email"] = (band_own.get("contact_email") or data.get("contact_email")
+                            or prior_data.get("contact_email") or "")
     rec["_submitted_at"] = dt.datetime.now().isoformat(timespec="seconds")
     rec["_staff_edit"] = True
     if existing_artist_id:
@@ -1283,7 +1478,13 @@ def _record_booking_band_answers(f, files, data, existing_artist_id=None):
     file_info = None
     if has_upload:
         stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-        stored, dest = _save_upload(upload, stamp, _slug(rec["band_name"]))
+        try:
+            stored, dest = _save_upload(upload, stamp, _slug(rec["band_name"]))
+        except HTTPException as e:
+            # 2026-09-21 sweep (APPB-7): the booking is already committed; an abort
+            # here skipped the notify, the scoped run and the urgent welcome.
+            _log_db_error("booking_band_answers_upload", e)
+            return None
         rec["stage_plot_file"] = stored
         file_info = {"filename": upload.filename, "stored_name": stored,
                     "mime": upload.mimetype, "size": dest.stat().st_size if dest.exists() else None}
@@ -1302,8 +1503,23 @@ def _record_booking_band_answers(f, files, data, existing_artist_id=None):
         # having responded to a welcome that hasn't gone out yet — without
         # this the show never gets welcomed or reminded at all, even though
         # the thank-you page tells staff it will.
-        return advance_db.record_submission(rec, file_info=file_info, source="staff",
-                                            resolve_booking=False, stamp_responded=False)
+        result = advance_db.record_submission(rec, file_info=file_info, source="staff",
+                                              resolve_booking=False, stamp_responded=False)
+        # 2026-09-21 sweep (FLOW-10): staff-typed FSQ vehicle counts reach Mtully's
+        # parking digest like a band's own — but only when new or changed for THIS show
+        # (keyed on `posted`, 2026-09-21 sweep: counts carried from another show aren't new)
+        if (result and data.get("venue") == "Fountain Square"
+                and (posted.get("vehicle_count") or posted.get("large_vehicle_count"))):
+            same_show = bool(prior) and prior.get("show_id") == result.get("show_id")
+            counts = (str(rec.get("vehicle_count") or ""), str(rec.get("large_vehicle_count") or ""))
+            if not same_show or counts != (_prior_value("vehicle_count"),
+                                           _prior_value("large_vehicle_count")):
+                q = dict(rec)
+                q["band_name"] = result.get("artist_name") or rec.get("band_name") or ""
+                q["_db"] = {"artist_id": result.get("artist_id"), "show_id": result.get("show_id"),
+                            "submission_id": result.get("submission_id")}
+                _queue_fsq_parking(q)
+        return result
     except Exception as e:  # noqa: BLE001
         _log_db_error("booking_band_answers", e)
         return None
@@ -1371,7 +1587,10 @@ def _booking_row_to_form(b):
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
                 artist = advance_db.find_artist_by_name(cur, b.get("artist_name"))
-                sub = advance_db.newest_submission(cur, artist["id"]) if artist else None
+                # 2026-09-21 sweep: this show's own answers first (what its doc fills from)
+                sub = advance_db.submission_for_show(
+                    cur, artist["id"], b.get("venue"),
+                    advance_db.to_date(b.get("event_date"))) if artist else None
             if sub:
                 sub_data = sub.get("data") or {}
                 for k in advance_db.BOOKING_BAND_ANSWER_FIELDS:
@@ -1478,6 +1697,10 @@ def _validate_booking_data(f):
     if (not data["skip_welcome_email"] and "@" not in data["contact_email"]
             and not advance_db.is_third_party(data["series"])):
         return None, "Contact email is required (or check Manual band advance)."
+    # 2026-09-21 sweep (PRIOR-16): a 3rd-party booking that opts in to band
+    # emails needs somewhere to send them, or nothing ever goes out, silently.
+    if data["band_emails"] and not data["skip_welcome_email"] and "@" not in data["contact_email"]:
+        return None, "Contact email is required when Send band emails is ticked."
     data["event_type"] = _event_type_for_series(data["series"])
     # A series with a fixed schedule (Salsa On The Square, Brian, 2026-09-17)
     # pre-fills curfew with its baked-in value — load_in/soundcheck/
@@ -1529,8 +1752,13 @@ def booking():
         data, err = _validate_booking_data(f)
         if err:
             return _booking_form(err, f, 400)
+        # 2026-09-21 sweep (APPB-7): refuse a bad stage plot before anything commits
+        bad_plot = _booking_upload_problem(request.files)
+        if bad_plot:
+            return _booking_form(bad_plot[1], f, bad_plot[0])
         saved = False
-        conflict_show_id = None
+        existing = existing_show = None
+        changes, will_notify = {}, False
         if DB_OK:
             try:
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -1545,20 +1773,35 @@ def booking():
                     # audit 2026-09-16 #11: a re-POST for a band already
                     # booked this venue+date used to silently upsert via
                     # insert_booking's ON CONFLICT — no diff, no sheet_dirty,
-                    # no "info changed" notice, and every checkbox this blank
-                    # form defaults to unchecked (draft_only, skip_welcome_
-                    # email, band_emails) would reset even if deliberately
-                    # set before. Route through update_booking instead, same
-                    # as an explicit edit would.
+                    # no "info changed" notice. Route through update_booking
+                    # instead, same as an explicit edit would — after merging
+                    # the stored row in below (2026-09-21 sweep, APPB-4):
+                    # update_booking takes every posted value as-is, so this
+                    # blank form's unticked boxes and empty fields would reset them.
                     existing = advance_db.find_booking(cur, data["venue"],
                                                         advance_db.to_date(data["event_date"]),
                                                         data["artist_name"])
                     if existing:
-                        advance_db.update_booking(cur, existing["id"], data)
-                        conflict_show_id = advance_db.show_for_booking(
+                        # 2026-09-21 sweep: this blank form can't show the stored
+                        # checkboxes, so a re-log can set a flag but never clear
+                        # one — clearing stays on Edit Show, which pre-fills them.
+                        # 2026-09-21 sweep (APPB-4): same for text — a field left blank
+                        # here keeps the stored value (email_note, lead_name, location...).
+                        for k in advance_db.BOOKING_FIELDS:
+                            if not data.get(k) and existing.get(k) not in (None, ""):
+                                v = existing[k]
+                                data[k] = v.isoformat() if isinstance(v, dt.date) else v
+                        _keep_hand_set_schedule(data, f, existing)  # 2026-09-21 sweep: never blank
+                        data["skip_welcome_email"] = data["skip_welcome_email"] or bool(existing.get("skip_welcome_email"))
+                        # Manual wins over Draft-only, as booking.html's onManualChange does
+                        data["draft_only"] = ((data["draft_only"] or bool(existing.get("draft_only")))
+                                              and not data["skip_welcome_email"])
+                        data["band_emails"] = data["band_emails"] or (
+                            bool(existing.get("band_emails")) and advance_db.is_third_party(data["series"]))
+                        changes, will_notify = advance_db.update_booking(cur, existing["id"], data)
+                        existing_show = advance_db.show_for_booking(
                             cur, data["artist_name"], data["venue"],
                             advance_db.to_date(data["event_date"]))
-                        conflict_show_id = conflict_show_id["id"] if conflict_show_id else None
                     else:
                         advance_db.insert_booking(cur, data)
                     conn.commit()
@@ -1567,9 +1810,27 @@ def booking():
                 _log_db_error("insert_booking", e)
         if not saved:
             return _booking_form("Couldn't save — the database is unreachable. Try again shortly.", f, 503)
-        if conflict_show_id:
-            return redirect(url_for("show_edit", show_id=conflict_show_id, updated=1))
-        band_answers_saved = _record_booking_band_answers(f, request.files, data) is not None
+        if existing:
+            # 2026-09-21 sweep: a re-log is an update — keep its typed answers and
+            # upload, kick the pipeline, and show the same "Booking updated" page
+            # booking_edit does (no new-booking notice, no immediate send).
+            answer_result = _record_booking_band_answers(
+                f, request.files, data,
+                existing_artist_id=existing_show["artist_id"] if existing_show else None,
+                prefilled=False)
+            show_date = advance_db.to_date(data["event_date"])
+            _run_pipeline_background(f"{data['venue']}|{show_date.isoformat()}" if show_date else None)
+            if answer_result:
+                _regen_submitted_show({"venue": data["venue"], "show_date": data["event_date"],
+                                       "band_name": answer_result.get("artist_name") or data["artist_name"]},
+                                      submission_id=answer_result.get("submission_id"))
+            return render_template("booking.html", venues=forms_config.VENUES,
+                                   saved=data, urgent=False, band_answers_saved=answer_result is not None,
+                                   edited=True, edit_changes=changes, will_notify=will_notify,
+                                   show_id=existing_show["id"] if existing_show else None,
+                                   edit_booking_id=None if existing_show else existing["id"])
+        band_answers_saved = _record_booking_band_answers(f, request.files, data,
+                                                          prefilled=False) is not None
         _notify_email("booking", data)
         show_date = advance_db.to_date(data.get("event_date"))
         days_out = (show_date - dt.date.today()).days if show_date else None
@@ -1628,6 +1889,10 @@ def booking_edit(booking_id):
         data, err = _validate_booking_data(f)
         if err:
             return _booking_form(err, f, 400, booking_id)
+        # 2026-09-21 sweep (APPB-7): refuse a bad stage plot before anything commits
+        bad_plot = _booking_upload_problem(request.files)
+        if bad_plot:
+            return _booking_form(bad_plot[1], f, bad_plot[0], booking_id)
         changes, will_notify = {}, False
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -2044,6 +2309,22 @@ def show_advance_sent(show_id):
     return _back(url_for("artist_detail", artist_id=s["artist_id"]))
 
 
+@app.post("/show/<int:show_id>/held-draft-discarded")
+def show_held_draft_discarded(show_id):
+    """2026-09-21 sweep (PRIOR-25): staff deleted a stale held welcome (band
+    already answered, or show cancelled) from Production@3cdc.org drafts.
+    Clears the stamp only; discard_held_draft refuses an unanswered show."""
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.get_show(cur, show_id)
+        if not s:
+            abort(404)
+        advance_db.discard_held_draft(cur, show_id)
+        conn.commit()
+    return _back(url_for("artist_detail", artist_id=s["artist_id"]))
+
+
 @app.post("/show/<int:show_id>/purge")
 def show_purge(show_id):
     """Irreversible: deletes this one show's submission, uploaded files,
@@ -2087,6 +2368,10 @@ def show_uncancel(show_id):
             abort(404)
         advance_db.uncancel_show(cur, show_id)
         conn.commit()
+    # 2026-09-21 sweep (APPB-12): mirror cancel's immediate scoped run, so the filed doc
+    # loses its "CANCELLED -" name and act header the same day, not at 06:30.
+    if s.get("show_date"):
+        _run_pipeline_background(f"{s['venue']}|{s['show_date'].isoformat()}")
     return _back(url_for("artist_detail", artist_id=s["artist_id"]))
 
 
@@ -2170,6 +2455,10 @@ def show_edit(show_id):
         data, err = _validate_booking_data(f)
         if err:
             return _booking_form(err, f, 400, show_id=show_id)
+        # 2026-09-21 sweep (APPB-7): refuse a bad stage plot before anything commits
+        bad_plot = _booking_upload_problem(request.files)
+        if bad_plot:
+            return _booking_form(bad_plot[1], f, bad_plot[0], show_id=show_id)
         # Venue / date / artist are editable here again (Brian, 2026-09-19:
         # "even when finalized I need to be able to edit all fields"). They
         # were pinned to the show's own values (audit 2026-09-16 #10) because
@@ -2190,6 +2479,7 @@ def show_edit(show_id):
                      "event_date": s["show_date"]}
         changes, will_notify = {}, False
         booking_id = booking["id"] if booking else None
+        adopted = None  # an existing bookings row this booking-less show moved onto
         artist_id = s["artist_id"]
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -2218,15 +2508,42 @@ def show_edit(show_id):
                                 f"{data['event_date']}. Edit that booking instead of moving this "
                                 f"one onto it.", f, 409, show_id=show_id)
                         booking_id = there["id"]
+                        adopted = there
                 released_draft = False
                 if booking_id:
+                    if adopted:
+                        # 2026-09-21 sweep: the form was prefilled from this show, not the
+                        # adopted booking — keep its values for every blank, and its three
+                        # flags only ever switch ON (no surprise welcome, no draft release).
+                        for k in advance_db.BOOKING_FIELDS:
+                            v = adopted.get(k)
+                            if not data.get(k) and v is not None:
+                                data[k] = v.isoformat() if isinstance(v, dt.date) else v
+                        _keep_hand_set_schedule(data, f, adopted)  # 2026-09-21 sweep: never blank
+                        data["skip_welcome_email"] = data["skip_welcome_email"] or bool(adopted.get("skip_welcome_email"))
+                        data["draft_only"] = data["draft_only"] or bool(adopted.get("draft_only"))
+                        if advance_db.is_third_party(data["series"]):
+                            data["band_emails"] = data["band_emails"] or bool(adopted.get("band_emails"))
                     was_draft_only = bool((advance_db.get_booking(cur, booking_id) or {}).get("draft_only"))
                     changes, will_notify = advance_db.update_booking(cur, booking_id, data)
+                    if adopted:
+                        # 2026-09-21 sweep: update_booking's own carry is a no-op here (the
+                        # adopted row already has the new identity) — carry THIS show onto it.
+                        advance_db.carry_show_with_booking(cur, old_ident, data)
+                        # 2026-09-21 sweep (IDENT-2): the adopted booking has its own sheet
+                        # row — delete this show's hand-typed one, or it re-mints the old show.
+                        if s["venue"] and s["show_date"]:
+                            advance_db.add_sheet_removal(cur, s["venue"], s["show_date"],
+                                                         advance_db.normalize(s["artist_name"]),
+                                                         s["artist_name"], reason="merge")
                     released_draft = was_draft_only and not data["draft_only"]
                 else:
                     booking_id = advance_db.insert_booking(cur, data)
                     if renamed or moved:
                         advance_db.carry_show_with_booking(cur, old_ident, data)
+                    # 2026-09-21 sweep (IDENT-2): the new booking takes over this show's
+                    # hand-typed sheet row, so step 1b renames/moves it in place (identity only).
+                    advance_db.adopt_sheet_row(cur, booking_id, old_ident)
                 # The show can come out of that under a different id — a merge
                 # into a show already on the new venue+date keeps the one
                 # that was there — so everything below works on the survivor,
@@ -2313,6 +2630,12 @@ def doc_review():
         if doc_name:
             n["doc_artist"], n["booked_artist"] = doc_name, booked_name
     waiting_check = bool(sub and not sub.get("doc_checked_at"))
+    # 2026-09-21 sweep (DOC-5): display-only — an apply killed or hung past 30 min
+    # (lock wait is 10) re-enables both radios instead of reloading forever
+    stale = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=30)
+    for n in notices:
+        if n.get("apply_requested_at") and not n.get("apply_error") and n["apply_requested_at"] < stale:
+            n["apply_error"] = "the apply never finished — pick again"
     applying = any(n.get("apply_requested_at") and not n.get("apply_error") for n in notices)
     return render_template("doc_review.html", venue=venue, d=d, notices=notices, sub=sub,
                            waiting=waiting_check or applying, waiting_check=waiting_check,
@@ -2351,9 +2674,15 @@ def _rename_band_from_notice(cur, n, doc_name, booked_name):
     show = advance_db.show_for_booking(cur, booked_name, venue, d)
     if not show:
         return f"no booking or show on file for {booked_name} at {venue} {d}"
-    advance_db.carry_show_with_booking(
-        cur, {"artist_name": booked_name, "venue": venue, "event_date": d},
-        {"artist_name": doc_name, "venue": venue, "event_date": d})
+    # 2026-09-21 sweep (IDENT-2): same as Edit Show's no-booking save — create the
+    # booking under the doc's spelling and adopt the hand-typed sheet row, so the
+    # old-spelling row is renamed in place instead of re-minting the old band.
+    old_ident = {"artist_name": booked_name, "venue": venue, "event_date": d}
+    data = {"artist_name": doc_name, "venue": venue, "event_date": d,
+            "series": show.get("show_series")}
+    bid = advance_db.insert_booking(cur, data)
+    advance_db.carry_show_with_booking(cur, old_ident, data)
+    advance_db.adopt_sheet_row(cur, bid, old_ident)
     return None
 
 
@@ -2398,6 +2727,16 @@ def doc_review_decide():
                                  start_new_session=True)
         except Exception as e:
             _log_db_error("doc_review_apply", e)
+            # 2026-09-21 sweep (DOC-5): the apply never started — say so on the
+            # page, or both radios stay disabled on 'Writing it into the doc…'
+            try:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    cur.execute("UPDATE doc_notices SET apply_error=%s "
+                                "WHERE id = ANY(%s) AND resolved_at IS NULL",
+                                ("couldn't start the apply — try again", list(apply_ids)))
+                    conn.commit()
+            except Exception as e2:
+                _log_db_error("doc_review_apply", e2)
     if renamed:
         # the doc's own cells, its filename and the sheet row follow the
         # rename on the next pass — same background run Edit Show triggers.
@@ -2422,7 +2761,8 @@ def submission_match(match_id):
                FROM shows s JOIN artists a ON a.id=s.artist_id
                WHERE s.venue=%s AND s.cancelled_at IS NULL
                  AND s.show_date BETWEEN %s::date - 30 AND %s::date + 30
-                 AND NOT EXISTS (SELECT 1 FROM submissions x WHERE x.show_id=s.id)
+                 AND NOT EXISTS (SELECT 1 FROM submissions x
+                                 WHERE x.show_id=s.id AND x.source <> 'staff')  -- 2026-09-21 sweep: staff pre-typed answers still take the real band submission
                ORDER BY abs(s.show_date - %s::date), a.name""",
             (m["venue"], m["show_date"], m["show_date"], m["show_date"]))
         options = cur.fetchall()
@@ -2445,11 +2785,23 @@ def submission_match_detach(match_id):
         if not m:
             abort(404)
         sub = advance_db.get_submission(cur, m["submission_id"])
+        prev = advance_db.get_show(cur, sub["show_id"]) if sub and sub.get("show_id") else None
         advance_db.detach_submission(cur, m["submission_id"], m["typed_name"], m["venue"],
                                      m["show_date"], series=(sub.get("data") or {}).get("show_series") or None)
         cur.execute("UPDATE submission_matches SET status='detached', resolved_at=now() WHERE id=%s",
                     (match_id,))
         conn.commit()
+    # 2026-09-21 sweep (APPB-13): the booked act's doc column still holds the detached
+    # band's answers until the bill is re-filed; a scoped run resets them (docmerge F7).
+    scopes = []
+    if prev and prev.get("show_date"):
+        scopes.append(f"{prev['venue']}|{prev['show_date'].isoformat()}")
+    if m.get("venue") and m.get("show_date"):
+        sc = f"{m['venue']}|{m['show_date'].isoformat()}"
+        if sc not in scopes:
+            scopes.append(sc)
+    if scopes:
+        _run_pipeline_background(scopes)
     return redirect(url_for("submission_match", match_id=match_id))
 
 
@@ -2459,7 +2811,10 @@ def submission_match_attach(match_id, show_id):
         m = advance_db.get_match(cur, match_id)
         if not m or not advance_db.get_show(cur, show_id):
             abort(404)
-        advance_db.reattach_submission(cur, m["submission_id"], show_id)
+        # 2026-09-21 sweep (DBB-9): only pending_pick/detached sources are shows the submission
+        # created itself; any other source is a real booking — keep it, just clear responded_at.
+        advance_db.reattach_submission(cur, m["submission_id"], show_id,
+                                       delete_empty_source=(m["status"] in ("pending_pick", "detached")))
         cur.execute("""UPDATE submission_matches SET status='attached_manual', booked_show_id=%s,
                        resolved_at=now() WHERE id=%s""", (show_id, match_id))
         conn.commit()
@@ -2510,14 +2865,22 @@ def stage_plot_file(venue, date, filename):
     Opening the doc on a phone (Word mobile, Dropbox's own preview) has no
     such access at all ("no handler for the stage plot file"), and even on
     desktop it depended on Dropbox having already materialized the sibling
-    file. No auth, same sensitivity as the public form itself and venue_doc
-    above — the filename must resolve inside that one venue+month's own
-    folder, which is all the path-safety this needs."""
+    file. No auth, so it serves ONLY filed stage plots: the filename must be
+    a bare '... Stageplot' name (fs.stageplot_stem, its '(updated ...)'
+    variant, legacy 'stageplot'/'Stage Plot' spellings) that resolves inside
+    that one venue+month's own folder. 2026-09-21 sweep: the folder also
+    holds the filed '<MMDDYY> <Event> Prod Adv.docx' (contacts, phones) — any
+    other name there is a 404, never served."""
     sys.path.insert(0, str(TOOLS_DIR))
     import fieldspec as fs
     try:
         d = dt.date.fromisoformat(date)
     except ValueError:
+        abort(404)
+    if "/" in filename or "\\" in filename or filename.startswith("."):
+        abort(404)
+    if not re.search(r"stage[ _-]?plot(?: \(updated [^)]*\))?(?: \(\d+\))?$",
+                     Path(filename).stem, re.I):
         abort(404)
     folder = (fs.real_dropbox_root() / fs.real_venue_folder(venue) / fs.real_month_folder(venue, d)).resolve()
     target = (folder / filename).resolve()
@@ -2526,12 +2889,15 @@ def stage_plot_file(venue, date, filename):
     return send_from_directory(folder, filename, as_attachment=False)
 
 
+# 2026-09-21 sweep: deploy_app.command polls pg_locks for this LITERAL key before
+# stopping the service — change the two together.
 LIFECYCLE_LOCK_KEY = 874201913
 
 
 def _internal_auth():
     token = request.headers.get("X-Advance-Token") or ""
-    if not INTERNAL_TOKEN or not hmac.compare_digest(token, INTERNAL_TOKEN):
+    # 2026-09-21 sweep (APPA-10): bytes — a non-ASCII header must be a 403, not a 500.
+    if not INTERNAL_TOKEN or not hmac.compare_digest(token.encode("utf-8"), INTERNAL_TOKEN.encode("utf-8")):
         abort(403)
 
 
@@ -2596,6 +2962,10 @@ def advance_lifecycle():
 
         # ── welcomes ──
         with advance_db.get_conn() as conn, conn.cursor() as cur:
+            # 2026-09-21 sweep (MAIL-6): booking edits up to this moment ride in
+            # the welcome/held draft rendered below — resolved, not re-sent as "X -> Y".
+            cur.execute("SELECT clock_timestamp() AS t")
+            welcome_asof = cur.fetchone()["t"]
             due_initial = advance_db.shows_due_for_initial_advance(cur)
         if due_initial:
             batch = [{
@@ -2610,6 +2980,9 @@ def advance_lifecycle():
                 "email_note": r["email_note"] or "",
                 "contact_name": r["contact_name"] or "",
                 "contact_email": r["booking_contact_email"] or "",
+                # 2026-09-21 sweep (MAIL-2): str — load_batch .strip()s every value.
+                # The draft's filename carries it, so each show reads only its own file.
+                "show_id": str(r["show_id"]),
             } for r in due_initial]
             batch_file = TOOLS_DIR / f".lifecycle_initial_batch_{os.getpid()}.json"
             batch_file.write_text(json.dumps(batch))
@@ -2621,6 +2994,7 @@ def advance_lifecycle():
             drafts_dir = Path(tempfile.mkdtemp(prefix="lifecycle-drafts-", dir=str(TOOLS_DIR)))
             rendered = True
             render_error = ""
+            render_stderr = ""   # 2026-09-21 sweep (MAIL-12): per-row failures, even on exit 0
             try:
                 # check=True dropped (audit 2026-09-16 #15): draft_emails.py
                 # now catches per-row failures itself and keeps rendering the
@@ -2633,6 +3007,10 @@ def advance_lifecycle():
                                        "--out", str(drafts_dir)],
                                       cwd=TOOLS_DIR, capture_output=True, text=True,
                                       timeout=180)
+                render_stderr = proc.stderr or ""
+                if proc.returncode == 0 and render_stderr.strip():
+                    _log_db_error("lifecycle_draft_render_rows",
+                                  RuntimeError(render_stderr.strip()[-2000:]))
                 if proc.returncode != 0:
                     rendered = False
                     render_error = (proc.stderr or proc.stdout or "").strip()[-500:]
@@ -2655,14 +3033,25 @@ def advance_lifecycle():
                     continue
                 seen_shows.add(r["show_id"])
                 if not r["email"]:
-                    if not advance_db.is_third_party(r["series"]):
-                        fail(r["show_id"], "welcome", "no contact email on file")
+                    # 2026-09-21 sweep (PRIOR-16): the due query already drops silent
+                    # 3rd-party shows, so a 3rd-party row here opted in — say so.
+                    fail(r["show_id"], "welcome", "no contact email on file")
                     continue
-                hits = sorted(drafts_dir.glob(f"{_dslug(r['artist_name'])}__{r['show_date'].isoformat()}__*.md"),
+                # 2026-09-21 sweep (MAIL-2): keyed on show id — slug+date alone matched a
+                # sibling show's draft (same band, other venue) and sent it twice.
+                hits = sorted(drafts_dir.glob(f"{_dslug(r['artist_name'])}__{r['show_date'].isoformat()}"
+                                              f"__*__s{r['show_id']}__*.md"),
                               key=lambda p: p.stat().st_mtime, reverse=True)
                 if not rendered or not hits:
+                    # 2026-09-21 sweep (MAIL-12): the row's own stderr line (exception or
+                    # skip) is the cause — a bare "didn't render" repeated daily told no one.
+                    tag = f"{r['artist_name']} {r['show_date'].isoformat()}:"
+                    row_lines = [ln.strip() for ln in render_stderr.splitlines()
+                                 if ln.strip().startswith(("[draft_emails] " + tag, "skip " + tag))]
                     reason = "welcome email didn't render"
-                    if render_error:
+                    if row_lines:
+                        reason += " — " + "; ".join(row_lines)[-300:]
+                    elif render_error:
                         reason += f" — {render_error}"
                     fail(r["show_id"], "welcome", reason)
                     continue
@@ -2684,6 +3073,8 @@ def advance_lifecycle():
                         continue
                     with advance_db.get_conn() as conn, conn.cursor() as cur:
                         advance_db.mark_advance_held_as_draft(cur, r["show_id"])
+                        advance_db.resolve_booking_edits_carried(
+                            cur, r.get("booking_id"), welcome_asof, "skipped: held draft carried it")
                         conn.commit()
                     held_drafts.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
                                         "show_date": us_date(r["show_date"]), "link": link})
@@ -2691,7 +3082,7 @@ def advance_lifecycle():
                 ok, err = _send_outlook_email(welcome_to, subject, body=body.lstrip("\n"),
                                               attachments=ve.venue_attachments(r["venue"]))
                 if not ok:
-                    if err and err.startswith("TIMEOUT:"):
+                    if mailer.outcome_unknown(err):
                         # audit 2026-09-16 #17: unknown outcome — Graph may
                         # have actually sent it despite the timeout here.
                         # Stop the automatic retry (a real retry risks a
@@ -2700,8 +3091,14 @@ def advance_lifecycle():
                         # welcome_unknown, not welcome, so the daily failure
                         # digest tells Brian to verify by hand rather than
                         # reporting a plain failure that isn't necessarily one.
+                        # 2026-09-21 sweep (PRIOR-13): same tier pre-skip and
+                        # carried-edit resolve as a confirmed send (48h rule).
+                        days_out = (r["show_date"] - dt.date.today()).days
                         with advance_db.get_conn() as conn, conn.cursor() as cur:
                             advance_db.mark_advance_drafted(cur, r["show_id"])
+                            advance_db.mark_stale_followup_tiers_skipped(cur, r["show_id"], days_out)
+                            advance_db.resolve_booking_edits_carried(
+                                cur, r.get("booking_id"), welcome_asof, "skipped: welcome carried it")
                             conn.commit()
                         fail(r["show_id"], "welcome_unknown", err)
                     else:
@@ -2711,6 +3108,8 @@ def advance_lifecycle():
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
                     advance_db.mark_advance_drafted(cur, r["show_id"])
                     advance_db.mark_stale_followup_tiers_skipped(cur, r["show_id"], days_out)
+                    advance_db.resolve_booking_edits_carried(
+                        cur, r.get("booking_id"), welcome_asof, "skipped: welcome carried it")
                     conn.commit()
                 initial.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
                                 "show_date": us_date(r["show_date"])})
@@ -2731,8 +3130,8 @@ def advance_lifecycle():
             tier, r = tiers[0]
             older = [t for t, _ in tiers[1:]]
             if not r["email"]:
-                if not advance_db.is_third_party(r["series"]):
-                    fail(show_id, f"followup_{tier}", "no contact email on file")
+                # 2026-09-21 sweep (PRIOR-16): opted-in 3rd-party shows fail loudly too.
+                fail(show_id, f"followup_{tier}", "no contact email on file")
                 continue
             with advance_db.get_conn() as conn, conn.cursor() as cur:
                 token = _signer.dumps({"a": r["artist_id"],
@@ -2741,7 +3140,9 @@ def advance_lifecycle():
                                              "series": r["series"] or None,
                                              "location": r["location"] or None,
                                              "contact_name": r["contact_name"] or None,
-                                             "contact_email": r["booking_contact_email"] or None}})
+                                             "contact_email": r["booking_contact_email"] or None,
+                                             # 2026-09-21 sweep (IDENT-6): see prefilled_form
+                                             "show_id": show_id}})
                 code = advance_db.get_or_create_short_link(cur, token)
                 conn.commit()
             link = f"{PUBLIC_URL}/s/{code}"
@@ -2791,7 +3192,17 @@ def advance_lifecycle():
             if doc_links:
                 body = f"{body}\n\n{doc_links}"
             ok, err = _send_outlook_email(ve.with_extra_recipients(r["email"], r["series"]), subject, body=body)
-            if not ok:
+            if not ok and mailer.outcome_unknown(err):
+                # 2026-09-21 sweep (PRIOR-13): timed out, Graph may have sent it —
+                # close the tier like a send so the next run can't double-send.
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    advance_db.mark_followup_sent(cur, show_id, tier, sent=True)
+                    for t in older:
+                        advance_db.mark_followup_sent(cur, show_id, t, sent=False)
+                    conn.commit()
+                fail(show_id, f"followup_{tier}_unknown", err)
+                continue
+            elif not ok:
                 fail(show_id, f"followup_{tier}", err)
                 continue
             with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -2854,7 +3265,9 @@ def advance_lifecycle():
         # ── thank-you, automatic (audit 2026-09-16 #23, Brian's call) ──
         # finalize_thankyou.send_for_show already records its own outcome
         # (thankyou_sent_at/thankyou_error) and queues its own digest item
-        # on failure — nothing here needs fail() too.
+        # on failure — nothing here needs fail() too. 2026-09-21 sweep (PRIOR-2):
+        # after_show=True sends the post-show copy for these past shows (the
+        # manual path refuses them), and only a confirmed send is reported.
         thankyou = []
         if not ran_out_of_time:
             try:
@@ -2866,16 +3279,34 @@ def advance_lifecycle():
                         ran_out_of_time = True
                         break
                     try:
-                        _send_thankyou(show_id)
-                        thankyou.append(show_id)
+                        if _send_thankyou(show_id, after_show=True):
+                            # 2026-09-21 sweep (FLOW-17): name rows, not ids, so the n8n summary can list them
+                            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                                s = advance_db.show_with_artist(cur, show_id) or {}
+                            thankyou.append({"artist_name": s.get("artist_name") or "",
+                                             "venue": s.get("venue") or "",
+                                             "show_date": us_date(s.get("show_date"))})
                     except Exception as e:  # noqa: BLE001 — one show's failure never blocks the rest
                         _log_db_error("thankyou_auto", e)
             except Exception as e:  # noqa: BLE001 — never blocks the rest of the run
                 _log_db_error("thankyou_auto", e)
 
+        # 2026-09-21 sweep (OPS-7): the watchdog checks this, not the start
+        # stamp — a run that crashed or was killed partway isn't a run.
+        with advance_db.get_conn() as conn, conn.cursor() as cur:
+            advance_db.record_job_run(cur, "advance-lifecycle-done", source)
+            conn.commit()
         _email_send_failures()
     except Exception as e:
+        tb = traceback.format_exc()
         _log_db_error("advance_lifecycle", e)
+        # 2026-09-21 sweep (OPS-7): n8n has no error path, so say so here, and
+        # still report the send failures this run recorded before it died.
+        _alert_lifecycle_crash(source, tb)
+        try:
+            _email_send_failures()
+        except Exception as e2:  # noqa: BLE001
+            _log_db_error("advance_lifecycle_failures_email", e2)
         return {"error": e.__class__.__name__, "initial": initial, "followup": followup,
                 "held_drafts": held_drafts}, 500
     finally:
@@ -2894,6 +3325,35 @@ def advance_lifecycle():
             "unresponded_alert_sent": unresponded_sent, "failures": failures}
 
 
+def _alert_lifecycle_crash(source, tb):
+    """2026-09-21 sweep (OPS-7): email Brian when a lifecycle run dies partway,
+    at most once a day. Never raises; if the DB is what broke, alerts anyway."""
+    try:
+        midnight = dt.datetime.combine(dt.date.today(), dt.time())
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                if advance_db.job_ran_since(cur, "lifecycle-crash-alert", "auto", midnight):
+                    return
+        except Exception as e:  # noqa: BLE001
+            _log_db_error("lifecycle_crash_alert_check", e)
+        ok, _err = mailer.alert(
+            "Advance lifecycle check CRASHED — sends stopped",
+            "<p>The " + mailer.esc(source) + " lifecycle run died partway. Anything already "
+            "sent is stamped; the welcomes, reminders, day-before and thank-yous after the "
+            "failure point did not go out, and the next run retries them. If this repeats "
+            "daily it is a code/data bug on one show.</p><pre>" + mailer.esc(tb[-4000:])
+            + "</pre>")
+        if ok:
+            try:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    advance_db.record_job_run(cur, "lifecycle-crash-alert", "auto")
+                    conn.commit()
+            except Exception as e:  # noqa: BLE001
+                _log_db_error("lifecycle_crash_alert_stamp", e)
+    except Exception as e:  # noqa: BLE001
+        _log_db_error("lifecycle_crash_alert", e)
+
+
 def _email_send_failures():
     """One email listing every send failure not yet reported (at most one per
     show / kind / day, via send_failures)."""
@@ -2901,17 +3361,36 @@ def _email_send_failures():
         rows = advance_db.unnotified_send_failures(cur)
     if not rows:
         return
-    tr = "".join(
-        f"<tr><td style='padding:4px 10px'>{mailer.esc(r['artist_name'])}</td>"
-        f"<td style='padding:4px 10px'>{mailer.esc(r['venue'])} {us_date(r['show_date'])}</td>"
-        f"<td style='padding:4px 10px'>{mailer.esc(r['kind'])}</td>"
-        f"<td style='padding:4px 10px'>{mailer.esc(r['error'])}</td></tr>" for r in rows)
-    html = ("<div style='font-family:-apple-system,sans-serif;font-size:13px'>"
-            "<p>These emails did <b>not</b> go out. Nothing was marked sent — each one retries on the "
-            "next run. Fix whatever's named (a missing address, an Outlook/n8n problem) and it will send.</p>"
-            "<table border='1' cellspacing='0' style='border-collapse:collapse'>"
-            "<tr><th>Band</th><th>Show</th><th>Email</th><th>Why</th></tr>" + tr + "</table></div>")
-    ok, _ = mailer.alert(f"Advance emails NOT sent — {len(rows)} need attention", html)
+    # 2026-09-21 sweep (PRIOR-13): a *_unknown row timed out and was stamped
+    # sent — it will NOT retry, so it gets its own table and instructions.
+    unknown = [r for r in rows if r["kind"].endswith("_unknown")]
+    failed = [r for r in rows if not r["kind"].endswith("_unknown")]
+
+    def _table(group):
+        tr = "".join(
+            f"<tr><td style='padding:4px 10px'>{mailer.esc(r['artist_name'])}</td>"
+            f"<td style='padding:4px 10px'>{mailer.esc(r['venue'])} {us_date(r['show_date'])}</td>"
+            f"<td style='padding:4px 10px'>{mailer.esc(r['kind'])}</td>"
+            f"<td style='padding:4px 10px'>{mailer.esc(r['error'])}</td></tr>" for r in group)
+        return ("<table border='1' cellspacing='0' style='border-collapse:collapse'>"
+                "<tr><th>Band</th><th>Show</th><th>Email</th><th>Why</th></tr>" + tr + "</table>")
+    html = "<div style='font-family:-apple-system,sans-serif;font-size:13px'>"
+    if failed:
+        html += ("<p>These emails did <b>not</b> go out. Nothing was marked sent — each one retries on the "
+                 "next run. Fix whatever's named (a missing address, an Outlook/n8n problem) and it will send.</p>"
+                 + _table(failed))
+    if unknown:
+        html += ("<p>Outlook didn't answer in time on these, so we don't know if they reached the band. "
+                 "They're marked sent and will <b>NOT</b> retry. Check Production@3cdc.org Sent Items, "
+                 "and if one isn't there, send it by hand.</p>" + _table(unknown))
+    html += "</div>"
+    if failed:
+        subject = f"Advance emails NOT sent — {len(failed)} need attention"
+        if unknown:
+            subject += f", {len(unknown)} to verify"
+    else:
+        subject = f"Advance emails — {len(unknown)} may have gone out, verify"
+    ok, _ = mailer.alert(subject, html)
     if ok:
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             advance_db.mark_send_failures_notified(cur, [r["id"] for r in rows])
@@ -2921,25 +3400,43 @@ def _email_send_failures():
 @app.post("/internal/lifecycle-watchdog")
 def lifecycle_watchdog():
     """Called by a VM systemd timer at 10:15 (audit #21): if today's scheduled
-    9am lifecycle check never reached this app, email Brian once."""
+    9am lifecycle check never reached this app or never finished (and no
+    crash alert already went out), email Brian once."""
     _internal_auth()
+    # 2026-09-21 sweep (FLOW-14/OPS-14): a Persistent boot catch-up before the 9am run would
+    # send a false alert, and that alert would then suppress the real 10:15 check
+    if dt.datetime.now().time() < dt.time(10, 0):
+        return {"skipped": "before-10am"}
     if not DB_OK:
         return {"error": "db-unavailable"}, 503
     today9 = dt.datetime.combine(dt.date.today(), dt.time(8, 55))
+    claim_id = None
     with advance_db.get_conn() as conn, conn.cursor() as cur:
-        ran = advance_db.job_ran_since(cur, "advance-lifecycle", "cron", today9)
+        # 2026-09-21 sweep: claim today's alert stamp BEFORE sending, under a lock, so a curl
+        # --retry of a slow request sees it and can't send a second alert (released on failure).
+        cur.execute("SELECT pg_advisory_xact_lock(hashtext('lifecycle-watchdog-alert'))")
+        # 2026-09-21 sweep (OPS-7): the done stamp, not the start stamp — a run
+        # that died partway already alerted (crash_alerted) or was killed.
+        ran = advance_db.job_ran_since(cur, "advance-lifecycle-done", "cron", today9)
         alerted = advance_db.job_ran_since(cur, "lifecycle-watchdog-alert", "auto",
                                            dt.datetime.combine(dt.date.today(), dt.time()))
-    if ran or alerted:
-        return {"ran": ran, "alerted": alerted}
+        crash_alerted = advance_db.job_ran_since(cur, "lifecycle-crash-alert", "auto", today9)
+        if not (ran or alerted or crash_alerted):
+            cur.execute("INSERT INTO job_runs (job, source) VALUES "
+                        "('lifecycle-watchdog-alert', 'auto') RETURNING id")
+            claim_id = cur.fetchone()["id"]
+        conn.commit()
+    if claim_id is None:
+        return {"ran": ran, "alerted": alerted, "crash_alerted": crash_alerted}
     ok, err = mailer.alert(
-        "Advance 9am check did NOT run today",
+        "Advance 9am check did NOT finish today",
         "<p>The daily Advance Lifecycle Check (welcomes, reminders, the 3-day alert) didn't run "
-        "this morning — n8n or the VM may be down. Nothing was sent today. Check n8n; the next "
+        "this morning, or started and never finished (worker killed or timed out) — n8n or the "
+        "VM may be down. Whatever it didn't reach wasn't sent today. Check n8n; the next "
         "run catches up (one reminder per band, never a pile).</p>")
-    if ok:
+    if not ok:
         with advance_db.get_conn() as conn, conn.cursor() as cur:
-            advance_db.record_job_run(cur, "lifecycle-watchdog-alert", "auto")
+            cur.execute("DELETE FROM job_runs WHERE id=%s", (claim_id,))
             conn.commit()
     return {"ran": False, "alert_sent": ok, "error": err}
 
@@ -3056,7 +3553,13 @@ def missing_reports_endpoint():
 
 @app.errorhandler(413)
 def _too_large(e):
-    lang = (request.form.get("form_lang") or request.args.get("lang") or "en")
+    # 2026-09-21 sweep (APPA-5): on an over-limit body request.form re-raises 413 inside this
+    # handler, which Flask turns into a bare 500 — never let the form read escape.
+    try:
+        lang = request.form.get("form_lang")
+    except Exception:
+        lang = None
+    lang = (lang or request.args.get("lang") or "en").strip().lower()
     msg = ("El archivo es demasiado grande. Por favor comprímalo e intente de nuevo."
            if lang == "es" else
            "That file is too large. Please compress it and try again.")

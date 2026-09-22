@@ -43,8 +43,10 @@ def _mix_for(raw, codes_rows):
     tokens = st._split_mix_cell(raw)
     if len(tokens) not in (1, 2):
         return {"foh": None, "mon": None}
-    foh = st._format_row(st._resolve_row(tokens[0], codes_rows))
-    mon = st._format_row(st._resolve_row(tokens[1], codes_rows)) if len(tokens) == 2 else None
+    # 2026-09-21 sweep: raw fallback, same as staff_for() and the 2026-09-10 rule — an unrecognized
+    # code shows in crew/digest email instead of vanishing; day-sheet paperwork stays strict (engineer_for).
+    foh = st._format_row_or_raw(tokens[0], codes_rows)
+    mon = st._format_row_or_raw(tokens[1], codes_rows) if len(tokens) == 2 else None
     return {"foh": foh, "mon": mon}
 
 

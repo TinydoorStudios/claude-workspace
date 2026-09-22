@@ -16,6 +16,49 @@ import fieldspec as fs
 FIELDS = {lbl.lower(): key for (lbl, key, _ch) in fs.ALL_COLUMNS}
 FIELDS["notes"] = "notes"  # tolerate a legacy Notes column if present
 
+# 2026-09-21 sweep (PRIOR-10): Excel turns a typed '7:30 PM' into a time (or a
+# '3-4' into a date); every reader gets the house clock string instead.
+SCHEDULE_KEYS = set(fs.ACT_SCHEDULE_KEYS) | {"curfew"}
+_EXCEL_EPOCH_DAYS = {dt.date(1899, 12, 30), dt.date(1899, 12, 31), dt.date(1900, 1, 1),
+                     dt.date(1904, 1, 1)}
+
+
+def _clock(t):
+    """dt.time -> '7:30p', the same house format as app._minutes_to_clock."""
+    return f"{t.hour % 12 or 12}:{t.minute:02d}{'a' if t.hour < 12 else 'p'}"
+
+
+def _cell_text(key, v, where):
+    """A cell value as the text every reader expects (event_date is left to _norm_date)."""
+    if v is None:
+        return None
+    if isinstance(v, str):
+        return v.strip()
+    if key == "event_date":
+        return v
+    if isinstance(v, dt.timedelta):                     # a '[h]:mm' format
+        secs = int(v.total_seconds()) % 86400
+        v = dt.time(secs // 3600, secs % 3600 // 60)
+    if isinstance(v, dt.datetime):
+        if v.date() in _EXCEL_EPOCH_DAYS or (key in SCHEDULE_KEYS and v.time() != dt.time(0)):
+            v = v.time()
+        else:
+            print(f"  ! {where}: Excel turned '{key}' into a date — retype it as text",
+                  file=sys.stderr)
+            return v.date().isoformat()
+    elif isinstance(v, dt.date):
+        print(f"  ! {where}: Excel turned '{key}' into a date — retype it as text", file=sys.stderr)
+        return v.isoformat()
+    if isinstance(v, dt.time):
+        if key == "set_time":                           # a set LENGTH, not a clock: minutes
+            return str(v.hour * 60 + v.minute)
+        return _clock(v)
+    if isinstance(v, bool):                             # the Yes/No dropdown columns
+        return "Yes" if v else "No"
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return str(v)
+
 
 def _norm_date(v):
     if v is None or v == "":
@@ -82,6 +125,11 @@ def read_advance_sheet(path):
         for cell in row:
             key = header.get(cell.column)
             if key:
+                # 2026-09-21 sweep (PIPE-1): a '../…' Stage Plot value is a link
+                # target openpyxl copied in after a row shift, never typed — skip it.
+                if (key == "stage_plot_desc" and isinstance(cell.value, str)
+                        and cell.value.strip().startswith("../")):
+                    continue
                 content_key = fs.advance_meta_key(band, venue, date, key)
                 addr = f"r{cell.row}c{cell.column}"  # pre-2026-09-16 key, migration fallback only
                 mirrored = owned.get(content_key)
@@ -94,7 +142,7 @@ def read_advance_sheet(path):
         notes = (str(rec.get("notes") or "")).strip().upper()
         if not artist or "EXAMPLE ROW" in notes or artist.upper().startswith("EXAMPLE"):
             continue
-        rec = {k: (str(v).strip() if isinstance(v, str) else v) for k, v in rec.items()}
+        rec = {k: _cell_text(k, v, f"row {row[0].row} {k}") for k, v in rec.items()}
         rec["artist_name"] = artist
         rec["event_date"] = _norm_date(rec.get("event_date"))
         rows.append(rec)

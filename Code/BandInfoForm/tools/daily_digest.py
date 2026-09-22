@@ -27,6 +27,9 @@ full 14-day, all-venue pull) still works standalone.
 
     python3 daily_digest.py             # print the rendered HTML
     python3 daily_digest.py --out FILE  # save it instead
+
+The CLI is a preview: it never marks queued digest_items delivered (2026-09-21
+sweep). Only the /internal/daily-digest route does, after a confirmed send.
 """
 import argparse
 import datetime as dt
@@ -62,11 +65,35 @@ SCHEDULE_FIELDS = ("load_in", "soundcheck", "event_start", "event_end", "curfew"
 def _today_shows(cur, today):
     """One entry per (venue, event) booked today — band names merged across
     every act on the bill, schedule fields coalesced across whichever
-    band's booking row actually has them filled in."""
+    band's booking row actually has them filled in: event_end takes the LAST
+    act's value (the bill's end), every other field the first act's.
+
+    2026-09-21 sweep (IDENT-9), mirroring import_sheet's cancelled-act rule: a
+    cancelled act whose set start a live act on the same bill now owns was
+    taken over and is left out; any other cancelled act is listed as
+    "(cancelled)". Neither feeds the bill's times."""
     rows = db.bookings_on(cur, today)
+    # 2026-09-21 sweep (RPT-9): bookings_on sorts on event_name, but a bill below groups on
+    # event_name OR series, so re-sort on that same title to keep set-start order per bill.
+    rows = sorted(rows, key=lambda r: (
+        r["venue"] or "", r["event_name"] or r["series"] or "(untitled)",
+        db.act_sort_key({"set_start": r["event_start"], "id": r["id"]})))
+
+    def _slot(r):
+        """(venue, bill, set start) as import_sheet groups a bill; None with no start."""
+        start = db.parse_clock((r["event_start"] or "").strip())
+        if start is None:
+            return None
+        bill = ((r["event_name"] or f"3rd Party - {r['artist_name']}")
+                if db.is_third_party(r["series"]) else "")
+        return (r["venue"], bill, start)
+
+    real = {_slot(r) for r in rows if not r["cancelled"]} - {None}
     events = {}
     order = []
     for r in rows:
+        if r["cancelled"] and _slot(r) in real:
+            continue   # taken over: the new band replaced it outright
         # an internal bill carries no typed event name — its title is the
         # series it belongs to (Brian, 2026-09-18: today's shows showed
         # "(untitled)" instead of "513 Airwaves w/ Inhaler Radio" /
@@ -84,10 +111,19 @@ def _today_shows(cur, today):
             }
             events[key] = ev
             order.append(key)
-        if r["artist_name"] and r["artist_name"] not in ev["bands"]:
-            ev["bands"].append(r["artist_name"])
+        band = (f"{r['artist_name']} (cancelled)" if r["cancelled"] and r["artist_name"]
+                else r["artist_name"])
+        if band and band not in ev["bands"]:
+            ev["bands"].append(band)
+        if r["cancelled"]:
+            continue   # a cancelled act never sets the bill's times
         for f in SCHEDULE_FIELDS:
-            if not ev[f] and r[f]:
+            if f == "event_end":
+                # 2026-09-21 sweep (RPT-9): rows arrive in set-start order per bill (re-sorted
+                # above), so the LAST act's set end is when the bill ends
+                if r[f]:
+                    ev[f] = r[f]
+            elif not ev[f] and r[f]:
                 ev[f] = r[f]
 
     out = []
@@ -113,12 +149,15 @@ def _today_crew(today):
     Mix/Tech/Stagehand/Stage Support/Other — same rows crew_report.py's
     standalone 14-day report would show for today, just scoped to one
     day. Independent of advance-db: a venue staffed today with no
-    tracked band still shows up here (Brian, 2026-09-09)."""
+    tracked band still shows up here (Brian, 2026-09-09).
+
+    2026-09-21 sweep (RPT-10): None means the sheet couldn't be read, [] means
+    nothing is staffed — the template words the two differently."""
     try:
         by_date = cr.collect_days(today, today)
     except Exception as e:  # noqa: BLE001 — a staffing-sheet hiccup shouldn't break the digest
         print(f"[daily_digest] crew lookup failed: {e!r}", file=sys.stderr)
-        return []
+        return None
     return sorted(by_date.get(today, []), key=lambda e: e["venue"])
 
 
@@ -182,7 +221,9 @@ def main():
     ap.add_argument("--days", type=int, default=14)
     ap.add_argument("--hours", type=int, default=24)
     args = ap.parse_args()
-    subject, html, _queued_ids = build_digest(days_ahead=args.days, hours_back=args.hours)
+    # 2026-09-21 sweep (RPT-3): a preview sends nothing, so it must not stamp the queued items delivered
+    subject, html, _queued_ids = build_digest(days_ahead=args.days, hours_back=args.hours,
+                                              mark_delivered=False)
     if args.out:
         args.out.write_text(html)
         print(f"Subject: {subject}\nSaved: {args.out}")

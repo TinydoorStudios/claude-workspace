@@ -186,6 +186,12 @@ def summarize_submission(sub):
     return [(k, v) for k, v in lines if v not in (None, "", "—")]
 
 
+def _bill_order(a):
+    """Earliest set start first, untimed acts last, then by name."""
+    return (db.parse_clock(a["set_start"]) is None,
+            db.parse_clock(a["set_start"]) or 0, a["name"])
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("batch", help="CSV or JSON list of shows to advance")
@@ -228,19 +234,25 @@ def main():
             "set_start": r.get("event_start") or "",
         })
     for acts in bills.values():
-        acts.sort(key=lambda a: (db.parse_clock(a["set_start"]) is None,
-                                 db.parse_clock(a["set_start"]) or 0, a["name"]))
+        acts.sort(key=_bill_order)
 
     summary = []
     with db.get_conn() as conn:
         with conn.cursor() as cur:
             removed = db.pending_removal_idents(cur)
+        bill_checked = set()   # 2026-09-21 sweep (FLOW-15): bill keys already topped up from bookings
         today = dt.date.today()
         for r in rows:
             try:
                 name = r["name"]
                 venue = r.get("venue")
                 show_date = parse_date(r.get("show_date"))
+                # 2026-09-21 sweep (DBB-6): an undated row minted a NEW show every run
+                # (NULL never hits uq_shows_booking) — and there's nothing to welcome.
+                if not show_date:
+                    print(f"  skip {name}: no parseable show date ({r.get('show_date')!r})",
+                          file=sys.stderr)
+                    continue
                 series = r.get("series") or None
                 # root cause A (audit 2026-09-16): never mint a show for a row
                 # the app removed (sheet deletion pending), nor for a past date
@@ -259,7 +271,35 @@ def main():
                 # completely unaffected by everything gated on this flag below.
                 is_bilingual = bool(series) and ve.is_bilingual_series(series)
                 email = r.get("email") or None
-                bill = bills.get(_bill_key(r), [])
+                # 2026-09-21 sweep (FLOW-15): the bill comes from bookings too, not just
+                # this batch — an act welcomed on another day still belongs on it. Batch
+                # rows win for acts they carry; bookings only add the missing ones.
+                bkey = _bill_key(r)
+                if bkey not in bill_checked and venue and show_date:
+                    bill_checked.add(bkey)
+                    booked = []
+                    if not db.is_third_party(series) or (r.get("event_name") or "").strip():
+                        try:
+                            with conn.cursor() as cur:
+                                booked = db.acts_for_event(cur, venue, show_date, series=series,
+                                                           event_name=r.get("event_name"))
+                        except Exception as e:  # noqa: BLE001 — the batch-only bill still stands
+                            conn.rollback()
+                            print(f"[draft_emails] bill lookup failed for {venue} {show_date}: {e!r}",
+                                  file=sys.stderr)
+                            booked = []
+                    acts = bills.setdefault(bkey, [])
+                    have = {db.normalize(a["name"]) for a in acts}
+                    for b in booked:
+                        bname = b.get("name") or ""
+                        if (not bname or db.normalize(bname) in have
+                                or db.removal_ident(bname, venue, show_date) in removed):
+                            continue
+                        acts.append({"name": bname, "set_time": b.get("set_time") or "",
+                                     "set_start": b.get("set_start") or ""})
+                        have.add(db.normalize(bname))
+                    acts.sort(key=_bill_order)
+                bill = bills.get(bkey, [])
                 deadline = ""
                 if show_date:
                     d = show_date - dt.timedelta(days=10)
@@ -305,7 +345,10 @@ def main():
 
                 email_extra = {}
                 if venue == "Washington Park":
-                    loc_name = r.get("location") or ""
+                    # 2026-09-21 sweep (MAIL-11): the same stage the band's form resolves —
+                    # a blank location on a Porch/Bandstand series follows SERIES_LOCATION.
+                    loc_name = (forms_config.resolve_wp_location(venue, r.get("location"), series)
+                                or (r.get("location") or ""))
                     loc_cfg = forms_config.WP_LOCATIONS.get(loc_name)
                     email_extra["location"] = loc_name or "confirm with your day-of contact"
                     email_extra["stage_size"] = (loc_cfg["stage_size"] if loc_cfg
@@ -410,10 +453,17 @@ def main():
                     booked_n = 0
                 multiband = (booked_n or 0) >= 2 or bool(bill_block)
 
-                token = _token(artist_id, venue, show_date, series, r.get("location"),
-                               r.get("contact_name"), r.get("contact_email") or r.get("email"))
+                payload = _prefill_payload(artist_id, venue, show_date, series, r.get("location"),
+                                           r.get("contact_name"), r.get("contact_email") or r.get("email"),
+                                           show_id=show_id)
+                token = _token(payload)
+                # 2026-09-21 sweep (MAIL-1): a timed token differs every second, so key
+                # the short code on payload + day — one code per row per day, not one
+                # new short_links row per row on every package run.
+                link_key = ("draft:" + dt.date.today().isoformat() + ":"
+                            + json.dumps(payload, sort_keys=True, separators=(",", ":")))
                 with conn.cursor() as cur:
-                    short_code = db.get_or_create_short_link(cur, token)
+                    short_code = db.get_or_create_short_link(cur, token, key=link_key)
                 conn.commit()
                 returning = bool(prior)
                 kind = "RETURNING" if returning else "NEW"
@@ -456,7 +506,9 @@ def main():
                     engineer_contact=engineer_contact,
                     personal_note=(f"{personal_note_en}\n\n" if personal_note_en else ""),
                     event_name=r.get("event_name") or "",
-                    series=series or "",
+                    # 2026-09-21 sweep (MAIL-8): "3rd Party" is an internal class, not a
+                    # show name — blank it so show_label falls back to the event name.
+                    series=("" if db.is_third_party(series) else (series or "")),
                     show_date=us_date(show_date),
                     advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
                     set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
@@ -499,13 +551,19 @@ def main():
                 else:
                     body = advance_t.render(**ctx)
 
-                fname = f"{slug(name)}__{show_date.isoformat() if show_date else 'nodate'}__{kind.lower()}.md"
+                # 2026-09-21 sweep (MAIL-2): venue + show id in the name — one band at two
+                # venues on one date (or two same-slug acts) no longer overwrite one file.
+                sid = r.get("show_id") or show_id   # the lifecycle's own id first
+                fname = (f"{slug(name)}__{show_date.isoformat() if show_date else 'nodate'}"
+                         f"__{slug(venue)}__s{sid}__{kind.lower()}.md")
                 (out_dir / fname).write_text(body)
                 summary.append((kind, name, venue,
                                 show_date.isoformat() if show_date else "?",
                                 email or "(no email)", fname))
             except Exception as e:  # noqa: BLE001 — one bad row must never sink the whole batch (audit 2026-09-16 #15)
-                print(f"[draft_emails] {r.get('name')}: {e!r}", file=sys.stderr)
+                # 2026-09-21 sweep (MAIL-12): name + date, so the lifecycle can pin
+                # this line to the show's "didn't render" reason.
+                print(f"[draft_emails] {r.get('name')} {r.get('show_date')}: {e!r}", file=sys.stderr)
                 continue
 
     # summary table
@@ -523,22 +581,32 @@ def main():
     print("Nothing was sent. Review the drafts, then send from Outlook once approved.")
 
 
-def _token(artist_id, venue, show_date, series=None, location=None,
-           contact_name=None, contact_email=None):
+def _prefill_payload(artist_id, venue, show_date, series=None, location=None,
+                     contact_name=None, contact_email=None, show_id=None):
     """contact_name/contact_email are the STAFF-typed booking contact (Brian,
     2026-09-09) — carried into the band's own form as an editable starting
     value at /f/<token>, same as venue/date/location already are. Never
-    locked: a band can always correct what staff typed."""
-    from itsdangerous import URLSafeSerializer
+    locked: a band can always correct what staff typed.
+    2026-09-21 sweep (IDENT-6): show_id rides along so /f/ re-seeds the show's
+    CURRENT venue/date/artist if staff moved it after this link went out."""
+    return {"a": artist_id,
+            "s": {"venue": venue,
+                  "date": show_date.isoformat() if show_date else None,
+                  "series": series or None,
+                  "location": location or None,
+                  "contact_name": (contact_name or "").strip() or None,
+                  "contact_email": (contact_email or "").strip() or None,
+                  "show_id": show_id}}
+
+
+def _token(payload):
+    # 2026-09-21 sweep (MAIL-1): TIMED signer, same class + salt as app._signer —
+    # app.read_prefill_token only accepts timed tokens since d9acd6b, so the old
+    # untimed one opened every welcome link on a blank, unaddressed form.
+    from itsdangerous import URLSafeTimedSerializer
     secret = os.environ.get("ADVANCE_SECRET", "dev-insecure-secret-change-me")
-    signer = URLSafeSerializer(secret, salt="advance-prefill")
-    return signer.dumps({"a": artist_id,
-                         "s": {"venue": venue,
-                               "date": show_date.isoformat() if show_date else None,
-                               "series": series or None,
-                               "location": location or None,
-                               "contact_name": (contact_name or "").strip() or None,
-                               "contact_email": (contact_email or "").strip() or None}})
+    signer = URLSafeTimedSerializer(secret, salt="advance-prefill")
+    return signer.dumps(payload)
 
 
 def _q(s):

@@ -74,6 +74,7 @@ for c in creds:
   echo "--- import + publish each workflow ---"
   IDS=()
   SKIPPED=0
+  FAILED=0   # 2026-09-21 sweep: scp/import/publish failures count, and fail the run
   for f in "${FILES[@]}"; do
     name="$(basename "$f")"
     wfid="$(python3 -c "import json; print(json.load(open('$f'))['id'])")"
@@ -104,16 +105,24 @@ open('$tmp', 'w').write(text)
       SKIPPED=$((SKIPPED + 1))
       continue
     fi
-    scp -J tds -i "$KEY" "$tmp" "$VM:$tmp" || { echo "  SCP FAILED for $name"; rm -f "$tmp"; continue; }
+    scp -J tds -i "$KEY" "$tmp" "$VM:$tmp" || { echo "  SCP FAILED for $name"; rm -f "$tmp"; FAILED=$((FAILED + 1)); continue; }
     rm -f "$tmp"
-    $SSH "
-      cd /opt/n8n
-      sudo docker compose cp $tmp n8n:$tmp
-      sudo docker compose exec -T n8n n8n import:workflow --input=$tmp
-      sudo docker compose exec -T n8n n8n $PUBCMD --id=$wfid
-      sudo docker compose exec -T n8n rm -f $tmp
+    # 2026-09-21 sweep: the remote exit status used to be the trailing rm's
+    # (always 0), so a failed import/publish printed nothing and the old
+    # version stayed live. Explicit rc chain: skip publish if import failed.
+    if ! $SSH "
+      cd /opt/n8n || exit 1
+      rc=0
+      sudo docker compose cp $tmp n8n:$tmp || rc=1
+      [ \$rc = 0 ] && { sudo docker compose exec -T n8n n8n import:workflow --input=$tmp || rc=1; }
+      [ \$rc = 0 ] && { sudo docker compose exec -T n8n n8n $PUBCMD --id=$wfid || rc=1; }
+      sudo docker compose exec -T n8n rm -f $tmp >/dev/null 2>&1
       rm -f $tmp
-    " || echo "  import/publish FAILED for $name"
+      exit \$rc
+    "; then
+      echo "  import/publish FAILED for $name — the previously published version (if any) is still live"
+      FAILED=$((FAILED + 1))
+    fi
   done
 
   echo
@@ -134,17 +143,19 @@ open('$tmp', 'w').write(text)
     # active column can read false while the workflow still fires (the
     # Advance Follow-up Check zombie, root-caused 2026-09-16): a raw-column
     # edit clears active without touching activeVersionId.
-    $SSH "cd /opt/n8n && sudo docker compose exec -T postgres psql -U n8n -d n8n -tAc \"select id, name, active, \\\"activeVersionId\\\" is not null as published from workflow_entity where id='$wfid';\""
+    # 2026-09-21 sweep: published_is_current (informational) reads f when the
+    # import took but the publish didn't — an older version is still the live one.
+    $SSH "cd /opt/n8n && sudo docker compose exec -T postgres psql -U n8n -d n8n -tAc \"select id, name, active, \\\"activeVersionId\\\" is not null as published, \\\"activeVersionId\\\" = \\\"versionId\\\" as published_is_current from workflow_entity where id='$wfid';\""
   done
 
   echo
-  if [ "$SKIPPED" -gt 0 ]; then
-    echo "=== done with $SKIPPED workflow(s) SKIPPED $(date) ==="
-  else
-    echo "=== done $(date) ==="
+  if [ "$SKIPPED" -gt 0 ] || [ "$FAILED" -gt 0 ]; then
+    echo "=== done with $SKIPPED workflow(s) SKIPPED, $FAILED FAILED $(date) ==="
+    exit 1
   fi
+  echo "=== done $(date) ==="
 } 2>&1 | tee "$LOG"
-# audit 2026-09-16 ops #4: propagate a skipped workflow as a real failure
-# exit code — piping through tee above means $? would otherwise always be
-# tee's, never the actual run's.
-! grep -q 'done with .* SKIPPED' "$LOG"
+# audit 2026-09-16 ops #4 / 2026-09-21 sweep: the brace group runs in a
+# subshell; pipefail plus PIPESTATUS carries its status out, so any `exit 1`
+# inside it (token abort, skipped or failed workflow) reaches the caller.
+exit "${PIPESTATUS[0]}"

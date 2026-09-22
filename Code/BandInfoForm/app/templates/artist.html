@@ -83,7 +83,9 @@
         </form>
         {% elif s.state == 'finalized' %}
         <span class="finalized-note">✓ Finalized {{ s.finalized_at.strftime('%Y-%m-%d') if s.finalized_at else '' }}</span>
-        {% if s.thankyou_sent_at %}<div class="note">Thank-you sent {{ s.thankyou_sent_at.strftime('%m/%d') }}</div>
+        {# 2026-09-21 sweep (MAIL-5): a timed-out thank-you is stamped sent with its error kept — not a confirmed send #}
+        {% if s.thankyou_sent_at and s.thankyou_error %}<div class="note bad">Thank-you unconfirmed {{ s.thankyou_sent_at.strftime('%m/%d') }}: {{ s.thankyou_error }} — check Sent Items</div>
+        {% elif s.thankyou_sent_at %}<div class="note">Thank-you sent {{ s.thankyou_sent_at.strftime('%m/%d') }}</div>
         {% elif s.thankyou_error %}<div class="note bad">Thank-you not sent: {{ s.thankyou_error }}</div>{% endif %}
         {% endif %}
         {% if s.state != 'cancelled' %}
@@ -95,7 +97,13 @@
           <button class="minor-btn" type="submit" title="Creates an Outlook draft to the band, addressed, with their answers pasted below">Email band ✉</button>
         </form>
         {% endif %}
-        {% if s.advance_held_draft_at %}
+        {% if s.advance_held_draft_at and s.held_draft_stale %}
+        {# 2026-09-21 sweep (PRIOR-25): the band answered (or the show was cancelled) — the held welcome is a stale nag #}
+        <form method="post" action="{{ url_for('show_held_draft_discarded', show_id=s.show_id) }}"
+              title="The band already answered (or the show is cancelled) — delete the unsent welcome from Production@3cdc.org drafts, then click this."><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <button class="minor-btn" type="submit">Held welcome deleted ✓</button>
+        </form>
+        {% elif s.advance_held_draft_at %}
         <form method="post" action="{{ url_for('show_advance_sent', show_id=s.show_id) }}"
               title="The welcome is sitting in Production@3cdc.org drafts. Use this once you've sent it by hand — it marks the band as contacted without sending anything, and restarts the reminder schedule."><input type="hidden" name="csrf" value="{{ csrf_token() }}">
           <button class="minor-btn" type="submit">Advance drafted — I sent it ✓</button>

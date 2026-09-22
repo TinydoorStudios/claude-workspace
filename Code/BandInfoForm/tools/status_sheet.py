@@ -106,6 +106,8 @@ COLS = [
     ("Changed Notes", 26, lambda st, sub, a: g(sub, "changed_notes")),
     ("Additional", 26, lambda st, sub, a: g(sub, "additional")),
 ]
+# 2026-09-21 sweep: looked up, not hardcoded — "column=7" went stale when On the Bill/Set Start pushed Status to 8
+STATUS_COL = next(i for i, (n, _w, _f) in enumerate(COLS, start=1) if n == "Status")
 
 
 def act_for(cur, st):
@@ -167,7 +169,8 @@ def records():
     with db.get_conn() as conn, conn.cursor() as cur:
         cur.execute("SELECT * FROM advance_status ORDER BY show_date NULLS LAST, band")
         for st in cur.fetchall():
-            sub = db.newest_submission(cur, st["artist_id"])
+            # 2026-09-21 sweep: this show's own answers first, not the band's newest from any show
+            sub = db.submission_for_show(cur, st["artist_id"], st["venue"], st["show_date"])
             act = act_for(cur, st)
             out.append({
                 "band": st["band"],
@@ -216,7 +219,8 @@ def main():
         cur.execute("SELECT * FROM advance_status ORDER BY show_date NULLS LAST, band")
         statuses = cur.fetchall()
         for st in statuses:
-            sub = db.newest_submission(cur, st["artist_id"])
+            # 2026-09-21 sweep: this show's own answers first, not the band's newest from any show
+            sub = db.submission_for_show(cur, st["artist_id"], st["venue"], st["show_date"])
             act = act_for(cur, st)
             row = n + 2
             for i, (_name, _w, fn) in enumerate(COLS, start=1):
@@ -226,7 +230,7 @@ def main():
             # tint the Status cell by state
             fill = STATE_FILL.get(st["state"])
             if fill:
-                ws.cell(row=row, column=7).fill = PatternFill("solid", fgColor=fill)
+                ws.cell(row=row, column=STATUS_COL).fill = PatternFill("solid", fgColor=fill)
             n += 1
 
     wb.save(OUT)

@@ -127,6 +127,20 @@ SERIES = {
 }
 
 
+def _norm(s):
+    """2026-09-21 sweep (APPA-12): case/whitespace-insensitive, the same rule as
+    venue_email._norm_series and advance_db.normalize — 'Salsa on the  Square' matches."""
+    return re.sub(r"\s+", " ", str(s or "").strip()).lower()
+
+
+def series_override(series_key):
+    """The SERIES override for this series (any case/spacing), or {} for none."""
+    if not _norm(series_key):
+        return {}
+    k = next((k for k in SERIES if k != "default" and _norm(k) == _norm(series_key)), None)
+    return SERIES[k] if k else {}
+
+
 def resolve_wp_location(venue, location, series_key):
     """The concrete WP stage for a booking, or None if not WP / not resolvable.
 
@@ -139,9 +153,14 @@ def resolve_wp_location(venue, location, series_key):
     """
     if venue != "Washington Park":
         return None
-    if location in WP_LOCATIONS:
-        return location
-    resolved = SERIES_LOCATION.get((series_key or "").strip())
+    # 2026-09-21 sweep (APPA-12): normalized matches, canonical key returned — a
+    # 'porch' / 'Jazz at the Porch' variant spelling no longer loses the monitor cap.
+    loc = next((k for k in WP_LOCATIONS if _norm(k) == _norm(location)), None)
+    if loc:
+        return loc
+    if not _norm(series_key):
+        return None
+    resolved = next((v for k, v in SERIES_LOCATION.items() if _norm(k) == _norm(series_key)), None)
     return resolved if resolved in WP_LOCATIONS else None
 
 
@@ -149,8 +168,8 @@ def get_config(series_key=None, venue=None, location=None, lang="en"):
     base = dict(SERIES["default"])
     cfg = dict(base)
     cfg["intro"] = i18n.t("intro_default", lang)
-    if series_key and series_key in SERIES:
-        override = SERIES[series_key]
+    override = series_override(series_key)   # 2026-09-21 sweep (APPA-12): any case/spacing
+    if override:
         cfg["label"] = override.get("label", base["label"])
         # A series's own `intro` (English) only applies for lang='en' — an
         # `intro_es` override on the series wins for Spanish; absent that,
@@ -186,7 +205,7 @@ def get_config(series_key=None, venue=None, location=None, lang="en"):
         cfg["blocks"]["band_tent"] = loc["band_tent"]
         cfg["drum_riser_available"] = loc["drum_riser"]
 
-    if series_key and SERIES.get(series_key, {}).get("drum_riser") is False:
+    if series_override(series_key).get("drum_riser") is False:
         cfg["drum_riser_available"] = False
 
     # A 3rd-party event has no band bringing its own gear — the vehicle/large

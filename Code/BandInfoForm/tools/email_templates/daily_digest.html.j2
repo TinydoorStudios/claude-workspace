@@ -118,6 +118,9 @@
       </tr>
     </table>
     {% endfor %}
+    {% elif today_crew is none %}
+    {# 2026-09-21 sweep (RPT-10): the fetch failed — don't pass that off as an unstaffed day #}
+    <div style="font-size:13px;color:#B45309;font-style:italic;">Couldn't read the staffing sheet this morning, so crew isn't shown.</div>
     {% else %}
     <div style="font-size:13px;color:#8b97a6;font-style:italic;">Nothing staffed today per the schedule sheet.</div>
     {% endif %}

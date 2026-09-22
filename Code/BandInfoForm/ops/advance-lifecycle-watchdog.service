@@ -1,10 +1,18 @@
 [Unit]
 Description=Band Advance — alert if the 9am lifecycle check didn't run
-After=network-online.target
+# 2026-09-21 sweep (FLOW-14/OPS-14): the timer is Persistent=true, so a boot catch-up can fire
+# before gunicorn/advance-db are listening. Ordering helps; the curl retries are what cover it.
+Wants=network-online.target
+After=network-online.target docker.service band-advance.service dropbox.service
 
 [Service]
 Type=oneshot
 User=brian
 EnvironmentFile=/opt/band-advance/advance.env
-ExecStart=/bin/bash -c 'curl -sS -m 60 -X POST -H "X-Advance-Token: $ADVANCE_INTERNAL_TOKEN" http://127.0.0.1:8097/internal/lifecycle-watchdog'
+# Leading '-': a failed app call must never skip the Dropbox check below. -f: a 403/500/503
+# counts as a failure (without it curl exits 0 and nothing is noticed). If the app can't be
+# reached, alert.py goes straight to n8n (mailer.py needs neither the app nor the DB).
+# 2026-09-21 sweep: -m 150 outlasts mailer's 90s send, so a slow alert isn't read as a timeout
+# and retried (the endpoint also claims its stamp before sending).
+ExecStart=-/bin/bash -c 'curl -fsS -m 150 --retry 10 --retry-delay 15 --retry-max-time 300 --retry-connrefused -X POST -H "X-Advance-Token: $ADVANCE_INTERNAL_TOKEN" http://127.0.0.1:8097/internal/lifecycle-watchdog || { rc=$$?; /opt/band-advance/venv/bin/python3 /opt/band-advance/ops/alert.py "Advance watchdog could not reach the app" "POST /internal/lifecycle-watchdog failed (curl exit $$rc). The app or its database is down or refusing the token, so the 9am lifecycle check almost certainly did not run either and nothing went to bands today. Check: systemctl status band-advance, docker ps (advance-db), journalctl -u band-advance."; }'
 ExecStart=/opt/band-advance/ops/dropbox_status_check.sh

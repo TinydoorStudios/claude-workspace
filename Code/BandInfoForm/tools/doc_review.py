@@ -13,6 +13,7 @@ Anything that couldn't be applied gets doc_notices.apply_error.
 import argparse
 import datetime as dt
 import sys
+import traceback
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -29,6 +30,9 @@ import regen_show
 ERRORS = {"locked": "the doc is open in Word — close it and try again",
           "conflict": "the doc was saved while this ran — try again",
           "past": "the show is past", "no-date": "the show has no date"}
+# 2026-09-21 sweep (DOC-11): notice keys no merge path can write (no cell is
+# ever compared under them), so "Use new" can only fail
+NOT_APPLIABLE = {"schedule|shape"}
 
 
 def _set_error(nid, msg):
@@ -71,8 +75,17 @@ def apply(ids):
     for n in notices:
         if not n.get("cell_key"):
             _set_error(n["id"], "this change predates decisions — update the doc by hand, then Keep doc")
+        elif n["cell_key"].lower() in NOT_APPLIABLE:
+            _set_error(n["id"], "this one can't be written automatically — rebuild the schedule in the doc "
+                                "by hand (or clear its times so the next run rebuilds it), then Keep doc")
         elif n["cell_key"].startswith("plot:"):
-            apply_plot(n)
+            # 2026-09-21 sweep (DOC-5): a crash here must not strand this notice
+            # (both radios disabled forever) or abort the rest of the batch
+            try:
+                apply_plot(n)
+            except (Exception, SystemExit) as e:
+                traceback.print_exc()
+                _set_error(n["id"], f"couldn't move the stage plot ({type(e).__name__}) — see data/doc_review.log")
         else:
             groups.setdefault((n["venue"], n["event_date"], n["event_key"]), []).append(n)
     for (venue, date, key), ns in groups.items():
@@ -81,19 +94,40 @@ def apply(ids):
             for n in ns:
                 _set_error(n["id"], "couldn't find this show's event")
             continue
-        res = regen_show.regen_event(eid, force={n["cell_key"]: n["new_value"] for n in ns})
+        # 2026-09-21 sweep (DOC-5): a failed regen marks this group's notices and
+        # moves on to the next group instead of leaving them 'Writing it into the doc…'
+        try:
+            res = regen_show.regen_event(eid, force={n["cell_key"]: n["new_value"] for n in ns})
+        except (Exception, SystemExit) as e:
+            traceback.print_exc()
+            for n in ns:
+                _set_error(n["id"], f"couldn't write the doc ({type(e).__name__}: {str(e)[:120]})"
+                                    " — see data/doc_review.log")
+            continue
         if res is None:
             continue
         applied = {k.lower() for k in res.get("applied") or ()}
-        for n in ns:
-            if res.get("action") in ERRORS:
-                _set_error(n["id"], ERRORS[res["action"]])
-            elif n["cell_key"].lower() not in applied:
-                # superseded by a newer value (already recorded) or the cell moved
-                with db.get_conn() as conn, conn.cursor() as cur:
-                    cur.execute("SELECT resolved_at FROM doc_notices WHERE id=%s", (n["id"],))
-                    if cur.fetchone()["resolved_at"] is None:
-                        _set_error(n["id"], "the form's answer changed again — review the new value")
+        try:
+            for n in ns:
+                if res.get("action") in ERRORS:
+                    _set_error(n["id"], ERRORS[res["action"]])
+                elif n["cell_key"].lower() not in applied:
+                    # superseded by a newer value (already recorded) or the cell moved
+                    with db.get_conn() as conn, conn.cursor() as cur:
+                        cur.execute("SELECT resolved_at FROM doc_notices WHERE id=%s", (n["id"],))
+                        if cur.fetchone()["resolved_at"] is None:
+                            _set_error(n["id"], "the form's answer changed again — review the new value")
+                else:
+                    # 2026-09-21 sweep (IDENT-11): written into the doc — close it even if
+                    # the merge pass didn't (no-op when it already did)
+                    with db.get_conn() as conn, conn.cursor() as cur:
+                        db.resolve_doc_notice(cur, n["id"], "applied")
+                        conn.commit()
+        except (Exception, SystemExit) as e:
+            traceback.print_exc()
+            for n in ns:
+                _set_error(n["id"], f"couldn't apply ({type(e).__name__}) — see data/doc_review.log")
+            continue
         print(f"{venue} {date}: doc {res.get('action')}, applied {len(applied)}/{len(ns)}")
 
 
@@ -102,9 +136,24 @@ def main():
     ap.add_argument("--apply", type=int, nargs="+", required=True)
     args = ap.parse_args()
     from run_now import acquire_lock
-    lock = acquire_lock()
+    try:
+        lock = acquire_lock()
+    except SystemExit:
+        # 2026-09-21 sweep (DOC-5): gave up waiting for the run lock — say so on the
+        # page instead of leaving the notices pending forever
+        for i in args.apply:
+            _set_error(i, "a pipeline run is still going — try again in a few minutes")
+        raise
     try:
         apply(args.apply)
+    except (Exception, SystemExit) as e:
+        traceback.print_exc()
+        try:
+            for i in args.apply:
+                _set_error(i, f"couldn't apply ({type(e).__name__}) — see data/doc_review.log")
+        except Exception:
+            pass
+        raise
     finally:
         try:
             import fcntl

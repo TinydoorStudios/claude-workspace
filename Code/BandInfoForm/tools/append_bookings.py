@@ -4,19 +4,26 @@ that are already there.
 
 --data appends any booking that isn't already a row (matched on event + date +
 venue + artist) and prints the comma-separated ids it handled to STDOUT, so the
-caller can stamp them seeded.
+caller can stamp them seeded. Only booking-owned columns (SHEET_WRITEBACK_KEYS)
+are written — never the band-detail Contact Name (2026-09-21 sweep, PRIOR-8).
 
 --edited (2026-09-15) UPDATES rows for bookings edited in the app after they
 were seeded. Without this an edit died in the database: the next pipeline run
 rebuilds events from the SHEET, so the old row simply reinstated itself — and
 since the sheet's Start column now decides who is Artist 1, a stale row also
-reorders the bill. Only the columns a booking owns are written; band-detail
-columns (Monitors, Stage Type, ...) are the band's answers or Brian's own
-overrides and are never touched. Prints synced ids to STDOUT.
+reorders the bill. Only the columns a booking owns are written, and of those
+only the ones edited in the app since the last sync (`sheet_dirty_fields`,
+2026-09-21 sweep FLOW-12) — a Start Brian fixed in the sheet isn't reverted by
+an unrelated app edit. Band-detail columns (Monitors, Stage Type, ...) are the
+band's answers or Brian's own overrides and are never touched. Prints synced
+ids to STDOUT.
 
 A booking whose artist, venue or date was the thing that changed is found by the
 identity its row was WRITTEN under (`_old_ident`), so a rename moves the row it
-already has instead of stranding it.
+already has instead of stranding it. One whose row is gone altogether is
+appended again if the show is still ahead (2026-09-21 sweep, PRIOR-7 — the
+reconcile step leaves dirty bookings to this path); a cancelled show's never is, nor
+one run_now flagged `_no_reappend` (a look-alike correction row is on the sheet, PIPE-3).
 
 --remove (root cause A, audit 2026-09-16) deletes the rows of shows that were
 purged or merged away in the app (seed_bookings.py --removals-json), so the next
@@ -28,6 +35,7 @@ _advance_meta follows the shift. Prints the handled removal ids to STDOUT.
   python3 append_bookings.py --list advance-list.xlsx --remove removals.json
 """
 import argparse
+import datetime as dt
 import json
 import re
 import sys
@@ -38,6 +46,7 @@ import fieldspec as fs
 import merge_status as ms
 
 from openpyxl import load_workbook
+from openpyxl.cell.cell import MergedCell
 
 INPUT_SHEET = "Advance List"
 _ADDR = re.compile(r"^r(\d+)c(\d+)$")
@@ -129,6 +138,8 @@ def remove_rows(sheet_path, data_path):
             print(f"  remove row {r}: {_s(ws.cell(r, c_artist).value)} · {ident[1]} {ident[2]}",
                   file=sys.stderr)
     for ident, rms in wanted.items():
+        if not ident[0]:
+            continue  # 2026-09-21 sweep (IDENT-13): doc-only retirement, no sheet row to remove
         if ident not in idents:
             print(f"  no sheet row for {rms[0].get('artist_name') or ident[0]} {ident[2]} — nothing to remove",
                   file=sys.stderr)
@@ -176,15 +187,18 @@ def update_edited(sheet_path, data_path):
         return
 
     rows_by_ident = {}
+    last = hrow
     for r in range(hrow + 1, ws.max_row + 1):
         a = _s(ws.cell(r, c_artist).value)
         if not a:
             continue
+        last = r
         rows_by_ident.setdefault(row_ident(ws, r, c_artist, c_venue, c_date), r)
 
     meta = ms.load_meta(wb)
     meta_moved = 0
-    synced, changed_cells, missing = [], 0, []
+    synced, changed_cells, missing, appended = [], 0, [], 0
+    today = dt.date.today().isoformat()
     for b in edits:
         old = b.get("_old_ident") or {}
         candidates = [
@@ -194,11 +208,46 @@ def update_edited(sheet_path, data_path):
              _s(b.get("event_date"))[:10]),
         ]
         row = next((rows_by_ident[i] for i in candidates if i in rows_by_ident), None)
+        # 2026-09-21 sweep (PRIOR-7): run_now 1c no longer re-adds a dirty booking,
+        # so a future one whose row is gone is appended here (a cancelled show never is).
+        if row is None and b.get("_cancelled"):
+            print(f"  ~ {b.get('artist_name')} {b.get('event_date')}: no sheet row, "
+                  "show cancelled — not re-adding", file=sys.stderr)
+            synced.append(str(b["id"]))
+            continue
+        if row is None and b.get("_no_reappend"):
+            # 2026-09-21 sweep (PIPE-3): run_now saw a look-alike row (Brian's correction) —
+            # left dirty and unsynced so holds.py asks for the merge, not a 2nd welcome
+            missing.append(f"{b.get('artist_name')} {b.get('event_date')} (sheet row corrected?)")
+            continue
+        if row is None and _s(b.get("event_date"))[:10] >= today:
+            row = last + 1
+            for key, col in key_col.items():
+                c = ws.cell(row, col)
+                if isinstance(c, MergedCell):
+                    continue
+                c.value, c.hyperlink = None, None       # debris past the last artist (PIPE-1)
+                # 2026-09-21 sweep (PRIOR-8): booking-owned columns only, as in main()
+                val = b.get(key) if key in fs.SHEET_WRITEBACK_KEYS else None
+                if val not in (None, ""):
+                    c.value = _s(val)[:10] if key == "event_date" else _s(val)
+            last = row
+            rows_by_ident[row_ident(ws, row, c_artist, c_venue, c_date)] = row
+            changed_cells += 1
+            appended += 1
+            print(f"  + {b.get('artist_name')} {b.get('event_date')}: no sheet row found — appended",
+                  file=sys.stderr)
+            synced.append(str(b["id"]))
+            continue
         if row is None:
             missing.append(f"{b.get('artist_name')} {b.get('event_date')}")
             continue
         was = row_ident(ws, row, c_artist, c_venue, c_date)
-        for key in fs.SHEET_WRITEBACK_KEYS:
+        # 2026-09-21 sweep (FLOW-12): only the fields edited in the app — a value Brian
+        # typed into the sheet stays. No list (flagged pre-migration) = whole row.
+        dirty = [k for k in (b.get("sheet_dirty_fields") or []) if k in fs.SHEET_WRITEBACK_KEYS]
+        keys = dirty or fs.SHEET_WRITEBACK_KEYS
+        for key in keys:
             col = key_col.get(key)
             if col is None:
                 continue
@@ -222,7 +271,8 @@ def update_edited(sheet_path, data_path):
         except fs.SheetChangedError as e:
             print(f"  ! {e} — not saving, re-run to pick up the current sheet", file=sys.stderr)
             sys.exit(1)
-    print(f"synced {len(synced)} edited booking(s), {changed_cells} cell(s)", file=sys.stderr)
+    print(f"synced {len(synced)} edited booking(s), {changed_cells} cell(s), "
+          f"{appended} re-appended", file=sys.stderr)
     for m in missing:
         print(f"  ! no sheet row found for {m} — left alone", file=sys.stderr)
     print(",".join(synced))
@@ -272,19 +322,33 @@ def main():
         a = _s(ws.cell(r, c_artist).value)
         if a:
             last = r
+            # 2026-09-21 sweep (PIPE-3): norm_date, like row_ident / holds — a text
+            # '9/30/2026' cell read as missing here and got a duplicate row appended
             existing.add((norm(a),
                           norm(ws.cell(r, c_venue).value) if c_venue else "",
-                          _s(ws.cell(r, c_date).value)[:10] if c_date else ""))
+                          ms.norm_date(ws.cell(r, c_date).value) if c_date else ""))
 
     handled, appended = [], 0
     row = last + 1
     for b in bookings:
         handled.append(str(b["id"]))
         ident = (norm(b.get("artist_name")), norm(b.get("venue")),
-                 _s(b.get("event_date"))[:10])
+                 ms.norm_date(b.get("event_date")))
         if ident in existing:
             continue  # already represented (staff typed it, or a prior seed)
-        for key, col in key_col.items():
+        # 2026-09-21 sweep (PIPE-1): the row is past the last artist, so anything
+        # already in it is debris (a stray link from a row delete) — clear it first.
+        for col in key_col.values():
+            c = ws.cell(row, col)
+            if not isinstance(c, MergedCell):
+                c.value = None
+                c.hyperlink = None
+        # 2026-09-21 sweep (PRIOR-8): booking-owned columns only — a seeded Contact Name
+        # read back as Brian's override and outranked the band's own answer in the doc.
+        for key in fs.SHEET_WRITEBACK_KEYS:
+            col = key_col.get(key)
+            if col is None:
+                continue
             val = b.get(key)
             if val not in (None, ""):
                 ws.cell(row, col).value = _s(val)

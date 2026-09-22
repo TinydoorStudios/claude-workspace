@@ -10,6 +10,10 @@
 --   match_key = normalized (lowercased, whitespace-collapsed) — matching ONLY, hidden.
 --               Generated automatically so a stray capital or space can never split a band
 --               and defeat the 6-month lookback.
+--
+-- Every migration in db/migrations/ is also folded in here in the same commit, so this
+-- file alone bootstraps a working DB. deploy_app.command still runs every migration on
+-- each deploy; both paths must stay idempotent. (2026-09-21 sweep: DBB-10)
 
 CREATE TABLE IF NOT EXISTS artists (
     id          SERIAL PRIMARY KEY,
@@ -110,8 +114,8 @@ ALTER TABLE events ADD COLUMN IF NOT EXISTS details JSONB NOT NULL DEFAULT '{}':
 CREATE TABLE IF NOT EXISTS event_acts (
     id            SERIAL PRIMARY KEY,
     event_id      INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-    slot          TEXT NOT NULL,                   -- opener | direct_support | headliner
-    slot_order    INTEGER NOT NULL,                -- 1,2,3 -> column order in the day-sheet
+    slot          TEXT,                            -- legacy (opener | direct_support | headliner); nothing writes it since 2026-09-15 (artist-order)
+    slot_order    INTEGER,                         -- legacy (1,2,3); nothing writes it since 2026-09-15 (artist-order)
     artist_id     INTEGER REFERENCES artists(id) ON DELETE SET NULL,
     -- specific submission to fill from; NULL = use the artist's newest
     submission_id INTEGER REFERENCES submissions(id) ON DELETE SET NULL,
@@ -120,10 +124,21 @@ CREATE TABLE IF NOT EXISTS event_acts (
     sheet_fields  JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE UNIQUE INDEX IF NOT EXISTS uq_event_acts_slot ON event_acts (event_id, slot);
+-- 2026-09-15 (artist-order): an act is identified by its artist, not a slot name.
+DROP INDEX IF EXISTS uq_event_acts_slot;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_event_acts_artist ON event_acts (event_id, artist_id);
 -- for DBs created before these columns existed:
 ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS set_time TEXT;
 ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS sheet_fields JSONB NOT NULL DEFAULT '{}'::jsonb;
+-- 2026-09-15 (artist-order): per-act schedule; slot/slot_order kept as history only.
+-- DROP NOT NULL is a no-op on an already-nullable column. The backfill UPDATE
+-- stays in db/migrations/2026-09-15-artist-order.sql only.
+ALTER TABLE event_acts ALTER COLUMN slot       DROP NOT NULL;
+ALTER TABLE event_acts ALTER COLUMN slot_order DROP NOT NULL;
+ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS set_start  TEXT;
+ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS set_end    TEXT;
+ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS load_in    TEXT;
+ALTER TABLE event_acts ADD COLUMN IF NOT EXISTS soundcheck TEXT;
 
 -- advance lifecycle timestamps (email_sent_at already exists above)
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS responded_at   TIMESTAMPTZ;
@@ -299,6 +314,11 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS skip_welcome_email BOOLEAN NOT NUL
 -- template's act-count. NULL = not specified, falls back to the old inferred
 -- behavior (see draft_emails.py / daysheet.py).
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS band_count INTEGER;
+
+-- 2026-09-21 sweep (IDENT-3): {artist_name, venue, event_date} the booking's
+-- sheet row was last written under — edited_bookings finds the row by it.
+-- Backfill lives in db/migrations/2026-09-21-bookings-sheet-ident.sql.
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS sheet_ident JSONB;
 
 -- Advance recap extraction (Brian, 2026-09-07): 3 days after a show, an n8n
 -- job (2am daily) converts the filed advance .docx to PDF + MD (saved next to
@@ -612,3 +632,82 @@ FROM shows s
 JOIN artists a ON a.id = s.artist_id
 LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
        AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key;
+
+-- ── folded in from db/migrations/ 2026-09-14-doc-review .. 2026-09-16-submit-rate-limit (2026-09-22)
+-- 2026-09-21 sweep (DBB-10): this file had drifted ten migrations behind, so a bootstrap
+-- from it alone broke add_act/insert_booking. DDL only, verbatim; each migration file
+-- keeps its own comments and any data backfill. drop-dead-code needs nothing here.
+
+-- 2026-09-14-doc-review
+ALTER TABLE doc_notices ADD COLUMN IF NOT EXISTS cell_key     TEXT;
+ALTER TABLE doc_notices ADD COLUMN IF NOT EXISTS resolved_at  TIMESTAMPTZ;
+ALTER TABLE doc_notices ADD COLUMN IF NOT EXISTS resolution   TEXT;
+ALTER TABLE doc_notices ADD COLUMN IF NOT EXISTS apply_requested_at TIMESTAMPTZ;
+ALTER TABLE doc_notices ADD COLUMN IF NOT EXISTS apply_error  TEXT;
+CREATE INDEX IF NOT EXISTS idx_doc_notices_open ON doc_notices (venue, event_date) WHERE resolved_at IS NULL;
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS doc_checked_at TIMESTAMPTZ;
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS doc_check      TEXT;
+
+-- 2026-09-14-third-party-emails
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS band_emails BOOLEAN NOT NULL DEFAULT false;
+
+-- 2026-09-15-artist-order: folded into the event_acts block near the top of this file.
+
+-- 2026-09-15-draft-only
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS draft_only BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS advance_held_draft_at TIMESTAMPTZ;
+
+-- 2026-09-15-fsq-parking-queue
+CREATE TABLE IF NOT EXISTS fsq_parking_queue (
+    id                   SERIAL PRIMARY KEY,
+    artist_id            INTEGER REFERENCES artists(id) ON DELETE SET NULL,
+    show_id              INTEGER REFERENCES shows(id) ON DELETE SET NULL,
+    band                 TEXT NOT NULL,
+    venue                TEXT NOT NULL,
+    show_date            DATE,
+    contact_name         TEXT,
+    contact_email        TEXT,
+    contact_phone        TEXT,
+    vehicle_count        INTEGER,
+    large_vehicle_count  INTEGER,
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+    digested_at          TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_fsq_parking_queue_pending
+    ON fsq_parking_queue (digested_at) WHERE digested_at IS NULL;
+
+-- 2026-09-15-sheet-writeback
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS sheet_dirty BOOLEAN NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS idx_bookings_sheet_dirty ON bookings (sheet_dirty)
+    WHERE sheet_dirty;
+-- 2026-09-21-sheet-dirty-fields: only these are written back (empty = whole row)
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS sheet_dirty_fields TEXT[] NOT NULL DEFAULT '{}';
+
+-- 2026-09-16-doc-provenance
+ALTER TABLE filed_docs ADD COLUMN IF NOT EXISTS columns JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE filed_docs ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+
+-- 2026-09-16-sheet-removals
+CREATE TABLE IF NOT EXISTS sheet_removals (
+    id           SERIAL PRIMARY KEY,
+    venue        TEXT NOT NULL,
+    event_date   DATE NOT NULL,
+    match_key    TEXT NOT NULL,             -- artists.match_key of the removed act
+    artist_name  TEXT,                      -- display name, for logs only
+    reason       TEXT NOT NULL DEFAULT 'purge',   -- purge | merge | doc_retire (match_key '', doc only)
+    doc_path     TEXT,                      -- relative to the Dropbox root
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    applied_at   TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_sheet_removals_pending
+    ON sheet_removals (venue, event_date, match_key) WHERE applied_at IS NULL;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS synced_at TIMESTAMPTZ;
+
+-- 2026-09-16-submit-rate-limit
+CREATE TABLE IF NOT EXISTS submit_attempts (
+    id           SERIAL PRIMARY KEY,
+    ip           TEXT NOT NULL,
+    attempted_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_submit_attempts_ip ON submit_attempts (ip, attempted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_submit_attempts_time ON submit_attempts (attempted_at DESC);

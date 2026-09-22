@@ -8,6 +8,10 @@
   seed_bookings.py --removals-json # print pending sheet removals (JSON)
   seed_bookings.py --removed 1,2,3 # stamp those applied + retire their orphaned docs
 
+--seed / --synced take an optional `--snapshot <file>` (2026-09-21 sweep): the
+JSON the caller wrote to the sheet, so sheet_ident records the identity the row
+was written under and an edit that landed mid-run stays sheet_dirty.
+
 The caller fetches the JSON, writes the rows into the local spreadsheet
 (append_bookings.py), then stamps them so they aren't handled twice. --edited /
 --synced are the 2026-09-15 write-back: an edit made in the app has to reach the
@@ -26,7 +30,8 @@ for _cand in (HERE.parent, HERE.parent / "app"):
         break
 import advance_db as db
 
-RETIRE_PREFIX = {"purge": "PURGED", "merge": "SUPERSEDED"}
+# 2026-09-21 sweep (IDENT-13): doc_retire = a show moved onto a date that already had a doc
+RETIRE_PREFIX = {"purge": "PURGED", "merge": "SUPERSEDED", "doc_retire": "SUPERSEDED"}
 
 
 def retire_doc(rel_path, reason):
@@ -50,6 +55,16 @@ def retire_doc(rel_path, reason):
     return target
 
 
+def _snapshot(args):
+    """2026-09-21 sweep (IDENT-3): `--snapshot <file>` = the JSON rows the caller
+    just wrote to the sheet, {id: row} — stamps sheet_ident from what was written."""
+    if "--snapshot" not in args:
+        return None
+    p = Path(args[args.index("--snapshot") + 1])
+    rows = json.loads((p.read_text() if p.exists() else "") or "[]")
+    return {int(x["id"]): x for x in rows if str(x.get("id", "")).isdigit()}
+
+
 def main():
     args = sys.argv[1:]
     if "--json" in args:
@@ -64,7 +79,7 @@ def main():
         i = args.index("--synced")
         ids = [int(x) for x in args[i + 1].split(",") if x.strip().isdigit()]
         with db.get_conn() as conn, conn.cursor() as cur:
-            db.mark_bookings_synced(cur, ids)
+            db.mark_bookings_synced(cur, ids, snapshot=_snapshot(args))
             conn.commit()
         print(f"synced {len(ids)} booking(s)", file=sys.stderr)
     elif "--removals-json" in args:
@@ -96,8 +111,9 @@ def main():
                     for r, new in retired)
                 db.queue_digest_item(
                     cur, "doc", f"Advance doc retired — {len(retired)}",
-                    "<p>These filed docs lost their last act (show deleted, or merged into a "
-                    "show that already had its own doc). Each was renamed in its own folder, "
+                    "<p>These filed docs lost their last act (show deleted, merged into a "
+                    "show that already had its own doc, or moved to a date that already had "
+                    "one). Each was renamed in its own folder, "
                     "not deleted — carry over any hand edits you still need:</p>"
                     f"<ul>{items}</ul>")
             conn.commit()
@@ -106,7 +122,7 @@ def main():
         i = args.index("--seed")
         ids = [int(x) for x in args[i + 1].split(",") if x.strip().isdigit()]
         with db.get_conn() as conn, conn.cursor() as cur:
-            db.mark_bookings_seeded(cur, ids)
+            db.mark_bookings_seeded(cur, ids, snapshot=_snapshot(args))
             conn.commit()
         print(f"seeded {len(ids)} booking(s)", file=sys.stderr)
     else:

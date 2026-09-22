@@ -8,7 +8,8 @@ GitHub repo, the old VM, or a working network to anything but the NAS.
 
 ## The one command
 
-On the machine that should run the pipeline (a bare Debian 12 box is fine):
+On the machine that should run the pipeline (Debian 12 with Docker Engine +
+Compose v2 from Docker's apt repo; `restore.sh` installs the rest):
 
 ```bash
 tar xzf band-advance-YYYYMMDD-HHMMSS.tar.gz
@@ -43,13 +44,16 @@ NAS, ships it to the target host, runs the restore, and prints the verification:
 | `app/requirements.lock.txt` | exact pinned python versions that were actually running |
 | `appdata/json/` | the disk-first submission records (the reliability-rule copies) |
 | `appdata/uploads/` | every stage plot and input list a band has ever uploaded |
-| `dropbox/Nyquist/` | the Advancing cockpit — `advance-list.xlsx`, `Show Status Log.xlsx`, `Blank Advances/`, `Series Email Templates/`, the FSQ/WP venue archives, `_template/`, `_bin/`, `generate.command` |
+| `dropbox/Nyquist/` | the Advancing cockpit — `advance-list.xlsx`, `Show Status Log.xlsx`, `Blank Advances/`, `Series Email Templates/`, the email drafts, `_template/`, `_bin/`, `generate.command` |
+| `dropbox/filed/` | every filed `<MMDDYY> <Event> Prod Adv.docx` the `filed_docs` registry knows, copied from the real `3CDC <Venue>` folders (staff hand edits included), at its Dropbox-root-relative path. `restore.sh` does not touch these — see "Recovering filed advance docs" below. Added 2026-09-21. |
+| `dropbox/filed_paths.txt` | the registry path list that copy was made from |
 | `n8n/workflows/` | every n8n workflow definition |
 | `n8n/workflow_active_state.txt` | which ones were switched on — `import:workflow` does not carry this, so the restore replays it |
-| `n8n/n8n_pg.dump` | the whole n8n database, as a backstop |
+| `n8n/credentials.enc.json` | every n8n credential, still encrypted with `N8N_ENCRYPTION_KEY` — `--with-n8n` imports it into an n8n that has none, only when the running key matches the archived one |
+| `n8n/n8n_pg.dump` | the whole n8n database — manual backstop, `restore.sh` does not load it |
 | `systemd/` | the service + timer units, plus `HOST-NOTES.txt` (IPs, tunnel facts, versions) |
 | `docker/` | compose files for `advance-db` and for n8n |
-| `secrets.tar.gz.gpg` | AES256. `advance.env`, the DB password, n8n's `.env` (which carries `N8N_ENCRYPTION_KEY`), and a decrypted copy of the n8n credentials. Passphrase is in `TDS_Credentials_CheatSheet.md`. |
+| `secrets.tar.gz.gpg` | AES256. `advance.env`, the DB password, and n8n's `.env` (which carries `N8N_ENCRYPTION_KEY`). No decrypted credential copy since 2026-09-16. Passphrase is in `TDS_Credentials_CheatSheet.md`. |
 | `MANIFEST.txt` | sizes, counts, row counts, and any failure or warning from the run that produced this archive |
 | `CHECKSUMS.sha256` | sha256 of every file in the archive |
 
@@ -58,7 +62,8 @@ NAS, ships it to the target host, runs the restore, and prints the verification:
 Everything except `secrets.tar.gz.gpg` is plaintext, so a restore always works.
 If the passphrase is ever lost, `restore.sh` generates fresh credentials and
 keeps going. The only cost: previously-issued `/f/<token>` prefill links stop
-working, and the Graph credential has to be re-entered in n8n. **No data is
+working, and without the key `n8n/credentials.enc.json` can't be decrypted, so
+every n8n credential (Graph, Groq, Slack) has to be re-entered. **No data is
 lost either way.** That was the deliberate trade — a forgotten passphrase must
 never be able to hold the data hostage.
 
@@ -70,7 +75,7 @@ never be able to hold the data hostage.
 sudo ./restore.sh                     # everything (default)
 sudo ./restore.sh --db-only           # just the database
 sudo ./restore.sh --data-only         # database + uploads + submission JSON
-sudo ./restore.sh --with-n8n          # also import the n8n workflows + credentials
+sudo ./restore.sh --with-n8n          # also start n8n, import workflows + credentials, restart it
 sudo ./restore.sh --force-dropbox     # overlay onto a live ~/Dropbox/Nyquist
 sudo ./restore.sh --dropbox-dest DIR  # put the Advancing tree somewhere else
 sudo ./restore.sh --app-dir DIR       # install somewhere other than /opt/band-advance
@@ -88,6 +93,21 @@ sudo ./restore.sh --yes               # no prompts
   Pass `--force-dropbox` only when you actually mean to overlay a live folder.
 - n8n is not touched at all unless you pass `--with-n8n`.
 
+### Recovering filed advance docs
+
+`restore.sh` never writes into the team's shared `3CDC <Venue>` folders. To put
+the archived docs back, copy them yourself from the extracted archive. This adds
+only the missing ones and never overwrites a doc someone has edited since:
+
+```bash
+rsync -a --ignore-existing dropbox/filed/ ~/Dropbox/
+```
+
+Or copy a single file across by hand. Uncompressed copies also sit on Cold
+Storage at `/mnt/The-Pool/ClaudeBackup/band-advance-dropbox-mirror-filed/`,
+same layout, and that folder accumulates, so it still holds a doc that was
+deleted or renamed in Dropbox.
+
 ---
 
 ## The three things a restore cannot do for you
@@ -98,11 +118,17 @@ sudo ./restore.sh --yes               # no prompts
    Token and account/zone IDs are in `TDS_Credentials_CheatSheet.md`; there are
    ready-made scripts at `audio/Live Sound KB/_tools/KB-Fix-Tunnel-API.command`.
 2. **Dropbox linking.** On a fresh host, link the headless client
-   (`~/.dropbox-dist/dropboxd` + `~/dropbox.py`) and set selective sync to
-   `Nyquist/` **only** before letting it write anything. Nothing outside
-   `Nyquist/` is ever written or deleted from the VM side.
-3. **The Graph client secret**, if secrets were regenerated. Re-enter it in the
-   n8n credential — and note it goes in the Client **Secret Value** field, not
+   (`~/.dropbox-dist/dropboxd` + `~/dropbox.py`), then as `brian` (not root) run
+   `bash /opt/band-advance/ops/dropbox_exclude.sh` and copy it to
+   `~/dropbox_exclude.sh` (the live copy) before letting it write anything. It
+   keeps `Nyquist/` plus the seven `3CDC <Venue>` folders and excludes the rest,
+   including the bulky legacy archive subfolders; re-run it until
+   `~/dropbox.py exclude list` covers every other top-level item, before the
+   06:30 nightly run. The VM writes only into `Nyquist/` and the current month
+   folder of those seven venue folders (filed advance docs + stage plots, since
+   2026-09-12); it never deletes there.
+3. **The n8n credentials**, if secrets were regenerated. Re-enter every one,
+   Graph first — and note its client secret goes in the Client **Secret Value** field, not
    the Secret **ID**. That exact mix-up cost a whole debugging session once.
 
 ---
@@ -112,23 +138,20 @@ sudo ./restore.sh --yes               # no prompts
 If the VM is gone and you are starting on new hardware:
 
 ```bash
-# 1. New Debian 12 VM, static IP, your SSH key in ~/.ssh/authorized_keys
+# 1. New Debian 12 VM, static IP, your SSH key in ~/.ssh/authorized_keys,
+#    Docker Engine + docker-compose-plugin from Docker's apt repo (docs.docker.com/engine/install/debian)
 # 2. Pull the newest archive off either NAS — Audio NAS is the short-term
 #    primary, Cold Storage the long-term (2-year) archive
 scp brian@192.168.200.36:/mnt/AudioNas/brian/band-advance-backups/latest.tar.gz .
 #    (or the other copy, if Audio NAS is the thing that died)
 scp brian@192.168.200.35:/mnt/The-Pool/ClaudeBackup/band-advance/latest.tar.gz .
 
-# 3. Restore
-tar xzf latest.tar.gz && sudo ./band-advance-*/restore.sh
+# 3. Restore — restore.sh starts n8n itself (/opt/n8n doesn't exist yet on a fresh host)
+tar xzf latest.tar.gz && sudo ./band-advance-*/restore.sh --with-n8n   # drop --with-n8n if n8n stays where it is
 
-# 4. Bring n8n back too, if this host is also replacing the n8n VM
-cd /opt/n8n && sudo docker compose up -d
-sudo ./band-advance-*/restore.sh --with-n8n
-
-# 5. Point the tunnel at the new host (Cloudflare API — see above)
-# 6. Link Dropbox, selective-sync to Nyquist/ only
-# 7. Check it: https://advance.tinydoorstudios.com/search   (passcode: lockdown)
+# 4. Point the tunnel at the new host (Cloudflare API — see above)
+# 5. Link Dropbox, then run /opt/band-advance/ops/dropbox_exclude.sh as brian (Nyquist + the seven 3CDC venue folders)
+# 6. Check it: https://advance.tinydoorstudios.com/search   (passcode: lockdown)
 ```
 
 Where things live once restored:

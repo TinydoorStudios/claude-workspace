@@ -90,7 +90,8 @@
 {% endif %}
 
 <div class="wrap">
-<form class="card{{ ' third-party' if cfg.third_party else '' }}" id="bandform" action="{{ url_for('submit') }}" method="post" enctype="multipart/form-data"{{ ' novalidate' if cfg.third_party else '' }}>
+{# 2026-09-21 sweep (APPA-5): ?lang=es rides the action URL so the 413 handler still knows the language when an over-limit body can't be parsed #}
+<form class="card{{ ' third-party' if cfg.third_party else '' }}" id="bandform" action="{{ url_for('submit', lang=lang) if lang == 'es' else url_for('submit') }}" method="post" enctype="multipart/form-data"{{ ' novalidate' if cfg.third_party else '' }}>
   <input type="hidden" name="show_series" value="{{ '' if cfg.series_key == 'default' else cfg.series_key }}">
   <input type="hidden" name="form_lang" value="{{ lang }}">
   {% if cfg.location %}<input type="hidden" name="location" value="{{ cfg.location }}">{% endif %}
@@ -467,6 +468,17 @@
   }
   venueSel.addEventListener('change', syncLoadinAck);
   syncLoadinAck();
+
+  // 2026-09-21 sweep (APPA-7): a double-tap posted twice (two submissions, two notifies).
+  // 'submit' only fires once validation passes; pageshow re-enables after Back (bfcache).
+  var bandForm = document.getElementById('bandform');
+  var submitBtn = bandForm.querySelector('button[type=submit]');
+  bandForm.addEventListener('submit', function(e){
+    if (bandForm.dataset.sent) { e.preventDefault(); return; }
+    bandForm.dataset.sent = '1';
+    submitBtn.disabled = true;
+  });
+  window.addEventListener('pageshow', function(){ delete bandForm.dataset.sent; submitBtn.disabled = false; });
 </script>
 </body>
 </html>

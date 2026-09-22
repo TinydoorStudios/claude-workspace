@@ -53,8 +53,10 @@
     {% if waiting_check %}
     <p class="status wait">Checking the doc against your edit… this page refreshes on its own. If a pipeline run is in progress it waits for that to finish first.</p>
     {% else %}
-    <p class="status ok">Checked {{ sub.doc_checked_at.strftime('%-I:%M %p') }} — {{ sub.doc_check }}.
-      {% if notices %}{{ notices|length }} change(s) below need your call.{% else %}Nothing is waiting on you — the doc matches the form.{% endif %}</p>
+    {# 2026-09-21 sweep (DOC-6): a failed or skipped check never claims the doc matches the form #}
+    {% set not_checked = 'not checked' in (sub.doc_check or '') %}
+    <p class="status {{ 'wait' if not_checked else 'ok' }}">Checked {{ sub.doc_checked_at.strftime('%-I:%M %p') }} — {{ sub.doc_check }}.
+      {% if notices %}{{ notices|length }} change(s) below need your call.{% elif not_checked %}The doc wasn't checked this time. The next pipeline run tries again, and anything that needs your call shows up on the dashboard.{% else %}Nothing is waiting on you — the doc matches the form.{% endif %}</p>
     {% endif %}
   </div>
   {% endif %}
@@ -92,10 +94,12 @@
           {{ 'disabled' if (n.apply_requested_at and not n.apply_error) else '' }}>Keep doc</span>
           <div class="val">{{ n.doc_value or '(blank)' }}</div></label>
         <label class="opt"><span class="lbl"><input type="radio" name="n{{ n.id }}" value="apply"
-          {{ 'disabled' if (not n.cell_key or (n.apply_requested_at and not n.apply_error)) else '' }}>Use new</span>
+          {{ 'disabled' if (not n.cell_key or (n.cell_key|lower) == 'schedule|shape' or (n.apply_requested_at and not n.apply_error)) else '' }}>Use new</span>
           <div class="val">{{ n.new_value or '(blank)' }}</div></label>
       </div>
       {% if not n.cell_key %}<div class="muted" style="margin-top:8px">Recorded before decisions existed — fix the doc by hand if the new value is right, then Keep doc.</div>{% endif %}
+      {# 2026-09-21 sweep (DOC-11): no merge path writes a reshaped schedule — Use new is off #}
+      {% if n.cell_key and (n.cell_key|lower) == 'schedule|shape' %}<div class="muted" style="margin-top:8px">Can't be written automatically — rebuild the schedule in the doc by hand (or clear its times and the next run rebuilds it), then Keep doc.</div>{% endif %}
       {% if n.apply_requested_at and not n.apply_error %}<div class="pending">Writing it into the doc…</div>{% endif %}
       {% if n.apply_error %}<div class="err">Couldn't apply: {{ n.apply_error }}</div>{% endif %}
       <div class="muted" style="margin-top:6px">{{ n.detail or '' }}</div>

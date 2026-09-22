@@ -86,20 +86,37 @@ def _export_url(gid):
 _CSV_CACHE = {}          # gid -> (fetched_at, rows)
 _CSV_TTL = 300           # seconds — one package_run (seconds) reuses; a long-
                          # lived app process still refreshes every 5 min.
+# 2026-09-21 sweep (RPT-13): a small circuit breaker — a single blip still retries,
+# two failures in a row fail fast for 60s so a hung sheet can't cost N x timeout.
+_CSV_FAIL = {}           # gid -> (last_failed_at, consecutive_failures, repr(last_exc))
+_CSV_FAIL_TTL = 60
+_CSV_FAIL_TRIP = 2
 
 
 def _fetch_csv(gid, timeout=10):
     """Fetch (and briefly cache) a sheet tab. The cache keeps a full package_run
     — which fills one doc per event, each reading the schedule — from hitting
-    Google Sheets N times (and, if the sheet is down, waiting N×timeout);
-    (Brian, 2026-09-11)."""
+    Google Sheets N times (Brian, 2026-09-11). Failures aren't cached, but two
+    in a row trip a 60s fail-fast (raises without a network call), so a hung
+    sheet doesn't cost N×timeout (2026-09-21 sweep, RPT-13)."""
+    now = dt.datetime.now().timestamp()
     hit = _CSV_CACHE.get(gid)
-    if hit and (dt.datetime.now().timestamp() - hit[0]) < _CSV_TTL:
+    if hit and (now - hit[0]) < _CSV_TTL:
         return hit[1]
-    with urllib.request.urlopen(_export_url(gid), timeout=timeout) as resp:
-        text = resp.read().decode("utf-8", errors="replace")
+    fail = _CSV_FAIL.get(gid)
+    if fail and fail[1] >= _CSV_FAIL_TRIP and now - fail[0] < _CSV_FAIL_TTL:
+        raise RuntimeError(f"staffing sheet gid={gid} skipped: {fail[1]} consecutive fetch "
+                           f"failures, last {now - fail[0]:.0f}s ago ({fail[2]})")
+    try:
+        with urllib.request.urlopen(_export_url(gid), timeout=timeout) as resp:
+            text = resp.read().decode("utf-8", errors="replace")
+    except Exception as e:  # noqa: BLE001 — recorded, then re-raised as before
+        prev = _CSV_FAIL.get(gid)
+        _CSV_FAIL[gid] = (dt.datetime.now().timestamp(), (prev[1] if prev else 0) + 1, repr(e))
+        raise
     rows = list(csv.reader(io.StringIO(text)))
     _CSV_CACHE[gid] = (dt.datetime.now().timestamp(), rows)
+    _CSV_FAIL.pop(gid, None)
     return rows
 
 
@@ -207,6 +224,54 @@ def _event_cell_range(cell):
     return a, b
 
 
+# 2026-09-21 sweep (RPT-8): crew call/curfew parse for event_times_for (replaces the
+# removed _event_time, which read each side as PM alone: '(11-2)' -> 11:00p / 2:00p).
+_RANGE_RE = re.compile(r"(\*{0,2}\d{1,2}(?::\d{2})?\s*(?:am|pm|a|p)?)\s*-\s*"
+                       r"(\*{0,2}\d{1,2}(?::\d{2})?\s*(?:am|pm|a|p)?)", re.I)
+
+
+def _has_meridian(tok):
+    return bool(re.search(r"(am|pm|a|p)\s*$", (tok or "").strip(), re.I))
+
+
+def _house_clock(mins):
+    """Minutes since midnight (may run past 1440) -> house time '4:15p'."""
+    mins %= 1440
+    h, m = divmod(mins, 60)
+    return f"{h % 12 or 12}:{m:02d}{'a' if h < 12 else 'p'}"
+
+
+def _event_cell_times(line):
+    """(start_min, end_min, {'crew_call','curfew'}) from the '(<crew>-<curfew>)' in an
+    Event cell's first line, else None. An explicit a/p stays as written; with no
+    suffix PM is assumed (Brian, 2026-09-11). When the end lands at/before the start:
+    a bare '12' end after an unsuffixed start is midnight ('(8-12)' -> 8:00p/12:00a);
+    else an unsuffixed start is read as AM if that fits ('(11-2)' -> 11:00a/2:00p);
+    else an explicit suffix means past midnight ('(9-1a)' -> 9:00p/1:00a, end_min
+    over 1440); else None."""
+    paren = re.search(r"\(([^)]*)\)", line or "")
+    if not paren:
+        return None
+    rng = _RANGE_RE.search(paren.group(1))
+    if not rng:
+        return None
+    g1, g2 = rng.group(1), rng.group(2)
+    a, b = _clock_minutes(g1), _clock_minutes(g2)
+    if a is None or b is None:
+        return None
+    if b <= a:
+        a_am = None if _has_meridian(g1) else _clock_minutes(g1, assume_pm=False)
+        if not _has_meridian(g1) and re.fullmatch(r"\*{0,2}12(?::00)?", g2.strip()):
+            b = 1440                 # '(8-12)': evening show to midnight
+        elif a_am is not None and a_am < b:
+            a = a_am                 # '(11-2)', '(11-2p)': daytime
+        elif _has_meridian(g1) or _has_meridian(g2):
+            b += 1440                # explicit past-midnight, e.g. '(9p-1a)', '(9-1a)'
+        else:
+            return None
+    return a, b, {"crew_call": _house_clock(a), "curfew": _house_clock(b)}
+
+
 def _pick_staffed_row(staffed, series=None, event_name=None, artist_name=None,
                       event_start=None):
     """The mix cell for THIS show from [(event_cell, mix), ...] — see the
@@ -305,27 +370,24 @@ def _mix_tokens(venue, show_date, series=None, event_name=None,
     return _split_mix_cell(raw_mix), codes_rows
 
 
-def _event_time(tok):
-    """One side of an Event-cell range ('*4:15', '10', '9a', '11am') -> house
-    time '4:15p'. An explicit a/am or p/pm is honored (audit cleanup — a
-    daytime event used to get a 9:00p crew call); with no suffix, PM is
-    assumed (Brian, 2026-09-11: evening shows are the norm)."""
-    tok = re.sub(r"[*\s]", "", tok).lower()
-    m = re.match(r"^(\d{1,2})(?::(\d{2}))?(am|pm|a|p)?", tok)
-    if not m:
-        return None
-    suffix = "a" if (m.group(3) or "").startswith("a") else "p"
-    return f"{int(m.group(1))}:{int(m.group(2) or 0):02d}{suffix}"
-
-
-def event_times_for(venue, show_date, series=None):
+def event_times_for(venue, show_date, series=None, event_name=None,
+                    artist_name=None, event_start=None):
     """{'crew_call','curfew'} for this venue+date, read from the staffing
     sheet's Event cell — the '<Event> (<crew>-<curfew>)' pattern (Brian,
     2026-09-11, all sites; e.g. 'Jazz (3:30-10)' -> crew 3:30p, curfew 10:00p).
-    Both times PM. When `series` is given and a date has more than one event
-    row, the row whose Event cell names that series wins (so a double-booked day
-    doesn't hand back the wrong show's times); otherwise the first parseable row
-    is used. None if the venue isn't wired, the sheet is unreachable, the date
+    The range is read by _event_cell_times (2026-09-21 sweep, RPT-8): a/p as
+    written, PM by default, '(11-2)' -> 11:00a/2:00p, '(8-12)' -> 8:00p/12:00a;
+    a range it can't resolve ('(16-22)') is skipped, never printed inverted.
+    Which row, in order:
+      1. one parseable row on the date -> that's it;
+      2. a row whose Event cell names the show's series, event name or band
+         name (if THIS show's own row carries no range, None — never borrow
+         another event's times);
+      3. the row whose range contains the booking's `event_start`;
+      4. every remaining row has the same times -> those;
+      5. otherwise None (Brian 2026-09-15 'never guess', the Mix rule in
+         _pick_staffed_row, applied to crew call/curfew 2026-09-21 sweep).
+    None too if the venue isn't wired, the sheet is unreachable, the date
     isn't on it, or no row has a (start-end) range — callers fall back to their
     computed schedule."""
     cols = SCHEDULE_COLUMNS.get(venue)
@@ -343,8 +405,10 @@ def event_times_for(venue, show_date, series=None):
         return None
     ev_col = cols["event"]
     need = max(cols.values())
-    target = (series or "").strip().lower()
-    first = None
+    hints = [h.strip().lower() for h in (series, event_name, artist_name)
+             if h and str(h).strip()]
+    parsed = []             # (line, rec) — every parseable Event row on the date
+    named_unparsed = False  # a row naming THIS show exists but has no (crew-curfew) range
     for row in rows:
         if len(row) <= need:
             continue
@@ -354,26 +418,41 @@ def event_times_for(venue, show_date, series=None):
         if not cell:
             continue
         line = cell.splitlines()[0]
-        paren = re.search(r"\(([^)]*)\)", line)
-        if not paren:
-            continue
-        rng = re.search(
-            r"(\*{0,2}\d{1,2}(?::\d{2})?\s*(?:am|pm|a|p)?)\s*-\s*"
-            r"(\*{0,2}\d{1,2}(?::\d{2})?\s*(?:am|pm|a|p)?)",
-            paren.group(1), re.I)
-        if not rng:
-            continue
-        crew, curfew = _event_time(rng.group(1)), _event_time(rng.group(2))
-        if not (crew and curfew):
-            continue
-        rec = {"crew_call": crew, "curfew": curfew}
-        # prefer the row whose Event name matches the show's series on a
-        # multi-event day; otherwise keep the first parseable row.
-        if target and target in line.lower():
-            return rec
-        if first is None:
-            first = rec
-    return first
+        t = _event_cell_times(line)      # 2026-09-21 sweep (RPT-8)
+        rec = t[2] if t else None
+        if rec:
+            parsed.append((line, rec))
+        elif hints and any(h in line.lower() for h in hints):
+            named_unparsed = True
+    if not parsed:
+        return None
+
+    def _one(cands):
+        recs = {(r["crew_call"], r["curfew"]) for _, r in cands}
+        return dict(cands[0][1]) if cands and len(recs) == 1 else None
+
+    # 2026-09-21 sweep (RPT-6): never the first row on a double-booked day —
+    # same order as _pick_staffed_row; None lets daysheet use its computed times.
+    if len(parsed) == 1 and not named_unparsed:
+        return dict(parsed[0][1])
+    hit = [p for p in parsed if hints and any(h in p[0].lower() for h in hints)]
+    if hit:
+        found = _one(hit)
+        if found:
+            return found
+    elif named_unparsed:
+        return None  # this show's own row carries no times; don't borrow another event's
+    start = _clock_minutes(event_start)
+    if start is not None:
+        inside = []
+        for line, rec in parsed:
+            span = _event_cell_times(line)   # same read as the printed times (RPT-8)
+            if span and span[0] <= start < span[1]:
+                inside.append((line, rec))
+        found = _one(inside)
+        if found:
+            return found
+    return _one(parsed)  # same times on every row -> no ambiguity; else None
 
 
 def engineer_for(venue, show_date, series=None, event_name=None,

@@ -78,18 +78,17 @@ def event_drafts_dir(out, ev):
     return base / fs.EMAIL_DRAFTS_DIR
 
 
-def event_stem(ev, acts, cancelled=False):
+def event_stem(ev, acts):
     d = ev.get("event_date")
     # Name + headliner — single source of truth in fieldspec.py, shared with
     # regen_show.py's single-show path so both never drift apart on what an
     # event's filename looks like. See fieldspec.event_display_name /
-    # top_of_bill_name for the actual rule. `cancelled` (review 2026-09-14,
+    # top_of_bill_name for the actual rule. Cancelled (review 2026-09-14,
     # M4): every act on the bill is cancelled -> the same file is renamed in
     # place with a CANCELLED marker after the date stamp; undo-cancel renames
-    # it back on the next run.
-    name = fs.event_display_name(ev, acts)
-    if cancelled:
-        name = f"CANCELLED - {name}"
+    # it back on the next run. 2026-09-21 sweep (DAY-6): a cancelled headliner
+    # on a live bill no longer names the file — docmerge.filing_display_name.
+    name = docmerge.filing_display_name(ev, acts)
     if d:
         return fs.advance_stem(name, d)
     return f"{safe(name)} Prod Adv"
@@ -98,6 +97,36 @@ def event_stem(ev, acts, cancelled=False):
 def find_one(folder, pattern):
     hits = sorted(folder.glob(pattern))
     return hits[0] if hits else None
+
+
+def report_filing_error(ev, stem, what, err):
+    """2026-09-21 sweep (PIPE-7): a per-event filing failure reaches Brian's
+    digest instead of only this run's stderr. Keyed per show/field/exception
+    type/day, so a standing failure is reported once a day. Never raises."""
+    try:
+        import mailer
+        d = ev.get("event_date")
+        venue = ev.get("venue") or ""
+        msg = f"{type(err).__name__}: {err}"[:500]
+        with db.get_conn() as conn, conn.cursor() as cur:
+            nid = db.insert_doc_notice(cur, venue, d, docmerge.event_key(ev), "filing_error", what,
+                                       f"{dt.date.today().isoformat()} {type(err).__name__}", msg,
+                                       detail=f"{stem}.docx")
+            if nid:
+                # informational, like run_now's conflicted-copy notice: closed at
+                # once and marked notified so it rides only this digest item
+                db.resolve_doc_notice(cur, nid, "auto")
+                db.mark_doc_notices_notified(cur, [nid])
+                db.queue_digest_item(
+                    cur, "doc", f"{what} could not be filed — {stem}",
+                    f"<p><b>{mailer.esc(what)}</b> for <b>{mailer.esc(stem)}</b> "
+                    f"({mailer.esc(venue)}, {mailer.esc(d.isoformat() if d else '')}) "
+                    "could not be filed, so that show's doc isn't being updated. "
+                    "Every run retries it.</p>"
+                    f"<pre style='white-space:pre-wrap'>{mailer.esc(msg)}</pre>")
+            conn.commit()
+    except Exception as e2:  # noqa: BLE001 — a report, never a reason to fail the run
+        print(f"  ! could not record filing error for '{stem}': {e2!r}", file=sys.stderr)
 
 
 def _scope_set(values):
@@ -165,7 +194,7 @@ def main():
         venue = ev.get("venue")
         in_scope = (not scope) or ((venue, d.isoformat() if d else "") in scope)
         folder = event_dir(ev)
-        stem = event_stem(ev, acts, cancelled=docmerge.all_acts_cancelled(ev, acts))
+        stem = event_stem(ev, acts)
         future = bool(d) and d >= today
 
         stageplot_names = {}
@@ -177,16 +206,30 @@ def main():
             band = a["artist"]["name"] if a.get("artist") else "band"
             fname = f"{fs.stageplot_stem(band, d)}{Path(stored).suffix}"
             src = UPLOADS / stored
+            plot_ok = False
             if in_scope and future:
                 if not src.exists():
                     print(f"  ! stage plot file missing on server: {stored}")
                 else:
-                    fname, notice = docmerge.file_stage_plot(src, folder, fname,
-                                                              dry_run=args.dry_run_docs)
-                    if notice:
-                        plot_notices.append(notice)
-                    n_plots += 1
-            if (folder / fname).exists() or (in_scope and future and src.exists()):
+                    # 2026-09-21 sweep (PIPE-7): one plot's OSError (Dropbox perms,
+                    # disk full) used to abort the whole run — every later event too.
+                    try:
+                        fname, notice = docmerge.file_stage_plot(src, folder, fname,
+                                                                  dry_run=args.dry_run_docs)
+                        if notice:
+                            plot_notices.append(notice)
+                        n_plots += 1
+                        plot_ok = True
+                    except Exception as e:  # noqa: BLE001
+                        n_failed += 1
+                        print(f"  ! stage plot failed for {band} on '{stem}': {e!r}", file=sys.stderr)
+                        if not args.dry_run_docs:
+                            report_filing_error(ev, stem, f"Stage plot — {band}", e)
+            try:
+                on_disk = (folder / fname).exists()
+            except OSError:
+                on_disk = False
+            if on_disk or plot_ok:
                 stageplot_names[band] = fname
                 rel = (Path("..") / fs.real_venue_folder(venue) /
                        fs.real_month_folder(venue, d) / fname).as_posix()
@@ -213,6 +256,8 @@ def main():
                 # takes down every other event in the run (2026-09-10)
                 n_failed += 1
                 print(f"  ! day-sheet failed for '{stem}' ({venue}): {e!r}", file=sys.stderr)
+                if not args.dry_run_docs:   # 2026-09-21 sweep (PIPE-7): tell Brian, not just the log
+                    report_filing_error(ev, stem, "Advance doc", e)
 
         date = d.isoformat() if d else None
         drafts_dir = event_drafts_dir(out, ev)
@@ -221,7 +266,9 @@ def main():
                 continue
             name = a["artist"]["name"]
             sg = slug(name)
-            draft = find_one(DRAFTS, f"{sg}__{date}__*.md" if date else f"{sg}__*.md")
+            # 2026-09-21 sweep (MAIL-2): drafts carry the venue now — never copy the
+            # band's other-venue draft (or, undated, any dated one) into this event.
+            draft = find_one(DRAFTS, f"{sg}__{date or 'nodate'}__{slug(venue)}__*.md")
             if draft:
                 drafts_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copy(draft, drafts_dir / f"{stem} email - {safe(name)}.md")

@@ -1,0 +1,13 @@
+-- 2026-09-21 sweep (FLOW-12): which sheet-owned fields were edited in the app
+-- since the booking's advance-list.xlsx row last matched it.
+--
+-- append_bookings --edited used to write EVERY non-empty booking column that
+-- differed from the sheet once a booking was sheet_dirty, so a Start time Brian
+-- fixed straight in the sheet was reverted the moment staff edited, say, the
+-- lead phone. update_booking now records the edited fields here and the sync
+-- writes only those; mark_bookings_synced clears the list.
+--
+-- Empty list on a dirty row = the old whole-row write (rows flagged before this
+-- migration, adopt_sheet_row, a first seed edited mid-run) — nothing pending is
+-- lost. Idempotent (re-run on every deploy); runs after 2026-09-15-sheet-writeback.
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS sheet_dirty_fields TEXT[] NOT NULL DEFAULT '{}';

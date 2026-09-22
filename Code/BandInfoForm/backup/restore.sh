@@ -3,7 +3,9 @@
 # Band Advance — restore
 # =============================================================================
 # Ships INSIDE every archive. Run it from the extracted archive directory on the
-# machine you want the pipeline to live on (bare Debian 12 is fine):
+# machine you want the pipeline to live on (Debian 12 with Docker Compose v2 —
+# Debian's own repo doesn't carry it, add Docker's apt repo first; this script
+# installs the rest):
 #
 #     tar xzf band-advance-YYYYMMDD-HHMMSS.tar.gz
 #     sudo ./band-advance-YYYYMMDD-HHMMSS/restore.sh
@@ -21,7 +23,8 @@
 # Options:
 #   --db-only          just the database
 #   --data-only        database + uploads + submission JSON (no app/venv/systemd)
-#   --with-n8n         also import n8n workflows + credentials  (disruptive)
+#   --with-n8n         also start n8n if needed, import workflows + credentials,
+#                      then restart it  (disruptive)
 #   --force-dropbox    overlay the Dropbox tree onto a live ~/Dropbox/Nyquist
 #   --dropbox-dest D   put the Dropbox tree at D instead
 #   --app-dir D        install to D instead of /opt/band-advance
@@ -88,17 +91,30 @@ fi
 # ------------------------------------------------------------ packages ------
 if [ "$MODE" = "full" ]; then
   step "1/8  OS packages"
+  # 2026-09-21 sweep (OPS-17): one apt call per package (Debian 12 has no docker-compose-plugin,
+  # which used to sink the whole transaction), --no-remove so apt can never uninstall a live
+  # docker-ce (it Conflicts: docker.io), and docker.io only when there's no Docker at all.
   MISSING=()
-  for p in docker.io docker-compose-plugin python3-venv python3-pip rsync gnupg; do
+  for p in python3-venv python3-pip rsync gnupg curl; do
     dpkg -s "$p" >/dev/null 2>&1 || MISSING+=("$p")
   done
+  command -v docker >/dev/null 2>&1 || MISSING+=("docker.io")
   if [ ${#MISSING[@]} -gt 0 ]; then
     log "installing: ${MISSING[*]}"
     apt-get update -qq >/dev/null 2>&1
-    apt-get install -y -qq "${MISSING[@]}" >/dev/null 2>&1 \
-      && ok "installed ${MISSING[*]}" || bad "apt install failed: ${MISSING[*]}"
+    for p in "${MISSING[@]}"; do
+      apt-get install -y -qq --no-remove "$p" >/dev/null 2>&1 && ok "installed $p" || bad "apt install failed: $p"
+    done
   else ok "all required packages already present"; fi
   systemctl enable --now docker >/dev/null 2>&1
+  if ! docker compose version >/dev/null 2>&1; then
+    for p in docker-compose-plugin docker-compose-v2 docker-compose; do
+      apt-get install -y -qq --no-remove "$p" >/dev/null 2>&1 || continue
+      docker compose version >/dev/null 2>&1 && { ok "compose v2 via $p"; break; }
+    done
+    docker compose version >/dev/null 2>&1 \
+      || bad "Docker Compose v2 ('docker compose') is not available — Debian 12's own repo doesn't carry it; add Docker's apt repo (docs.docker.com/engine/install/debian), apt-get install docker-compose-plugin, then re-run"
+  fi
 fi
 
 # ------------------------------------------------------------- secrets ------
@@ -125,27 +141,36 @@ fi
 if [ "$GOT_SECRETS" = 0 ]; then
   note "no secrets recovered — generating FRESH credentials. Data restores fine."
   note "consequence: previously-issued /f/<token> prefill links stop working, and"
-  note "the n8n Graph credential must be re-entered. Nothing is lost."
+  note "every n8n credential (Graph first) must be re-entered. Nothing is lost."
   mkdir -p "$SECRETS_DIR/secrets-plain"
   NEWPW="$(head -c 24 /dev/urandom | base64 | tr -d '/+=' | head -c 32)"
-  NEWSEC="$(head -c 32 /dev/urandom | xxd -p -c 64)"
+  # 2026-09-21 sweep (OPS-17): od, not xxd — xxd isn't on a minimal Debian 12, and an
+  # empty ADVANCE_SECRET gave Flask secret_key=''. od is coreutils (Essential).
+  NEWSEC="$(head -c 32 /dev/urandom | od -An -vtx1 | tr -d ' \n')"
   # audit 2026-09-16 ops #4: without a token here, EVERY /internal/*
   # endpoint (the whole n8n-driven lifecycle, both digests, the watchdog,
   # missing-reports) 403s until someone notices and sets one by hand — a
   # fresh-secrets restore used to come back up looking healthy while all
   # of that silently didn't work.
-  NEWTOKEN="$(head -c 32 /dev/urandom | xxd -p -c 64)"
-  cat > "$SECRETS_DIR/secrets-plain/advance.env" <<EOF
+  NEWTOKEN="$(head -c 32 /dev/urandom | od -An -vtx1 | tr -d ' \n')"
+  if [ ${#NEWSEC} -eq 64 ] && [ ${#NEWTOKEN} -eq 64 ] && [ ${#NEWPW} -ge 20 ]; then
+    cat > "$SECRETS_DIR/secrets-plain/advance.env" <<EOF
 ADVANCE_DB_URL=postgresql://advance:$NEWPW@127.0.0.1:5433/advance
 ADVANCE_SECRET=$NEWSEC
 ADVANCE_GATE_PASS=lockdown
 ADVANCE_PUBLIC_URL=https://advance.tinydoorstudios.com
 ADVANCE_INTERNAL_TOKEN=$NEWTOKEN
+ADVANCE_NOTIFY_URL=http://localhost:5678/webhook/advance-notify
+ADVANCE_LIFECYCLE_NOW_URL=http://localhost:5678/webhook/advance-lifecycle-now
 EOF
-  note "fresh ADVANCE_INTERNAL_TOKEN generated — every n8n workflow's X-Advance-Token"
-  note "header needs updating to match before internal endpoints (lifecycle, digests,"
-  note "the watchdog) will work again"
-  echo "ADVANCE_DB_PASSWORD=$NEWPW" > "$SECRETS_DIR/secrets-plain/advance-db.env"
+    note "fresh ADVANCE_INTERNAL_TOKEN generated — every n8n workflow's X-Advance-Token"
+    note "header needs updating to match before internal endpoints (lifecycle, digests,"
+    note "the watchdog) will work again"
+    note "not regenerable: DROPBOX_APP_KEY/SECRET/REFRESH_TOKEN (stage-plot links fall back to the app URL until re-added), ADVANCE_GATE_PASS_2, GROQ_API_KEY, ADVANCE_SLACK_WEBHOOK — re-add from TDS_Credentials"
+    echo "ADVANCE_DB_PASSWORD=$NEWPW" > "$SECRETS_DIR/secrets-plain/advance-db.env"
+  else
+    bad "could not generate fresh secrets — advance.env and the DB password NOT written"
+  fi
 fi
 SP="$SECRETS_DIR/secrets-plain"
 
@@ -309,8 +334,9 @@ After=network.target docker.service
 User=$SVC_USER
 WorkingDirectory=$APP_DIR
 EnvironmentFile=$APP_DIR/advance.env
-ExecStart=$APP_DIR/venv/bin/gunicorn --worker-class gthread -w 4 --threads 4 --timeout 120 --graceful-timeout 120 -b 127.0.0.1:8097 app:app
+ExecStart=$APP_DIR/venv/bin/gunicorn --worker-class gthread -w 4 --threads 4 --timeout 120 --graceful-timeout 120 -b 127.0.0.1:8097 -b 172.17.0.1:8097 app:app
 Restart=always
+TimeoutStopSec=150
 
 [Install]
 WantedBy=multi-user.target
@@ -339,27 +365,80 @@ if [ "$WITH_N8N" = 1 ]; then
   fi
   [ -f "$HERE/docker/n8n.compose.yml" ] && [ ! -f "$N8N_DIR/docker-compose.yml" ] \
     && cp "$HERE/docker/n8n.compose.yml" "$N8N_DIR/docker-compose.yml"
+  N8N_COMPOSE="$N8N_DIR/docker-compose.yml"
+  n8n_healthy() {  # up to 180s — a fresh n8n database runs its migrations first
+    for _i in $(seq 1 36); do
+      curl -sf -o /dev/null --max-time 5 http://localhost:5678/healthz && return 0
+      sleep 5
+    done
+    return 1
+  }
+  # 2026-09-21 sweep (OPS-4): on a fresh host nothing has started n8n yet — --with-n8n
+  # is already the opt-in to touching it, so bring it up here instead of failing below.
+  if ! docker ps --format '{{.Names}}' | grep -qx n8n-n8n-1 \
+     && [ -f "$N8N_COMPOSE" ] && [ -f "$N8N_DIR/.env" ]; then
+    ( cd "$N8N_DIR" && docker compose up -d ) >/dev/null 2>&1 \
+      && ok "n8n started from $N8N_DIR" || bad "could not start n8n (cd $N8N_DIR && sudo docker compose up -d)"
+    n8n_healthy || note "n8n not answering /healthz yet after starting it"
+  fi
   if docker ps --format '{{.Names}}' | grep -qx n8n-n8n-1; then
-    NC="docker compose -f $N8N_DIR/docker-compose.yml exec -T n8n n8n"
-    docker compose -f "$N8N_DIR/docker-compose.yml" cp "$HERE/n8n/workflows/." n8n:/tmp/wf_in >/dev/null 2>&1
-    $NC import:workflow --separate --input=/tmp/wf_in >/dev/null 2>&1 && ok "workflows imported" || bad "workflow import failed"
+    NC="docker compose -f $N8N_COMPOSE exec -T n8n n8n"
+    # credentials BEFORE workflows, so they exist when the workflows are re-activated
     if [ -f "$SP/n8n_credentials.decrypted.json" ]; then
       docker compose -f "$N8N_DIR/docker-compose.yml" cp "$SP/n8n_credentials.decrypted.json" n8n:/tmp/creds.json >/dev/null 2>&1
       $NC import:credentials --input=/tmp/creds.json >/dev/null 2>&1 && ok "credentials imported" || bad "credential import failed"
+    elif [ -f "$HERE/n8n/credentials.enc.json" ]; then
+      # 2026-09-21 sweep (OPS-4): nothing here restores n8n's own database, so the old
+      # "credentials come from it" note was false — import the still-encrypted export,
+      # but only into an n8n holding none, running the archive's own key.
+      PGU="$(grep '^POSTGRES_USER=' "$N8N_DIR/.env" 2>/dev/null | cut -d= -f2)"
+      PGD="$(grep '^POSTGRES_DB=' "$N8N_DIR/.env" 2>/dev/null | cut -d= -f2)"
+      NCRED="$(docker exec n8n-postgres-1 psql -U "$PGU" -d "$PGD" -tAc 'select count(*) from credentials_entity;' 2>/dev/null | tr -d ' ')"
+      ARCH_KEY="$(grep '^N8N_ENCRYPTION_KEY=' "$SP/n8n.env" 2>/dev/null | cut -d= -f2- | tr -d '"\047')"
+      RUN_KEY="$(docker compose -f "$N8N_COMPOSE" exec -T n8n printenv N8N_ENCRYPTION_KEY 2>/dev/null </dev/null | tr -d '\r')"
+      # a key n8n generated for itself (not passed in the env) lives in its config file
+      [ -z "$RUN_KEY" ] && RUN_KEY="$(docker compose -f "$N8N_COMPOSE" exec -T n8n cat /home/node/.n8n/config 2>/dev/null </dev/null \
+        | sed -n 's/.*"encryptionKey"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)"
+      if ! [[ "$NCRED" =~ ^[0-9]+$ ]]; then
+        bad "could not count n8n credentials — credentials.enc.json not imported"
+      elif [ "$NCRED" -gt 0 ]; then
+        note "n8n already holds $NCRED credential(s) — left alone; to overwrite from the archive, import n8n/credentials.enc.json by hand"
+      elif [ -z "$ARCH_KEY" ]; then
+        bad "credentials.enc.json NOT imported — the archive's N8N_ENCRYPTION_KEY wasn't recovered, so re-enter every n8n credential (Graph first) by hand"
+      elif [ "$RUN_KEY" != "$ARCH_KEY" ]; then
+        bad "running n8n's N8N_ENCRYPTION_KEY differs from the archive's — credentials NOT imported (they'd land undecryptable). Put the archived key in $N8N_DIR/.env, docker compose up -d --force-recreate n8n, re-run"
+      else
+        docker compose -f "$N8N_COMPOSE" cp "$HERE/n8n/credentials.enc.json" n8n:/tmp/creds.json >/dev/null 2>&1
+        $NC import:credentials --input=/tmp/creds.json >/dev/null 2>&1 </dev/null \
+          && ok "credentials imported (encrypted, same key)" || bad "credential import failed"
+        docker compose -f "$N8N_COMPOSE" exec -T n8n rm -f /tmp/creds.json >/dev/null 2>&1 </dev/null
+      fi
     else
-      # audit 2026-09-16 ops #4: the decrypted export was dropped from the
-      # secrets bundle (blast radius) — n8n.env's N8N_ENCRYPTION_KEY plus
-      # n8n's own restored Postgres data already let n8n decrypt its own
-      # credential store; nothing extra to import here.
-      note "no decrypted credential export in this archive (expected, 2026-09-16 on) — credentials come from n8n's own restored database via N8N_ENCRYPTION_KEY"
+      bad "no n8n credentials in this archive — re-enter them by hand (Graph first)"
     fi
-    # import:workflow does NOT carry active state — replay it.
+    docker compose -f "$N8N_DIR/docker-compose.yml" cp "$HERE/n8n/workflows/." n8n:/tmp/wf_in >/dev/null 2>&1
+    $NC import:workflow --separate --input=/tmp/wf_in >/dev/null 2>&1 && ok "workflows imported" || bad "workflow import failed"
+    # import:workflow does NOT carry active state — replay it. </dev/null: compose exec
+    # forwards stdin, which would swallow the rest of this file after the first workflow.
     if [ -f "$HERE/n8n/workflow_active_state.txt" ]; then
       while IFS='|' read -r wid active wname; do
-        [ "$active" = "t" ] && $NC publish:workflow --id="$wid" >/dev/null 2>&1 && ok "re-activated: $wname"
+        if [ "$active" = "t" ]; then
+          $NC publish:workflow --id="$wid" >/dev/null 2>&1 </dev/null \
+            && ok "re-activated: $wname" || bad "could not re-activate: $wname"
+        fi
       done < "$HERE/n8n/workflow_active_state.txt"
     fi
-    note "n8n webhook routes register several seconds AFTER /healthz answers 200 — don't trust a first-attempt 404"
+    # 2026-09-21 sweep (OPS-4): publish:workflow only takes effect on restart — schedules
+    # and webhook routes (the 9am lifecycle, internal-send-outlook) stayed dead without it.
+    ( cd "$N8N_DIR" && docker compose restart n8n ) >/dev/null 2>&1 \
+      && ok "n8n restarted (schedules + webhook routes only mount on restart)" \
+      || bad "n8n restart failed — cd $N8N_DIR && sudo docker compose restart n8n"
+    if n8n_healthy; then
+      sleep 15   # webhook routes register several seconds AFTER /healthz answers 200
+      ok "n8n answering /healthz after the restart"
+    else
+      bad "n8n not answering /healthz 3 min after restart"
+    fi
   else
     bad "n8n container not running — start /opt/n8n first, then rerun with --with-n8n"
   fi
@@ -395,10 +474,15 @@ cat <<'EOF'
    1. Cloudflare ingress: advance.tinydoorstudios.com -> http://localhost:8097
       The n8n-tunnel is REMOTE-managed — edit ingress via the Cloudflare API,
       never via a local config.yml. Token + IDs: TDS_Credentials_CheatSheet.md
-   2. Dropbox: if this is a fresh host, link the headless client and set
-      selective sync to Nyquist/ ONLY before letting it write.
+   2. Dropbox: on a fresh host, link the headless client, then as brian (not
+      root) run `bash /opt/band-advance/ops/dropbox_exclude.sh` and copy it to
+      ~/dropbox_exclude.sh (the live copy). It keeps Nyquist/ plus the seven
+      '3CDC <Venue>' folders the advance docs file into and excludes everything
+      else, including the bulky legacy archive subfolders. Re-run it until
+      `~/dropbox.py exclude list` covers every other top-level item, before the
+      06:30 nightly run files anything.
    3. If secrets were regenerated, re-send any outstanding /f/<token> prefill
-      links and re-enter the Graph credential in n8n.
+      links and re-enter every n8n credential (Graph first).
 
   Verify by hand:  https://advance.tinydoorstudios.com/search   (passcode: lockdown)
 EOF

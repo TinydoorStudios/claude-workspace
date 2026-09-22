@@ -69,6 +69,25 @@ _local_git_path() {
   esac
 }
 
+# 2026-09-21 sweep: ship committed code only. The tar steps read the WORKING
+# TREE but .deployed_commit records HEAD, so an uncommitted edit (ours or a
+# peer session's; the tree is shared) would reach production unrecorded and
+# the next deploy's drift check would refuse with a false "edited on the VM".
+DIRTY_PATHS=(app/templates ops db/migrations db/schema.sql backup requirements.txt)
+for f in "${APP_FILES[@]}"; do DIRTY_PATHS+=("app/$f"); done
+for f in "${TOOLS_FILES[@]}"; do DIRTY_PATHS+=("tools/$f"); done
+for d in "${TOOLS_DIRS[@]}"; do DIRTY_PATHS+=("tools/$d"); done
+DIRTY="$(git --no-optional-locks -C "$HERE" status --porcelain --untracked-files=all -- "${DIRTY_PATHS[@]}")"
+if [ -n "$DIRTY" ]; then
+  if [ "${ADVANCE_DEPLOY_DIRTY:-0}" != "1" ]; then
+    echo "REFUSING to deploy: uncommitted changes in files this deploy ships:"
+    echo "$DIRTY" | sed 's/^/  /'
+    echo "Commit them first (git commit -- <paths>; the tree is shared, commit only your own), or set ADVANCE_DEPLOY_DIRTY=1 to ship them anyway."
+    exit 1
+  fi
+  echo "ADVANCE_DEPLOY_DIRTY=1: shipping uncommitted changes. .deployed_commit will still record HEAD, so the next deploy's drift check will flag these files (commit them, then redeploy with ADVANCE_DEPLOY_FORCE=1)."
+fi
+
 {
   echo "=== Band Advance deploy — $(date) — branch $CUR @ $(git -C "$HERE" rev-parse --short HEAD) ==="
   STAMP=$(date +%Y%m%d-%H%M%S)
@@ -132,13 +151,13 @@ _local_git_path() {
   fi
 
   echo "--- stage payloads ---"
-  tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   "${APP_FILES[@]}" templates || exit 1
-  tar -C "$HERE/tools" -czf /tmp/adv_tools.tgz "${TOOLS_FILES[@]}" "${TOOLS_DIRS[@]}" || exit 1
+  tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   "${APP_FILES[@]}" templates || { echo "TAR app FAILED"; exit 1; }
+  tar -C "$HERE/tools" -czf /tmp/adv_tools.tgz "${TOOLS_FILES[@]}" "${TOOLS_DIRS[@]}" || { echo "TAR tools FAILED"; exit 1; }
   # db/schema.sql, backup/ and requirements.txt now ship too (audit ops #4)
   # — they used to just sit in git, never actually reaching the VM through
   # this script, so a fix to any of them (like this batch's own schema.sql
   # and backup/ changes) silently never took effect.
-  tar -C "$HERE" -czf /tmp/adv_ops.tgz ops db/migrations db/schema.sql backup requirements.txt || exit 1
+  tar -C "$HERE" -czf /tmp/adv_ops.tgz ops db/migrations db/schema.sql backup requirements.txt || { echo "TAR ops FAILED"; exit 1; }
 
   echo "--- copy to VM ---"
   scp -J tds -i "$KEY" /tmp/adv_app.tgz   "$VM:/tmp/adv_app.tgz"   || { echo "SCP app FAILED"; exit 1; }
@@ -171,13 +190,26 @@ _local_git_path() {
 
     # never restart mid-run: a restart kills an in-flight pipeline run,
     # doc filing or thank-you send (audit cleanup). Wait up to 10 minutes.
+    # 2026-09-21 sweep (OPS-13): doc-review applies too — the app spawns them
+    # in its own cgroup, so a stop could land between apply_plot's two renames.
     for i in \$(seq 1 120); do
-      if pgrep -f '[r]un_now.py|[r]un_again.py|[p]ackage_run.py|[r]egen_show.py|[f]inalize_thankyou.py|[d]raft_emails.py' >/dev/null; then
+      if pgrep -f '[r]un_now.py|[r]un_again.py|[p]ackage_run.py|[r]egen_show.py|[f]inalize_thankyou.py|[d]raft_emails.py|[d]oc_review.py' >/dev/null; then
         [ \$i = 1 ] && echo 'waiting for an in-flight pipeline run to finish...'
         sleep 5
       else
         break
       fi
+    done
+
+    # 2026-09-21 sweep: /internal/advance-lifecycle runs INSIDE gunicorn (pgrep
+    # can't see it) and holds advisory lock LIFECYCLE_LOCK_KEY 874201913 (app.py)
+    # for the whole run; a stop mid-send loses the stamp and re-emails the band.
+    for i in \$(seq 1 72); do
+      n=\$(sudo docker exec advance-db psql -U advance -d advance -tAc \"SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND classid=0 AND objid=874201913 AND objsubid=1\" 2>/dev/null || echo 0)
+      [ \"\$n\" = 0 ] && break
+      [ \$i = 1 ] && echo 'waiting for an in-flight lifecycle run to finish...'
+      [ \$i = 72 ] && { echo 'DEPLOY FAILED — a lifecycle run still holds its lock after 6 minutes; service not stopped, live tree untouched (migrations are idempotent) — rerun the deploy'; exit 1; }
+      sleep 5
     done
 
     sudo systemctl stop band-advance
@@ -214,7 +246,8 @@ _local_git_path() {
   " || { echo "DEPLOY FAILED — see above"; exit 1; }
   echo "=== done $(date) — https://advance.tinydoorstudios.com ==="
 } 2>&1 | tee "$LOG"
-# audit 2026-09-16 ops #4: propagate a failure as a real exit code — the
-# whole run above is piped through tee, so $? here would otherwise always
-# be tee's, never reflecting a migration/drift/restart failure.
-! grep -qE 'REFUSING to deploy|DEPLOY FAILED' "$LOG"
+rc=${PIPESTATUS[0]}
+# 2026-09-21 sweep (OPS-11): exit with the deploy block's own status — every failure
+# path inside it runs `exit 1`, success (incl. an ADVANCE_DEPLOY_FORCE drift override)
+# falls through to 0. Grepping the log missed scp/tar failures and failed every forced deploy.
+exit "$rc"

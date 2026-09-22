@@ -140,11 +140,13 @@ def translate_es_fields(rec, log=None):
     # audit 2026-09-16 security #7: form_lang=es is client-controlled, so
     # every POST claiming it used to trigger a real Groq call (up to
     # TIMEOUT seconds, in the request thread) regardless of whether the
-    # text needed translating at all — plain ASCII/English text, or
-    # nothing but a number, still made the round trip. Only bother when a
-    # field actually contains a non-ASCII character, and cap what's sent.
+    # text needed translating at all. What's sent is capped.
+    # 2026-09-21 sweep (MAIL-9): the non-ASCII gate is gone — correctly typed
+    # Spanish often has no accents, and one 'ñ' beat it anyway. The /submit rate
+    # limit (5/IP/hr, 60/hr site-wide) and 4000-char cap now bound the abuse; only
+    # letter-free fields (blank, numbers, punctuation) skip the call.
     to_translate = {k: rec[k][:6000] for k in FREE_TEXT_FIELDS
-                    if (rec.get(k) or "").strip() and not rec[k].isascii()}
+                    if any(c.isalpha() for c in (rec.get(k) or ""))}
     if not to_translate:
         return rec
 

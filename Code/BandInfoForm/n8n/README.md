@@ -90,6 +90,10 @@ venue blocks, short link, bill grouping), nothing new needed there.
   (Schedule Trigger nodes can't be fired externally to test; swap in a Webhook
   node with the same downstream wiring, curl it, swap back) — not something to
   repeat casually, but useful if this workflow needs surgery again.
+- 2026-09-21 sweep (PRIOR-31/FLOW-17): `Build Summary` escapes every name and
+  also counts `held_drafts` (listed first, "NOT sent", https-only draft link),
+  `booking_updates`, confirmed `thankyou` rows and `ran_out_of_time`. `failures`
+  only adds a line; the app's own NOT-sent alert covers a failures-only run.
 
 ## Draft-early / hold-for-send (2026-09-03, same day)
 
@@ -257,6 +261,9 @@ touching the backup script.
 - Sends as Production@3cdc.org through the same app-only Microsoft Graph
   credential as `internal_send_outlook.json`, with `fullResponse` + `neverError`
   so a Graph failure comes back to the caller instead of vanishing.
+  2026-09-21 sweep (OPS-10): a bad token now throws (500, not an empty 200), and a
+  `Confirm Sent` node answers `{"sent":true}` only on Graph 202 (a known non-202
+  throws). The backup script counts the report as sent only on 2xx + `"sent":true`.
 - Caller: `backup/advance_backup.sh` §9, which POSTs a JSON payload —
   `stamp`, `status`, `archive`, `bytes`, a `coldstorage` object
   (`ok`, `verified`, `path`, `keep`, `archives[]`, `pruned[]`), an `audionas`
@@ -266,6 +273,9 @@ touching the backup script.
   `… FAILED on Cold Storage …`. **Complete only counts if the archive landed
   AND its sha256 was re-verified on the NAS itself** — a copy that arrived
   unverified reports as failed, on purpose.
+  2026-09-21 sweep (OPS-2): a run the script marked `status: PARTIAL` (any
+  `failures[]`) reads `Band Advance backup PARTIAL — N failure(s): … — YYYY-MM-DD`,
+  never "complete", even when both NAS copies verified.
 - Body: archive name/size, the Cold Storage path, verified yes/no, how many of
   the rotating 8 it now holds, the full held list with newest and oldest
   labelled, what rotated off this run, the captured row counts, then any

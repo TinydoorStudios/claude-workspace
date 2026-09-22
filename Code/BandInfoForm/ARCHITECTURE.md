@@ -267,13 +267,14 @@ a link with no artist id never enters).
 
 ```bash
 # draft a batch (writes drafts, never sends)
+# 2026-09-21 sweep: the ( ) subshell keeps live creds out of the calling shell,
+# so a later staging run from that same shell can't inherit them
 cd /opt/band-advance/tools
-set -a; . /opt/band-advance/advance.env; set +a
-../venv/bin/python draft_emails.py lists/your_batch.csv
+( set -a; . /opt/band-advance/advance.env; set +a; ../venv/bin/python draft_emails.py lists/your_batch.csv )
 
 # fill the standard DOC for a band
-../venv/bin/python docfill.py --artist "Band Name"
-../venv/bin/python docfill.py --fields        # list template placeholders
+( set -a; . /opt/band-advance/advance.env; set +a; ../venv/bin/python docfill.py --artist "Band Name" )
+( set -a; . /opt/band-advance/advance.env; set +a; ../venv/bin/python docfill.py --fields )   # list template placeholders
 
 # search is at https://advance.tinydoorstudios.com/search  (passcode: lockdown)
 ```
@@ -281,12 +282,12 @@ set -a; . /opt/band-advance/advance.env; set +a
 ## Setup (already done once — here for the record)
 
 1. `db/docker-compose.yml` + `db/.env` (ADVANCE_DB_PASSWORD) → `docker compose up -d`
-2. `db/schema.sql` applied via `docker exec -i advance-db psql -U advance -d advance`
+2. `db/schema.sql` applied via `docker exec -i advance-db psql -U advance -d advance`, then every `db/migrations/*.sql` in filename order (deploy_app.command does this on every deploy, before the service starts)
 3. venv deps: `psycopg[binary]`, `python-docx`, `docxtpl`
 4. `/opt/band-advance/advance.env` (DB URL, secret, gate pass) + systemd `EnvironmentFile`
 5. Cloudflare: `advance.tinydoorstudios.com` CNAME + tunnel ingress → `localhost:8097`
 
-Redeploy code after edits: `./deploy_app.command` from the Mac.
+Redeploy code after edits: commit, then `./deploy_app.command` from the Mac (it refuses while any shipped file has uncommitted changes; `ADVANCE_DEPLOY_DIRTY=1` overrides).
 
 ## CLOSED — Artist Directory wiki (2026-09-02, resolved 2026-09-06)
 
@@ -324,6 +325,8 @@ What changed in how the system behaves:
   sends per run. The 3-day unresponded alert includes manual-entry shows and waits 24h after
   a welcome. The 9am cron run is tagged (`?source=cron`, `job_runs`); a 10:15 systemd timer
   (`ops/advance-lifecycle-watchdog.*`) alerts if it didn't run, and the digest flags a miss.
+  2026-09-21 sweep: the watchdog checks the end-of-run `advance-lifecycle-done` stamp, and a
+  run that crashes partway emails Brian itself (once a day, `lifecycle-crash-alert`).
 - **Cancel / hold / merge.** Cancel on the artist page and dashboard (kept on record as
   Cancelled). After every package run `tools/holds.py` holds any current show missing from
   advance-list.xlsx — no sends — plus any fresh show that looks like its corrected version,
@@ -346,16 +349,23 @@ What changed in how the system behaves:
   thank-you; day-of contact is the staffing sheet's mix engineer (+ "don't advance with them
   before show day") with Lead/"week of the show" fallbacks; Salsa: no riser question, stage-
   escort rep field, Nick Radina parking line; garage/QR load-in acknowledgment on FSQ forms only.
-- **Thank-you** runs as a worker (`finalize_thankyou.py --send --show-id`), skips past and
-  cancelled shows, records `thankyou_sent_at`/`thankyou_error`, alerts on failure, and only
-  mentions drink tickets where the venue's copy does.
+- **Thank-you** comes two ways, sharing `thankyou_sent_at`/`thankyou_error` so a show gets
+  at most one. Manual Finalize runs a worker (`finalize_thankyou.py --send --show-id`) that
+  sends the pre-show "You're All Set" (schedule + recap from the filed doc), skips past and
+  cancelled shows, and only mentions drink tickets where the venue's copy does. The 9am
+  lifecycle (2026-09-21 sweep) sends a separate post-show thank-you, no doc read, for
+  responded shows 1-7 days past with no `thankyou_sent_at`. Failures ride the digest and
+  the Needs-you panel.
 - **Labels**: one table in `app/status_labels.py` for dashboard, artist page, digest, Show
   Status Log and the sheet's STATUS block (adds On Hold and Cancelled). merge_status removes
   any stale STATUS block and always rebuilds one at the far right.
 - **Ops**: nightly DB dump to both NAS boxes (`ops/advance_db_nightly.sh`, 02:40, keep 14);
   `dropbox_exclude.sh` never deletes; gunicorn runs threaded workers with a 120s timeout;
   deploys wait for in-flight pipeline runs; `backfill.py` is dry-run by default and skips
-  submissions already loaded; the Groq key never appears on a command line.
+  submissions already loaded, and never replays a record that was in the DB and later
+  purged/deleted (sheet_removals tombstone, or a `_db` stamp with no live submission) unless
+  run with `--include-deleted` (a tombstone skips even then; 2026-09-21 sweep, PIPE-8);
+  the Groq key never appears on a command line.
 
 ## Review pass (2026-09-14)
 
@@ -420,8 +430,10 @@ new-name artist, merging if that artist already has the date); a venue/date chan
 show row. Stamps stay on the show, so no second welcome. `reregister_docs_for_move` moves
 the filed-doc registry row when the old date is left with no show (the next filing pass
 renames the file into the new month folder); `merge_shows` does the same, or retires the
-old doc when the new date already has one. `edited_bookings._old_ident` reads every edit
-since `bookings.synced_at`.
+old doc when the new date already has one. `edited_bookings._old_ident` is
+`bookings.sheet_ident`, the identity the sheet row was last written under (stamped by
+`mark_bookings_seeded`/`mark_bookings_synced` from run_now's snapshot, 2026-09-21 sweep);
+rows without one fall back to every edit since `bookings.synced_at`.
 
 **Doc provenance is keyed by artist.** `filed_docs.columns` = `{column: artist_id}` the doc
 was last written with (`daysheet.column_map`; legacy docs fall back to reading their own
