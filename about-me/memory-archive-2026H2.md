@@ -780,3 +780,8 @@ Brian asked for the entire advancing workflow gone over with as many sub-agents 
 - Added: 1 session note (2026-09-19 morning) · 1 auto-memory entry (`advance-lifecycle-sends-real-mail`) + its MEMORY.md line · Updated: 2 contradictions resolved (memory.md's 09-19 entry and active-projects' 09-19 bullet both said `dfe2ab1` was "NOT yet deployed" — it went live 09-19 08:11 EDT) · active-projects Band Advance bullet extended with the band-name decision card and the drift-check gotcha · Archived/trimmed: 2 session notes rotated out (both 2026-09-16), memory.md 20.5KB → 17.1KB.
 - Promoted before rotating: the two 09-16 notes (nine-agent audit + Sonnet batches 1-3) are carried in full by active-projects' 2026-09-16 bullet, including the four root causes, the sandbox note and the list still owed to Brian; nothing else in them was durable-but-unwritten.
 - Flagged to questions.md: `band-advance-form.md` auto-memory size re-measured — held flat at 137KB across the 09-15 → 09-20 window, so the existing item was date-stamped rather than re-raised.
+
+### Memory Consolidation — 2026-09-21
+- Scanned: 1 session since the 2026-09-20 watermark (weekly show close-out check, report-only)
+- Added: 0 entries · Updated: 0 (0 contradictions resolved) · Archived/trimmed: 0 — memory.md at 17.1KB, oldest note 2026-09-15, inside the window
+- Flagged to questions.md: RatBoys published-but-unharvested status mismatch, plus seven unbuilt 09-14→09-19 folders to close out
