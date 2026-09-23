@@ -788,3 +788,11 @@ Brian asked for the entire advancing workflow gone over with as many sub-agents 
 
 ### Memory Consolidation — 2026-09-22
 - Nothing to consolidate: no commits since the 09-21 run, the close-out report was already flagged, and "Advancing workflow optimization" is still running (its note is its own session-end job). memory.md 17.1KB, oldest note 2026-09-16, inside the window.
+
+### 2026-09-16 (night) — Band Advance: audit batches deployed live; merge session backfilled
+(from sessions 2026-09-16, consolidated 2026-09-17.) The Sonnet batches went live at `73ec28e` after all (Updated 2026-09-17, previously: "none of that is live yet" in the entry below). The loopback-only gunicorn bind broke every n8n daily workflow on deploy, so it now binds 127.0.0.1 + 172.17.0.1 (`17ad62e`); `deploy_app.command` needed five fixes on real runs; staff edits via the merged Edit Show page now regen the doc (`b7d211f`). Staging 139/139 + 95/101 (only the A/B xfails). Brian still owes the Cloudflare WAF rule, the second gate passcode value, the backup passphrase record and secret rotation. An earlier session the same day (unlogged at the time, `Handoffs/handoff-2026-09-16-band-advance-merge.md`) added the band's own answers to the manual booking form, merged Edit Booking + Edit Form, and fixed the FSQ 9/25 blank engineer. Root causes A+B were being worked uncommitted by an Opus session overnight into 09-17.
+
+### Memory Consolidation — 2026-09-23
+- Scanned: 8 sessions / 1 day back (watermark 2026-09-22) + git log
+- Added: 1 (09-22 sweep session note backfilled from `b0e4d3a`, plus an active-projects bullet) · Updated: 0 · Archived/trimmed: 1 (09-16 night note rotated out for the 18KB cap; its facts already sit in active-projects' 09-16 bullet)
+- Flagged to questions.md: 09-22 sweep deploy + staging status unknown
