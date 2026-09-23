@@ -61,6 +61,48 @@ def booking_data(band, venue, d, set_start, set_end="22:30", series="Jazz on the
     return data
 
 
+_FREE_TAKEN = set()
+_FIXED_OFFSETS = None
+
+
+def _fixed_offsets():
+    """Every TODAY+n offset this suite hardcodes, read out of its own source —
+    free_date steps over them, so a picked date can never land on a test that
+    schedules itself the old way (x-l took x-h's day the first time)."""
+    global _FIXED_OFFSETS
+    if _FIXED_OFFSETS is None:
+        src = Path(__file__).read_text()
+        _FIXED_OFFSETS = {int(n) for n in re.findall(r"timedelta\(days=(\d+)\)", src)}
+    return _FIXED_OFFSETS
+
+
+def free_date(venue, min_days, span=1):
+    """First date at least `min_days` out with `span` clear days at `venue`.
+
+    2026-09-23: the clone carries REAL bookings, so a test that hardcodes
+    TODAY+n eventually lands on a live show and its column/ordering
+    assertions break through no fault of the code — x-l booked 7:00p on a
+    date a real Salsa act already held (refused, correctly, by the set-start
+    guard) and x-m counted columns on a night with a third, live act. Any
+    test that asserts "these are the only acts on the bill" picks its date
+    here instead.
+    """
+    d = TODAY + dt.timedelta(days=min_days)
+    for _ in range(180):
+        days = [d + dt.timedelta(days=i) for i in range(span)]
+        clash = (any(x in _FREE_TAKEN for x in days)
+                 or any((x - TODAY).days in _fixed_offsets() for x in days))
+        busy = clash or q("""SELECT 1 FROM bookings WHERE venue=%s AND event_date = ANY(%s)
+                             UNION ALL
+                             SELECT 1 FROM shows WHERE venue=%s AND show_date = ANY(%s) LIMIT 1""",
+                          (venue, days, venue, days))
+        if not busy:
+            _FREE_TAKEN.update(days)
+            return d
+        d += dt.timedelta(days=1)
+    raise AssertionError(f"no free {span}-day window at {venue} within 180 days of TODAY+{min_days}")
+
+
 def show_for(band, venue, d):
     return q("""SELECT s.* FROM shows s JOIN artists a ON a.id=s.artist_id
                 WHERE a.match_key=%s AND s.venue=%s AND s.show_date=%s ORDER BY s.id DESC LIMIT 1""",
@@ -355,7 +397,8 @@ def _edit_doc_cell(venue, d, label, col, text):
 @test("x-l: 1-act doc, hand edit, earlier act added — the edit travels, column 1 is clean, no notices")
 def tx_hand_edit_travels():
     login()
-    venue, d = "Fountain Square", TODAY + dt.timedelta(days=37)
+    venue = "Fountain Square"
+    d = free_date(venue, 37)
     A, B = "Travel Act Alpha", "Travel Act Bravo"
     post("/booking", booking_data(A, venue, d, "20:00", "20:45", monitors="4", contact_phone="555-0101", backline="two amps"))
     check(wait_run_now(), "1-act doc filed")
@@ -384,7 +427,8 @@ def tx_cancel_retracts():
     # column's VALUES must still read as template, not the cancelled band's
     # old answers under a blank header.
     login()
-    venue, d = "Fountain Square", TODAY + dt.timedelta(days=39)
+    venue = "Fountain Square"
+    d = free_date(venue, 39)
     A, B = "Retract Act Alpha", "Retract Act Bravo"
     post("/booking", booking_data(A, venue, d, "19:00", "19:45", monitors="3", backline="alpha kit", contact_phone="555-0201"))
     post("/booking", booking_data(B, venue, d, "20:00", "20:45", monitors="5", backline="bravo kit", contact_phone="555-0202"))
