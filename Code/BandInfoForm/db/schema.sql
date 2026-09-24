@@ -27,6 +27,16 @@ CREATE TABLE IF NOT EXISTS artists (
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uq_artists_match_key ON artists (match_key);
+-- 2026-09-24 research #12: staff-only post-show note. artists.notes above was
+-- already there and unwritten — it becomes the free-text note; advance_rating is
+-- the 1–5 "advance accuracy" pip beside it. Both render on the gated /artist page
+-- and the internal Needs-you rows only, never in anything a band receives.
+ALTER TABLE artists ADD COLUMN IF NOT EXISTS advance_rating SMALLINT;
+DO $$ BEGIN
+    ALTER TABLE artists ADD CONSTRAINT artists_advance_rating_range
+        CHECK (advance_rating IS NULL OR advance_rating BETWEEN 1 AND 5);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS shows (
     id            SERIAL PRIMARY KEY,
@@ -183,6 +193,14 @@ CREATE TABLE IF NOT EXISTS advance_reminders (
 -- (mark_stale_followup_tiers_skipped). Historical rows all default true —
 -- they really were drafted/sent under the pre-migration system.
 ALTER TABLE advance_reminders ADD COLUMN IF NOT EXISTS sent BOOLEAN NOT NULL DEFAULT true;
+-- 2026-09-24 research #3/#4: the ladder is 10/7/3/1, and days_before = 7 no
+-- longer means a reminder — it means the week-out CONFIRMED SCHEDULE email,
+-- which goes to every show at seven days whether or not the band answered
+-- (advance_db.SCHEDULE_TIER / mark_schedule_sent). Deliberately no new table
+-- and no `kind` column: reusing this row's UNIQUE(show_id, days_before) is
+-- what guarantees the schedule and the old tier-7 chase can never both go
+-- out. `sent` keeps its meaning, and a show that had already answered gets a
+-- row here without shows.followup_draft_created_at being stamped.
 
 -- Dead column removed (Brian, 2026-09-09): nothing kept it in sync with
 -- reality (stamp_email_sent/mark_show_status, the only writers, were either
@@ -351,6 +369,18 @@ CREATE TABLE IF NOT EXISTS short_links (
     token      TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- 2026-09-24 research #11: open tracking. /s/<code> stamps these in the same
+-- statement that resolves the code (advance_db.open_short_link) — first hit sets
+-- first_opened_at, every hit bumps open_count. show_id is set when the reminder
+-- path mints the code and backfilled on first open for the welcome link (whose
+-- minter doesn't know it), so the dashboard / digest can say "welcome sent 9/02 ·
+-- never opened" per advance. Nothing about the visitor is kept: no IP, no UA,
+-- no per-hit rows. SET NULL, not CASCADE — purging a show must not delete a
+-- link that still resolves.
+ALTER TABLE short_links ADD COLUMN IF NOT EXISTS first_opened_at TIMESTAMPTZ;
+ALTER TABLE short_links ADD COLUMN IF NOT EXISTS open_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE short_links ADD COLUMN IF NOT EXISTS show_id INTEGER REFERENCES shows(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_short_links_show ON short_links (show_id);
 
 -- Internal "hasn't responded" alert to Brian (2026-09-13): a manual-
 -- follow-up flag, separate from the band-facing tier reminders in
@@ -375,6 +405,14 @@ ALTER TABLE submissions ADD COLUMN IF NOT EXISTS vehicle_count INTEGER;
 -- case a Yes/No can't represent. large_vehicle stays on old submissions for
 -- history; nothing new writes it going forward, only large_vehicle_count.
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS large_vehicle_count INTEGER;
+
+-- 2026-09-24 research #(b): trailer + crew_count (db/migrations/2026-09-24-
+-- trailer-crew-count.sql). A van towing a trailer is ONE vehicle in the counts
+-- above, so the count alone never said it can't use the 6 ft 8 in FSQ garage.
+-- crew_count is ADDITIVE to performers, not a subset — performers stays the
+-- on-stage count and still drives the day sheet's drink tix.
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS trailer BOOLEAN;
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS crew_count INTEGER;
 
 -- ═════════════════════════════════════════════════════════════════════════
 -- 2026-09-13 QC audit fixes (see Handoffs/band-advance-audit-decisions-2026-09-13.md)
@@ -675,6 +713,9 @@ CREATE TABLE IF NOT EXISTS fsq_parking_queue (
 );
 CREATE INDEX IF NOT EXISTS idx_fsq_parking_queue_pending
     ON fsq_parking_queue (digested_at) WHERE digested_at IS NULL;
+-- 2026-09-24 research #(b): the queue is a stored SNAPSHOT, not a live join, so
+-- the trailer flag has to be captured with the counts to reach Mtully's digest.
+ALTER TABLE fsq_parking_queue ADD COLUMN IF NOT EXISTS trailer BOOLEAN;
 
 -- 2026-09-15-sheet-writeback
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS sheet_dirty BOOLEAN NOT NULL DEFAULT false;

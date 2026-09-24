@@ -32,7 +32,8 @@
       {% for it in needs %}
       <tr><td style="padding:6px 0;{% if not loop.last %}border-bottom:1px solid #F0F2F5;{% endif %}font-size:13px;color:#111827;">
         <span style="display:inline-block;min-width:150px;font-weight:700;color:#B45309;">{{ it.label }}</span>
-        {{ it.detail }}{% if it.link %} &nbsp;<a href="{{ it.link }}" style="color:#2E6DA4;">open →</a>{% endif %}
+        {# 2026-09-24 research #4: a row can name its own action ("type their answers →"). #}
+        {{ it.detail }}{% if it.link %} &nbsp;<a href="{{ it.link }}" style="color:#2E6DA4;">{{ it.link_label or 'open →' }}</a>{% endif %}
       </td></tr>
       {% endfor %}
     </table>
@@ -186,7 +187,8 @@
       </tr>
       {% for r in upcoming %}
       <tr>
-        <td style="font-size:13px;color:#111827;padding:7px 8px 7px 0;border-bottom:1px solid #F0F2F5;font-weight:600;">{{ r.band }}</td>
+        {# 2026-09-24 research #11: whether the emailed link was ever opened, on rows still waiting on a form. #}
+        <td style="font-size:13px;color:#111827;padding:7px 8px 7px 0;border-bottom:1px solid #F0F2F5;font-weight:600;">{{ r.band }}{% if r.open_note %}<br><span style="color:#9CA3AF;font-size:11px;font-weight:400;">{{ r.open_note }}</span>{% endif %}</td>
         <td style="font-size:13px;color:#374151;padding:7px 8px;border-bottom:1px solid #F0F2F5;">{{ r.venue }}{% if r.show_date %}<br><span style="color:#9CA3AF;font-size:11px;">{{ r.show_date.strftime('%a %m/%d') }}</span>{% endif %}</td>
         <td align="center" style="font-size:13px;color:#374151;padding:7px 8px;border-bottom:1px solid #F0F2F5;">{{ r.days_until_show if r.days_until_show is not none else '—' }}d</td>
         <td align="right" style="padding:7px 0 7px 8px;border-bottom:1px solid #F0F2F5;">

@@ -94,6 +94,13 @@ venue blocks, short link, bill grouping), nothing new needed there.
   also counts `held_drafts` (listed first, "NOT sent", https-only draft link),
   `booking_updates`, confirmed `thankyou` rows and `ran_out_of_time`. `failures`
   only adds a line; the app's own NOT-sent alert covers a failures-only run.
+- 2026-09-24 research #3: the response now also carries `schedule` (the week-out
+  confirmed schedule, one row per show, `chased: true` when the band still
+  hadn't answered and the chase rode inside it). `Build Summary` in
+  `advance_lifecycle.json` counts and lists it. **The live workflow needs the
+  same edit** — this file is the record, importing it is a separate step
+  (same per-workflow publish + restart gotchas as everything else here), and
+  until then a run whose only sends were week-out schedules mails no summary.
 
 ## Draft-early / hold-for-send (2026-09-03, same day)
 

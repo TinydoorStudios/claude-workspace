@@ -171,7 +171,9 @@ def summarize_submission(sub):
     lines = [
         ("Last show", f"{sub.get('venue') or '—'}"
                       f"{(' on ' + us_date(sub['show_date'])) if sub.get('show_date') else ''}"),
-        ("Performers + crew", sub.get("performers")),
+        # 2026-09-24: performers is the on-stage count now, crew_count is the rest
+        ("Performers", sub.get("performers")),
+        ("Crew", sub.get("crew_count")),
         ("Monitors", sub.get("monitors")),
         ("Own IEMs", yn(sub.get("own_iems")) + (f" (split: {sub['split_snake']})"
                                                  if sub.get("split_snake") else "")),
@@ -184,6 +186,204 @@ def summarize_submission(sub):
     if d.get("backline"):
         lines.append(("Backline", d["backline"]))
     return [(k, v) for k, v in lines if v not in (None, "", "—")]
+
+
+# ── reminders (2026-09-24 research #1) ─────────────────────────────────────
+# The T-10/7/3/1 bodies used to be byte-identical, so a band that ignored the
+# first ignored all of them and none of them said what we were actually
+# waiting on. Each tier now names what's missing for THAT show and says
+# something the previous one didn't. Brian, 2026-09-24: the ask is always the
+# form or a reply to this email — never "call us".
+
+REMINDER_TIERS = (10, 7, 3, 1)
+
+# What a band is still owing us, in words they'd use. Order is the order they
+# get listed; missing_for_show caps the list so a reminder stays readable on a
+# phone.
+MISSING_LABELS = {
+    "form":       {"en": "your advance form — we have nothing on file yet",
+                   "es": "su formulario de avance — todavía no tenemos nada"},
+    "plot":       {"en": "your stage plot and input list",
+                   "es": "su plano de escenario y lista de entradas"},
+    "escort":     {"en": "a cell number for whoever's on stage that day",
+                   "es": "un número de celular de quien esté en el escenario ese día"},
+    "performers": {"en": "how many of you are on stage",
+                   "es": "cuántas personas suben al escenario"},
+    "monitors":   {"en": "how many monitor mixes you need",
+                   "es": "cuántas mezclas de monitor necesitan"},
+    "phone":      {"en": "a phone number we can reach you on",
+                   "es": "un teléfono donde podamos localizarlos"},
+    # nothing identifiable is missing (staff typed the answers in at booking) —
+    # we're waiting on the band to confirm what we already hold.
+    "confirm":    {"en": "a yes from you that what we have on file is right",
+                   "es": "que nos confirmen que lo que tenemos registrado está bien"},
+}
+
+_TIER_LEAD = {
+    10: {"en": "We're ten days out from your show at {venue} on {day}, and we still need {missing}.",
+         "es": "Faltan diez días para su show en {venue} el {day} y todavía nos falta {missing}."},
+    7:  {"en": "One week out from your show at {venue} on {day}. We still need {missing}.",
+         "es": "Falta una semana para su show en {venue} el {day}. Todavía nos falta {missing}."},
+    3:  {"en": "Three days out from {venue} on {day}, and we still need {missing}.",
+         "es": "Faltan tres días para {venue} el {day} y todavía nos falta {missing}."},
+    1:  {"en": "Your show at {venue} on {day} is right on top of us and we still don't have {missing}.",
+         "es": "Su show en {venue} el {day} ya está encima y todavía no tenemos {missing}."},
+}
+# The part that makes each tier different: what happens next if we don't get it.
+_TIER_THEN = {
+    10: {"en": "We need it by {deadline}.",
+         "es": "Lo necesitamos antes del {deadline}."},
+    7:  {"en": "We need it by {deadline} to have your show built in time.",
+         "es": "Lo necesitamos antes del {deadline} para armar su show a tiempo."},
+    3:  {"en": "Your engineer builds your show from this paperwork the day before, so this is what's holding it up.",
+         "es": "Su ingeniero arma su show con esta información el día anterior, así que esto es lo que lo detiene."},
+    1:  {"en": "If we don't hear back today, we'll set you up ad hoc on the day.",
+         "es": "Si no tenemos noticias hoy, lo resolvemos sobre la marcha el día del show."},
+}
+# Only when the stage plot is one of the missing things (tier 3).
+_PLOT_CLAUSE = {"en": "With no stage plot you get a generic patch and we sort the rest at soundcheck.",
+                "es": "Sin plano de escenario les armamos un patch genérico y resolvemos el resto en la prueba de sonido."}
+_TIER_ASK = {
+    10: {"en": ("The form takes about five minutes:",
+                "If you've already sent this over, disregard. Replying to this email works too."),
+         "es": ("El formulario toma unos cinco minutos:",
+                "Si ya nos lo enviaron, ignoren este mensaje. También pueden responder a este correo.")},
+    7:  {"en": ("Everything goes in here:",
+                "If you've already sent this over, disregard. Replying to this email works too."),
+         "es": ("Todo va aquí:",
+                "Si ya nos lo enviaron, ignoren este mensaje. También pueden responder a este correo.")},
+    3:  {"en": ("Still the fastest way:",
+                "Or reply to this email with it and we'll enter it for you."),
+         "es": ("La forma más rápida sigue siendo esta:",
+                "O respondan a este correo con la información y nosotros la cargamos.")},
+    1:  {"en": ("Last call:",
+                "Reply to this email today with whatever you've got and we'll get it in."),
+         "es": ("Última oportunidad:",
+                "Respondan a este correo hoy con lo que tengan y lo cargamos.")},
+}
+_TIER_SUBJECT = {
+    10: {"with": "Reminder — we need your show details by {deadline}",
+         "without": "Reminder — we still need your show details"},
+    7:  {"with": "One week out — your show details by {deadline}",
+         "without": "One week out — we still need your show details"},
+    3:  {"with": "Three days out — your show details by {deadline}",
+         "without": "Three days out — we still need your show details"},
+    1:  {"with": "Last call — your show details by {deadline}",
+         "without": "Last call — we still need your show details"},
+}
+_SIGNOFF = {"en": "Thanks,\n3CDC Events / Production",
+            "es": "Gracias,\n3CDC Eventos / Producción"}
+
+
+def tier_key(tier):
+    """The copy tier for a days_before value: exact when it's one of ours,
+    otherwise the nearest one (ties go to the wider window). A tier added
+    upstream always lands on a real body instead of falling through to
+    nothing."""
+    try:
+        tier = int(tier)
+    except (TypeError, ValueError):
+        return 7
+    return min(REMINDER_TIERS, key=lambda k: (abs(k - tier), -k))
+
+
+def missing_for_show(cur, show_id):
+    """What this show is still missing, as MISSING_LABELS codes — no
+    submission at all is the whole form; otherwise whatever the promoted
+    columns and the raw form data say we never got. Capped at three: a band
+    reads this on a phone, and a list of everything reads like a form."""
+    cur.execute("""SELECT performers, monitors, contact_phone, data
+                   FROM submissions WHERE show_id = %s
+                   ORDER BY submitted_at DESC, id DESC LIMIT 1""", (show_id,))
+    sub = cur.fetchone()
+    if not sub:
+        return ["form"]
+    d = sub.get("data") or {}
+    def blank(v):
+        return not str(v or "").strip()
+    out = []
+    if blank(d.get("stage_plot_file")) and blank(d.get("stage_plot_desc")):
+        out.append("plot")
+    if blank(d.get("stage_escort_cell")):
+        out.append("escort")
+    if not sub.get("performers"):
+        out.append("performers")
+    if sub.get("monitors") is None:
+        out.append("monitors")
+    if blank(sub.get("contact_phone")):
+        out.append("phone")
+    return out[:3] or ["confirm"]
+
+
+def missing_text(codes, lang="en"):
+    parts = [MISSING_LABELS[c][lang] for c in (codes or []) if c in MISSING_LABELS]
+    if not parts:
+        parts = [MISSING_LABELS["confirm"][lang]]
+    if len(parts) == 1:
+        return parts[0]
+    return ", ".join(parts[:-1]) + (" y " if lang == "es" else " and ") + parts[-1]
+
+
+def chase_paragraph(tier, lang, venue, show_date, link, codes, deadline=None, set_line=""):
+    """The "what we still need, by when, and where to put it" part of a
+    reminder — no greeting, no sign-off. 2026-09-24 research #3: the week-out
+    schedule email carries THESE bytes for a show that hasn't answered, so the
+    old T-7 nudge folds into it instead of being reworded a second time and
+    sent alongside. `set_line` is blank from there — the schedule block above
+    it already prints the set."""
+    key = tier_key(tier)
+    lead = _TIER_LEAD[key][lang].format(venue=venue or "",
+                                        day=ve.band_date(show_date, lang=lang),
+                                        missing=missing_text(codes, lang))
+    then = _TIER_THEN[key][lang]
+    if "{deadline}" in then:
+        then = then.format(deadline=ve.band_date(deadline, lang=lang)) if deadline else ""
+    if key == 3 and "plot" in (codes or []):
+        then = f"{then} {_PLOT_CLAUSE[lang]}".strip()
+    intro, after = _TIER_ASK[key][lang]
+    return (f"{(lead + ' ' + then).strip()}\n\n"
+            + (f"{set_line}\n\n" if set_line else "")
+            + f"{intro}\n\n{link}\n\n{after}")
+
+
+def _reminder_half(tier, lang, band, contact_name, venue, show_date, link, codes,
+                   deadline, set_times=None):
+    gname = _greeting_contact_name(contact_name, band)
+    if lang == "es":
+        greeting = f"Hola {gname} y {band}" if gname else f"Hola {band}"
+    else:
+        greeting = f"Hello {gname} and {band}" if gname else f"Hello {band}"
+    # research #7: what they're actually playing, when the booking knows it.
+    set_txt = ve.set_line(*(set_times or ("", "", "")), lang=lang)
+    return (f"{greeting},\n\n"
+            + chase_paragraph(tier, lang, venue, show_date, link, codes, deadline,
+                              set_line=set_txt)
+            + f"\n\n{_SIGNOFF[lang]}")
+
+
+def build_reminder(tier, band, contact_name, venue, show_date, link, codes,
+                   deadline=None, bilingual=False, set_times=None):
+    """(subject, body) for one reminder tier. `codes` come from
+    missing_for_show, `deadline` from advance_db.advance_deadline — the same
+    date the welcome printed. A deadline that isn't actually before the show
+    (a show booked inside the window, or already today) is dropped rather than
+    emailed as a date that reads wrong. `set_times` is the booking's
+    (event_start, event_end, set_time) for the set line (research #7).
+    bilingual appends the Spanish half, same shape as the welcome."""
+    if deadline and show_date and deadline >= show_date:
+        deadline = None
+    shape = _TIER_SUBJECT[tier_key(tier)]
+    base = (shape["with"].format(deadline=ve.band_date(deadline)) if deadline
+            else shape["without"])
+    subject = ve.band_subject(base, band, venue, show_date)
+    body = _reminder_half(tier, "en", band, contact_name, venue, show_date,
+                          link, codes, deadline, set_times)
+    if bilingual:
+        body_es = _reminder_half(tier, "es", band, contact_name, venue, show_date,
+                                 f"{link}?lang=es", codes, deadline, set_times)
+        sep = "─" * 42
+        body = f"{body}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
+    return subject, body
 
 
 def _bill_order(a):
@@ -300,10 +500,15 @@ def main():
                         have.add(db.normalize(bname))
                     acts.sort(key=_bill_order)
                 bill = bills.get(bkey, [])
-                deadline = ""
-                if show_date:
-                    d = show_date - dt.timedelta(days=10)
-                    deadline = us_date(d) if d >= dt.date.today() else ""
+                # 2026-09-24 research #2: ONE deadline — advance_db.advance_deadline
+                # is the only definition, so the welcome, every reminder tier and the
+                # reminder subject all print the same date for a show.
+                with conn.cursor() as cur:
+                    booking_row = db.find_booking(cur, venue, show_date, name)
+                deadline_date = db.advance_deadline(
+                    show_date, booking_row.get("created_at") if booking_row else None)
+                deadline = ve.band_date(deadline_date)
+                deadline_es = ve.band_date(deadline_date, lang="es")
 
                 with conn.cursor() as cur:
                     artist_id = db.upsert_artist(cur, name, email=email)
@@ -366,9 +571,10 @@ def main():
                 def _setlen(v):
                     v = str(v).strip()
                     return f"{v} min" if v.isdigit() else v
-                set_line = ""
-                if r.get("set_time"):
-                    set_line = f"Set length: {_setlen(r['set_time'])}"
+                # 2026-09-24 research #7: the band gets the actual set, not just
+                # its length — event_start/event_end ARE the set times (the
+                # booking page derives the rest of the day from them).
+                set_line = ve.set_line(r.get("event_start"), r.get("event_end"), r.get("set_time"))
 
                 # Review 2026-09-14 (M3): a blank schedule field is TBD, not the
                 # Fountain Square default — a WP/Court/ESP booking with no times
@@ -428,8 +634,8 @@ def main():
                             f"  {sched('event_end', 'es')}   {rl['event_end']}",
                             f"  {sched('curfew', 'es')}   {rl['curfew']}",
                         ])
-                    if r.get("set_time"):
-                        set_line_es = f"{ve.SET_LENGTH_LABEL_ES}: {_setlen(r['set_time'])}"
+                    set_line_es = ve.set_line(r.get("event_start"), r.get("event_end"),
+                                              r.get("set_time"), lang="es")
                     if len(bill) > 1:
                         lines_es = [ve.BILL_HEADER_ES]
                         for a in bill:
@@ -510,6 +716,8 @@ def main():
                     # show name — blank it so show_label falls back to the event name.
                     series=("" if db.is_third_party(series) else (series or "")),
                     show_date=us_date(show_date),
+                    # 2026-09-24 research #14: every band-facing subject ends with this.
+                    subject_key=ve.subject_key(name, venue, show_date),
                     advancing_contact=fs.ADVANCING_CONTACT, day_of_contact=day_of_contact,
                     set_line=set_line, schedule_block=schedule_block, bill_block=bill_block,
                     multiband=multiband, schedule_locked=schedule_locked,
@@ -540,6 +748,7 @@ def main():
                         set_line=set_line_es, schedule_block=schedule_block_es,
                         bill_block=bill_block_es, schedule_locked=schedule_locked_es,
                         form_link=f"{PUBLIC_URL}/s/{short_code}?lang=es",
+                        deadline=deadline_es,
                         last=[(ve.SUMMARY_LABELS_ES.get(k, k), v) for k, v in last_rows],
                         advance_recap=None,
                     )

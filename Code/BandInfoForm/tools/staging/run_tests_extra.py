@@ -634,7 +634,10 @@ def tx_purge():
     # sheet_removals tombstone, run_now deletes the sheet row before the
     # rebuild and renames the orphaned doc "PURGED - …".
     login()
-    venue, d, band = "Fountain Square", TODAY + dt.timedelta(days=36), "Purge Me Band"
+    # 2026-09-24: free_date, not a hardcoded offset — the clone carries real
+    # bookings, and a live act already holding this set start refuses the fixture.
+    venue, band = "Fountain Square", "Purge Me Band"
+    d = free_date(venue, 36)
     post("/booking", booking_data(band, venue, d, "19:00", "20:00", monitors="3", vehicle_count="2"))
     check(wait_run_now(), "booked + filed")
     check(len(sheet_rows_for(band, venue, d)) == 1, "booking reached the sheet")
@@ -822,11 +825,16 @@ def tx_late():
     st, body = post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
     mine = sends_to(n1, email)
     subs = [m["payload"]["subject"] for m in mine]
-    check(len(mine) == 1 and not subs[0].startswith("Reminder"), f"exactly one send to the band and it's the welcome ({subs})")
+    # 2026-09-24 research #1: reminder subjects are per-tier now ("One week out
+    # — …"), so assert on what the welcome IS rather than what it isn't.
+    check(len(mine) == 1 and subs[0].startswith("Welcome"), f"exactly one send to the band and it's the welcome ({subs})")
     s = show_for(band, venue, d)
     check(s["advance_draft_created_at"] is not None, "show stamped advance_draft_created_at")
     tiers = {r["days_before"]: r["sent"] for r in q("SELECT days_before, sent FROM advance_reminders WHERE show_id=%s", (s["id"],))}
-    check(tiers.get(7) is False and 3 not in tiers and 1 not in tiers, f"tier 7 pre-skipped, 3/1 open, none sent ({tiers})")
+    # 2026-09-24 research #4: 10 joined the ladder, and a 5-days-out booking
+    # pre-skips it with 7 under the same 48h rule.
+    check(tiers.get(10) is False and tiers.get(7) is False and 3 not in tiers and 1 not in tiers,
+          f"tiers 10+7 pre-skipped, 3/1 open, none sent ({tiers})")
     n2 = mail_count()
     post("/internal/advance-lifecycle?source=test", json_body={}, headers={"X-Advance-Token": TOKEN})
     check(not sends_to(n2, email), "second lifecycle run sends nothing more to the band")
@@ -1403,8 +1411,9 @@ def tx_two_venue_welcomes():
     _run_lifecycle()
     subjects = sorted(m["payload"].get("subject") or "" for m in sends_to(n0, email)
                       if (m["payload"].get("subject") or "").startswith("Welcome"))
-    check(len(subjects) == 2 and any(" at Fountain Square" in sj for sj in subjects)
-          and any(" at Washington Park" in sj for sj in subjects), f"one welcome per venue ({subjects})")
+    # 2026-09-24 research #14: the venue rides in the show key now, not "at {venue}".
+    check(len(subjects) == 2 and any("· Fountain Square ·" in sj for sj in subjects)
+          and any("· Washington Park ·" in sj for sj in subjects), f"one welcome per venue ({subjects})")
     stamped = q("SELECT count(*) AS n FROM shows WHERE id = ANY(%s) AND advance_draft_created_at IS NOT NULL",
                 (ids,), one=True)["n"]
     check(stamped == 2, f"both shows stamped welcomed ({stamped})")
@@ -1592,12 +1601,15 @@ def tx_staff_answers_ladder():
     x("UPDATE shows SET advance_draft_created_at = now() - interval '3 days', responded_at=NULL WHERE id=%s", (s["id"],))
     x("DELETE FROM advance_reminders WHERE show_id=%s", (s["id"],))
 
+    # 2026-09-24 research #3: tier 7 is the week-out schedule now, which goes
+    # out answered or not — so the tier that proves the CHASE ladder is still
+    # running for a staff-typed booking is the 10-day one.
     def due():
         with db.get_conn() as conn, conn.cursor() as cur:
-            return ({r["show_id"] for r in db.shows_due_for_followup(cur, 7)},
+            return ({r["show_id"] for r in db.shows_due_for_followup(cur, db.FIRST_CHASE_TIER)},
                     {r["show_id"] for r in db.unresponded_shows_at(cur, venue, d)})
     due7, open_ = due()
-    check(s["id"] in due7, "the 7-day reminder is still due")
+    check(s["id"] in due7, "the chase ladder is still due")
     check(s["id"] in open_, "the booking still counts as unanswered for attaching")
     b = booking_for(band, venue, d)
     if b:
@@ -2061,8 +2073,9 @@ def tx_auto_thankyou():
     st, body = _run_lifecycle()
     mine = sends_to(n0, email)
     subj = (mine[0]["payload"].get("subject") or "") if mine else ""
-    check(st == 200 and len(mine) == 1 and subj.startswith(f"Thanks for playing {venue}"),
-          f"one post-show thank-you ({len(mine)}: {subj!r})")
+    # 2026-09-24 research #14: "Thanks for playing — Band · Venue · M/D".
+    check(st == 200 and len(mine) == 1 and subj.startswith("Thanks for playing —")
+          and f"· {venue} ·" in subj, f"one post-show thank-you ({len(mine)}: {subj!r})")
     text = mine[0]["payload"].get("body", "") if mine else ""
     check("See you" not in text and "You're All Set" not in text, "post-show copy, not the pre-show 'All Set' email")
     row = q("SELECT thankyou_sent_at, thankyou_error FROM shows WHERE id=%s", (sid,), one=True)
@@ -2497,6 +2510,577 @@ def tx_event_rename_rekeys():
     finally:
         if nid:
             x("DELETE FROM doc_notices WHERE id=%s", (nid,))
+
+
+# ── 2026-09-24 research #11 / #12 / #4 ───────────────────────────────────────
+@test("x-bh: an emailed /s/ link records the open once, and the advance row says so")
+def tx_link_open():
+    # research #11: a link hit is the earliest sign the welcome didn't land in
+    # spam. Stamped inside the redirect's own lookup, so this also proves the
+    # redirect still works while it's being recorded.
+    import daily_digest
+    login()
+    venue, band, email = "Fountain Square", "Open Track Band", "opentrackband@example.test"
+    d = TODAY + dt.timedelta(days=18)          # inside the 21-day welcome window
+    n0 = mail_count()
+    if not _book_free(band, venue, d, email, 37)[0]:
+        return
+    check(wait_run_now(), "booked + filed")
+    _run_lifecycle()
+    mine = [m for m in sends_since(n0) if email in _to_addrs(m)]
+    body = mine[0]["payload"].get("body", "") if mine else ""
+    m = re.search(r"/s/([A-Za-z0-9_-]{8})", body)
+    check(m is not None, f"the welcome carries a /s/ short link ({body[:150]!r})")
+    s = show_for(band, venue, d)
+    if not (m and s):
+        return
+    code, sid = m.group(1), s["id"]
+    cols = {r["column_name"] for r in q(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_schema='public' AND table_name='short_links'")}
+    check(cols == {"code", "token", "created_at", "first_opened_at", "open_count", "show_id"},
+          f"open tracking adds counters only — nothing about the visitor ({sorted(cols)})")
+    row = q("SELECT first_opened_at, open_count, show_id FROM short_links WHERE code=%s", (code,), one=True)
+    check(row and row["open_count"] == 0 and row["first_opened_at"] is None,
+          f"unopened until someone clicks ({row})")
+
+    def line():
+        with db.get_conn() as conn, conn.cursor() as cur:
+            r = next((u for u in db.upcoming_advance_status(cur, days=25) if u["show_id"] == sid), None)
+        return r and db.welcome_open_phrase(r["advance_draft_created_at"], r["link_opened_at"])
+
+    before = line()
+    check(before and before.endswith("· never opened"), f"the advance row reads 'never opened' ({before!r})")
+    st, loc, _ = no_redirect_get(f"/s/{code}")
+    check(st in (301, 302) and "/f/" in (loc or ""), f"the link still redirects to the form ({st} {loc})")
+    r1 = q("SELECT first_opened_at, open_count, show_id FROM short_links WHERE code=%s", (code,), one=True)
+    check(r1["open_count"] == 1 and r1["first_opened_at"] is not None,
+          f"first hit stamps first_opened_at and counts one ({r1})")
+    check(r1["show_id"] == sid, f"and the open is tied to this advance ({r1['show_id']} vs {sid})")
+    no_redirect_get(f"/s/{code}")
+    r2 = q("SELECT first_opened_at, open_count FROM short_links WHERE code=%s", (code,), one=True)
+    check(r2["open_count"] == 2 and r2["first_opened_at"] == r1["first_opened_at"],
+          f"first_opened_at is stamped once; open_count keeps counting ({r2})")
+    after = line()
+    check(after and f"opened {r1['first_opened_at']:%m/%d}" in after,
+          f"the advance row now shows the open date ({after!r})")
+    _subject, html, _ids = daily_digest.build_digest(days_ahead=25, mark_delivered=False)
+    check(after in html, f"and the 7am digest prints that line ({after!r})")
+    MAIL_PER_TEST["x-bh"] = sends_since(n0)
+
+
+@test("x-bi: at 10 days out an unresponded show is chased once, and the row says what happened")
+def tx_ten_day_chase():
+    # research #4: the first firm chase moved to T-10 — at T-3 the packet is
+    # already being built off whatever we have. Brian, 2026-09-24: no phone
+    # escalation, everything reaches the band through Production@3cdc.org.
+    venue, band, email = "Washington Park", "Ten Day Chase Band", "tendaychaseband@example.test"
+    d = TODAY + dt.timedelta(days=10)
+    aid = db_upsert_artist(band, email)
+    sid = db_upsert_show(aid, venue, d, series="Jazz At The Porch")
+    x("""UPDATE shows SET advance_draft_created_at = now() - interval '4 days',
+                          responded_at=NULL, cancelled_at=NULL, held_at=NULL WHERE id=%s""", (sid,))
+    x("DELETE FROM advance_reminders WHERE show_id=%s", (sid,))
+    x("DELETE FROM submissions WHERE show_id=%s", (sid,))
+    n0 = mail_count()
+    st, _body = _run_lifecycle()
+    mine = [m for m in sends_since(n0) if email in _to_addrs(m)]
+    check(st == 200 and len(mine) == 1, f"one chase at 10 days out ({len(mine)})")
+    tiers = [(r["days_before"], r["sent"]) for r in
+             q("SELECT days_before, sent FROM advance_reminders WHERE show_id=%s ORDER BY days_before", (sid,))]
+    check(tiers == [(10, True)], f"the 10-day tier is stamped once, 7/3/1 untouched ({tiers})")
+    n1 = mail_count()
+    _run_lifecycle()
+    check(not [m for m in sends_since(n1) if email in _to_addrs(m)],
+          "the next run sends nothing more — one nudge per show")
+    check(len(q("SELECT 1 FROM advance_reminders WHERE show_id=%s AND days_before=10", (sid,))) == 1,
+          "and never raises a second 10-day row")
+    with db.get_conn() as conn, conn.cursor() as cur:
+        items = [i for i in db.needs_attention(cur) if i["kind"] == "chase10" and band in i["detail"]]
+    check(len(items) == 1, f"one 'No advance, 10 days out' row ({len(items)})")
+    if items:
+        it = items[0]
+        check(it["label"] == "No advance, 10 days out", f"labelled for the window ({it['label']!r})")
+        check("10-day nudge sent" in it["detail"] and "never opened" in it["detail"],
+              f"reports the nudge and the unopened welcome ({it['detail']!r})")
+        check(email in it["detail"], f"carries the band's contact email ({it['detail']!r})")
+        blob = (it["label"] + " " + it["detail"] + " " + (it["link_label"] or "")).lower()
+        check("call" not in blob and "phone" not in blob
+              and not re.search(r"\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}", blob),
+              f"nothing tells Brian to phone anyone ({it['detail']!r})")
+        check(it["link_path"] == f"/show/{sid}/edit" and "answers" in (it["link_label"] or ""),
+              f"links to the existing staff answers page ({it['link_path']} / {it['link_label']!r})")
+    MAIL_PER_TEST["x-bi"] = sends_since(n0)
+
+
+@test("x-bj: a staff note + accuracy pip on the artist rides the next chase row")
+def tx_artist_note():
+    # research #12: record how the band was to advance last time so the next
+    # chase starts calibrated. Staff-only — it never reaches a band.
+    login()
+    venue, band, email = "Washington Park", "Note Keeper Band", "notekeeperband@example.test"
+    d = TODAY + dt.timedelta(days=9)
+    aid = db_upsert_artist(band, email)
+    sid = db_upsert_show(aid, venue, d, series="Jazz At The Porch")
+    x("""UPDATE shows SET advance_draft_created_at = now() - interval '5 days',
+                          responded_at=NULL, cancelled_at=NULL, held_at=NULL WHERE id=%s""", (sid,))
+    x("DELETE FROM submissions WHERE show_id=%s", (sid,))
+    x("DELETE FROM advance_reminders WHERE show_id=%s", (sid,))
+    x("INSERT INTO advance_reminders (show_id, days_before, sent) VALUES (%s, 10, true)", (sid,))
+    n0 = mail_count()
+    st, html = get(f"/artist/{aid}")
+    check(st == 200 and 'name="notes"' in html and 'name="advance_rating"' in html,
+          f"the gated artist page carries the note + pip form ({st})")
+    st, _ = post(f"/artist/{aid}/note", {"notes": "plot wrong, 3 reminders", "advance_rating": "2"})
+    check(st == 200, f"note saved ({st})")
+    row = q("SELECT notes, advance_rating FROM artists WHERE id=%s", (aid,), one=True)
+    check(row["notes"] == "plot wrong, 3 reminders" and row["advance_rating"] == 2,
+          f"note + pip round-trip through the page ({row})")
+    st, html = get(f"/artist/{aid}")
+    check("plot wrong, 3 reminders" in html and 'value="2" checked' in html,
+          "and come back rendered on the page")
+    with db.get_conn() as conn, conn.cursor() as cur:
+        rows = [i["detail"] for i in db.needs_attention(cur) if band in i["detail"]]
+    check(any("last time: plot wrong, 3 reminders · 2/5" in r_ for r_ in rows),
+          f"the next chase row is calibrated by it ({rows})")
+    post(f"/artist/{aid}/note", {"notes": "plot wrong, 3 reminders", "advance_rating": "9"})
+    row = q("SELECT advance_rating FROM artists WHERE id=%s", (aid,), one=True)
+    check(row["advance_rating"] is None, f"an out-of-range pip clears instead of 500ing ({row})")
+    check(not any("plot wrong" in (m["payload"].get("body") or "") for m in sends_since(n0)),
+          "and the note never went out in an email")
+    MAIL_PER_TEST["x-bj"] = sends_since(n0)
+
+
+# ── 2026-09-24 research #1 / #2 / #7 / #14 ──────────────────────────────────
+@test("x-bk: one deadline — the welcome and all four chase tiers print the same date")
+def tx_one_deadline():
+    # research #2: the welcome used to fall back to "as soon as you can" and
+    # the reminders never stated a date at all. research #1: the tier bodies
+    # were byte-identical. Both are checked here because they have to agree.
+    import draft_emails as de
+    venue, band, email = "Fountain Square", "Deadline Ladder Band", "deadlineladderband@example.test"
+    # a fixed offset, not free_date: this one needs to be INSIDE the 21-day
+    # welcome window, and nothing here asserts who else is on the bill.
+    d = TODAY + dt.timedelta(days=12)
+    aid = db_upsert_artist(band, email)
+    sid = db_upsert_show(aid, venue, d, series="Jazz on the Square")
+    x("""INSERT INTO bookings (artist_name, venue, event_date, series, contact_email, contact_name,
+                               entered_by, seeded_at, load_in, soundcheck, event_start, event_end,
+                               curfew, set_time)
+         VALUES (%s,%s,%s,'Jazz on the Square',%s,'Test Contact','tests',now(),
+                 '6:00p','6:30p','7:00p','10:00p','11:00p','180 min')
+         ON CONFLICT DO NOTHING""", (band, venue, d, email))
+    x("""UPDATE shows SET advance_draft_created_at=NULL, responded_at=NULL,
+                          cancelled_at=NULL, held_at=NULL WHERE id=%s""", (sid,))
+    x("DELETE FROM advance_reminders WHERE show_id=%s", (sid,))
+    x("DELETE FROM submissions WHERE show_id=%s", (sid,))
+    b = booking_for(band, venue, d)
+    want = db.advance_deadline(d, b and b["created_at"])
+    check(want == d - dt.timedelta(7), f"booked today, 12 days out: a week before the show ({want})")
+    want_txt = want.strftime("%A, %B %-d")
+    n0 = mail_count()
+    _run_lifecycle()
+    wel = next((m for m in sends_to(n0, email)
+                if (m["payload"].get("subject") or "").startswith("Welcome")), None)
+    body = wel["payload"].get("body", "") if wel else ""
+    check(wel is not None and want_txt in body, f"the welcome states the deadline ({want_txt!r})")
+    check("as soon as you can" not in body, "and never falls back to 'as soon as you can'")
+    check("Set: 7:00–10:00 pm (180 min)" in body, "research #7: the welcome carries the set line")
+    key = f"{band} · {venue} · {d.strftime('%-m/%-d')}"
+    check(bool(wel) and (wel["payload"].get("subject") or "").endswith(key),
+          f"research #14: the welcome subject ends with the show key ({wel and wel['payload'].get('subject')!r})")
+    with db.get_conn() as conn, conn.cursor() as cur:
+        missing = de.missing_for_show(cur, sid)
+    check(missing == ["form"], f"nothing on file yet: the whole form is missing ({missing})")
+    bodies = {}
+    for tier in (10, 7, 3, 1):
+        subj, tbody = de.build_reminder(
+            tier, band, b and b["contact_name"], venue, d, "https://example.test/s/zzzzzzzz",
+            missing, deadline=want,
+            set_times=(b["event_start"], b["event_end"], b["set_time"]) if b else None)
+        bodies[tier] = tbody
+        check(want_txt in subj or want_txt in tbody, f"tier {tier} carries the same deadline ({subj!r})")
+        check(subj.endswith(key), f"tier {tier} subject ends with the show key ({subj!r})")
+        check(de.MISSING_LABELS["form"]["en"] in tbody, f"tier {tier} names what's missing")
+        blob = tbody.lower()
+        check("call us" not in blob and "give us a call" not in blob,
+              f"tier {tier} asks for the form or a reply, never a phone call")
+    check(len(set(bodies.values())) == 4, "the four tiers say four different things")
+    check("ten days out" in bodies[10].lower() and "one week out" in bodies[7].lower()
+          and "the day before" in bodies[3].lower() and "ad hoc" in bodies[1].lower(),
+          "and each says its own tier's thing")
+    MAIL_PER_TEST["x-bk"] = sends_since(n0)
+
+
+@test("x-bl: a chase names the stage plot the band actually skipped, and only that")
+def tx_missing_named():
+    # research #1: "identify missing data -> targeted reminder". A show with a
+    # submission that has no plot must be chased for the plot, not the form.
+    import draft_emails as de
+    venue, band, email = "Washington Park", "Half Advanced Band", "halfadvancedband@example.test"
+    d = free_date(venue, 6)
+    aid = db_upsert_artist(band, email)
+    sid = db_upsert_show(aid, venue, d, series="Jazz At The Porch")
+    x("DELETE FROM submissions WHERE show_id=%s", (sid,))
+    x("""INSERT INTO submissions (artist_id, show_id, venue, show_date, performers, monitors,
+                                  contact_phone, source, data)
+         VALUES (%s,%s,%s,%s,4,3,'555-0100','staff',
+                 '{"stage_escort_name":"Ann","stage_escort_cell":"555-0101"}'::jsonb)""",
+      (aid, sid, venue, d))
+    with db.get_conn() as conn, conn.cursor() as cur:
+        missing = de.missing_for_show(cur, sid)
+    check(missing == ["plot"], f"only the stage plot is outstanding ({missing})")
+    _, body = de.build_reminder(3, band, "", venue, d, "https://example.test/s/zzzzzzzz",
+                                missing, deadline=db.advance_deadline(d))
+    check(de.MISSING_LABELS["plot"]["en"] in body, "the T-3 body names the plot")
+    check(de.MISSING_LABELS["form"]["en"] not in body, "and doesn't ask for the whole form again")
+    check("generic patch" in body, "T-3 says what a missing plot costs them")
+    x("""UPDATE submissions SET data = '{}'::jsonb, performers = NULL WHERE show_id=%s""", (sid,))
+    with db.get_conn() as conn, conn.cursor() as cur:
+        missing2 = de.missing_for_show(cur, sid)
+    check(missing2 == ["plot", "escort", "performers"],
+          f"more gaps, still capped at three for a phone screen ({missing2})")
+    x("DELETE FROM submissions WHERE show_id=%s", (sid,))
+    # nothing else should welcome this fixture in a later test's lifecycle run
+    x("UPDATE shows SET cancelled_at=now() WHERE id=%s", (sid,))
+
+
+@test("x-bm: a bilingual series' chase still gets both halves, same deadline in each")
+def tx_bilingual_chase_halves():
+    import draft_emails as de
+    import venue_email as ve
+    venue, band, series = "Fountain Square", "Salsa Ladder Band", "Salsa On The Square"
+    d = free_date(venue, 9)
+    check(ve.is_bilingual_series(series), "Salsa is still the bilingual series")
+    want = db.advance_deadline(d)
+    subj, body = de.build_reminder(10, band, "Nick", venue, d, "https://example.test/s/zzzzzzzz",
+                                   ["plot"], deadline=want, bilingual=True,
+                                   set_times=("7:00p", "10:00p", ""))
+    check("ESPAÑOL" in body and "?lang=es" in body, "both halves, Spanish form link")
+    head, _, tail = body.partition("ESPAÑOL")
+    check(want.strftime("%A, %B %-d") in head and want.strftime("%d/%m/%Y") in tail,
+          "the same deadline in each half, each in its own language's format")
+    check(de.MISSING_LABELS["plot"]["en"] in head and de.MISSING_LABELS["plot"]["es"] in tail,
+          "each half names the missing plot")
+    setline = "Set: 7:00–10:00 pm (180 min)"
+    check(head.count(setline) == 1 and tail.count(setline) == 1, "the set line in both halves")
+    check(subj.endswith(f"{band} · {venue} · {d.strftime('%-m/%-d')}"), f"one subject, with the key ({subj!r})")
+    # Brian, 2026-09-24: research #15's "not needed here" line was pulled back
+    # out of the hospitality blocks — he doesn't want it in the email. It stays
+    # out; the weather-hold clause is the half of #15 that stayed.
+    for v in (venue, "Washington Park", "Memorial Hall"):   # FSQ, WP, DEFAULT
+        check("no guest list" not in ve.blocks_for(v)["hospitality"],
+              f"no 'not needed here' line at {v}")
+    check("lista de invitados" not in ve.blocks_for(venue, lang="es")["hospitality"],
+          "nor in its Spanish half")
+    check("lightning" in ve.COMMON_REQUIREMENTS and "rayos" in ve.COMMON_REQUIREMENTS_ES,
+          "research #15: the weather-hold clause, both languages")
+
+
+# ── 2026-09-24 research #(b): trailer flag + crew headcount ──────────────────
+@test("x-bq: a trailer and a crew count store, reach the doc, and the trailer reaches Mtully's digest")
+def tx_trailer_crew():
+    login()
+    venue, band = "Fountain Square", "Trailer Crew Band"
+    email = "trailercrewband@example.test"
+    d = free_date(venue, 58)
+    n0 = mail_count()
+    hhmm, _house = _book_free(band, venue, d, email, 41)
+    if not hhmm:
+        return
+    check(wait_run_now(), "booking run finished")
+    s = show_for(band, venue, d)
+    if not s:
+        check(False, "show seeded")
+        return
+    from itsdangerous import URLSafeTimedSerializer
+    link = URLSafeTimedSerializer(os.environ["ADVANCE_SECRET"], salt="advance-prefill").dumps(
+        {"a": s["artist_id"], "s": {"venue": venue, "date": d.isoformat(),
+                                    "series": "Jazz on the Square", "show_id": s["id"]}})
+    st, html = get(f"/f/{link}")
+    tok = _artist_tok(html)
+    check(st == 200 and tok, f"the band's own link opens the form ({st})")
+    check('name="trailer"' in html and 'name="crew_count"' in html,
+          "both new questions render on the form")
+    # Jinja escapes the apostrophe in "can't", so match either side of it
+    check("anything over 6 ft 8 in" in html and "use the garage" in html,
+          "the large-vehicle help names the limit a count alone never did")
+    # Brian, 2026-09-24: the trailer question is optional, and only shown once
+    # the large-vehicle count is above 0 — the same show/hide shape as the IEM
+    # questions, cleared when it stops applying.
+    trailer_tag = re.search(r'<select name="trailer"[^>]*>', html)
+    check(trailer_tag and "required" not in trailer_tag.group(0),
+          f"the trailer question is optional ({trailer_tag and trailer_tag.group(0)})")
+    check('id="trailer_field" ' not in html.replace('class="field conditional hidden" id="trailer_field"', ''),
+          "the trailer field ships hidden, behind the large-vehicle count")
+    check("syncTrailer" in html and "large_vehicle_count" in html,
+          "the form carries the large-vehicle -> trailer toggle")
+    if not tok:
+        return
+    st, _ = submit_form(band, venue, d, monitors="3", artist_tok=tok,
+                        extra={"performers": "4", "crew_count": "2", "vehicle_count": "2",
+                               "large_vehicle_count": "1", "trailer": "Yes"})
+    check(st == 200 and wait_regen(), f"submitted with a trailer and 2 crew ({st})")
+    sub = q("""SELECT performers, crew_count, trailer, data FROM submissions
+               WHERE show_id=%s ORDER BY id DESC LIMIT 1""", (s["id"],), one=True)
+    check(sub and sub["performers"] == 4 and sub["crew_count"] == 2 and sub["trailer"] is True,
+          f"both promoted columns stored ({sub and (sub['performers'], sub['crew_count'], sub['trailer'])})")
+    check(sub and (sub["data"] or {}).get("crew_count") == "2"
+          and (sub["data"] or {}).get("trailer") == "Yes", "the raw answers are in data as well")
+    rows, _path = doc_rows(venue, d, band)
+    check(rows and rows.get("Number of Performers") == "4 performers + 2 crew (6 total)",
+          f"the doc's headcount cell carries both ({rows and rows.get('Number of Performers')})")
+    check(rows and "towing a trailer" in (rows.get("Parking") or ""),
+          f"the doc's parking cell flags the trailer ({rows and rows.get('Parking')})")
+    # the rule Brian kept unchanged when crew became its own question
+    check(rows and rows.get("Drink Tix") == "8",
+          f"drink tix is still performers x 2, crew-blind ({rows and rows.get('Drink Tix')})")
+    qrow = q("""SELECT vehicle_count, trailer FROM fsq_parking_queue
+                WHERE show_id=%s AND digested_at IS NULL ORDER BY id DESC LIMIT 1""",
+             (s["id"],), one=True)
+    check(qrow and qrow["trailer"] is True and qrow["vehicle_count"] == 2,
+          f"the parking snapshot carries the trailer ({qrow and (qrow['vehicle_count'], qrow['trailer'])})")
+    st, body = post("/internal/fsq-parking-digest", json_body={}, headers={"X-Advance-Token": TOKEN})
+    check(st == 200 and band in (body or "") and "towing a trailer" in (body or ""),
+          f"Mtully's parking digest names the band and its trailer ({st})")
+    st, html = get(f"/f/{link}")
+    check(st == 200 and 'name="crew_count" min="0" step="1" required value="2"' in html,
+          "a returning band's crew count prefills")
+    check(st == 200 and '<option value="Yes" selected' in html.split('name="trailer"', 1)[-1][:500],
+          "a returning band's trailer answer prefills")
+    MAIL_PER_TEST["x-bq"] = sends_since(n0)
+
+
+@test("x-br: the Spanish form asks both new questions, and no crew / no trailer leaves the old cells alone")
+def tx_trailer_crew_es():
+    login()
+    venue, band = "Fountain Square", "Sin Remolque Band"
+    email = "sinremolqueband@example.test"
+    d = free_date(venue, 62)
+    n0 = mail_count()
+    hhmm, _house = _book_free(band, venue, d, email, 43)
+    if not hhmm:
+        return
+    check(wait_run_now(), "booking run finished")
+    s = show_for(band, venue, d)
+    if not s:
+        check(False, "show seeded")
+        return
+    from itsdangerous import URLSafeTimedSerializer
+    link = URLSafeTimedSerializer(os.environ["ADVANCE_SECRET"], salt="advance-prefill").dumps(
+        {"a": s["artist_id"], "s": {"venue": venue, "date": d.isoformat(),
+                                    "series": "Jazz on the Square", "show_id": s["id"]}})
+    st, html = get(f"/f/{link}?lang=es")
+    check(st == 200 and "¿Van a traer un remolque?" in html,
+          "the Spanish form asks the trailer question")
+    check(st == 200 and "Número de personas de equipo que vienen con ustedes" in html,
+          "the Spanish form asks the crew count")
+    check(st == 200 and "Número de artistas en el escenario" in html
+          and "Número total de artistas y equipo de trabajo" not in html,
+          "the Spanish performers label is on-stage only, so the two can't double-count")
+    check(st == 200 and "no puede entrar al estacionamiento" in html,
+          "the Spanish large-vehicle help names the garage limit")
+    tok = _artist_tok(html)
+    if not tok:
+        check(False, "the Spanish form carries the artist token")
+        return
+    st, _ = submit_form(band, venue, d, monitors="2", artist_tok=tok,
+                        extra={"performers": "5", "crew_count": "0", "vehicle_count": "1",
+                               "large_vehicle_count": "0", "trailer": "No"})
+    check(st == 200 and wait_regen(), f"submitted with no crew and no trailer ({st})")
+    rows, _path = doc_rows(venue, d, band)
+    check(rows and rows.get("Number of Performers") == "5",
+          f"no crew -> the headcount cell is the bare number it has always been "
+          f"({rows and rows.get('Number of Performers')})")
+    check(rows and rows.get("Parking") == "1 vehicle: all standard",
+          f"no trailer -> the parking cell is unchanged ({rows and rows.get('Parking')})")
+    check(rows and rows.get("Drink Tix") == "10",
+          f"drink tix is still performers x 2 ({rows and rows.get('Drink Tix')})")
+    sub = q("SELECT crew_count, trailer FROM submissions WHERE show_id=%s ORDER BY id DESC LIMIT 1",
+            (s["id"],), one=True)
+    check(sub and sub["crew_count"] == 0 and sub["trailer"] is False,
+          f"a 0 crew count and a No trailer are stored, not dropped "
+          f"({sub and (sub['crew_count'], sub['trailer'])})")
+    MAIL_PER_TEST["x-br"] = sends_since(n0)
+
+
+# ── 2026-09-24 research #3: the week-out confirmed schedule ────────────────
+# Every fixture below sits at a FIXED TODAY+7, not free_date: the whole point
+# is landing inside the T-7 window, and nothing here asserts who else is on
+# the bill — each check filters the stub log by its own band's address.
+_WEEK_OUT_TIMES = ("4:00p", "5:30p", "8:00p", "9:30p", "10:00p")
+
+
+def _week_out_fixture(band, email, venue, d, series, responded, third_party=False):
+    """A welcomed show a week out with real booking times on it."""
+    aid = db_upsert_artist(band, email)
+    sid = db_upsert_show(aid, venue, d, series=("3rd Party" if third_party else series))
+    if not third_party:
+        x("""INSERT INTO bookings (artist_name, venue, event_date, series, contact_email,
+                                   contact_name, entered_by, seeded_at, load_in, soundcheck,
+                                   event_start, event_end, curfew)
+             VALUES (%s,%s,%s,%s,%s,'Test Contact','tests',now(),%s,%s,%s,%s,%s)
+             ON CONFLICT DO NOTHING""",
+          (band, venue, d, series, email) + _WEEK_OUT_TIMES)
+    x("""UPDATE shows SET advance_draft_created_at = now() - interval '4 days',
+                          followup_draft_created_at = NULL,
+                          responded_at = CASE WHEN %s THEN now() ELSE NULL END,
+                          cancelled_at = NULL, held_at = NULL,
+                          dayahead_sent_at = NULL, thankyou_sent_at = NULL
+          WHERE id = %s""", (responded, sid))
+    x("DELETE FROM advance_reminders WHERE show_id=%s", (sid,))
+    x("DELETE FROM submissions WHERE show_id=%s", (sid,))
+    return sid
+
+
+def _tiers(sid):
+    return [(r["days_before"], r["sent"]) for r in
+            q("SELECT days_before, sent FROM advance_reminders WHERE show_id=%s ORDER BY days_before",
+              (sid,))]
+
+
+@test("x-bn: a week out, a show that answered gets the confirmed schedule and no nudge")
+def tx_week_out_schedule():
+    # research #3: elsewhere the week-out message is the venue's schedule going
+    # out, not a fourth nudge coming back. A responded show never used to hear
+    # anything at all between the welcome and the day before.
+    import draft_emails as de
+    venue, band, email = "Washington Park", "Week Out Band", "weekoutband@example.test"
+    d = TODAY + dt.timedelta(days=7)
+    sid = _week_out_fixture(band, email, venue, d, "Jazz At The Porch", responded=True)
+    n0 = mail_count()
+    st, resp = _run_lifecycle()
+    mine = [m for m in sends_since(n0) if email in _to_addrs(m)]
+    check(st == 200 and len(mine) == 1, f"exactly one email a week out ({len(mine)})")
+    check('"schedule"' in resp, "the lifecycle response carries a schedule summary for n8n")
+    if mine:
+        subj = (mine[0]["payload"].get("subject") or "")
+        body = (mine[0]["payload"].get("body") or "")
+        key = f"{band} · {venue} · {d.strftime('%-m/%-d')}"
+        check(subj == f"Your schedule — {key}", f"schedule-only subject, with the show key ({subj!r})")
+        check("Day Schedule:" in body, "the body IS the schedule block")
+        for t in _WEEK_OUT_TIMES:
+            check(t in body, f"the booking's {t} is in it")
+        check("Set: 8:00–9:30 pm (90 min)" in body, "and the set line (research #7)")
+        check("tomorrow" not in body.lower(), "no day-before framing at seven days")
+        check("we still need" not in body.lower()
+              and de.MISSING_LABELS["form"]["en"] not in body,
+              "a show that answered gets no nudge under it")
+    check(_tiers(sid) == [(7, True)], f"the week-out tier is stamped once ({_tiers(sid)})")
+    fdc = q("SELECT followup_draft_created_at FROM shows WHERE id=%s", (sid,), one=True)
+    check(fdc["followup_draft_created_at"] is None,
+          "and it is not recorded as a follow-up — nobody was chased")
+    n1 = mail_count()
+    _run_lifecycle()
+    check(not [m for m in sends_since(n1) if email in _to_addrs(m)],
+          "a second lifecycle run sends nothing more")
+    MAIL_PER_TEST["x-bn"] = sends_since(n0)
+
+
+@test("x-bo: a week out with no answer, the schedule and the chase are ONE email")
+def tx_week_out_schedule_chase():
+    # research #3: "the T-7 nudge folds into it". The failure this guards is a
+    # show getting both the schedule and a tier-7 reminder the same morning.
+    import draft_emails as de
+    venue, band, email = "Washington Park", "Week Out Quiet Band", "weekoutquietband@example.test"
+    d = TODAY + dt.timedelta(days=7)
+    sid = _week_out_fixture(band, email, venue, d, "Jazz At The Porch", responded=False)
+    n0 = mail_count()
+    st, _resp = _run_lifecycle()
+    mine = [m for m in sends_since(n0) if email in _to_addrs(m)]
+    check(st == 200 and len(mine) == 1, f"ONE email, not a schedule plus a nudge ({len(mine)})")
+    if mine:
+        subj = (mine[0]["payload"].get("subject") or "")
+        body = (mine[0]["payload"].get("body") or "")
+        key = f"{band} · {venue} · {d.strftime('%-m/%-d')}"
+        check(subj == f"Your schedule and what we still need — {key}",
+              f"one subject saying it carries both ({subj!r})")
+        check("Day Schedule:" in body and "8:00p" in body, "the schedule is still the body")
+        check(de.MISSING_LABELS["form"]["en"] in body, "the chase names what's missing")
+        check("One week out from your show" in body, "and it is the T-7 chase, verbatim")
+        want = db.advance_deadline(d, (booking_for(band, venue, d) or {}).get("created_at"))
+        check(want.strftime("%A, %B %-d") in body, f"against the one deadline ({want})")
+        check(body.count("Day Schedule:") == 1 and body.count("One week out from your show") == 1,
+              "each part exactly once — not two emails glued together")
+        check("/s/" in body, "with the band's own form link in the chase")
+    check(_tiers(sid) == [(7, True), (10, False)],
+          f"the week-out tier sent, the still-open 10-day chase closed by it ({_tiers(sid)})")
+    fdc = q("SELECT followup_draft_created_at FROM shows WHERE id=%s", (sid,), one=True)
+    check(fdc["followup_draft_created_at"] is not None,
+          "this one IS recorded as a follow-up — the chase rode along")
+    n1 = mail_count()
+    _run_lifecycle()
+    check(not [m for m in sends_since(n1) if email in _to_addrs(m)],
+          "a second lifecycle run sends nothing more")
+    MAIL_PER_TEST["x-bo"] = sends_since(n0)
+
+
+@test("x-bp: a bilingual series' week-out schedule gets both halves and Nick's copy")
+def tx_week_out_bilingual():
+    venue, band = "Fountain Square", "Week Out Salsa Band"
+    email, series = "weekoutsalsaband@example.test", "Salsa On The Square"
+    d = TODAY + dt.timedelta(days=7)
+    sid = _week_out_fixture(band, email, venue, d, series, responded=False)
+    n0 = mail_count()
+    _run_lifecycle()
+    mine = [m for m in sends_since(n0) if email in _to_addrs(m)]
+    check(len(mine) == 1, f"still one email for a bilingual show ({len(mine)})")
+    if mine:
+        body = (mine[0]["payload"].get("body") or "")
+        head, _, tail = body.partition("ESPAÑOL / SPANISH VERSION BELOW")
+        check(tail, "both halves")
+        check("Day Schedule:" in head and "Horario del día:" in tail,
+              "the schedule block in each half, in its own language")
+        check("Falta una semana para su show" in tail, "the Spanish chase under the Spanish schedule")
+        check("?lang=es" in tail and "?lang=es" not in head, "and the Spanish form link only there")
+        # Salsa's locked schedule block supplies its own row labels in each
+        # language, so assert the SHAPE: Spanish labels in the Spanish half and
+        # no English schedule label leaking into it.
+        check("Prueba de sonido" in tail and "Carga" in tail,
+              "the Spanish half's schedule rows are in Spanish")
+        # the venue doc links ride under BOTH halves with English labels
+        # ("Load-in doc: …"), the same as every other email — not part of the
+        # Spanish body, so cut them before checking.
+        es_body = tail.split("Load-in doc:")[0]
+        check(not any(w in es_body for w in ("Sound check", "Sound Check", "Load-in", "Curfew",
+                                             "Day Schedule:", "Day-of Contact:")),
+              "no English schedule labels inside the Spanish half")
+        check("NRadina@gmail.com".lower() in _to_addrs(mine[0]),
+              f"the Salsa standing CC still applies ({_to_addrs(mine[0])})")
+    check(_tiers(sid) == [(7, True), (10, False)], f"one tier row all the same ({_tiers(sid)})")
+    MAIL_PER_TEST["x-bp"] = sends_since(n0)
+
+
+@test("x-bs: cancelled, on hold, or band-emails-off — no week-out schedule at all")
+def tx_week_out_excluded():
+    venue, d = "Washington Park", TODAY + dt.timedelta(days=7)
+    cancelled = ("Week Out Cancelled Band", "weekoutcancelledband@example.test")
+    held = ("Week Out Held Band", "weekoutheldband@example.test")
+    quiet = ("Week Out Third Party Band", "weekoutthirdpartyband@example.test")
+    sid_c = _week_out_fixture(*cancelled, venue, d, "Jazz At The Porch", responded=False)
+    sid_h = _week_out_fixture(*held, venue, d, "Jazz At The Porch", responded=False)
+    sid_q = _week_out_fixture(*quiet, venue, d, None, responded=False, third_party=True)
+    x("UPDATE shows SET cancelled_at=now() WHERE id=%s", (sid_c,))
+    x("UPDATE shows SET held_at=now() WHERE id=%s", (sid_h,))
+    n0 = mail_count()
+    _run_lifecycle()
+    for (band, email), sid, why in ((cancelled, sid_c, "cancelled"), (held, sid_h, "on hold"),
+                                    (quiet, sid_q, "3rd party with band emails off")):
+        got = [m for m in sends_since(n0) if email in _to_addrs(m)]
+        check(not got, f"a {why} show gets nothing a week out ({len(got)})")
+        check(_tiers(sid) == [], f"and no tier row is burned on it ({_tiers(sid)})")
+    # a booking that opts a 3rd-party show back in does get it
+    x("""INSERT INTO bookings (artist_name, venue, event_date, series, contact_email, entered_by,
+                               seeded_at, band_emails, load_in, soundcheck, event_start,
+                               event_end, curfew)
+         VALUES (%s,%s,%s,'3rd Party',%s,'tests',now(),true,%s,%s,%s,%s,%s)
+         ON CONFLICT DO NOTHING""", (quiet[0], venue, d, quiet[1]) + _WEEK_OUT_TIMES)
+    n1 = mail_count()
+    _run_lifecycle()
+    got = [m for m in sends_since(n1) if quiet[1] in _to_addrs(m)]
+    check(len(got) == 1, f"ticking 'Send band emails' lets the schedule through ({len(got)})")
+    x("UPDATE shows SET cancelled_at=now() WHERE id=%s", (sid_q,))   # leave the clone quiet
+    MAIL_PER_TEST["x-bs"] = sends_since(n0)
 
 
 @test("x-z: nothing left the box")

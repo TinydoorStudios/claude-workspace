@@ -277,14 +277,17 @@ def t_gap():
         db.mark_stale_followup_tiers_skipped(cur, sid, 4)
         conn.commit()
     tiers = {r["days_before"]: r["sent"] for r in q("SELECT days_before, sent FROM advance_reminders WHERE show_id=%s", (sid,))}
-    check(tiers.get(7) is False and tiers.get(3) is False and 1 not in tiers,
-          f"booked 4 days out: tiers 7+3 pre-skipped, tier 1 open ({tiers})")
+    check(tiers.get(10) is False and tiers.get(7) is False and tiers.get(3) is False and 1 not in tiers,
+          f"booked 4 days out: tiers 10+7+3 pre-skipped, tier 1 open ({tiers})")
     x("DELETE FROM advance_reminders WHERE show_id=%s", (sid,))
     with db.get_conn() as conn, conn.cursor() as cur:
         db.mark_stale_followup_tiers_skipped(cur, sid, 10)
         conn.commit()
     tiers = {r["days_before"] for r in q("SELECT days_before FROM advance_reminders WHERE show_id=%s", (sid,))}
-    check(tiers == set(), f"booked 10 days out: nothing pre-skipped ({tiers})")
+    # 2026-09-24 research #4: the ladder starts at 10 now, so a show booked
+    # exactly 10 days out pre-skips that tier under the same 48h rule (a chase
+    # must never land the morning after its own welcome); 7/3/1 stay open.
+    check(tiers == {10}, f"booked 10 days out: only the 10-day tier pre-skipped ({tiers})")
 
 
 def db_upsert_artist(name, email):
@@ -592,7 +595,10 @@ def t_dayahead():
     n0 = mail_count()
     sent = dayahead.send_due(lambda *a: None)
     mine = [m for m in sends_since(n0) if m["payload"].get("to") == "tomorrow@example.test"]
-    check(len(mine) == 1 and mine[0]["payload"]["subject"].startswith("Tomorrow at"), f"one day-before email ({len(mine)})")
+    # 2026-09-24 research #14: the subject is "Tomorrow — Band · Venue · M/D" now.
+    subj = mine[0]["payload"]["subject"] if mine else ""
+    check(len(mine) == 1 and subj.startswith("Tomorrow —") and "· Fountain Square ·" in subj,
+          f"one day-before email ({len(mine)}: {subj!r})")
     body = mine[0]["payload"]["body"] if mine else ""
     check("5:30p" in body and "Load-In" in body, "carries booked times + venue load-in text")
     s = q("SELECT dayahead_sent_at FROM shows WHERE id=%s", (sid,), one=True)

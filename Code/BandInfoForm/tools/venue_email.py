@@ -35,6 +35,7 @@ COMMON_REQUIREMENTS = """\
 - Performer safety: stay on the stage. No crowd surfing, climbing, jumping off stage, or stepping on sound equipment.
 - Audience safety: do not throw or shoot anything into the crowd (confetti, t-shirts, bottles, merch/CDs, etc.).
 - Weather: rain or shine. Booking evaluates weather about 3 hours before start; if you don't hear otherwise, assume the show goes on.
+- Weather holds: if 3CDC calls a hold for lightning, stop and clear the stage right away. The stage goes dark until we get the all-clear, then we pick the show back up.
 - Payment: all groups are paid after the performance, not before."""
 
 # Spanish translation of COMMON_REQUIREMENTS — draft, 2026-09-12. Kept as a
@@ -47,6 +48,7 @@ COMMON_REQUIREMENTS_ES = """\
 - Seguridad de los artistas: permanezcan en el escenario. No se permite lanzarse al público, trepar, saltar del escenario ni pisar el equipo de sonido.
 - Seguridad del público: no lancen ni disparen nada hacia el público (confeti, camisetas, botellas, mercancía/CDs, etc.).
 - Clima: el show se realiza con lluvia o con sol. El equipo de producción evalúa las condiciones climáticas aproximadamente 3 horas antes del inicio; si no reciben aviso contrario, asuman que el show continúa.
+- Pausas por clima: si 3CDC anuncia una pausa por rayos, dejen de tocar y despejen el escenario de inmediato. El escenario se apaga hasta que nos den el aviso de que pasó el peligro, y ahí retomamos el show.
 - Pago: todos los grupos reciben su pago después de la presentación, no antes."""
 
 # Generic, safe-to-send blocks for a venue we haven't customized yet (no FSQ specifics).
@@ -565,12 +567,100 @@ TIME_TBC_ES = "hora por confirmar"
 # summarize_submission's labels (draft_emails.py), for a returning artist's
 # "here's what we have on file" block in the Spanish half.
 SUMMARY_LABELS_ES = {
-    "Last show": "Último show", "Performers + crew": "Artistas y equipo de trabajo",
+    "Last show": "Último show", "Performers": "Artistas", "Crew": "Equipo de trabajo",
     "Monitors": "Monitores", "Own IEMs": "IEM propios", "Stage": "Escenario",
     "Own engineer": "Ingeniero propio", "Merch": "Mercancía",
     "Band tent": "Carpa de la banda", "Large vehicle": "Vehículo grande",
     "Backline": "Backline",
 }
+
+
+# ── band-facing shared bits (2026-09-24 research #7 + #14) ─────────────────
+# Every email a BAND gets — welcome, reminders, day-before, thank-you,
+# "info changed" — renders its set length and its subject through these, so
+# the four tools that send band mail can't drift apart again.
+
+def band_date(d, lang="en"):
+    """A date the way band-facing copy writes one: 'Monday, October 6' in
+    English, DD/MM/YYYY in the Spanish half (the convention every existing
+    Spanish block already uses). '' for None."""
+    if not d:
+        return ""
+    return d.strftime("%d/%m/%Y") if lang == "es" else d.strftime("%A, %B %-d")
+
+
+def subject_key(band, venue, show_date):
+    """'Band · Venue · 10/6' — 2026-09-24 research #14. Every band-facing
+    subject ends with this (see band_subject), so one show's thread is
+    findable in Outlook, in the band's own inbox, and by any future
+    inbound-reply parsing. tourmanager.info's 'ARTIST – DATE – CITY, ST –
+    VENUE' is the same idea; this is the short version. Blank parts are
+    dropped rather than left as empty separators."""
+    when = show_date.strftime("%-m/%-d") if show_date else ""
+    return " · ".join(p for p in ((band or "").strip(), (venue or "").strip(), when) if p)
+
+
+def band_subject(base, band, venue, show_date):
+    """The human prefix, then the show key: 'Reminder — … — Band · Venue · 10/6'."""
+    key = subject_key(band, venue, show_date)
+    return f"{base} — {key}" if key else base
+
+
+def _clock_minutes(v):
+    """Minutes past midnight, via advance_db.parse_clock so there's exactly
+    one clock parser in the codebase. Imported lazily — this module is pure
+    content and shouldn't need the DB layer to import."""
+    try:
+        import advance_db
+    except Exception:  # noqa: BLE001 — no DB layer on the path: no set times, not a crash
+        return None
+    return advance_db.parse_clock(v)
+
+
+def _fmt_clock(mins, meridiem=True):
+    h, m = divmod(mins % 1440, 60)
+    ap = "am" if h < 12 else "pm"
+    h = h % 12 or 12
+    return f"{h}:{m:02d}" + (f" {ap}" if meridiem else "")
+
+
+def _setlen(v):
+    """'90' -> '90 min'; anything a human typed ('2 x 45') passes through."""
+    v = str(v or "").strip()
+    if not v:
+        return ""
+    return f"{v} min" if v.isdigit() else v
+
+
+def set_line(set_start, set_end, set_time, lang="en"):
+    """'Set: 8:00–9:30 pm (90 min)' — 2026-09-24 research #7. Set length is
+    the one thing every source says a band must be told and Brian's emails
+    never printed; the booking already has it. Same arithmetic as the booking
+    page's calcSetTimes (end − start, rolling past midnight), and a hand-typed
+    Set Length still wins over the derived one, exactly as it does there.
+
+    Blank-safe: times only -> 'Set: 8:00–9:30 pm'; a length with no times ->
+    'Set length: 90 min'; nothing on file -> ''."""
+    s, e = _clock_minutes(set_start), _clock_minutes(set_end)
+    span = ""
+    if s is not None and e is not None:
+        same_half = (s % 1440 < 720) == (e % 1440 < 720)
+        span = f"{_fmt_clock(s, meridiem=not same_half)}–{_fmt_clock(e)}"
+    elif s is not None:
+        span = _fmt_clock(s)
+    dur = _setlen(set_time)
+    if not dur and s is not None and e is not None:
+        d = e - s
+        if d <= 0:
+            d += 1440
+        dur = f"{d} min"
+    if span and dur:
+        return f"Set: {span} ({dur})"
+    if span:
+        return f"Set: {span}"
+    if dur:
+        return f"{SET_LENGTH_LABEL_ES if lang == 'es' else 'Set length'}: {dur}"
+    return ""
 
 
 # "Text or call your day-of contact when you're about 5 minutes out, and

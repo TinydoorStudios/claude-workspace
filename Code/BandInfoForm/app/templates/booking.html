@@ -234,7 +234,10 @@
       <p class="hint" style="margin-top:0">Nothing here is required — fill in whatever they told you. Saving creates the same record their own submission would, so it reaches search, the day-sheet and the doc exactly the same way.</p>
       <div class="grid2">
         <div><label>Contact Phone</label><input name="contact_phone" value="{{ form.contact_phone or '' }}"></div>
-        <div><label>Performers</label><input type="number" name="performers" min="1" step="1" value="{{ form.performers or '' }}"></div>
+        {# 2026-09-24 research #(b): performers = on stage, crew = everyone else in
+           the party. Additive, not a subset — see i18n performers_help. #}
+        <div><label>Performers (on stage)</label><input type="number" name="performers" min="1" step="1" value="{{ form.performers or '' }}"></div>
+        <div><label>Crew (not on stage)</label><input type="number" name="crew_count" min="0" step="1" value="{{ form.crew_count or '' }}"></div>
         <div><label>Stage Type</label>
           <select name="stage_type">
             <option value="" {% if not form.stage_type %}selected{% endif %}>—</option>
@@ -288,6 +291,15 @@
         </div>
         <div><label>Vehicle Count</label><input type="number" name="vehicle_count" min="0" step="1" value="{{ form.vehicle_count or '' }}"></div>
         <div><label>Large Vehicle Count</label><input type="number" name="large_vehicle_count" min="0" step="1" value="{{ form.large_vehicle_count or '' }}"></div>
+        {# 2026-09-24 research #(b): van + trailer is one vehicle in the counts and
+           still can't use the 6'8" garage. #}
+        <div><label>Towing a Trailer</label>
+          <select name="trailer">
+            <option value="" {% if not form.trailer %}selected{% endif %}>—</option>
+            <option value="Yes" {% if form.trailer=='Yes' %}selected{% endif %}>Yes</option>
+            <option value="No" {% if form.trailer=='No' %}selected{% endif %}>No</option>
+          </select>
+        </div>
         <div><label>Stage Escort — Name</label><input name="stage_escort_name" value="{{ form.stage_escort_name or '' }}"></div>
         <div><label>Stage Escort — Cell</label><input name="stage_escort_cell" value="{{ form.stage_escort_cell or '' }}"></div>
         <div class="full"><label>Backline</label><textarea name="backline">{{ form.backline or '' }}</textarea></div>

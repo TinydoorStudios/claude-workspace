@@ -45,6 +45,20 @@
   .edit-btn:hover{color:#fff;background:#1A3A5C;}
   .note{color:#8b97a6;font-size:12px;margin-top:4px;}
   .note.bad{color:#f85149;}
+  /* 2026-09-24 research #12 — staff post-show note. Internal only: it never
+     leaves this page and the Needs-you rows, and no band ever sees it. */
+  .staffnote textarea{width:100%;box-sizing:border-box;min-height:70px;resize:vertical;
+    background:#0d1117;border:1px solid #2a323d;border-radius:8px;color:#e6edf3;
+    font:14px/1.45 inherit;padding:9px 11px;}
+  .staffnote textarea:focus{outline:none;border-color:#4da3ff;}
+  .staffnote .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .staffnote .pips{display:flex;gap:4px;}
+  .staffnote .pips label{cursor:pointer;}
+  .staffnote .pips input{position:absolute;opacity:0;pointer-events:none;}
+  .staffnote .pips span{display:inline-block;min-width:26px;text-align:center;border-radius:7px;
+    padding:4px 0;font-size:12.5px;border:1px solid #2a323d;color:#8b97a6;}
+  .staffnote .pips input:checked + span{border-color:#4da3ff;color:#4da3ff;background:rgba(77,163,255,.12);}
+  .staffnote .hint{color:#8b97a6;font-size:12px;}
 </style>
 </head>
 <body>
@@ -62,6 +76,25 @@
   {% elif request.args.get('draft_error') %}
   <div class="card" style="border-color:rgba(248,113,113,.4)">Couldn't create the draft: {{ request.args.get('draft_error') }}</div>
   {% endif %}
+  <h2>Staff note</h2>
+  <div class="card staffnote">
+    <form method="post" action="{{ url_for('artist_note', artist_id=artist.id) }}">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <textarea name="notes" placeholder="How they were to advance — what the plot missed, how many reminders it took, who actually answers. Staff only; the band never sees this.">{{ artist.notes or '' }}</textarea>
+      <div class="row">
+        <span class="hint">Advance accuracy</span>
+        <span class="pips">
+          <label><input type="radio" name="advance_rating" value="" {{ 'checked' if not artist.advance_rating }}><span>—</span></label>
+          {% for n in range(1, 6) %}
+          <label><input type="radio" name="advance_rating" value="{{ n }}" {{ 'checked' if artist.advance_rating == n }}><span>{{ n }}</span></label>
+          {% endfor %}
+        </span>
+        <span class="hint">1 = nothing matched the stage · 5 = showed up exactly as advanced</span>
+        <button class="finalize-btn" type="submit">Save note</button>
+      </div>
+    </form>
+  </div>
+
   <h2>Bookings</h2>
   {% if shows %}
   <table>
@@ -141,7 +174,10 @@
         {% if sub.show_id and sub.show_date and sub.show_date >= today %}<a class="edit-btn" style="float:right;margin-top:0" href="{{ url_for('show_edit', show_id=sub.show_id) }}">Edit ✎</a>{% endif %}</h3>
       <div class="kv">
         <div class="k">Contact phone</div><div>{{ sub.contact_phone or '—' }}</div>
-        <div class="k">Performers + crew</div><div>{{ sub.performers if sub.performers is not none else '—' }}</div>
+        {# 2026-09-24 research #(b): performers is the on-stage count, crew_count is
+           everyone else — show the party total so the old "Performers + crew" read
+           isn't silently one number short. #}
+        <div class="k">Performers</div><div>{{ sub.performers if sub.performers is not none else '—' }}{% if sub.crew_count %} + {{ sub.crew_count }} crew ({{ (sub.performers or 0) + sub.crew_count }} total){% elif sub.crew_count is not none %} · no crew{% endif %}</div>
         <div class="k">Monitors</div><div>{{ sub.monitors if sub.monitors is not none else '—' }}</div>
         <div class="k">Own IEMs</div><div>{{ 'Yes' if sub.own_iems else ('No' if sub.own_iems is false else '—') }}{% if sub.split_snake %} · split: {{ sub.split_snake }}{% endif %}</div>
         <div class="k">Stage</div><div>{{ sub.stage_type or '—' }}</div>
@@ -149,7 +185,7 @@
         <div class="k">Merch</div><div>{{ 'Yes' if sub.merch else ('No' if sub.merch is false else '—') }}</div>
         <div class="k">Band tent</div><div>{{ sub.band_tent or '—' }}</div>
         {% if sub.vehicle_count is not none or sub.large_vehicle_count is not none %}
-        <div class="k">Vehicles</div><div>{{ sub.vehicle_count if sub.vehicle_count is not none else '—' }} total{% if sub.large_vehicle_count is not none %} · {{ sub.large_vehicle_count }} large{% endif %}</div>
+        <div class="k">Vehicles</div><div>{{ sub.vehicle_count if sub.vehicle_count is not none else '—' }} total{% if sub.large_vehicle_count is not none %} · {{ sub.large_vehicle_count }} large{% endif %}{% if sub.trailer %} · <span style="color:#fbbf24">towing a trailer (no garage)</span>{% endif %}</div>
         {% else %}
         <div class="k">Large vehicle</div><div>{{ 'Yes' if sub.large_vehicle else ('No' if sub.large_vehicle is false else '—') }}</div>
         {% endif %}

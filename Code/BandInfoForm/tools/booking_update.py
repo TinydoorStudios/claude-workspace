@@ -73,8 +73,9 @@ def build_email(r):
                                      if kv[0] in FIELD_ORDER else len(FIELD_ORDER), kv[0]))
     lines = [f"  {FIELD_LABELS.get(f, f)}: {_fmt(f, d['old'])}  ->  {_fmt(f, d['new'])}"
              for f, d in ordered]
-    subject = (f"Updated booking details — {r['artist_name']} at {r['venue']} "
-               f"({r['event_date'].strftime('%-m/%-d')})")
+    # 2026-09-24 research #14: the show key ends every band-facing subject.
+    subject = ve.band_subject("Updated booking details", r["artist_name"],
+                              r["venue"], r["event_date"])
     body = (f"Hello {r['artist_name']},\n\n"
             f"A couple of details on your booking at {r['venue']} on "
             f"{r['event_date'].strftime('%A, %B %-d')} changed:\n\n"

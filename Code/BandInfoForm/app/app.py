@@ -298,14 +298,40 @@ def short_link(code):
     (venue + date + series + signature); emails carry this instead."""
     if not DB_OK:
         return _link_unavailable()
+    # 2026-09-24 research #11: resolving the code and stamping the open are ONE
+    # statement (open_short_link), so tracking adds no round trip and no second
+    # transaction to the band's click. If that write fails for any reason, fall
+    # straight back to the plain read — an open we didn't record is a missing
+    # status line; a redirect we didn't serve is a band that can't answer us.
+    token, row = None, None
     try:
         with advance_db.get_conn() as conn, conn.cursor() as cur:
-            token = advance_db.resolve_short_link(cur, code)
+            row = advance_db.open_short_link(cur, code)
+            token = row["token"] if row else None
+            conn.commit()
     except Exception as e:
-        _log_db_error("short_link", e)
-        return _link_unavailable()
+        _log_db_error("short_link_open", e)
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                token = advance_db.resolve_short_link(cur, code)
+        except Exception as e2:
+            _log_db_error("short_link", e2)
+            return _link_unavailable()
     if not token:
         abort(404)
+    if row and not row["show_id"]:
+        # The welcome link is minted by tools/draft_emails.py, which has no
+        # show_id to hand at that point — read it out of the signed token now so
+        # the dashboard and digest can report this open against the right
+        # advance. Best-effort: a failure here only costs the status line.
+        try:
+            sid = ((read_prefill_token(token) or {}).get("s") or {}).get("show_id")
+            if sid:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    advance_db.attach_short_link_show(cur, code, int(sid))
+                    conn.commit()
+        except Exception as e:
+            _log_db_error("short_link_show", e)
     # Carry ?lang= through the redirect (Flask's url_for doesn't inherit the
     # incoming query string) so a Spanish-language emailed link still opens
     # the Spanish form after the short-code hop.
@@ -718,9 +744,16 @@ def _notify_submission(rec):
         return
     try:
         import urllib.request
+        # 2026-09-24 research #(b): performers is the on-stage count now, so the
+        # party size is performers + crew — "4 ppl" for a 4-piece with two techs
+        # would be wrong.
+        try:
+            ppl = int(rec.get("performers") or 0) + int(rec.get("crew_count") or 0)
+        except (TypeError, ValueError):
+            ppl = rec.get("performers")
         text = (f":memo: Band advance received — *{rec.get('band_name')}* "
                 f"@ {rec.get('venue')} on {rec.get('show_date')} "
-                f"({rec.get('performers')} ppl)")
+                f"({ppl} ppl)")
         req = urllib.request.Request(
             hook, data=json.dumps({"text": text}).encode(),
             headers={"Content-Type": "application/json"},
@@ -1509,11 +1542,16 @@ def _record_booking_band_answers(f, files, data, existing_artist_id=None, prefil
         # parking digest like a band's own — but only when new or changed for THIS show
         # (keyed on `posted`, 2026-09-21 sweep: counts carried from another show aren't new)
         if (result and data.get("venue") == "Fountain Square"
-                and (posted.get("vehicle_count") or posted.get("large_vehicle_count"))):
+                # 2026-09-24 research #(b): a trailer alone is worth the digest —
+                # it decides whether their vehicles can use the garage at all.
+                and (posted.get("vehicle_count") or posted.get("large_vehicle_count")
+                     or posted.get("trailer"))):
             same_show = bool(prior) and prior.get("show_id") == result.get("show_id")
-            counts = (str(rec.get("vehicle_count") or ""), str(rec.get("large_vehicle_count") or ""))
+            counts = (str(rec.get("vehicle_count") or ""), str(rec.get("large_vehicle_count") or ""),
+                      str(rec.get("trailer") or ""))
             if not same_show or counts != (_prior_value("vehicle_count"),
-                                           _prior_value("large_vehicle_count")):
+                                           _prior_value("large_vehicle_count"),
+                                           _prior_value("trailer")):
                 q = dict(rec)
                 q["band_name"] = result.get("artist_name") or rec.get("band_name") or ""
                 q["_db"] = {"artist_id": result.get("artist_id"), "show_id": result.get("show_id"),
@@ -2017,6 +2055,25 @@ def artist_detail(artist_id):
                            state_labels=DASHBOARD_STATE_LABELS, today=dt.date.today())
 
 
+@app.post("/artist/<int:artist_id>/note")
+def artist_note(artist_id):
+    """Staff post-show note + 1–5 advance-accuracy pip (2026-09-24 research
+    #12). How the band was to advance last time — plot wrong, three reminders,
+    answered in an hour — so the next chase starts calibrated instead of from
+    scratch. Gated with the rest of /artist; nothing band-facing reads it, and
+    it never appears in an email or a filed document."""
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        ok = advance_db.set_artist_note(cur, artist_id,
+                                        request.form.get("notes"),
+                                        request.form.get("advance_rating"))
+        conn.commit()
+    if not ok:
+        abort(404)
+    return redirect(url_for("artist_detail", artist_id=artist_id))
+
+
 def _back(default):
     return redirect(_safe_next(request.form.get("next") or request.args.get("next") or default))
 
@@ -2055,7 +2112,10 @@ def _recap_for_draft(sub):
     d = sub.get("data") or {}
     yn = lambda v: "Yes" if v is True else ("No" if v is False else None)  # noqa: E731
     rows = [
-        ("Performers + crew", sub.get("performers")),
+        # 2026-09-24 research #(b): performers is the on-stage count now, crew is
+        # its own answer — say both, and the party total, rather than one number.
+        ("Performers", sub.get("performers")),
+        ("Crew", sub.get("crew_count")),
         ("Monitors", f"{sub['monitors']} wedges" if sub.get("monitors") is not None else None),
         ("IEMs", (d.get("uses_iems") or yn(sub.get("own_iems")))
                  + (f" — own system: {yn(sub.get('own_iems'))}" if str(d.get("uses_iems", "")).lower() == "yes" else "")
@@ -2067,7 +2127,8 @@ def _recap_for_draft(sub):
         ("Merch", yn(sub.get("merch"))),
         ("Band tent", sub.get("band_tent")),
         ("Vehicles", (f"{sub['vehicle_count']} total"
-                      + (f", {sub['large_vehicle_count']} large" if sub.get("large_vehicle_count") is not None else ""))
+                      + (f", {sub['large_vehicle_count']} large" if sub.get("large_vehicle_count") is not None else "")
+                      + (", towing a trailer" if sub.get("trailer") else ""))
                      if sub.get("vehicle_count") is not None else None),
         ("Stage plot", "on file" if d.get("stage_plot_file") else (d.get("stage_plot_desc") or None)),
         ("Scenic", d.get("scenic")), ("Lighting", d.get("lighting")),
@@ -2098,6 +2159,10 @@ def _queue_fsq_parking(rec):
         large = int(rec.get("large_vehicle_count") or 0)
     except (TypeError, ValueError):
         large = 0
+    # 2026-09-24 research #(b): the trailer flag travels with the counts — a van
+    # towing one is a single vehicle here but can't use the 6'8" garage.
+    trailer = str(rec.get("trailer") or "").strip().lower()
+    trailer = True if trailer == "yes" else (False if trailer == "no" else None)
     show_date = None
     sd = (rec.get("show_date") or "").strip()
     if sd:
@@ -2114,7 +2179,7 @@ def _queue_fsq_parking(rec):
                 venue="Fountain Square", show_date=show_date,
                 contact_name=rec.get("contact_name"), contact_email=rec.get("contact_email"),
                 contact_phone=rec.get("contact_phone"),
-                vehicle_count=vehicles, large_vehicle_count=large)
+                vehicle_count=vehicles, large_vehicle_count=large, trailer=trailer)
             conn.commit()
     except Exception as e:  # noqa: BLE001
         _log_db_error("fsq_parking_queue", e)
@@ -2162,8 +2227,13 @@ def fsq_parking_digest():
                 f"{regular}"
                 "<div style='font-weight:400;color:#666;font-size:11px'>"
                 f"of {it.get('vehicle_count') or 0} total, "
-                f"{it.get('large_vehicle_count') or 0} large</div></td>"
-                "</tr>")
+                f"{it.get('large_vehicle_count') or 0} large</div>"
+                # 2026-09-24 research #(b): a towed trailer is invisible in the
+                # counts (van + trailer is one vehicle) and can't use the 6'8"
+                # garage, so it gets called out rather than left to show day.
+                + ("<div style='font-weight:700;color:#b3261e;font-size:11px'>"
+                   "towing a trailer — no garage</div>" if it.get("trailer") else "")
+                + "</td></tr>")
         count = len(items)
         subject = f"FSQ Parking Validations — {count} band{'s' if count != 1 else ''}"
         html = (
@@ -2196,7 +2266,10 @@ def _build_reply_draft(show, artist, sub):
     band = artist["name"]
     greeting = f"Hello {band}" if (not first or first.lower() in band.lower().split()) else f"Hello {first} and {band}"
     when = us_date(show["show_date"]) if show.get("show_date") else ""
-    subject = f"Your {show['venue']} advance — {band}" + (f", {when}" if when else "")
+    # 2026-09-24 research #14: same show key as every other band-facing subject.
+    sys.path.insert(0, str(TOOLS_DIR))
+    import venue_email as ve
+    subject = ve.band_subject("Your advance", band, show.get("venue"), show.get("show_date"))
     body = (f"{greeting},\n\n\n\n"
             "Thanks,\nBrian Lloyd\n3CDC Events / Production\n(315) 404-5648\n\n"
             "──────────────────────────────\n"
@@ -2908,7 +2981,10 @@ def advance_lifecycle():
 
       - WELCOME (initial advance): a show within 21 days, not yet welcomed,
         not responded, not cancelled / on hold, not a manual-entry booking.
-      - FOLLOW-UPS at 7 / 3 / 1 days out while there's no response.
+      - FOLLOW-UPS at 10 / 3 / 1 days out while there's no response.
+      - THE CONFIRMED SCHEDULE at 7 days out to every show, responded or not
+        (2026-09-24 research #3) — with the chase folded into it when the band
+        still hasn't answered, so seven days out is one email, never two.
       - UNRESPONDED ALERT to Brian at 3 days out (manual-entry shows too).
 
     Audit 2026-09-13:
@@ -2941,6 +3017,7 @@ def advance_lifecycle():
     lock_conn = advance_db.get_conn()
     lock_conn.autocommit = True
     initial, followup, failures, dayahead, booking_updates = [], [], 0, [], []
+    schedule = []      # 2026-09-24 research #3: the week-out confirmed schedule
     held_drafts = []
     drafts_dir = None
     try:
@@ -3119,9 +3196,17 @@ def advance_lifecycle():
         # ── follow-ups: closest open tier only, per show (#21) ──
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             by_show = {}
-            for tier in advance_db.FOLLOWUP_TIERS:
+            for tier in advance_db.CHASE_TIERS:
                 for r in advance_db.shows_due_for_followup(cur, tier):
                     by_show.setdefault(r["show_id"], []).append((tier, r))
+            # 2026-09-24 research #3: tier 7 is no longer a chase — it's the
+            # confirmed schedule, and it goes to every show at a week out,
+            # responded or not, so it needs its own due query. It joins the
+            # same closest-open-tier pick below, which is what keeps "one
+            # band-facing advance email per show per run" (#21) true now that
+            # two kinds share the ladder.
+            for r in advance_db.shows_due_for_schedule(cur):
+                by_show.setdefault(r["show_id"], []).append((advance_db.SCHEDULE_TIER, r))
         for show_id, tiers in by_show.items():
             if time.monotonic() > deadline:
                 ran_out_of_time = True
@@ -3131,7 +3216,8 @@ def advance_lifecycle():
             older = [t for t, _ in tiers[1:]]
             if not r["email"]:
                 # 2026-09-21 sweep (PRIOR-16): opted-in 3rd-party shows fail loudly too.
-                fail(show_id, f"followup_{tier}", "no contact email on file")
+                fail(show_id, ("schedule" if tier == advance_db.SCHEDULE_TIER
+                               else f"followup_{tier}"), "no contact email on file")
                 continue
             with advance_db.get_conn() as conn, conn.cursor() as cur:
                 token = _signer.dumps({"a": r["artist_id"],
@@ -3143,48 +3229,103 @@ def advance_lifecycle():
                                              "contact_email": r["booking_contact_email"] or None,
                                              # 2026-09-21 sweep (IDENT-6): see prefilled_form
                                              "show_id": show_id}})
-                code = advance_db.get_or_create_short_link(cur, token)
+                # 2026-09-24 research #11: this path knows its show, so the code
+                # is tied to it at mint time — the welcome's code is backfilled
+                # on its first open instead (see /s/<code>).
+                code = advance_db.get_or_create_short_link(cur, token, show_id=show_id)
                 conn.commit()
             link = f"{PUBLIC_URL}/s/{code}"
-            when = f" on {us_date(r['show_date'])}" if r["show_date"] else ""
-            subject = f"Reminder — performance details for your 3CDC show ({r['venue']}{when})"
-            # audit 2026-09-16 #23: reuse the welcome's own greeting rule
-            # instead of a separate inline one that lacked its "don't
-            # repeat the name" guard — a solo act booked under their own
-            # name used to read "Hello Patsy Meyer and Patsy Meyer and
-            # Groove Latin".
-            from draft_emails import _greeting_contact_name
-            greeting_name = _greeting_contact_name(r["contact_name"], r["artist_name"])
-            greeting = (f"Hello {greeting_name} and {r['artist_name']}"
-                        if greeting_name else f"Hello {r['artist_name']}")
-            body = (
-                f"{greeting},\n\n"
-                f"Circling back on the performance details for your show at "
-                f"{r['venue']}{when} — we still need them to run it well: stage "
-                "plot, monitors, hospitality, and a couple of site logistics. "
-                "It takes about five minutes:\n\n"
-                f"{link}\n\n"
-                "If you've already sent this over, disregard. Thanks,\n"
-                "3CDC Events / Production"
-            )
-            # Review 2026-09-14 (M2): a bilingual series (Salsa) gets the
-            # Spanish half under the English one, same shape as its welcome.
-            if r["series"] and ve.is_bilingual_series(r["series"]):
-                greeting_es = (f"Hola {greeting_name} y {r['artist_name']}"
-                               if greeting_name else f"Hola {r['artist_name']}")
-                when_es = f" el {us_date(r['show_date'])}" if r["show_date"] else ""
-                body_es = (
-                    f"{greeting_es},\n\n"
-                    f"Les escribimos de nuevo sobre los detalles de su presentación en "
-                    f"{r['venue']}{when_es} — todavía los necesitamos para que el show salga bien: "
-                    "plano de escenario, monitores, hospitalidad y un par de detalles logísticos. "
-                    "Toma unos cinco minutos:\n\n"
-                    f"{link}?lang=es\n\n"
-                    "Si ya nos enviaron esta información, ignoren este mensaje. Gracias,\n"
-                    "3CDC Eventos / Producción"
-                )
-                sep = "─" * 42
-                body = f"{body}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
+            if tier == advance_db.SCHEDULE_TIER:
+                # 2026-09-24 research #3: a week out, the band gets the
+                # CONFIRMED SCHEDULE — the same block dayahead sends at T-1,
+                # without the "tomorrow" framing — whether or not they've
+                # answered. When they haven't, F1's T-7 chase paragraph rides
+                # INSIDE it (draft_emails.chase_paragraph, the same bytes the
+                # old tier-7 reminder sent), so an unresponded show still gets
+                # exactly one email at seven days. Same advance_reminders row
+                # closes it either way.
+                chase = chase_es = ""
+                if not r.get("responded"):
+                    from draft_emails import chase_paragraph, missing_for_show
+                    try:
+                        with advance_db.get_conn() as conn, conn.cursor() as cur:
+                            missing = missing_for_show(cur, show_id)
+                    except Exception as e:  # noqa: BLE001 — the schedule still goes out
+                        _log_db_error("schedule_missing", e)
+                        missing = []
+                    due_by = advance_db.advance_deadline(r["show_date"],
+                                                         r.get("booking_created_at"))
+                    # same rule build_reminder applies: a deadline that isn't
+                    # actually before the show (a catch-up run reaching this
+                    # tier late) is dropped, not printed as a date that reads
+                    # wrong.
+                    if due_by and due_by >= r["show_date"]:
+                        due_by = None
+                    chase = chase_paragraph(advance_db.SCHEDULE_TIER, "en", r["venue"],
+                                            r["show_date"], link, missing, due_by)
+                    if r["series"] and ve.is_bilingual_series(r["series"]):
+                        chase_es = chase_paragraph(advance_db.SCHEDULE_TIER, "es", r["venue"],
+                                                   r["show_date"], f"{link}?lang=es",
+                                                   missing, due_by)
+                try:
+                    from dayahead import build_schedule_email, has_schedule, schedule_recipients
+                    if not chase and not has_schedule(r):
+                        # nothing booked yet and nothing to chase: hold the
+                        # tier OPEN (no row) so this goes out on a later run
+                        # if the times land, rather than publishing five TBDs.
+                        continue
+                    subject, body = build_schedule_email(r, chase, chase_es)
+                except Exception as e:  # noqa: BLE001 — one show never blocks the rest
+                    fail(show_id, "schedule", f"couldn't build the email: {e!r}")
+                    continue
+                doc_links = ve.venue_doc_links_text(r["venue"])
+                if doc_links:
+                    body = f"{body}\n\n{doc_links}"
+                ok, err = _send_outlook_email(schedule_recipients(r), subject, body=body)
+                if not ok and mailer.outcome_unknown(err):
+                    # 2026-09-21 sweep (PRIOR-13): timed out, Graph may have sent
+                    # it — close the tier like a send so nothing ever retries it.
+                    with advance_db.get_conn() as conn, conn.cursor() as cur:
+                        advance_db.mark_schedule_sent(cur, show_id, sent=True, chased=bool(chase))
+                        for t in older:
+                            advance_db.mark_followup_sent(cur, show_id, t, sent=False)
+                        conn.commit()
+                    fail(show_id, "schedule_unknown", err)
+                    continue
+                if not ok:
+                    fail(show_id, "schedule", err)
+                    continue
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    advance_db.mark_schedule_sent(cur, show_id, sent=True, chased=bool(chase))
+                    for t in older:
+                        advance_db.mark_followup_sent(cur, show_id, t, sent=False)
+                    conn.commit()
+                schedule.append({"artist_name": r["artist_name"], "venue": r["venue"] or "",
+                                 "show_date": us_date(r["show_date"]), "chased": bool(chase)})
+                continue
+            # 2026-09-24 research #1 + #2: every tier used to send the same
+            # bytes. The body now names what THIS show is still missing and
+            # what happens next at this tier, against the one deadline
+            # (advance_db.advance_deadline) the welcome already printed.
+            # draft_emails owns the copy — including the welcome's greeting
+            # rule (audit 2026-09-16 #23) and the Salsa Spanish half.
+            from draft_emails import build_reminder, missing_for_show
+            try:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    missing = missing_for_show(cur, show_id)
+                    booking_row = advance_db.find_booking(cur, r["venue"], r["show_date"],
+                                                          r["artist_name"])
+            except Exception as e:  # noqa: BLE001 — a reminder still goes out, just less specific
+                _log_db_error("reminder_context", e)
+                missing, booking_row = [], None
+            subject, body = build_reminder(
+                tier, r["artist_name"], r["contact_name"], r["venue"], r["show_date"],
+                link, missing,
+                deadline=advance_db.advance_deadline(
+                    r["show_date"], booking_row.get("created_at") if booking_row else None),
+                set_times=((booking_row.get("event_start"), booking_row.get("event_end"),
+                            booking_row.get("set_time")) if booking_row else None),
+                bilingual=bool(r["series"] and ve.is_bilingual_series(r["series"])))
             # audit 2026-09-16 #17: link the venue's standing docs instead of
             # re-attaching them — the welcome already carried the real
             # attachment (every FSQ email was carrying its own 1.4 MB copy).
@@ -3308,7 +3449,7 @@ def advance_lifecycle():
         except Exception as e2:  # noqa: BLE001
             _log_db_error("advance_lifecycle_failures_email", e2)
         return {"error": e.__class__.__name__, "initial": initial, "followup": followup,
-                "held_drafts": held_drafts}, 500
+                "schedule": schedule, "held_drafts": held_drafts}, 500
     finally:
         try:
             lock_conn.execute("SELECT pg_advisory_unlock(%s)", (LIFECYCLE_LOCK_KEY,))
@@ -3320,6 +3461,7 @@ def advance_lifecycle():
             _shutil.rmtree(drafts_dir, ignore_errors=True)
 
     return {"initial": initial, "followup": followup, "dayahead": dayahead,
+            "schedule": schedule,
             "held_drafts": held_drafts, "booking_updates": booking_updates,
             "thankyou": thankyou, "ran_out_of_time": ran_out_of_time,
             "unresponded_alert_sent": unresponded_sent, "failures": failures}

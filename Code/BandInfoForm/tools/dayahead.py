@@ -20,6 +20,7 @@ dayahead_unknown for Brian to check by hand — never retried.
 """
 import argparse
 import datetime as dt
+import os
 import sys
 from pathlib import Path
 
@@ -46,7 +47,9 @@ def due_shows(cur):
                    s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                    a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
                    b.location, b.lead_name, b.lead_phone, b.contact_name, b.event_name,
-                   b.load_in, b.soundcheck, b.event_start, b.event_end, b.curfew
+                   b.load_in, b.soundcheck, b.event_start, b.event_end, b.curfew,
+                   -- 2026-09-24 research #7: set length belongs in this email too
+                   b.set_time
             FROM shows s JOIN artists a ON a.id = s.artist_id
             LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                    AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
@@ -153,7 +156,9 @@ def build_email(r):
     # TODAY (a missed run yesterday) — "tomorrow" would be wrong in that
     # case, sent the day of the show.
     when_word = "today" if d == dt.date.today() else "tomorrow"
-    subject = f"{when_word.title()} at {r['venue']} — {r['artist_name']} ({d.strftime('%-m/%-d')})"
+    # 2026-09-24 research #14: the show key carries band/venue/date, so the
+    # prefix is just the day. See venue_email.subject_key.
+    subject = ve.band_subject(when_word.title(), r["artist_name"], r["venue"], d)
     contact, is_engineer = _day_of_contact(r)
     extra = {}
     if r["venue"] == "Washington Park":
@@ -169,10 +174,14 @@ def build_email(r):
     sched = _schedule_text(r)
     recap = _recap_lines(r)
     greeting = _greeting(r)
+    # 2026-09-24 research #7: the one thing every source says a band must be
+    # told. event_start/event_end ARE the set times on a booking.
+    set_line = ve.set_line(r.get("event_start"), r.get("event_end"), r.get("set_time"))
     body = (f"{greeting},\n\n"
             f"Quick confirmation for {when_word}, {day}, at {r['venue']}"
             f"{(' — ' + blocks['location']) if blocks.get('location') else ''}.\n\n"
-            f"Day Schedule:\n{sched}\n\n")
+            + (f"{set_line}\n\n" if set_line else "")
+            + f"Day Schedule:\n{sched}\n\n")
     if contact:
         body += f"Day-of Contact: {contact}\n"
         if is_engineer:
@@ -193,14 +202,110 @@ def build_email(r):
         greeting_es = _greeting(r, es=True)
         when_word_es = "hoy" if when_word == "today" else "mañana"
         see_you_es = "Nos vemos hoy" if when_word == "today" else "Nos vemos mañana"
+        set_line_es = ve.set_line(r.get("event_start"), r.get("event_end"),
+                                  r.get("set_time"), lang="es")
         body_es = (f"{greeting_es},\n\n"
                    f"Confirmación rápida para {when_word_es}, {d.strftime('%d/%m/%Y')}, en {r['venue']}.\n\n"
-                   f"Horario del día:\n{sched_es}\n\n")
+                   + (f"{set_line_es}\n\n" if set_line_es else "")
+                   + f"Horario del día:\n{sched_es}\n\n")
         if contact:
             body_es += f"Contacto del día del evento: {contact}\n\n"
         body_es += (f"{_without_form_refs(blocks_es['load_in'], 'es')}\n\n"
                     "Si algo cambió — número de personas, equipo, hora de llegada — respondan a este "
                     f"correo hoy y lo actualizamos.\n\n{see_you_es},\n3CDC Eventos / Producción")
+        sep = "─" * 42
+        body = f"{body}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
+    return subject, body
+
+
+# ── the week-out confirmed schedule (2026-09-24 research #3) ───────────────
+# Elsewhere the one-week-out message is the venue's schedule going out to band
+# and crew together (Stage Portal step 3; Ticket Fairy "publish 1-2 weeks
+# out"), not a fourth nudge coming back. It's the same schedule block this
+# file sends at T-1, minus the "tomorrow" framing and minus the venue's
+# load-in/parking paragraphs — the welcome carried those, and this one is
+# meant to be read on a phone. app.py owns the send loop and the
+# advance_reminders tier row; everything here is copy.
+
+def schedule_cc():
+    """Addresses to copy so the crew reads the same text as the band. Empty
+    today on purpose: there is no crew email anywhere in this data to copy —
+    the staffing sheet's codes tab carries First/Last/CELL (a phone), and
+    bookings carries lead_name/lead_phone (bookings.contact_email is the
+    BAND's contact, not ours). Deriving an address from a name would be
+    inventing a recipient, so the day-of contact appears in the BODY, and a
+    real copy only happens if ADVANCE_SCHEDULE_CC names a list."""
+    return [a.strip() for a in os.environ.get("ADVANCE_SCHEDULE_CC", "").split(",") if a.strip()]
+
+
+def schedule_recipients(r):
+    """`to` for the week-out schedule: the band, any crew copy, then the
+    series' standing CC — through ve.with_extra_recipients so the Salsa rule
+    keeps applying here exactly as it does on every other band-facing send."""
+    to = ", ".join([(r.get("email") or "").strip()] + schedule_cc())
+    return ve.with_extra_recipients(to, r.get("series"))
+
+
+def has_schedule(r):
+    """True when there is actually a schedule to publish — a booking time, or
+    a series' own locked '## Schedule' block. A show with nothing on file yet
+    has no week-out message to send (five TBD lines isn't one), so the caller
+    holds the tier open instead and it goes out on a later run if the times
+    land. A show that also owes us its form is a different case: the chase is
+    the message there, and it sends regardless."""
+    if any(str(r.get(key) or "").strip() for key, _ in SCHEDULE_ROWS):
+        return True
+    return bool(r.get("series") and ve.schedule_block_for(r["venue"], r["series"]))
+
+
+def build_schedule_email(r, chase="", chase_es=""):
+    """(subject, body) for the week-out schedule. `chase` / `chase_es` are
+    draft_emails.chase_paragraph output for a show that still hasn't answered
+    — the caller renders them because it owns the short link and the deadline.
+    Both blank means the band has answered, and then this is schedule-only:
+    no nudge, nothing to do."""
+    d = r["show_date"]
+    day = d.strftime("%A, %B ") + str(d.day)
+    # no dash in the unanswered variant: ve.band_subject adds one before the
+    # show key, and two in one subject line reads like a mistake.
+    base = "Your schedule and what we still need" if chase else "Your schedule"
+    subject = ve.band_subject(base, r["artist_name"], r["venue"], d)
+    contact, is_engineer = _day_of_contact(r)
+    set_txt = ve.set_line(r.get("event_start"), r.get("event_end"), r.get("set_time"))
+    second = ("Times are set on our end; what's still open on yours is at the bottom."
+              if chase else
+              "Nothing needed from you — pass it on to anyone travelling with you.")
+    body = (f"{_greeting(r)},\n\n"
+            f"Here's the confirmed schedule for your show at {r['venue']} on {day}. {second}\n\n"
+            + (f"{set_txt}\n\n" if set_txt else "")
+            + f"Day Schedule:\n{_schedule_text(r)}\n\n")
+    if contact:
+        body += f"Day-of Contact: {contact}\n"
+        if is_engineer:
+            body += "  Please do not call them before show day; they are part-time staff.\n"
+        body += "\n"
+    body += "If any of these times need to move, let us know now rather than on show day.\n\n"
+    if chase:
+        body += f"{chase}\n\n"
+    body += "Thanks,\n3CDC Events / Production"
+    if r.get("series") and ve.is_bilingual_series(r["series"]):
+        set_es = ve.set_line(r.get("event_start"), r.get("event_end"),
+                             r.get("set_time"), lang="es")
+        second_es = ("Los horarios ya están fijos de nuestro lado; lo que falta del suyo "
+                     "está al final." if chase else
+                     "No necesitamos nada de su parte — compártanlo con quien venga con ustedes.")
+        body_es = (f"{_greeting(r, es=True)},\n\n"
+                   f"Este es el horario confirmado de su show en {r['venue']} el "
+                   f"{d.strftime('%d/%m/%Y')}. {second_es}\n\n"
+                   + (f"{set_es}\n\n" if set_es else "")
+                   + f"Horario del día:\n{_schedule_text(r, lang='es')}\n\n")
+        if contact:
+            body_es += f"Contacto del día del evento: {contact}\n\n"
+        body_es += ("Si alguno de estos horarios tiene que cambiar, avísennos ahora y no "
+                    "el día del show.\n\n")
+        if chase:
+            body_es += f"{chase_es}\n\n"
+        body_es += "Gracias,\n3CDC Eventos / Producción"
         sep = "─" * 42
         body = f"{body}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
     return subject, body
@@ -275,7 +380,8 @@ def main():
                 r"""SELECT DISTINCT ON (s.id) s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
                            a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
                            b.location, b.lead_name, b.lead_phone, b.contact_name, b.event_name,
-                           b.load_in, b.soundcheck, b.event_start, b.event_end, b.curfew
+                           b.load_in, b.soundcheck, b.event_start, b.event_end, b.curfew,
+                           b.set_time
                     FROM shows s JOIN artists a ON a.id = s.artist_id
                     LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
                            AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key

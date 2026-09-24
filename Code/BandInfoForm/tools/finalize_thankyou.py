@@ -277,7 +277,8 @@ def build_email(band, venue, show_date, schedule_lines, recap_lines, bilingual):
     surrounding prose (not the schedule/recap block — see module docstring)
     beneath the English body, same separator style as the welcome email."""
     day_phrase = _day_phrase(show_date)
-    subject = f"You're All Set — {band} at {venue} ({show_date.strftime('%-m/%-d')})"
+    # 2026-09-24 research #14: the show key ends every band-facing subject.
+    subject = ve.band_subject("You're All Set", band, venue, show_date)
 
     sched_block = "\n".join(f"  {label}: {time}" for label, time in schedule_lines)
     recap_block = "\n".join(f"  {label}: {value}" for label, value in recap_lines)
@@ -325,7 +326,7 @@ def build_after_show_email(band, venue, show_date, bilingual):
     """(subject, body) for the automatic day-after thank-you (2026-09-21 sweep,
     PRIOR-2). Post-show copy: no schedule, no recap, no filed doc, no 'See
     you'. Draft wording for Brian to tune. Same separator as build_email."""
-    subject = f"Thanks for playing {venue} — {band} ({show_date.strftime('%-m/%-d')})"
+    subject = ve.band_subject("Thanks for playing", band, venue, show_date)
     body_en = (
         f"Hey {band},\n\n"
         f"Thanks for playing {venue} on {_day_phrase(show_date)}, and for getting the "

@@ -187,11 +187,26 @@ STRINGS = {
                            "es": "No contamos con camerinos bajo techo. A solicitud, podemos "
                                  "proporcionar una carpa de 10×10 con paredes laterales para un "
                                  "espacio privado de la banda."},
-    "performers_label":  {"en": "Total number of performers and crew",
-                           "es": "Número total de artistas y equipo de trabajo"},
-    "performers_help":   {"en": "Drink tickets and water are provided for all performers and crew.",
-                           "es": "Se proporcionan boletos de bebida y agua para todos los artistas y el "
+    # 2026-09-24 research #(b) crew headcount: performers is now the ON-STAGE
+    # count and crew_count is everyone else, so the label can't still say "and
+    # crew" — that wording had a 4-piece with a sound tech answering 5 here and
+    # 1 below, counting the tech twice.
+    "performers_label":  {"en": "Number of performers on stage",
+                           "es": "Número de artistas en el escenario"},
+    "performers_help":   {"en": "Just the people performing. Everyone else in your party goes in the "
+                                 "next question, so nobody gets counted twice. Drink tickets and water "
+                                 "are provided for all performers and crew.",
+                           "es": "Solo las personas que se presentan. El resto de su grupo va en la "
+                                 "siguiente pregunta, para que nadie se cuente dos veces. Se "
+                                 "proporcionan boletos de bebida y agua para todos los artistas y el "
                                  "equipo de trabajo."},
+    "crew_count_label":  {"en": "Number of crew traveling with you",
+                           "es": "Número de personas de equipo que vienen con ustedes"},
+    "crew_count_help":   {"en": "Everyone in your party who isn't on stage — sound, merch, driver, "
+                                 "tour manager. Enter 0 if it's just the performers.",
+                           "es": "Todas las personas de su grupo que no suben al escenario — sonido, "
+                                 "mercancía, chofer, mánager de gira. Escriban 0 si solo vienen los "
+                                 "artistas."},
     "vehicle_count_label": {"en": "How many vehicles will you be arriving in?",
                              "es": "¿Con cuántos vehículos llegarán?"},
     "vehicle_count_help": {"en": "Total vehicles for your whole group — this is how many parking "
@@ -213,14 +228,23 @@ STRINGS = {
     "large_vehicle_count_label": {"en": "How many of those need large vehicle parking?",
                                    "es": "¿Cuántos de esos necesitan estacionamiento para "
                                          "vehículo grande?"},
-    "large_vehicle_count_help": {"en": "Out of the total vehicles above. Includes any vehicle "
-                                        "over 6 ft 8 in (the garage clearance), large vans, any "
-                                        "vehicle with a trailer, and tour buses. Enter 0 if none.",
-                                  "es": "Del total de vehículos indicado arriba. Incluye "
-                                        "cualquier vehículo de más de 6 pies 8 pulgadas (la "
-                                        "altura máxima del estacionamiento), camionetas grandes, "
-                                        "cualquier vehículo con remolque y autobuses de gira. "
-                                        "Escriban 0 si ninguno."},
+    # 2026-09-24 research #(b) vehicle type: the help now names the 6 ft 8 in
+    # garage limit and the shapes that blow it, instead of leaving a band to
+    # guess what counts as "large".
+    "large_vehicle_count_help": {"en": "Out of the total vehicles above. Van + trailer, box truck, "
+                                        "bus — anything over 6 ft 8 in can't use the garage. "
+                                        "Enter 0 if none.",
+                                  "es": "Del total de vehículos indicado arriba. Camioneta con "
+                                        "remolque, camión tipo caja, autobús — cualquier vehículo "
+                                        "de más de 6 pies 8 pulgadas no puede entrar al "
+                                        "estacionamiento. Escriban 0 si ninguno."},
+    "trailer_label":     {"en": "Are you towing a trailer?", "es": "¿Van a traer un remolque?"},
+    "trailer_help":      {"en": "A vehicle with a trailer can't use the garage even if the vehicle "
+                                 "itself clears 6 ft 8 in. Tell us now and we'll sort out where to "
+                                 "put it.",
+                           "es": "Un vehículo con remolque no puede entrar al estacionamiento aunque "
+                                 "el vehículo por sí solo quepa en los 6 pies 8 pulgadas. Avísennos "
+                                 "ahora y les buscamos dónde estacionarlo."},
 
     # ── acknowledgments ──────────────────────────────────────────────────
     "ack_loadin_text":   {"en": "The load-in process at 3CDC has changed — please review the "

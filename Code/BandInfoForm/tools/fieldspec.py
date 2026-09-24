@@ -295,6 +295,10 @@ BAND_FIELDS = [
     ("Band Tent",     "band_tent",     ["Yes, please provide the tent",
                                         "No, not needed"], "dressing room tent"),
     ("Performers",    "performers",    None, "number of performers"),
+    # 2026-09-24 research #(b): crew is ADDITIVE to performers, not a subset —
+    # both land in the day sheet's "number of performers" cell ("4 performers +
+    # 2 crew"), and drink tix stays performers x 2.
+    ("Crew Count",    "crew_count",    None, "number of performers"),
     ("Vehicle Count", "vehicle_count", None, "parking"),
     # large_vehicle (Yes/No) replaced by a count (Brian, 2026-09-13) — kept
     # here so old submissions' answers still surface in the sheet/exports;
@@ -302,6 +306,10 @@ BAND_FIELDS = [
     # actually asks now.
     ("Large Vehicle", "large_vehicle", ["Yes", "No"], "parking"),
     ("Large Vehicle Count", "large_vehicle_count", None, "parking"),
+    # 2026-09-24 research #(b): a van + trailer is ONE vehicle in the counts
+    # above and still can't use the 6'8" FSQ garage — the flag rides in the
+    # same "parking" cell.
+    ("Trailer",       "trailer",       ["Yes", "No"], "parking"),
 ]
 
 # column label -> key, for every column in the sheet, in order

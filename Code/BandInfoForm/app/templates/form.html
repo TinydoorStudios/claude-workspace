@@ -322,6 +322,15 @@
     <p class="help">{{ t('performers_help') }}</p>
   </div>
 
+  {# 2026-09-24 research #(b): crew is additive to performers, never a subset —
+     performers still drives drink tix, crew is what the parking/escort/day-sheet
+     headcount needs on top of it. Defaults to 0 so a band with no crew can skip it. #}
+  <div class="field">
+    <label class="q">{{ t('crew_count_label') }}<span class="req">*</span></label>
+    <input type="number" name="crew_count" min="0" step="1" required value="{{ prefill.get('crew_count', '0') }}">
+    <p class="help">{{ t('crew_count_help') }}</p>
+  </div>
+
   {% if cfg.blocks.large_vehicle %}
   <div class="field">
     <label class="q">{{ t('vehicle_count_label') }}<span class="req">*</span></label>
@@ -331,8 +340,23 @@
 
   <div class="field">
     <label class="q">{{ t('large_vehicle_count_label') }}<span class="req">*</span></label>
-    <input type="number" name="large_vehicle_count" min="0" step="1" required value="{{ v('large_vehicle_count') }}">
+    <input type="number" name="large_vehicle_count" id="large_vehicle_count" min="0" step="1" required value="{{ v('large_vehicle_count') }}">
     <p class="help">{{ t('large_vehicle_count_help') }}</p>
+  </div>
+
+  {# 2026-09-24 research #(b): a van + trailer is ONE vehicle in the counts above,
+     so the count alone never told anyone it can't use the 6'8" garage.
+     Brian, 2026-09-24: optional, and only asked when they have a large vehicle
+     to tow it with — same show/hide shape as the IEM questions above. #}
+  <div class="field conditional hidden" id="trailer_field">
+    <label class="q">{{ t('trailer_label') }}</label>
+    {% set tr = prefill.get('trailer') %}
+    <select name="trailer" id="trailer">
+      <option value="" {{ 'selected' if not tr else '' }}>{{ t('select_placeholder') }}</option>
+      <option value="Yes" {{ 'selected' if tr=='Yes' else '' }}>{{ t('yes') }}</option>
+      <option value="No" {{ 'selected' if tr=='No' else '' }}>{{ t('no') }}</option>
+    </select>
+    <p class="help">{{ t('trailer_help') }}</p>
   </div>
   {% endif %}
 
@@ -423,6 +447,24 @@
   usesIems.addEventListener('change', syncOwnIems);
   iem.addEventListener('change', syncSplit);
   syncOwnIems();
+
+  // Trailer only matters once there's a large vehicle to tow it with (Brian,
+  // 2026-09-24) — optional either way, and cleared when it stops applying so a
+  // band that edits the count back to 0 can't leave a stale Yes behind.
+  var lvCount = document.getElementById('large_vehicle_count');
+  var trailerField = document.getElementById('trailer_field');
+  var trailer = document.getElementById('trailer');
+  function syncTrailer(){
+    if(!lvCount || !trailerField) return;
+    var show = parseInt(lvCount.value, 10) > 0;
+    trailerField.classList.toggle('hidden', !show);
+    if(!show){ trailer.value = ''; }
+  }
+  if(lvCount){
+    lvCount.addEventListener('input', syncTrailer);
+    lvCount.addEventListener('change', syncTrailer);
+    syncTrailer();
+  }
 
   // Stage plot: upload OR description, not both required — at least one
   // (Brian, 2026-09-08). A returning artist with one already on file needs

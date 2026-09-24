@@ -1,5 +1,9 @@
 {% set show_label = series or event_name %}
-Subject: Welcome to {% if show_label %}{{ show_label }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} — {{ show_date }}{% endif +%}
+{# 2026-09-24 research #14: the subject ends with the show key (Band · Venue ·
+   M/D) instead of "at {venue} — {date}" — the key already carries both, and
+   an Outlook thread, an inbox search and any future reply parsing all line
+   up on it. See venue_email.subject_key. #}
+Subject: Welcome to {% if show_label %}{{ show_label }}{% else %}your 3CDC show{% endif %}{% if subject_key %} — {{ subject_key }}{% endif +%}
 
 Hello{% if contact_name %} {{ contact_name }} and{% endif %}{% if name %} {{ name }}{% endif %},
 

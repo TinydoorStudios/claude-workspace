@@ -114,6 +114,38 @@ def to_date(v):
         return None
 
 
+def _as_date(v):
+    """date | None from a date, a datetime, or an ISO-ish string."""
+    if isinstance(v, dt.datetime):
+        return v.date()
+    if isinstance(v, dt.date):
+        return v
+    return to_date(v)
+
+
+def advance_deadline(show_date, booking_created_at=None):
+    """2026-09-24 research #2: THE deadline for a band's advance — one date,
+    used by the welcome, every reminder tier and every internal surface, so a
+    band is never told two different things (Lennd: "give artists one deadline
+    for everything"; Stage Portal states it at booking).
+
+    A week before the show, or two weeks after the booking was logged when
+    that lands sooner, then clamped: never after the day before the show, and
+    never in the past (a show booked inside the window still gets a real date
+    a band can act on, not "by last Tuesday"). The floor wins that clamp, so a
+    show booked a day or two out reads "by <show day>" rather than a date
+    that's already gone. None when there's no show date."""
+    d = _as_date(show_date)
+    if not d:
+        return None
+    deadline = d - dt.timedelta(days=7)
+    booked = _as_date(booking_created_at)
+    if booked:
+        deadline = min(deadline, booked + dt.timedelta(days=14))
+    deadline = min(deadline, d - dt.timedelta(days=1))
+    return max(deadline, dt.date.today() + dt.timedelta(days=1))
+
+
 def get_conn():
     # timestamps stored as TIMESTAMPTZ (UTC); display them in Cincinnati time
     return psycopg.connect(
@@ -351,7 +383,31 @@ def shows_due_for_initial_advance(cur):
 # processes widest-window-first, though with live sends each tier is
 # independent and order no longer really matters the way it did when
 # multiple tiers could pile up behind one unsent draft.
-FOLLOWUP_TIERS = (7, 3, 1)
+# 2026-09-24 research #4: the ladder starts at 10 days out, not 7. The old
+# escalation was an internal alert to Brian at T-3, by which point the packet is
+# already being built and no stage plot arriving then can change it. T-10 is the
+# first firm chase, and it rides this same mechanism — advance_reminders
+# UNIQUE(show_id, days_before) — so it is idempotent, pre-skipped when the show
+# was booked inside the window, and outcome-safe on a timeout, exactly like
+# 7/3/1. The T-3 internal alert stays as the last resort.
+# HOOK for F1 (research #1, per-tier wording): app.py's follow-up block renders
+# ONE generic reminder body for every tier, so today T-10 reads like the T-7
+# reminder. The tier number is in scope there as `tier`.
+FIRST_CHASE_TIER = 10
+FOLLOWUP_TIERS = (FIRST_CHASE_TIER, 7, 3, 1)
+
+# 2026-09-24 research #3: at one week out the venue's message is the CONFIRMED
+# SCHEDULE going out (Stage Portal step 3, Ticket Fairy "publish 1-2 weeks
+# out"), not a nudge coming back. So tier 7 is no longer a chase — it IS that
+# email, it goes to every show at 7 days whether or not the band answered, and
+# when they haven't the T-7 chase paragraph rides inside it. One row in
+# advance_reminders (UNIQUE(show_id, days_before)) still gates it, so the
+# schedule email and the old tier-7 reminder can never both go out.
+SCHEDULE_TIER = 7
+# The tiers that are still plain chases. app.py merges shows_due_for_schedule
+# into the same per-show "closest open tier wins" pick (#21), so a show gets at
+# most one of these emails per run no matter how many tiers are open.
+CHASE_TIERS = tuple(t for t in FOLLOWUP_TIERS if t != SCHEDULE_TIER)
 
 
 def shows_due_for_followup(cur, days_before=7):
@@ -380,6 +436,48 @@ def shows_due_for_followup(cur, days_before=7):
              AND s.cancelled_at IS NULL AND s.held_at IS NULL
              AND s.responded_at IS NULL
              AND NOT """ + BAND_ANSWERED_SQL + """
+             AND NOT EXISTS (SELECT 1 FROM advance_reminders r
+                             WHERE r.show_id = s.id AND r.days_before = %s)
+             AND s.show_date IS NOT NULL
+             AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
+             AND NOT """ + THIRD_PARTY_SILENT_SQL + """
+           ORDER BY s.id, b.id DESC NULLS LAST""",
+        (days_before, days_before),
+    )
+    return sorted(cur.fetchall(), key=lambda r: (r["show_date"], r["show_id"]))
+
+
+def shows_due_for_schedule(cur, days_before=None):
+    """2026-09-24 research #3: shows due the week-out CONFIRMED SCHEDULE email
+    — shows_due_for_followup's twin with the response gates removed, because
+    this one goes to every show whether the band has answered or not.
+
+    Everything else decides identically to the chase tiers, on purpose: the
+    welcome must already have gone out (which is also what keeps a
+    manual-advance booking and a welcome still held as a draft out of here),
+    never a cancelled or on-hold show, never a 3rd-party show with band emails
+    off, and the tier closes on its own advance_reminders row so a second run
+    sends nothing. Carries the booking's schedule columns so dayahead can
+    render the same block it sends at T-1, and `responded` so the caller knows
+    whether the chase paragraph belongs under it."""
+    days_before = SCHEDULE_TIER if days_before is None else days_before
+    cur.execute(
+        r"""SELECT DISTINCT ON (s.id)
+                  s.id AS show_id, a.id AS artist_id, a.name AS artist_name,
+                  a.last_email AS email, s.venue, s.show_series AS series, s.show_date,
+                  b.location AS location, b.event_name AS event_name,
+                  b.lead_name AS lead_name, b.lead_phone AS lead_phone,
+                  b.load_in AS load_in, b.soundcheck AS soundcheck,
+                  b.event_start AS event_start, b.event_end AS event_end,
+                  b.curfew AS curfew, b.set_time AS set_time,
+                  b.contact_name AS contact_name, b.contact_email AS booking_contact_email,
+                  b.created_at AS booking_created_at,
+                  (s.responded_at IS NOT NULL OR """ + BAND_ANSWERED_SQL + r""") AS responded
+           FROM shows s JOIN artists a ON a.id = s.artist_id
+           LEFT JOIN bookings b ON b.venue = s.venue AND b.event_date = s.show_date
+                  AND lower(btrim(regexp_replace(b.artist_name, '\s+', ' ', 'g'))) = a.match_key
+           WHERE s.advance_draft_created_at IS NOT NULL
+             AND s.cancelled_at IS NULL AND s.held_at IS NULL
              AND NOT EXISTS (SELECT 1 FROM advance_reminders r
                              WHERE r.show_id = s.id AND r.days_before = %s)
              AND s.show_date IS NOT NULL
@@ -494,6 +592,26 @@ def mark_followup_sent(cur, show_id, days_before=7, sent=True):
         "UPDATE shows SET followup_draft_created_at = COALESCE(followup_draft_created_at, now()) "
         "WHERE id = %s", (show_id,),
     )
+
+
+def mark_schedule_sent(cur, show_id, sent=True, chased=False):
+    """Close the week-out tier (2026-09-24 research #3). Deliberately the SAME
+    advance_reminders row mark_followup_sent would have written for tier 7 —
+    reusing that UNIQUE(show_id, days_before) is what makes "one email at seven
+    days, never two" true without a parallel table to keep in step.
+
+    `chased` stamps the legacy shows.followup_draft_created_at only when the
+    chase paragraph actually rode along: a show that already answered got a
+    schedule, not a follow-up, and the status views read that column."""
+    cur.execute(
+        "INSERT INTO advance_reminders (show_id, days_before, sent) VALUES (%s, %s, %s) "
+        "ON CONFLICT (show_id, days_before) DO NOTHING", (show_id, SCHEDULE_TIER, sent),
+    )
+    if chased:
+        cur.execute(
+            "UPDATE shows SET followup_draft_created_at = COALESCE(followup_draft_created_at, now()) "
+            "WHERE id = %s", (show_id,),
+        )
 
 
 def mark_stale_followup_tiers_skipped(cur, show_id, days_out):
@@ -619,11 +737,18 @@ def advances_responded_since(cur, hours=24):
 
 def upcoming_advance_status(cur, days=14):
     """Every show within `days` of today (0 = today), soonest first — the
-    daily digest's ranked at-a-glance list."""
+    daily digest's ranked at-a-glance list.
+    2026-09-24 research #11: link_opened_at rides along (when the band first
+    opened the emailed /s/ link) so a row still waiting on a form can say
+    whether the welcome was ever read — see welcome_open_phrase. Left out of
+    the view itself; only this one caller wants it."""
     cur.execute(
-        """SELECT * FROM advance_status
-           WHERE days_until_show BETWEEN 0 AND %s
-           ORDER BY days_until_show ASC, band ASC""",
+        """SELECT v.*,
+                  (SELECT max(sl.first_opened_at) FROM short_links sl
+                    WHERE sl.show_id = v.show_id) AS link_opened_at
+           FROM advance_status v
+           WHERE v.days_until_show BETWEEN 0 AND %s
+           ORDER BY v.days_until_show ASC, v.band ASC""",
         (days,),
     )
     return cur.fetchall()
@@ -760,8 +885,8 @@ def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
             artist_id, show_id, contact_name, contact_email, contact_phone,
             venue, show_date, performers, monitors, own_iems, split_snake,
             stage_type, own_engineer, merch, band_tent, large_vehicle,
-            vehicle_count, large_vehicle_count, data, source
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            vehicle_count, large_vehicle_count, trailer, crew_count, data, source
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         RETURNING id
         """,
         (
@@ -777,6 +902,10 @@ def insert_submission(cur, artist_id, show_id, data: dict, source="form"):
             # for every new submission and only ever has a value on old rows.
             to_bool(data.get("large_vehicle")), to_int(data.get("vehicle_count")),
             to_int(data.get("large_vehicle_count")),
+            # 2026-09-24 research #(b): trailer is the flag a vehicle COUNT can't
+            # carry (van + trailer = one vehicle, and it can't use the FSQ garage);
+            # crew_count is additive to performers, which keeps its own meaning.
+            to_bool(data.get("trailer")), to_int(data.get("crew_count")),
             json.dumps(data), source,
         ),
     )
@@ -959,6 +1088,23 @@ def names_plausible(typed, booked):
 def get_artist(cur, artist_id):
     cur.execute("SELECT * FROM artists WHERE id = %s", (artist_id,))
     return cur.fetchone()
+
+
+def set_artist_note(cur, artist_id, notes, rating):
+    """The staff post-show note + 1–5 advance-accuracy pip (2026-09-24 research
+    #12). Blank note or no pip clears that half. Rating is clamped here as well
+    as in the column's CHECK so a hand-posted 9 is a no-op, not a 500. Returns
+    True if the artist exists. Staff-only: nothing band-facing ever reads these."""
+    notes = (notes or "").strip() or None
+    try:
+        rating = int(rating)
+    except (TypeError, ValueError):
+        rating = None
+    if rating is not None and not 1 <= rating <= 5:
+        rating = None
+    cur.execute("UPDATE artists SET notes=%s, advance_rating=%s WHERE id=%s RETURNING id",
+                (notes, rating, artist_id))
+    return cur.fetchone() is not None
 
 
 def newest_submission(cur, artist_id):
@@ -1416,9 +1562,9 @@ SHEET_OWNED_FIELDS = [
 # second system to keep in sync. contact_name/contact_email are the booking's
 # own fields already; contact_phone is band-only, added here.
 BOOKING_BAND_ANSWER_FIELDS = [
-    "contact_phone", "performers", "stage_type", "monitors", "uses_iems",
+    "contact_phone", "performers", "crew_count", "stage_type", "monitors", "uses_iems",
     "iem_count", "own_iems", "split_snake", "own_engineer", "merch",
-    "band_tent", "vehicle_count", "large_vehicle_count", "backline",
+    "band_tent", "vehicle_count", "large_vehicle_count", "trailer", "backline",
     "scenic", "lighting", "stage_plot_desc", "additional",
     "stage_escort_name", "stage_escort_cell",
     # the three acknowledgment checkboxes a real submission carries — optional
@@ -2135,20 +2281,27 @@ def rekey_filed_doc(cur, reg, new_key):
     cur.execute("UPDATE filed_docs SET event_key=%s WHERE id=%s", (new_key, reg["id"]))
 
 
-def get_or_create_short_link(cur, token, key=None):
+def get_or_create_short_link(cur, token, key=None, show_id=None):
     """Deterministic short code for a signed /f/<token> prefill link (same token
     -> same code, so re-drafting a show doesn't pile up rows). /s/<code> 302s to
     the real link — see app.py.
     2026-09-21 sweep (MAIL-1): `key` (optional) replaces the token as the code's
-    hash input — timed tokens differ per call; the first token for a key wins."""
+    hash input — timed tokens differ per call; the first token for a key wins.
+    2026-09-24 research #11: `show_id` (optional) ties the code to its advance so
+    the dashboard and digest can report the open. Callers that don't know it at
+    mint time leave it out — open_short_link backfills it from the token on the
+    first hit, the only moment the link matters."""
     import base64
     import hashlib
     digest = hashlib.sha256((key or token).encode()).digest()
     code = base64.urlsafe_b64encode(digest)[:8].decode()
     cur.execute(
-        "INSERT INTO short_links (code, token) VALUES (%s, %s) "
-        "ON CONFLICT (code) DO NOTHING", (code, token),
+        "INSERT INTO short_links (code, token, show_id) VALUES (%s, %s, %s) "
+        "ON CONFLICT (code) DO NOTHING", (code, token, show_id),
     )
+    if show_id:
+        cur.execute("UPDATE short_links SET show_id=%s WHERE code=%s AND show_id IS NULL",
+                    (show_id, code))
     return code
 
 
@@ -2198,6 +2351,39 @@ def resolve_short_link(cur, code):
     cur.execute("SELECT token FROM short_links WHERE code = %s", (code,))
     row = cur.fetchone()
     return row["token"] if row else None
+
+
+def open_short_link(cur, code):
+    """Resolve an emailed /s/<code> AND record the open in one statement
+    (2026-09-24 research #11) — first hit sets first_opened_at, every hit bumps
+    open_count. Deliberately the same UPDATE ... RETURNING that does the lookup,
+    so tracking costs the redirect no extra round trip and no second
+    transaction; app.py falls back to resolve_short_link if this raises, because
+    a stamp that fails must never cost the band their link. Returns the row
+    (token, show_id, first_opened_at, open_count) or None for an unknown code.
+    Nothing about the visitor is recorded — no IP, no user agent, no per-hit
+    rows; open_count is the whole history."""
+    cur.execute(
+        """UPDATE short_links
+              SET open_count = open_count + 1,
+                  first_opened_at = COALESCE(first_opened_at, now())
+            WHERE code = %s
+        RETURNING token, show_id, first_opened_at, open_count""",
+        (code,),
+    )
+    return cur.fetchone()
+
+
+def attach_short_link_show(cur, code, show_id):
+    """Point an already-minted code at its show (2026-09-24 research #11). The
+    welcome link is minted by tools/draft_emails.py, which doesn't pass a
+    show_id; app.py's /s/ route reads it out of the signed token and backfills
+    it here on the first open. Only ever fills a NULL — a code is never
+    re-pointed at a different show."""
+    if not show_id:
+        return
+    cur.execute("UPDATE short_links SET show_id=%s WHERE code=%s AND show_id IS NULL",
+                (show_id, code))
 
 
 # ── filed advance docs registry (2026-09-13 audit #1/#2) ─────────────────────
@@ -2464,6 +2650,32 @@ def mark_digest_items_delivered(cur, ids):
         cur.execute("UPDATE digest_items SET delivered_at = now() WHERE id = ANY(%s)", (list(ids),))
 
 
+def welcome_open_phrase(sent_at, opened_at):
+    """"welcome sent 09/02 · opened 09/03" / "welcome sent 09/02 · never opened"
+    (2026-09-24 research #11). A link hit is the earliest sign the mail didn't
+    land in spam, so "never opened" is the row to work by hand first. Reads
+    "no welcome sent yet" for a manual-entry booking that skipped the welcome."""
+    if not sent_at:
+        return "no welcome sent yet"
+    sent = f"welcome sent {sent_at:%m/%d}"
+    return f"{sent} · opened {opened_at:%m/%d}" if opened_at else f"{sent} · never opened"
+
+
+def artist_note_phrase(notes, rating, limit=70):
+    """"last time: plot wrong, 3 reminders · 3/5" (2026-09-24 research #12) —
+    the staff note + advance-accuracy pip on a returning band, so the next chase
+    starts calibrated. Blank for a band with neither. First line only, clipped:
+    these ride inside a one-line Needs-you row, and the full note lives on
+    /artist. Staff-only — never goes anywhere a band can see."""
+    bits = []
+    first = ((notes or "").strip().splitlines() or [""])[0].strip()
+    if first:
+        bits.append(first if len(first) <= limit else first[:limit - 1].rstrip() + "…")
+    if rating:
+        bits.append(f"{rating}/5")
+    return ("last time: " + " · ".join(bits)) if bits else ""
+
+
 def needs_attention(cur):
     """Open decisions and problems, live, for the dashboard panel and the
     digest. Each entry: {kind, label, detail, link_path, since}."""
@@ -2580,7 +2792,52 @@ def needs_attention(cur):
         out.append({"kind": "thankyou", "label": "Thank-you not sent",
                     "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: {r['thankyou_error']}",
                     "link_path": f"/artist/{r['artist_id']}", "since": None})
-    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date
+    # 2026-09-24 research #4: the 10-days-out row. The first firm chase is the
+    # T-10 reminder tier (FIRST_CHASE_TIER) — this reports what happened to it,
+    # so a band that is still silent is visible a week before the 3-day row
+    # below exists and there is still time to build the packet off a real plot.
+    # Listed only once that tier has resolved for the show, so it never nags
+    # about a welcome that went out yesterday. The link is the staff answers
+    # page, for when a band replies with the details by email instead of filling
+    # the form in — no phone number anywhere: everything reaches the band
+    # through Production@3cdc.org (Brian, 2026-09-24).
+    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date,
+                          a.last_email AS email, a.notes, a.advance_rating,
+                          s.advance_draft_created_at,
+                          (SELECT max(sl.first_opened_at) FROM short_links sl
+                            WHERE sl.show_id = s.id) AS link_opened_at,
+                          (SELECT r.drafted_at FROM advance_reminders r
+                            WHERE r.show_id = s.id AND r.days_before = %s AND r.sent) AS nudge_sent_at
+                   FROM shows s JOIN artists a ON a.id=s.artist_id
+                   WHERE s.responded_at IS NULL AND s.cancelled_at IS NULL AND s.held_at IS NULL
+                     AND s.show_date BETWEEN CURRENT_DATE + 4 AND CURRENT_DATE + %s
+                     AND EXISTS (SELECT 1 FROM advance_reminders r
+                                 WHERE r.show_id = s.id AND r.days_before = %s)
+                     AND NOT """ + BAND_ANSWERED_SQL + """
+                     AND NOT (lower(btrim(COALESCE(s.show_series,''))) = '3rd party' AND COALESCE(a.last_email,'') = '')
+                     AND NOT """ + THIRD_PARTY_SILENT_SQL + """
+                   ORDER BY s.show_date""",
+                (FIRST_CHASE_TIER, FIRST_CHASE_TIER, FIRST_CHASE_TIER))
+    for r in cur.fetchall():
+        nudge = (f"{FIRST_CHASE_TIER}-day nudge sent {r['nudge_sent_at']:%m/%d}"
+                 if r["nudge_sent_at"] else f"{FIRST_CHASE_TIER}-day nudge skipped")
+        bits = [f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}",
+                r["email"] or "no email on file", nudge,
+                welcome_open_phrase(r["advance_draft_created_at"], r["link_opened_at"])]
+        note = artist_note_phrase(r["notes"], r["advance_rating"])
+        if note:
+            bits.append(note)
+        out.append({"kind": "chase10", "label": f"No advance, {FIRST_CHASE_TIER} days out",
+                    "detail": " · ".join(bits),
+                    "link_path": f"/show/{r['id']}/edit",
+                    "link_label": "type their answers →", "since": None})
+    # 2026-09-24 research #11 + #12: the last-resort row carries the same open
+    # state (a welcome never opened is a different problem from one read and
+    # ignored) and last time's staff note.
+    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date,
+                          a.notes, a.advance_rating, s.advance_draft_created_at,
+                          (SELECT max(sl.first_opened_at) FROM short_links sl
+                            WHERE sl.show_id = s.id) AS link_opened_at
                    FROM shows s JOIN artists a ON a.id=s.artist_id
                    WHERE s.responded_at IS NULL AND s.cancelled_at IS NULL AND s.held_at IS NULL
                      AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 3
@@ -2589,8 +2846,13 @@ def needs_attention(cur):
                      AND NOT """ + THIRD_PARTY_SILENT_SQL + """
                    ORDER BY s.show_date""")
     for r in cur.fetchall():
+        bits = [f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}",
+                welcome_open_phrase(r["advance_draft_created_at"], r["link_opened_at"])]
+        note = artist_note_phrase(r["notes"], r["advance_rating"])
+        if note:
+            bits.append(note)
         out.append({"kind": "unresponded", "label": "No form, show within 3 days",
-                    "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}",
+                    "detail": " · ".join(bits),
                     "link_path": f"/artist/{r['artist_id']}", "since": None})
     return out
 
@@ -2627,7 +2889,7 @@ def uncancel_show(cur, show_id):
 
 def queue_fsq_parking(cur, *, artist_id, show_id, band, venue, show_date,
                        contact_name, contact_email, contact_phone,
-                       vehicle_count, large_vehicle_count):
+                       vehicle_count, large_vehicle_count, trailer=None):
     """Hold one Fountain Square band's parking numbers for the next daily
     digest (Brian, 2026-09-15 — step 2: no more per-submission draft,
     everything overnight batches into one email, sent only when non-empty).
@@ -2640,12 +2902,17 @@ def queue_fsq_parking(cur, *, artist_id, show_id, band, venue, show_date,
         cur.execute("DELETE FROM fsq_parking_queue WHERE show_id=%s AND digested_at IS NULL",
                     (show_id,))
     cur.execute(
+        # 2026-09-24 research #(b): trailer rides along in the snapshot — a
+        # towed trailer can't use the 6'8" garage, and the counts alone never
+        # said so (van + trailer is one vehicle).
         """INSERT INTO fsq_parking_queue
                (artist_id, show_id, band, venue, show_date, contact_name,
-                contact_email, contact_phone, vehicle_count, large_vehicle_count)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                contact_email, contact_phone, vehicle_count, large_vehicle_count,
+                trailer)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
         (artist_id, show_id, band, venue, show_date, contact_name,
-         contact_email, contact_phone, vehicle_count, large_vehicle_count))
+         contact_email, contact_phone, vehicle_count, large_vehicle_count,
+         trailer))
     return cur.fetchone()["id"]
 
 
@@ -2847,6 +3114,10 @@ def merge_shows(cur, old_id, new_id, tombstone=True):
                 (new_id, new["artist_id"], old_id, new_id))
     cur.execute("UPDATE submission_matches SET booked_show_id=%s WHERE booked_show_id=%s",
                 (new_id, old_id))
+    # 2026-09-24 research #11: the open history follows the show — a typo fix
+    # would otherwise reset the corrected show to "never opened" when the old
+    # row's ON DELETE SET NULL cut its links loose.
+    cur.execute("UPDATE short_links SET show_id=%s WHERE show_id=%s", (new_id, old_id))
     cur.execute(
         """UPDATE shows n SET
              email_sent_at = COALESCE(n.email_sent_at, o.email_sent_at),

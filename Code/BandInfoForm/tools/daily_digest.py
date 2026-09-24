@@ -196,6 +196,12 @@ def build_digest(days_ahead=14, hours_back=24, mark_delivered=True):
 
     for row in upcoming:
         row["style"] = STATE_STYLE.get(row["state"], (row["state"] or "—", "#E5E7EB", "#374151"))
+        # 2026-09-24 research #11: only rows still waiting on a form get the
+        # open line — once a band has answered, whether they opened the link is
+        # history. "never opened" is the earliest sign the welcome went to spam.
+        row["open_note"] = ("" if row["state"] in ("responded", "finalized")
+                            else db.welcome_open_phrase(row["advance_draft_created_at"],
+                                                        row["link_opened_at"]))
 
     # autoescape: band/venue names are user-typed (audit cleanup)
     env = Environment(loader=FileSystemLoader(str(TEMPLATES)), autoescape=True)

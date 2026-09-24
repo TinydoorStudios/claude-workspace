@@ -15,7 +15,7 @@
   the English half above already shows it).
 #}
 {% set show_label = series or event_name %}
-Subject: Bienvenidos a {% if show_label %}{{ show_label }}{% else %}su show de 3CDC{% endif %} en {{ venue }}{% if show_date %} — {{ show_date }}{% endif +%}
+Subject: Bienvenidos a {% if show_label %}{{ show_label }}{% else %}su show de 3CDC{% endif %}{% if subject_key %} — {{ subject_key }}{% endif +%}
 
 Hola{% if contact_name %} {{ contact_name }} y{% endif %}{% if name %} {{ name }}{% endif %},
 

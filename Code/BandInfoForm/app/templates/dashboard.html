@@ -434,7 +434,9 @@ async function refreshNeeds(){
     const sec = document.getElementById("needs");
     const list = document.getElementById("needs-list");
     list.innerHTML = items.map(it =>
-      `<li><span class="lbl">${esc(it.label)}</span><span>${esc(it.detail)}${it.link_path ? ` <a href="${esc(it.link_path)}">open →</a>` : ""}</span></li>`
+      // 2026-09-24 research #4: link_label lets a row name its own action
+      // ("type their answers →" on the 10-days-out row); everything else keeps "open →".
+      `<li><span class="lbl">${esc(it.label)}</span><span>${esc(it.detail)}${it.link_path ? ` <a href="${esc(it.link_path)}">${esc(it.link_label || "open →")}</a>` : ""}</span></li>`
     ).join("");
     document.getElementById("needs-count").textContent = items.length ? `(${items.length})` : "";
     sec.hidden = items.length === 0;

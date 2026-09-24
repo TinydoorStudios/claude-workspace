@@ -134,6 +134,11 @@ def form_fields(sub):
         "band_tent": sub.get("band_tent") or d.get("band_tent"),
         "performers": (str(sub["performers"]) if sub.get("performers") is not None
                        else d.get("performers")),
+        # 2026-09-24 research #(b): crew_count is additive to performers, trailer
+        # is the flag the vehicle counts can't carry.
+        "crew_count": (str(sub["crew_count"]) if sub.get("crew_count") is not None
+                       else d.get("crew_count")),
+        "trailer": _yn(sub.get("trailer")) or d.get("trailer"),
         "large_vehicle": _yn(sub.get("large_vehicle")) or d.get("large_vehicle"),
         # audit #7: the count questions that replaced large_vehicle never
         # reached the doc — Parking was blank on every new submission.
@@ -238,11 +243,29 @@ def act_row_values(f):
         out["parking"] = f"{lvc} large vehicle{'s' if lvc != 1 else ''}"
     elif lv:
         out["parking"] = "Large vehicle" if str(lv).lower() == "yes" else "Standard"
+    # 2026-09-24 research #(b): the trailer is what decides whether any of this
+    # can use the 6'8" garage, and it's invisible in the counts. Only appended
+    # when the answer is Yes, so a filed doc from before this question existed
+    # (or a band that isn't towing) keeps the exact cell text it already has.
+    if str(f.get("trailer", "")).lower() == "yes":
+        out["parking"] = ((out["parking"] + " · towing a trailer (no garage)")
+                          if out.get("parking") else "Towing a trailer (no garage)")
     if f.get("performers") not in (None, ""):
         out["number of performers"] = str(f["performers"])
-        # Drink Tix = 2x band/crew headcount (Brian, 2026-09-13) — computed,
-        # never band- or staff-entered; skip silently if performers isn't a
-        # clean number rather than write garbage into the cell.
+        # 2026-09-24 research #(b): crew is additive — "4 performers + 2 crew (6
+        # total)" reads the way the person holding the sheet needs it. A zero or
+        # missing crew count leaves the cell as the bare number it's always been,
+        # so no filed doc churns just because the question now exists.
+        crew = _int(f.get("crew_count"))
+        if crew:
+            total = _int(f["performers"])
+            out["number of performers"] = (
+                f"{f['performers']} performers + {crew} crew"
+                + (f" ({total + crew} total)" if total is not None else ""))
+        # Drink Tix = 2x performers (Brian, 2026-09-13) — computed, never band-
+        # or staff-entered; skip silently if performers isn't a clean number
+        # rather than write garbage into the cell. Deliberately NOT crew-adjusted
+        # when crew_count arrived (Brian, 2026-09-24): the rule stays performers.
         try:
             out["drink tix"] = str(int(f["performers"]) * 2)
         except (TypeError, ValueError):
