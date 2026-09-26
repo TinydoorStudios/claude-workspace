@@ -2832,9 +2832,9 @@ def tx_trailer_crew():
           f"the doc's headcount cell carries both ({rows and rows.get('Number of Performers')})")
     check(rows and "towing a trailer" in (rows.get("Parking") or ""),
           f"the doc's parking cell flags the trailer ({rows and rows.get('Parking')})")
-    # the rule Brian kept unchanged when crew became its own question
-    check(rows and rows.get("Drink Tix") == "8",
-          f"drink tix is still performers x 2, crew-blind ({rows and rows.get('Drink Tix')})")
+    # 2026-09-25 (Brian): drink tix = (performers + crew) x 2
+    check(rows and rows.get("Drink Tix") == "12",
+          f"drink tix is (performers + crew) x 2 ({rows and rows.get('Drink Tix')})")
     qrow = q("""SELECT vehicle_count, trailer FROM fsq_parking_queue
                 WHERE show_id=%s AND digested_at IS NULL ORDER BY id DESC LIMIT 1""",
              (s["id"],), one=True)
@@ -2895,7 +2895,7 @@ def tx_trailer_crew_es():
     check(rows and rows.get("Parking") == "1 vehicle: all standard",
           f"no trailer -> the parking cell is unchanged ({rows and rows.get('Parking')})")
     check(rows and rows.get("Drink Tix") == "10",
-          f"drink tix is still performers x 2 ({rows and rows.get('Drink Tix')})")
+          f"no crew -> drink tix is performers x 2 ({rows and rows.get('Drink Tix')})")
     sub = q("SELECT crew_count, trailer FROM submissions WHERE show_id=%s ORDER BY id DESC LIMIT 1",
             (s["id"],), one=True)
     check(sub and sub["crew_count"] == 0 and sub["trailer"] is False,

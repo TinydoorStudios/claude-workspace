@@ -262,12 +262,13 @@ def act_row_values(f):
             out["number of performers"] = (
                 f"{f['performers']} performers + {crew} crew"
                 + (f" ({total + crew} total)" if total is not None else ""))
-        # Drink Tix = 2x performers (Brian, 2026-09-13) — computed, never band-
-        # or staff-entered; skip silently if performers isn't a clean number
-        # rather than write garbage into the cell. Deliberately NOT crew-adjusted
-        # when crew_count arrived (Brian, 2026-09-24): the rule stays performers.
+        # Drink Tix = 2 x (performers + crew) (Brian, 2026-09-13; crew added
+        # 2026-09-25) — computed, never band- or staff-entered; skip silently if
+        # performers isn't a clean number rather than write garbage into the
+        # cell. A missing crew_count (older submissions, where performers already
+        # meant everyone) counts as 0, so those docs don't change.
         try:
-            out["drink tix"] = str(int(f["performers"]) * 2)
+            out["drink tix"] = str((int(f["performers"]) + (crew or 0)) * 2)
         except (TypeError, ValueError):
             pass
     if f.get("band_tent"):

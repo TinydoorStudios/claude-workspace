@@ -297,7 +297,7 @@ BAND_FIELDS = [
     ("Performers",    "performers",    None, "number of performers"),
     # 2026-09-24 research #(b): crew is ADDITIVE to performers, not a subset —
     # both land in the day sheet's "number of performers" cell ("4 performers +
-    # 2 crew"), and drink tix stays performers x 2.
+    # 2 crew"), and drink tix is (performers + crew) x 2.
     ("Crew Count",    "crew_count",    None, "number of performers"),
     ("Vehicle Count", "vehicle_count", None, "parking"),
     # large_vehicle (Yes/No) replaced by a count (Brian, 2026-09-13) — kept

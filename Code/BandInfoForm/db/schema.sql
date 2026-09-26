@@ -410,7 +410,7 @@ ALTER TABLE submissions ADD COLUMN IF NOT EXISTS large_vehicle_count INTEGER;
 -- trailer-crew-count.sql). A van towing a trailer is ONE vehicle in the counts
 -- above, so the count alone never said it can't use the 6 ft 8 in FSQ garage.
 -- crew_count is ADDITIVE to performers, not a subset — performers stays the
--- on-stage count and still drives the day sheet's drink tix.
+-- on-stage count; the day sheet's drink tix = (performers + crew) x 2.
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS trailer BOOLEAN;
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS crew_count INTEGER;
 
