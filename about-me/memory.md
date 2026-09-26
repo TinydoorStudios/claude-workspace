@@ -48,6 +48,9 @@ Reference notes moved to the KB 2026-08-11 — canonical source is `Live Sound K
 
 ## Session Notes
 
+### 2026-09-26 — SPL Monitor limit-mode toggle shipped
+FSQ dashboard now has a passcode-gated (1682, both directions) switch between 90 dB LAeq 10s and 95 dBA Slow. 95 mode: light/headroom/violations off SPL A Slow, yellow 90, 3 s sustain. Mode persists across restarts within a report day, snaps back to 90 at 05:00. CSV `limit_mode` column; nightly email/PDF list the rule(s) in force. Config `limitModes` in Code/SPL-Monitor/config.json (Memo instance has none, so no toggle there). Deployed to the n8n VM and live. Plan: Handoffs/plan-2026-09-25-spl-limit-mode-toggle.md.
+
 *Newest first. Older entries live in `memory-archive-2026H2.md`.*
 
 ### 2026-09-25 (evening) — Band Advance: drink tickets fixed, 3rd-party shows lose the perks (from git log, consolidated 2026-09-26)
