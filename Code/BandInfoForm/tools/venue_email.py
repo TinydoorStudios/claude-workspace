@@ -114,6 +114,12 @@ Hospitality & Site:
 - Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
 - Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
 - Hospitality: drink tickets and water are provided for all performers and crew.""",
+        # 3rd-party (Brian, 2026-09-25): no drink tickets for a 3rd-party event.
+        "hospitality_third_party": """\
+Hospitality & Site:
+- Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
+- Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
+- Hospitality: water is provided for all performers and crew.""",
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
     # WP copy adapted from the Fountain Square block (Brian, 2026-09-11): FSQ→WP
@@ -129,6 +135,10 @@ Hospitality & Site:
 Load-In & Parking:
 Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
 We will follow-up with parking validations.""",
+        # 3rd-party (Brian, 2026-09-25): no parking-validation line.
+        "load_in_third_party": """\
+Load-In & Parking:
+Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.""",
         "technical": """\
 Technical:
 - Backline / instrumentation: artists provide all instruments, including amps and 1/4" cables.
@@ -139,6 +149,12 @@ Hospitality & Site:
 - Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
 - Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
 - Hospitality: drink tickets and water are provided for all performers and crew.""",
+        # 3rd-party (Brian, 2026-09-25): no drink tickets for a 3rd-party event.
+        "hospitality_third_party": """\
+Hospitality & Site:
+- Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
+- Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
+- Hospitality: water is provided for all performers and crew.""",
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
     # Add Memorial Hall / etc. here as Brian supplies the content.
@@ -173,6 +189,12 @@ Hospitalidad y sitio:
 - Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el banco; nosotros proporcionamos una carpa junto al escenario con una mesa y sillas.
 - Camerinos: no contamos con camerinos bajo techo; a solicitud podemos proporcionar una carpa de 10×10 con paredes laterales para un espacio privado de la banda.
 - Hospitalidad: se proporcionan boletos de bebida y agua para todos los artistas y el equipo de trabajo.""",
+        # 3rd-party — see hospitality_third_party in VENUE_EMAIL (English) above.
+        "hospitality_third_party": """\
+Hospitalidad y sitio:
+- Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el banco; nosotros proporcionamos una carpa junto al escenario con una mesa y sillas.
+- Camerinos: no contamos con camerinos bajo techo; a solicitud podemos proporcionar una carpa de 10×10 con paredes laterales para un espacio privado de la banda.
+- Hospitalidad: se proporciona agua para todos los artistas y el equipo de trabajo.""",
         "requirements": "- Límite de sonido: estricto 95 dBA-Slow en la posición de FOH, para todos los ingenieros (de la casa o del talento).",
     },
     # Add other venues here as Brian asks for them in Spanish.
@@ -703,7 +725,7 @@ def blocks_for(venue, series=None, lang="en", third_party=False, **dynamic):
     third_party=True (Brian, 2026-09-16): a 3rd-party event has no touring
     band's own vehicles, so the garage-QR/validation paragraph doesn't apply
     — swaps in a venue's own `<key>_third_party` block wherever one exists
-    (today: Fountain Square's load_in) and leaves every other block as-is.
+    (today: FSQ + WP load_in and hospitality — no parking validations, no drink tickets) and leaves every other block as-is.
     A venue with no such override just keeps its normal block, third_party
     or not.
 

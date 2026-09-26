@@ -224,9 +224,10 @@ def _schedule_lines(doc, position, bill_size=0, artist_name=None):
 
 def _venue_gives_drink_tickets(venue, series=None):
     """Drink tickets are only mentioned where the venue's own email copy
-    offers them (audit #14) — FSQ and WP today."""
+    offers them (audit #14) — FSQ and WP today, never a 3rd-party event
+    (Brian, 2026-09-25)."""
     try:
-        blocks = ve.blocks_for(venue, series=series)
+        blocks = ve.blocks_for(venue, series=series, third_party=db.is_third_party(series))
     except Exception:
         return False
     return "drink ticket" in (blocks.get("hospitality") or "").lower()
