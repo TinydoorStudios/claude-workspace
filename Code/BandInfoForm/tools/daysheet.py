@@ -181,7 +181,12 @@ def act_row_values(f):
     if saved:
         out["stage plot"] = f"See DB — {saved}"
     else:
-        sp = f.get("stage_plot_desc", "")
+        # A typed stage plot is often ASCII art laid out with tabs/spaces for a
+        # full-width box; in the doc's narrow cell it wraps into noise
+        # (Snidely Whiplash 9/30). Squash whitespace, drop blank lines, join
+        # with " · " (Brian, 2026-09-26). The submission itself is untouched.
+        sp = " · ".join(ln for ln in (" ".join(str(l).split())
+                        for l in str(f.get("stage_plot_desc") or "").splitlines()) if ln)
         if f.get("stage_plot_file"):
             sp = (sp + " (file on record)").strip()
         if sp:
