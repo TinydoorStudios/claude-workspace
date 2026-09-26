@@ -1,0 +1,23 @@
+{
+  "show": "The Carole King and James Taylor Story",
+  "venue": "Memorial Hall",
+  "date": "2026-09-28",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-26T18:57:30",
+      "note": "venue=memo console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-09-26T19:12:52",
+      "note": "15 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-09-26T19:12:59",
+      "note": "memo \u00b7 15 channels \u00b7 The Carole King and James Taylor Story.ses"
+    }
+  },
+  "rev": "Rev 1.0 Deep Think",
+  "spec_md5": "3f8082bd56da1dd4a376bce7ae778222",
+  "md_md5": "3be9848b52623487ef4022a291d99156",
+  "ses_md5": "b35fbb252124a39eb7a80f66fc152064"
+}

@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1A3A5C" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+<title>The Carole King and James Taylor Story — Patch Sheet</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f6f7f9; --fg:#111827; --dim:#6b7280; --card:#fff; --line:#e5e7eb;
+  --nav:#1A3A5C; --accent:#2E6DA4; --ok:#065F46;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#0b1220; --fg:#e9edf3; --dim:#94a3b8; --card:#151d2b; --line:#243247;
+          --nav:#0e1729; --accent:#5b9bd5; --ok:#34D399; }
+}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font:400 17px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:20;background:var(--nav);color:#fff;
+  padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+header h1{margin:0;font-size:21px;font-weight:700;letter-spacing:.2px}
+header .sub{margin-top:3px;font-size:13px;opacity:.85}
+.bar{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.bar button{flex:1 1 auto;min-height:40px;min-width:76px;border:0;border-radius:9px;
+  background:rgba(255,255,255,.14);color:#fff;font:600 14px/1 inherit;padding:0 10px}
+.bar button[aria-pressed="true"]{background:#fff;color:var(--nav)}
+.prog{margin-top:8px;font-size:13px;opacity:.9;display:flex;align-items:center;gap:8px}
+.prog .track{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
+.prog .fill{height:100%;width:0;background:#fff;transition:width .2s}
+.zones{padding:10px 14px;font-size:13px;color:var(--dim);border-bottom:1px solid var(--line)}
+.alerts{padding:12px 12px 2px;display:grid;gap:8px}
+.alert{border-radius:11px;padding:10px 12px;font-size:14.5px;display:grid;gap:2px;
+  border-left:5px solid currentColor}
+.alert b{font-size:13px;letter-spacing:.5px}
+.alert span{color:var(--fg);opacity:.9}
+.alert.danger{color:#B91C1C;background:#FEE2E2}
+.alert.power{color:#065F46;background:#D1FAE5}
+.alert.tour{color:#92400E;background:#FFF3CD}
+@media (prefers-color-scheme:dark){
+  .alert.danger{color:#FCA5A5;background:#2a1416} .alert.power{color:#6EE7B7;background:#0e2620}
+  .alert.tour{color:#FCD34D;background:#2a2110}
+}
+main{padding:8px 12px calc(env(safe-area-inset-bottom) + 28px)}
+.s-DRUMS { --tint:#FEF3C7; --head:#FDE68A; --ink:#92400E; --dk:#FBBF24; }
+.s-BASS { --tint:#DCFCE7; --head:#BBF7D0; --ink:#065F46; --dk:#34D399; }
+.s-RHYTHM { --tint:#DCFCE7; --head:#BBF7D0; --ink:#065F46; --dk:#34D399; }
+.s-GUITAR { --tint:#D1FAE5; --head:#A7F3D0; --ink:#047857; --dk:#6EE7B7; }
+.s-PIANO { --tint:#FCE7F3; --head:#FBCFE8; --ink:#9D174D; --dk:#F472B6; }
+.s-KEYS { --tint:#EDE9FE; --head:#DDD6FE; --ink:#5B21B6; --dk:#A78BFA; }
+.s-STRINGS { --tint:#DBEAFE; --head:#BFDBFE; --ink:#1E40AF; --dk:#60A5FA; }
+.s-HORNS { --tint:#FFEDD5; --head:#FCD9B4; --ink:#9A3412; --dk:#FB923C; }
+.s-VOCALS { --tint:#EDE9FE; --head:#DDD6FE; --ink:#4338CA; --dk:#818CF8; }
+.s-AMBIENT { --tint:#E0E7FF; --head:#C7D2FE; --ink:#3730A3; --dk:#818CF8; }
+.s-SPARE { --tint:#F3F4F6; --head:#E5E7EB; --ink:#374151; --dk:#9CA3AF; }
+.sechead{position:sticky;top:0;z-index:10;margin:16px 0 8px;padding:8px 12px;border-radius:9px;
+  font-size:13.5px;font-weight:800;letter-spacing:1px;background:var(--head);color:var(--ink)}
+@media (prefers-color-scheme:dark){ .sechead{background:#1c2942;color:var(--dk)} }
+.card{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+  border-left:6px solid var(--head);border-radius:13px;padding:12px;margin:0 0 8px;min-height:76px;
+  -webkit-tap-highlight-color:transparent;cursor:pointer}
+@media (prefers-color-scheme:dark){ .card{border-left-color:var(--dk)} }
+.num{flex:0 0 46px;text-align:center;font:800 27px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color:var(--ink);padding-top:2px}
+@media (prefers-color-scheme:dark){ .num{color:var(--dk)} }
+.main{flex:1;min-width:0}
+.inst{font-weight:700;font-size:18px;line-height:1.25}
+.sub{margin-top:1px;font-size:14.5px;color:var(--dim)}
+.mic{margin-top:3px;font-size:16px;color:var(--fg);opacity:.92}
+.meta{margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--dim)}
+.meta .patch{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:600;color:var(--accent)}
+.chips{margin-top:7px;display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-style:normal;font-size:11.5px;font-weight:800;letter-spacing:.5px;padding:4px 8px;border-radius:99px;white-space:nowrap}
+.c-power{background:#D1FAE5;color:#065F46} .c-danger{background:#FEE2E2;color:#B91C1C}
+.c-tour{background:#FFF3CD;color:#92400E} .c-info{background:#E0E7FF;color:#3730A3}
+@media (prefers-color-scheme:dark){
+  .c-power{background:#0e2620;color:#6EE7B7} .c-danger{background:#2a1416;color:#FCA5A5}
+  .c-tour{background:#2a2110;color:#FCD34D} .c-info{background:#18213a;color:#A5B4FC}
+}
+.note{margin-top:7px;font-size:13.5px;color:var(--dim);line-height:1.35}
+.tick{flex:0 0 30px;height:30px;border-radius:50%;border:2px solid var(--line);margin-top:2px;position:relative}
+.card.done{opacity:.5}
+.card.done .tick{background:var(--ok);border-color:var(--ok)}
+.card.done .tick:after{content:"";position:absolute;left:9px;top:4px;width:8px;height:15px;
+  border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
+.card.hide{display:none}
+footer{padding:6px 14px 30px;font-size:12.5px;color:var(--dim);text-align:center}
+</style></head><body>
+<header>
+  <h1>The Carole King and James Taylor Story — Patch</h1>
+  <div class="sub">Memorial Hall · 2026-09-28 + 2026-09-30 ·  · 15 ch</div>
+  <div class="bar">
+    <button id="f-all" aria-pressed="true">All</button>
+    <button id="f-todo" aria-pressed="false">To do</button>
+    <button id="f-48v" aria-pressed="false">48V only</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="prog"><span id="count">0 / 15</span><span class="track"><span class="fill" id="fill"></span></span></div>
+</header>
+<div class="zones">Split patch zones: <b>R-1…R-16</b> red · <b>G-1…G-12</b> green · <b>B-1…B-12</b> blue · <b>O-1…O-12</b> orange · <b>WIRELESS</b> for the handhelds.</div>
+<section class="alerts">
+<div class="alert power"><b>48V ON THESE ONLY</b><span>Ch 1, 2, 7, 13, 14, 57, 58, 59. Everything else is a dynamic or a line feed — leave phantom off.</span></div>
+<div class="alert tour"><b>ARTIST-PROVIDED GEAR</b><span>Ch 4, 5. Confirm at load-in.</span></div>
+</section>
+<main id="list">
+<h2 class="sechead s-PIANO">PIANO</h2>
+<article class="card s-PIANO" data-ch="1" data-phantom="1">
+  <div class="num">1</div>
+  <div class="main">
+    <div class="inst">Piano Hi</div>
+    <div class="sub">Yamaha C3 grand, treble (RH)</div>
+    <div class="mic">DPA 4099 CORE+ Extreme SPL</div>
+    <div class="meta"><span class="patch">Millennia HV-3D-8 ch 1 → R1 (line)</span><span class="stand">Stand: Clip</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    <div class="note">P-clip on the plate around G5, just past the dampers, 25–30 cm over the strings, rear null up at the lid. 48V at the HV-3, not the stagebox; stagebox input LINE, console gain unity. Pan LEFT (audience view, matches the MK4 pair). PA + multitrack.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-PIANO" data-ch="2" data-phantom="1">
+  <div class="num">2</div>
+  <div class="main">
+    <div class="inst">Piano Lo</div>
+    <div class="sub">Yamaha C3 grand, bass (LH)</div>
+    <div class="mic">DPA 4099 CORE+ Extreme SPL</div>
+    <div class="meta"><span class="patch">Millennia HV-3D-8 ch 2 → R2 (line)</span><span class="stand">Stand: Clip</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    <div class="note">P-clip over C2–G2, a third of the way down the strings past the dampers, same height and angle as ch 1, at least 30 cm from it. 48V at the HV-3; stagebox LINE, gain unity. Pan RIGHT. PA + multitrack. See ch 1 for the piano group EQ.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-PIANO" data-ch="3" data-phantom="0">
+  <div class="num">3</div>
+  <div class="main">
+    <div class="inst">Piano Mon</div>
+    <div class="sub">Yamaha C3, plate hole H2</div>
+    <div class="mic">Shure SM57</div>
+    <div class="meta"><span class="patch">R3</span><span class="stand">Stand: —</span></div>
+    
+    <div class="note">WEDGES ONLY: Mix 1 (Phoebe) and Mix 2 (Dan) as needed. Unassign from LR. Pointing down into plate hole H2 (see C3 Placement PDF); try H3 if the treble is thin. No 48V.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-GUITAR">GUITAR</h2>
+<article class="card s-GUITAR" data-ch="4" data-phantom="0">
+  <div class="num">4</div>
+  <div class="main">
+    <div class="inst">Dan Gtr</div>
+    <div class="sub">Acoustic guitar (Dan, fingerstyle)</div>
+    <div class="mic">Rupert Neve Designs RNDI</div>
+    <div class="meta"><span class="patch">2-ch sub 1</span><span class="stand">Stand: DI</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">RNDI on INSTRUMENT. Guitar and pickup are Dan&#x27;s; pickup type confirm at load-in (assumed undersaddle piezo).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-DRUMS">DRUMS / PERC</h2>
+<article class="card s-DRUMS" data-ch="5" data-phantom="0">
+  <div class="num">5</div>
+  <div class="main">
+    <div class="inst">Stomp</div>
+    
+    <div class="mic">Rupert Neve Designs RNDI</div>
+    <div class="meta"><span class="patch">2-ch sub 2</span><span class="stand">Stand: DI</span></div>
+    <div class="chips"><i class="chip c-tour">TOUR — ARTIST GEAR</i></div>
+    <div class="note">RNDI on INSTRUMENT. Dan&#x27;s stomp box, piezo assumed, confirm at load-in. Dial the HPF at 24 dB/oct.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-VOCALS">VOCALS</h2>
+<article class="card s-VOCALS" data-ch="6" data-phantom="0">
+  <div class="num">6</div>
+  <div class="main">
+    <div class="inst">Dan</div>
+    <div class="sub">Male lead vocal (James Taylor role)</div>
+    <div class="mic">Wireless 1 (Shure Beta 58A)</div>
+    <div class="meta"><span class="patch">Wireless 1</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WIRELESS 1</i></div>
+    <div class="note">House Wireless 1, multed to fader 41. Mix 2.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="7" data-phantom="1">
+  <div class="num">7</div>
+  <div class="main">
+    <div class="inst">Phoebe Pno</div>
+    <div class="sub">Female lead vocal at piano (Carole King role)</div>
+    <div class="mic">Neumann KMS 105</div>
+    <div class="meta"><span class="patch">R4</span><span class="stand">Stand: Boom</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    <div class="note">Input list said &#x27;KSM105&#x27;; Brian confirmed Neumann KMS 105. 48V. Boom over the C3 keyboard. Mix 1.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="8" data-phantom="0">
+  <div class="num">8</div>
+  <div class="main">
+    <div class="inst">Phoebe DS</div>
+    <div class="sub">Female lead vocal, standing downstage</div>
+    <div class="mic">Wireless 2 (Shure Beta 58A)</div>
+    <div class="meta"><span class="patch">Wireless 2</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WIRELESS 2</i></div>
+    <div class="note">House Wireless 2, multed to fader 42. Mix 1 (her wedges travel with her or add a DS wedge; confirm at load-in).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-PIANO">PIANO</h2>
+<article class="card s-PIANO" data-ch="13" data-phantom="1">
+  <div class="num">13</div>
+  <div class="main">
+    <div class="inst">Pno Rec Hi</div>
+    <div class="sub">Yamaha C3 record pair, treble side (L)</div>
+    <div class="mic">Schoeps CMC6 + MK4</div>
+    <div class="meta"><span class="patch">Millennia HV-3D-8 ch 3 → R5 (line)</span><span class="stand">Stand: Boom</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    <div class="note">RECORD ONLY: unassign from LR and all mixes; multitrack pre-EQ. MK4 ORTF bar at the bend, 17 cm / 110°, 15–20 cm inside the rim under the lid edge, 30–40 cm over the strings (C3 Placement PDF). 48V at the HV-3; stagebox LINE, gain unity. Pan L (audience view, highs left).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-PIANO" data-ch="14" data-phantom="1">
+  <div class="num">14</div>
+  <div class="main">
+    <div class="inst">Pno Rec Lo</div>
+    <div class="sub">Yamaha C3 record pair, bass side (R)</div>
+    <div class="mic">Schoeps CMC6 + MK4</div>
+    <div class="meta"><span class="patch">Millennia HV-3D-8 ch 4 → R6 (line)</span><span class="stand">Stand: Boom</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    <div class="note">RECORD ONLY: unassign from LR and all mixes; multitrack pre-EQ. MK4 ORTF bar at the bend, 17 cm / 110°, 15–20 cm inside the rim under the lid edge, 30–40 cm over the strings (C3 Placement PDF). 48V at the HV-3; stagebox LINE, gain unity. Pan R (audience view, highs left).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-VOCALS">VOCALS</h2>
+<article class="card s-VOCALS" data-ch="41" data-phantom="0">
+  <div class="num">41</div>
+  <div class="main">
+    <div class="inst">Dan W1</div>
+    <div class="sub">Male lead vocal (James Taylor role) (receiver home fader)</div>
+    <div class="mic">Wireless 1 (Shure Beta 58A)</div>
+    <div class="meta"><span class="patch">Wireless 1</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WIRELESS 1</i></div>
+    <div class="note">Receiver home fader, multed to ch 6. Same curve; ride the digital trim here. Keep it OUT of LR (ch 6 carries the PA) unless ch 6 is lost.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="42" data-phantom="0">
+  <div class="num">42</div>
+  <div class="main">
+    <div class="inst">Phoebe W2</div>
+    <div class="sub">Female lead vocal, standing downstage (receiver home fader)</div>
+    <div class="mic">Wireless 2 (Shure Beta 58A)</div>
+    <div class="meta"><span class="patch">Wireless 2</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WIRELESS 2</i></div>
+    <div class="note">Receiver home fader, multed to ch 8. Same curve; ride the digital trim here. Keep it OUT of LR (ch 8 carries the PA) unless ch 8 is lost.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-AMBIENT">AMBIENT / FOH</h2>
+<article class="card s-AMBIENT" data-ch="57" data-phantom="1">
+  <div class="num">57</div>
+  <div class="main">
+    <div class="inst">Above Stage</div>
+    <div class="sub">Memo crowd rig</div>
+    <div class="mic">Line Audio OM1 (pair)</div>
+    <div class="meta"><span class="patch">House crowd rig</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-info">STEREO</i></div>
+    <div class="note">Flown 18&#x27; above stage, 12&#x27; apart. Fixed Memo crowd EQ from the KB (R35). Record; not in LR.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-AMBIENT" data-ch="58" data-phantom="1">
+  <div class="num">58</div>
+  <div class="main">
+    <div class="inst">Floor Crowd</div>
+    <div class="sub">Memo crowd rig</div>
+    <div class="mic">Deity S-Mic 2 (pair)</div>
+    <div class="meta"><span class="patch">House crowd rig</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-info">STEREO</i></div>
+    <div class="note">Under the main-floor PA, aimed into the audience. Fixed Memo crowd EQ from the KB (R35). Record; not in LR.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-AMBIENT" data-ch="59" data-phantom="1">
+  <div class="num">59</div>
+  <div class="main">
+    <div class="inst">Balcony Crwd</div>
+    <div class="sub">Memo crowd rig</div>
+    <div class="mic">Line Audio CM4 (pair)</div>
+    <div class="meta"><span class="patch">House crowd rig</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-info">STEREO</i></div>
+    <div class="note">Balcony, rear-facing ORTF, 34&#x27; from the Deity pair. Fixed Memo crowd EQ from the KB (R35). Record; not in LR.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+</main>
+<footer>Tap a channel to check it off — saved on this phone only.<br>
+Generated from The Carole King and James Taylor Story.spec.json · Rev 1.0 Deep Think</footer>
+<script>
+(function(){
+  var KEY = 'patch:' + "The Carole King and James Taylor Story";
+  var done = {};
+  try { done = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { done = {}; }
+  var cards = [].slice.call(document.querySelectorAll('.card'));
+  var total = cards.length, mode = 'all';
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(done)); } catch(e) {} }
+  function paint(){
+    var n = 0;
+    cards.forEach(function(c){
+      var id = c.dataset.ch, on = !!done[id];
+      c.classList.toggle('done', on);
+      if (on) n++;
+      var hide = (mode === 'todo' && on) || (mode === '48v' && c.dataset.phantom !== '1');
+      c.classList.toggle('hide', hide);
+    });
+    document.getElementById('count').textContent = n + ' / ' + total;
+    document.getElementById('fill').style.width = (total ? (n / total * 100) : 0) + '%';
+  }
+  cards.forEach(function(c){
+    c.addEventListener('click', function(){
+      var id = c.dataset.ch;
+      if (done[id]) { delete done[id]; } else { done[id] = 1; }
+      save(); paint();
+      if (navigator.vibrate) navigator.vibrate(8);
+    });
+  });
+  function setMode(m, btn){
+    mode = m;
+    ['f-all','f-todo','f-48v'].forEach(function(i){
+      document.getElementById(i).setAttribute('aria-pressed', i === btn ? 'true' : 'false');
+    });
+    paint();
+  }
+  document.getElementById('f-all').onclick  = function(){ setMode('all','f-all'); };
+  document.getElementById('f-todo').onclick = function(){ setMode('todo','f-todo'); };
+  document.getElementById('f-48v').onclick  = function(){ setMode('48v','f-48v'); };
+  document.getElementById('reset').onclick  = function(){
+    if (confirm('Clear every check mark?')) { done = {}; save(); paint(); }
+  };
+  paint();
+})();
+</script>
+</body></html>
