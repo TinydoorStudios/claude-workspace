@@ -818,3 +818,16 @@ Kept from the session (still valid): captured his live WP monitor-cap hotfix int
 - Added: 0 · Updated: 0 · Archived/trimmed: 1 (memory.md was 19.7KB, over the 18KB cap, with every note inside the 2-week window — rotated the oldest, 2026-09-18 Terminal redesign, to cut size).
 - Promoted before rotating: the "restyles oscillate, keep them reversible" lesson to the `band-advance-form` auto-memory; resolve_wp_location already in active-projects.
 - Flagged to questions.md: none.
+
+
+### 2026-09-18 — /brag skill installed; a sports calendar as a side errand
+Two small ones. Brian installed the third-party **brag** skill (latent-spaces.github.io/brag) and pointed it at the advancing system for a launch video — the skill and its output folders are in the tree untracked (`.claude/skills/brag`, `Code/BandInfoForm/brag-output*`). And a spreadsheet calendar of Bengals, Ohio State and FC Cincinnati games with broadcast channels, plus a combined overlay of all three.
+
+### 2026-09-18 (evening) — usage/config overhaul built, then reverted at his word
+Brian hit the Pro limit and asked for twenty harness changes in one prompt — opusplan, Sonnet subagents, plan-mode default, a 200K auto-compact window, bash-output cap, node_modules deny, a context-% status line, CLAUDE.md split into nested per-folder files, plus a usage audit. All built and delivered. He asked "is it worth it?", heard that the model default was the whole story (38% weekly usage, **36% of it Fable 5.1** at roughly 2× Opus and 5× Sonnet) and that the rest was hygiene, and then said "undo all of this immediately" and "drop those two commits entirely". Everything was put back — settings.json to its original six keys, `~/.claude/CLAUDE.md` and the repo CLAUDE.md restored, the split files, status line, audit md/pdf and the two auto-memory entries deleted, and the commits taken off the branch with a mixed reset (`a38c9ac`/`589808d` survive in the reflog only). Nothing was pushed and no other session's uncommitted work was touched. Kept as `[[usage-config-overhaul-rejected]]` so the list doesn't get re-proposed: **don't split CLAUDE.md, and when usage comes up talk about which model is running the work.**
+
+### Memory Consolidation — 2026-09-26
+- Scanned: 1 day back (git log since the 09-25 watermark: `07270b9`, `bb01219`, `776c011`, plus the new SPL limit-mode plan in Handoffs/).
+- Added: 1 session note (09-25 drink tix / 3rd-party perks) + active-projects bullets (Band Advance 09-25, SPL Monitor plan pointer) · Updated: 1 contradiction resolved (09-24 note's open drink-ticket question, fixed at `07270b9`) · Archived/trimmed: 2 note(s) rotated for the 18KB cap: 2026-09-18 (evening) — usage/config overhaul built, then reverted at his word; 2026-09-18 — /brag skill installed; a sports calendar as a side errand.
+- Promoted before rotating: covered by existing auto-memories (usage-config-overhaul-rejected) or trivial (/brag install is visible in the tree).
+- Flagged to questions.md: none.
