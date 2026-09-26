@@ -319,7 +319,7 @@
   <div class="field">
     <label class="q">{{ t('performers_label') }}<span class="req">*</span></label>
     <input type="number" name="performers" min="1" step="1" required value="{{ v('performers') }}">
-    <p class="help">{{ t('performers_help') }}</p>
+    <p class="help">{{ t('performers_help') }}{% if not cfg.third_party %} {{ t('performers_drinks') }}{% endif %}</p>
   </div>
 
   {# 2026-09-24 research #(b): crew is additive to performers, never a subset —

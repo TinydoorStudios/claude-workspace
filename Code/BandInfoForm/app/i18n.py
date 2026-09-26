@@ -194,11 +194,13 @@ STRINGS = {
     "performers_label":  {"en": "Number of performers on stage",
                            "es": "Número de artistas en el escenario"},
     "performers_help":   {"en": "Just the people performing. Everyone else in your party goes in the "
-                                 "next question, so nobody gets counted twice. Drink tickets and water "
-                                 "are provided for all performers and crew.",
+                                 "next question, so nobody gets counted twice.",
                            "es": "Solo las personas que se presentan. El resto de su grupo va en la "
-                                 "siguiente pregunta, para que nadie se cuente dos veces. Se "
-                                 "proporcionan boletos de bebida y agua para todos los artistas y el "
+                                 "siguiente pregunta, para que nadie se cuente dos veces."},
+    # 2026-09-25 (Brian): the drinks line is its own key so a 3rd-party form
+    # can leave it off — 3rd-party events get no drink tickets.
+    "performers_drinks": {"en": "Drink tickets and water are provided for all performers and crew.",
+                           "es": "Se proporcionan boletos de bebida y agua para todos los artistas y el "
                                  "equipo de trabajo."},
     "crew_count_label":  {"en": "Number of crew traveling with you",
                            "es": "Número de personas de equipo que vienen con ustedes"},

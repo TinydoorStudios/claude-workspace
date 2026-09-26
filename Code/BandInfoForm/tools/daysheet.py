@@ -1267,6 +1267,9 @@ def build(event_id, template=None, stageplot_names=None):
         if saved_plot:
             mf["_stageplot_saved"] = saved_plot
         values = act_row_values(mf)
+        # 3rd-party events get no drink tickets (Brian, 2026-09-25).
+        if (event.get("series") or "").strip().lower() == "3rd party":
+            values.pop("drink tix", None)
         if mf_set_length:
             values["set length"] = mf_set_length
         if values:
