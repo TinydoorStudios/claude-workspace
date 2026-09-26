@@ -276,7 +276,7 @@ function render(bills){
         // 21-day window still queues an "info changed" email at the next
         // daily run, same as before.
         const editBtn = a.state === "cancelled" ? ""
-          : `<a class="cancel-btn" style="text-decoration:none;color:#c7d6e6" href="/show/${a.show_id}/edit" target="_blank">Edit ✎</a>`;
+          : `<a class="cancel-btn" style="text-decoration:none;color:#c7d6e6" href="/show/${a.show_id}/edit" target="_blank">View/Edit ✎</a>`;
         const bookingBtn = "";
         const emailBtn = (a.state === "responded" || a.state === "finalized")
           ? `<button class="cancel-btn" style="color:#4da3ff;border-color:#2E6DA4" onclick="draftEmail(${a.artist_id}, ${a.show_id}, this)">Email band ✉</button>` : "";
