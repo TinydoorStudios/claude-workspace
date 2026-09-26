@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<PresetChunkXMLTree version="3">
+    <Preset Name="CKJT Vocal Throw" GenericType="CLSP">
+        <PresetHeader>
+            <PluginName>CLA Epic</PluginName>
+            <PluginSubComp>SPCX</PluginSubComp>
+            <PluginVersion>16.7.33.189</PluginVersion>
+            <ReadOnly>false</ReadOnly>
+        </PresetHeader>
+        <PresetData Setup="CURRENT">
+            <Parameters Type="RealWorld">
+* * * * 0 35 7 3 549 0
+1 1 * * 0 * 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 100 16 21 0 0 0 16 21 250
+1 0 250 6 0 1 0 16 21 0
+25 0 16 21 5 10 0 166 20 375
+500 1 30 50 1.5 0 1 150 16 21
+406 5 0 10 1 2 1 250 6 1
+8 0 40 1.8 0 1 16 21 -0.19999999999999995559 3.5
+8 50 * * * * * * * *
+0 0 1 0 0 0 0 0 0 0
+1 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 1 0
+1 0 0 0 0 0 0 -6 2 2
+0 * * * * * * * * *
+* * * * * * * * * *
+* * * * * * * * * *
+* 0 0 0 0 0 0 0 0 0
+0 0 0 -12 0 0 0 0 0 0
+0 0 0 250 411 375 500 1 0 *
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 * * * * 30
+25 * 0 0 0
+</Parameters>
+            <PluginSpecificXMLData />
+        </PresetData>
+    </Preset>
+</PresetChunkXMLTree>
