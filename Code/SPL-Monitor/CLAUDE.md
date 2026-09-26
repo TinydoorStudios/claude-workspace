@@ -26,7 +26,7 @@ rsync -az --exclude .venv --exclude logs --exclude __pycache__ -e "ssh -J tds -i
 **.env at `/etc/spl-monitor.env` (root:600) — always write ALL of these, never partial:**
 ```
 SPL_SOURCE=smaart
-SMAART_HOST=192.24.143.121
+SMAART_HOST=192.24.143.107
 SMAART_PORT=26000
 SPL_PORT=8090
 SPL_ALERT_WEBHOOK=http://localhost:5678/webhook/spl-violation
@@ -34,7 +34,7 @@ TZ=America/New_York
 ```
 `SPL_PORT=8090` is critical — config.json default is 8080; dropping it breaks the public URL. Webhook is now `localhost:5678` since spl-monitor and n8n run on the same VM. The systemd unit is `/etc/systemd/system/spl-monitor.service` (`EnvironmentFile=/etc/spl-monitor.env`).
 
-**spl public routing (corrected 2026-06-09):** spl.tinydoorstudios.com's DNS CNAME points to the **`n8n-tunnel` (b1e6581d)**, which routes `spl → localhost:8090` on the VM. (The old CLAUDE.md note about a separate "TDS Cold Storage" tunnel at the SMAART box was WRONG.) The portal serves a standby screen with no SMAART data — it only 502s if the VM service itself is down. SMAART data source is the show box at `192.24.143.121:26000` (only up during shows).
+**spl public routing (corrected 2026-06-09):** spl.tinydoorstudios.com's DNS CNAME points to the **`n8n-tunnel` (b1e6581d)**, which routes `spl → localhost:8090` on the VM. (The old CLAUDE.md note about a separate "TDS Cold Storage" tunnel at the SMAART box was WRONG.) The portal serves a standby screen with no SMAART data — it only 502s if the VM service itself is down. SMAART data source is the show box at `192.24.143.107:26000` (FSQ public IP; was .121 until 2026-09-26 — Altafiber dynamic, can change again) (only up during shows).
 
 To test with generated data: set `SPL_SOURCE=simulator` in `/etc/spl-monitor.env`, restart, test, then restore `SPL_SOURCE=smaart`.
 

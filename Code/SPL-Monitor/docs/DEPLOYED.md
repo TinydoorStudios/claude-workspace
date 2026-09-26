@@ -23,14 +23,14 @@ Public URL: **https://spl.tinydoorstudios.com**
 ```
 [ Smaart v8.5 @ work ]                 [ Raspberry Pi @ homelab 192.168.0.2 ]        [ Cloudflare ]
   DiGiCo UB MADI ASIO / SPL              spl-monitor.service (systemd)                 n8n tunnel b1e6581d
-  API @ 192.24.143.121:26000   <----    backend.app on 127.0.0.1:8090        <----    ingress: spl.tinydoorstudios.com
+  API @ 192.24.143.107:26000   <----    backend.app on 127.0.0.1:8090        <----    ingress: spl.tinydoorstudios.com
   (work public IP, port-forward)         connects out to the work rig                  -> http://localhost:8090
                                                                                        (added via CF API; DNS routed)
 ```
 
 ## Pi (192.168.0.2, user `brian`)
 - App dir: `/home/brian/spl-monitor` (venv at `.venv`, aiohttp).
-- Env: `/home/brian/spl-monitor/.env` (chmod 600) — `SMAART_HOST=192.24.143.121`, `SMAART_PORT=26000`, `SPL_HOST=127.0.0.1`, `SPL_PORT=8090`, `SPL_SOURCE=smaart`.
+- Env: `/home/brian/spl-monitor/.env` (chmod 600) — `SMAART_HOST=192.24.143.107`, `SMAART_PORT=26000`, `SPL_HOST=127.0.0.1`, `SPL_PORT=8090`, `SPL_SOURCE=smaart`.
 - Service: `/etc/systemd/system/spl-monitor.service` — **enabled** (auto-start on boot), `Restart=always`.
 - SSH from the Mac: key `~/.ssh/spl_deploy` → `ssh -i ~/.ssh/spl_deploy brian@192.168.0.2`.
 
@@ -60,7 +60,7 @@ ssh -i ~/.ssh/spl_deploy brian@192.168.0.2 'sudo systemctl restart spl-monitor'
 
 ## Behavior notes
 - Compliance number is the rig's **native `LAeq 6`** (6-min); limit set to **88 warn / 90 red** to match the rig's `LAeq 6` alarm. Adjust per venue in `config.json` or the UI venue switcher.
-- Only **one** client may connect to the rig API at a time — the app is that client. Don't run debug connections against `192.24.143.121:26000` while the service is up.
+- Only **one** client may connect to the rig API at a time — the app is that client. Don't run debug connections against `192.24.143.107:26000` while the service is up.
 - With the rig off / not logging, the portal shows a **standby screen** ("show logging is currently not occurring at this time", green ONLINE pulse) and flips to the live dashboard automatically the moment logging starts — and back to standby when it stops. Detection: no measurement frame in `STALE_SECONDS` (9s); rig pushes ~every 3s.
 - Responses are sent `Cache-Control: no-cache` (+ versioned `?v=` assets) so a phone never shows a stale dashboard after a deploy.
 - **Violations / 3-strikes** (`config.json` -> `violations`): trigger is the **10-second LAeq** (`metric: "LAeq 10s"`, `sustainSeconds: 0`) >= 90 dBA = one violation; clears below 90. Uses a native Smaart `LAeq 10s` metric if present in the stream; otherwise falls back to the app-computed 10s LAeq (coarse — rig only streams every ~3s, so add the native metric for accuracy). The injection key matches `vtracker.metric`, so renaming the config metric to whatever Smaart calls it (e.g. `LAeq 10`) just works. On-screen strike counter (auto-resets each session after a 5-min data gap). Strikes 1-3 silent; **every violation from #4 fires a Slack alert**, and **any violation past 60s fires one too** (even the first). Alerts POST to `violations.alertWebhookUrl` (`SPL_ALERT_WEBHOOK` in `/home/brian/spl-monitor/.env`), in real time when confirmed.
