@@ -107,6 +107,62 @@ async def toggle_alerts_handler(request):
     return web.json_response({"ok": True, "enabled": enabled})
 
 
+LIMIT_MODE_FILE = BASE / "logs" / "limit_mode.json"
+
+
+def _save_limit_mode(app):
+    try:
+        LIMIT_MODE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        LIMIT_MODE_FILE.write_text(json.dumps({
+            "mode": app["monitor"].limit_mode,
+            "day": app["daily"].report_day(),
+        }))
+    except OSError as e:
+        print(f"[limit] could not persist mode: {e!r}", flush=True)
+
+
+def _restore_limit_mode(app):
+    """Keep a mid-show mode across restarts, but only within the same report day."""
+    monitor = app["monitor"]
+    if not monitor.limit_modes:
+        return
+    try:
+        saved = json.loads(LIMIT_MODE_FILE.read_text())
+    except (OSError, ValueError):
+        return
+    if saved.get("day") == app["daily"].report_day() and monitor.set_limit_mode(saved.get("mode")):
+        print(f"[limit] restored mode {monitor.limit_mode}", flush=True)
+    app["limit_mode_day"] = app["daily"].report_day()
+
+
+async def _apply_limit_mode(app, mode, why):
+    monitor = app["monitor"]
+    if not monitor.set_limit_mode(mode):
+        return False
+    app["limit_mode_day"] = app["daily"].report_day()
+    _save_limit_mode(app)
+    await app["hub"].broadcast({"type": "limitMode", **monitor.limit_mode_info()})
+    print(f"[limit] mode -> {mode} ({why})", flush=True)
+    return True
+
+
+async def limit_mode_handler(request):
+    """Switch the live limit rule (90 LAeq 10s <-> 95 dBA-Slow). Passcode
+    required in BOTH directions."""
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "bad request"}, status=400)
+    code = str(body.get("passcode", ""))
+    expected = str(request.app["config"].get("resetPasscode", ""))
+    if not expected or code != expected:
+        return web.json_response({"ok": False, "error": "incorrect"}, status=403)
+    mode = body.get("mode")
+    if not await _apply_limit_mode(request.app, mode, "authenticated request"):
+        return web.json_response({"ok": False, "error": "unknown mode"}, status=400)
+    return web.json_response({"ok": True, **request.app["monitor"].limit_mode_info()})
+
+
 async def daily_handler(request):
     """Nightly roll-up for the n8n email. ?date=YYYY-MM-DD (default = current report day)."""
     return web.json_response(request.app["daily"].summary(request.query.get("date")))
@@ -149,6 +205,7 @@ async def ws_handler(request):
         "longSecs": monitor.long_secs,
         "horizonSeconds": monitor.horizon,
         "alertsEnabled": app.get("alerts_enabled", True),
+        **monitor.limit_mode_info(),
     }))
     if monitor.latest:
         await ws.send_str(json.dumps({"type": "state", **monitor.latest}))
@@ -234,6 +291,14 @@ async def status_ticker(app):
             await asyncio.sleep(2)
             live = (time.time() - app.get("last_frame_ts", 0.0)) < STALE_SECONDS
             await hub.broadcast({"type": "status", "live": live})
+            # report-day rollover (05:00) snaps the limit back to the default
+            monitor = app["monitor"]
+            if monitor.limit_modes:
+                day = app["daily"].report_day()
+                if day != app.get("limit_mode_day"):
+                    app["limit_mode_day"] = day
+                    if monitor.limit_mode != monitor.default_limit_mode:
+                        await _apply_limit_mode(app, monitor.default_limit_mode, "report-day rollover")
     except asyncio.CancelledError:
         pass
 
@@ -258,6 +323,7 @@ async def show_info_ticker(app):
 
 async def on_startup(app):
     app["last_frame_ts"] = 0.0
+    _restore_limit_mode(app)
     app["source_task"] = asyncio.create_task(run_source(app))
     app["status_task"] = asyncio.create_task(status_ticker(app))
     app["showinfo_task"] = asyncio.create_task(show_info_ticker(app))
@@ -330,6 +396,7 @@ def build_app():
     app.router.add_get("/", index)
     app.router.add_post("/api/reset-strikes", reset_strikes_handler)
     app.router.add_post("/api/toggle-alerts", toggle_alerts_handler)
+    app.router.add_post("/api/limit-mode", limit_mode_handler)
     app.router.add_get("/api/daily", daily_handler)
     app.router.add_get("/api/show-info", show_info_handler)
     app.router.add_get("/api/daily/email", daily_email_handler)

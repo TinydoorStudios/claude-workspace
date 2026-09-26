@@ -109,6 +109,13 @@ class DailySummary:
             v["redLimit"] = state.get("red")
         if state.get("yellow") is not None:
             v["yellowLimit"] = state.get("yellow")
+        # limit-mode history: one entry per rule change within the report day
+        if state.get("limitMode"):
+            rules = v.setdefault("limitRules", [])
+            if not rules or rules[-1]["mode"] != state["limitMode"]:
+                rules.append({"mode": state["limitMode"], "label": state.get("limitLabel"),
+                              "metric": state.get("lightMetric"), "red": state.get("red"),
+                              "since": ts})
         self._bump(v, "maxInstant", state.get("instant"), ts)
         self._bump(v, "maxLAeq10s", state.get("laeqShort"), ts)
         self._bump(v, "maxLAeq6", state.get("laeqLong"), ts)
@@ -258,7 +265,15 @@ class DailySummary:
                 if src and any(v is not None for v in src):
                     series[m] = src
             red = vinfo.get("redLimit") or 90
-            return build_report_pdf(meta, times, series, viols, {"LAeq 10s": red, "LAeq 6": red})
+            rules = vinfo.get("limitRules") or []
+            if rules:
+                # draw each rule that was live tonight on its own metric; the
+                # 6-min compliance line follows the LAeq rule (90) either way
+                thresh = {r["metric"]: r["red"] for r in rules if r.get("metric")}
+                thresh["LAeq 6"] = thresh.get("LAeq 10s", 90)
+            else:
+                thresh = {"LAeq 10s": red, "LAeq 6": red}
+            return build_report_pdf(meta, times, series, viols, thresh)
         except Exception as e:  # noqa: BLE001
             print(f"[report] pdf build failed: {e!r}")
             return None
@@ -295,8 +310,14 @@ class DailySummary:
         if not venues:
             p.append("<p>No SPL logging was recorded for this night.</p>")
         for vn, v in venues.items():
-            p.append(f"<h3 style='margin:16px 0 6px;border-bottom:2px solid #eee;padding-bottom:4px'>{vn}</h3>"
-                     "<table style='border-collapse:collapse;font-size:14px'>")
+            p.append(f"<h3 style='margin:16px 0 6px;border-bottom:2px solid #eee;padding-bottom:4px'>{vn}</h3>")
+            rules = v.get("limitRules") or []
+            if rules:
+                txt = " &rarr; ".join(
+                    f"{r.get('label') or r.get('mode')}" + (f" (from {_fmt_time(r.get('since'))})" if i else "")
+                    for i, r in enumerate(rules))
+                p.append(f"<div style='font-size:14px;margin-bottom:6px'><b>Limit rule:</b> {txt}</div>")
+            p.append("<table style='border-collapse:collapse;font-size:14px'>")
             p.append(lvl("Max 6-min LAeq (compliance)", v.get("maxLAeq6"), v.get("maxLAeq6At"), v.get("redLimit")))
             p.append(lvl("Max LAeq 10s", v.get("maxLAeq10s"), v.get("maxLAeq10sAt")))
             p.append(lvl("Max instant (dBA Slow)", v.get("maxInstant"), v.get("maxInstantAt")))

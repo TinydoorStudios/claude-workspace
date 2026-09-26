@@ -55,7 +55,7 @@
     </div>
     <div class="big-read">
       <div class="big-num"><span id="bigVal">--.-</span><span class="unit">dBA</span></div>
-      <div class="big-label"><span id="bigWin">10-s</span> LAeq &nbsp;·&nbsp; limit <span id="bigLimit">--</span></div>
+      <div class="big-label"><span id="bigMetric"><span id="bigWin">10-s</span> LAeq</span> &nbsp;·&nbsp; limit <span id="bigLimit">--</span></div>
       <div id="flags" class="flags"></div>
     </div>
     <div class="hbar-embed">
@@ -122,6 +122,11 @@
         <input type="checkbox" id="slackToggle" checked>
         <span class="at-track"><span class="at-thumb"></span></span>
         <span class="at-label">Slack alerts</span>
+      </label>
+      <label class="alert-toggle limit-toggle" title="Limit rule — passcode required to change">
+        <input type="checkbox" id="limitToggle">
+        <span class="at-track"><span class="at-thumb"></span></span>
+        <span class="at-label" id="limitLabel">90 LAeq10s</span>
       </label>
       <button id="resetBtn" class="reset-btn" title="Reset strike counter">Reset</button>
     </div>
@@ -217,6 +222,20 @@
       <div class="modal-actions">
         <button id="slackCancel" class="modal-btn cancel">Cancel</button>
         <button id="slackConfirm" class="modal-btn confirm">Turn Off</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Limit-mode passcode modal (required both directions) -->
+  <div id="limitModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Change limit rule">
+    <div class="modal-card">
+      <div class="modal-title" id="limitModalTitle">Change Limit Rule</div>
+      <p class="modal-sub">Enter the passcode to switch the live limit rule. It resets to 90 dB LAeq 10s at the 5am rollover.</p>
+      <input id="limitInput" class="modal-input" type="password" maxlength="32" placeholder="Passcode" autocomplete="off">
+      <div id="limitErr" class="modal-err hidden">Incorrect passcode.</div>
+      <div class="modal-actions">
+        <button id="limitCancel" class="modal-btn cancel">Cancel</button>
+        <button id="limitConfirm" class="modal-btn confirm">Switch</button>
       </div>
     </div>
   </div>

@@ -59,6 +59,13 @@
 
   "resetPasscode": "1682",
 
+  "_limitModesNote": "Passcode-gated dashboard toggle. The active mode overrides the venue yellow/red and the violations metric/threshold/sustain. Snaps back to limitMode at the report-day rollover.",
+  "limitModes": {
+    "laeq10":  { "label": "90 dB LAeq 10s", "metric": "LAeq 10s",   "red": 90, "yellow": 80, "sustainSeconds": 0 },
+    "aslow95": { "label": "95 dBA Slow",    "metric": "SPL A Slow", "red": 95, "yellow": 90, "sustainSeconds": 3 }
+  },
+  "limitMode": "laeq10",
+
   "showInfo": {
     "enabled": true,
     "refreshSeconds": 300,

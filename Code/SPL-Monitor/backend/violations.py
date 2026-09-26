@@ -43,6 +43,32 @@ class ViolationTracker:
         self.last_frame_ts = None
         self.session_start = time.time()
 
+    def set_rule(self, metric, threshold, sustain, now=None):
+        """Swap the trigger rule (limit-mode toggle). Any open episode is closed
+        first so one episode is never judged against two rules; strikes stay."""
+        now = time.time() if now is None else now
+        self._close_active(now)
+        self.metric = metric
+        self.threshold = threshold
+        self.sustain = sustain
+
+    def _close_active(self, now):
+        ep = self.active
+        if ep is None:
+            return
+        if ep["confirmed"]:
+            dur = now - ep["start"]
+            self.total_time_over += dur
+            rec = {
+                "number": ep["number"],
+                "start": ep["start"], "end": now,
+                "durationSec": round(dur, 1), "peak": round(ep["peak"], 1),
+            }
+            self.last_violation = rec
+            self.history.append(rec)
+            self._completed.append(rec)
+        self.active = None
+
     # -- main entry: feed one frame's metrics -----------------------------
     def process(self, metrics, now=None):
         now = time.time() if now is None else now
@@ -80,20 +106,7 @@ class ViolationTracker:
                 self._queue("long", ep, level, elapsed)
         else:
             # dropped below threshold — close any episode
-            if self.active is not None:
-                ep = self.active
-                if ep["confirmed"]:
-                    dur = now - ep["start"]
-                    self.total_time_over += dur
-                    rec = {
-                        "number": ep["number"],
-                        "start": ep["start"], "end": now,
-                        "durationSec": round(dur, 1), "peak": round(ep["peak"], 1),
-                    }
-                    self.last_violation = rec
-                    self.history.append(rec)
-                    self._completed.append(rec)
-                self.active = None
+            self._close_active(now)
 
         return self.state(now)
 

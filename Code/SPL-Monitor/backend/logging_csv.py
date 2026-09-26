@@ -61,7 +61,7 @@ class SessionLogger:
         self._writer.writerow(
             ["timestamp", "venue"] + METRIC_COLS
             + ["LAeq_10s_computed", "sub63_10s", "sub63_1min",
-               "light", "violation", "overload", "yellow_limit", "red_limit"])
+               "light", "violation", "overload", "yellow_limit", "red_limit", "limit_mode"])
         self._fh.flush()
 
     def update(self, state, metrics=None):
@@ -108,6 +108,7 @@ class SessionLogger:
             int(bool(state.get("overload"))),
             state.get("yellow"),
             state.get("red"),
+            state.get("limitMode"),
         ]
         self._writer.writerow(row)
         self._fh.flush()

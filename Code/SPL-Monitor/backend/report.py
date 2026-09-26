@@ -46,7 +46,7 @@ def load_series_from_csv(csv_text):
     if not header or "timestamp" not in header:
         return [], {}
     idx = {h: i for i, h in enumerate(header)}
-    skip = {"timestamp", "venue", "light", "violation", "overload", "yellow_limit", "red_limit"}
+    skip = {"timestamp", "venue", "light", "violation", "overload", "yellow_limit", "red_limit", "limit_mode"}
     cols = {h: [] for h in header if h not in skip}
     times = []
     for row in r:
@@ -81,6 +81,8 @@ def _graph(times, smap, thresh, violations, title, height=2.3):
     for v in violations:
         ax.axvspan(v["start"], v["end"], color="#e74c3c", alpha=0.20, lw=0)
     for name, lim in (thresh or {}).items():
+        if lim is None:
+            continue
         ax.axhline(lim, color="#e74c3c", linestyle="--", linewidth=1.0)
         ax.text(times[0], lim, f"  {name} limit {lim}", color="#c0392b", fontsize=6.5, va="bottom")
     ax.set_title(title, fontsize=9.5, loc="left", color="#1A3A5C", fontweight="bold")

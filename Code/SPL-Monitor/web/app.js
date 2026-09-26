@@ -53,6 +53,7 @@ function connect() {
     else if (m.type === "status") onStatus(m);
     else if (m.type === "venue") { $("venue").value = m.venue; currentVenue = m.venue; applyVenueView(); }
     else if (m.type === "showinfo") onShowInfo(m);
+    else if (m.type === "limitMode") applyLimitMode(m);
     else if (m.type === "alertsToggle") { const t = $("slackToggle"); if (t) t.checked = !!m.enabled; }
   };
 }
@@ -75,6 +76,7 @@ function onHello(m) {
   $("longLabel").textContent = fmtWin(state.longSecs); // tile = 6-min compliance
   $("predHorizon").textContent = m.horizonSeconds || 60;
   const st = $("slackToggle"); if (st) st.checked = m.alertsEnabled !== false;
+  applyLimitMode(m);
   venuesMeta = m.venues || {};
   const sel = $("venue");
   sel.innerHTML = "";
@@ -126,7 +128,11 @@ function onState(s) {
 
   $("source").textContent = s.deviceName || "";
   $("instLabel").textContent = metricLabel(s.instantMetric);
-  $("bigVal").textContent = fmt(s.laeqShort);       // hero = 10-s LAeq
+  // hero = whatever the active limit rule measures (10-s LAeq, or A-Slow in 95 mode)
+  const aslow = s.lightMetric && s.lightMetric !== "LAeq 10s";
+  $("bigVal").textContent = fmt(aslow ? s.lightLevel : s.laeqShort);
+  $("bigMetric").innerHTML = aslow ? "SPL A Slow" : `<span id="bigWin">${fmtWin(state.shortSecs)}</span> LAeq`;
+  if (s.limitMode && s.limitMode !== limitModeCur) applyLimitMode(s);
   $("bigLimit").textContent = s.red != null ? s.red : "--";
   $("instVal").textContent = fmt(s.instant);
   $("longTileVal").textContent = fmt(s.laeqLong);  // tile = 6-min compliance
@@ -413,7 +419,7 @@ function renderViolations(v) {
   $("violCount").textContent = v.count;
   $("violBox").classList.toggle("hit", v.count > 0);
   $("violRule").textContent = (v.sustainSeconds > 0)
-    ? ("≥" + v.threshold + " dBA · " + v.sustainSeconds + "s")
+    ? (metricLabel(v.metric) + " ≥ " + v.threshold + " dBA · " + v.sustainSeconds + "s")
     : (metricLabel(v.metric) + " ≥ " + v.threshold + " dBA");
   const row = $("violRow");
   const st = $("violStatus");
@@ -681,6 +687,79 @@ function clockTick() {
     if (e.key === "Escape") cancelOff();
   });
   modal.addEventListener("click", (e) => { if (e.target === modal) cancelOff(); });
+})();
+
+// ---- limit-mode toggle (90 LAeq 10s <-> 95 dBA Slow; passcode both ways) --
+let limitModeCur = null;
+const LIMIT_ALT = "aslow95";
+function applyLimitMode(m) {
+  const wrap = document.querySelector(".limit-toggle");
+  if (!wrap) return;
+  if (!m.limitMode) { wrap.style.display = "none"; return; }  // venue without modes
+  wrap.style.display = "";
+  limitModeCur = m.limitMode;
+  $("limitToggle").checked = m.limitMode === LIMIT_ALT;
+  $("limitLabel").textContent = m.limitMode === LIMIT_ALT ? "95 A-Slow" : "90 LAeq10s";
+}
+
+(function () {
+  const toggle = $("limitToggle");
+  if (!toggle) return;
+  const modal = $("limitModal");
+  const input = $("limitInput");
+  const err   = $("limitErr");
+  let target = null;
+
+  function closeModal() { modal.classList.add("hidden"); input.value = ""; }
+  function cancel() { closeModal(); toggle.checked = limitModeCur === LIMIT_ALT; }
+  function shake() {
+    input.classList.add("shake");
+    setTimeout(() => input.classList.remove("shake"), 500);
+  }
+
+  async function confirm() {
+    const code = input.value;
+    if (!code) { shake(); return; }
+    err.textContent = "Incorrect passcode.";
+    err.classList.add("hidden");
+    try {
+      const r = await fetch("/api/limit-mode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: target, passcode: code }),
+      });
+      if (r.ok) {
+        closeModal();               // server broadcasts the new mode to every client
+      } else {
+        err.classList.remove("hidden");
+        shake();
+        input.value = "";
+        setTimeout(() => input.focus(), 10);
+      }
+    } catch (e) {
+      err.textContent = "Connection error — try again.";
+      err.classList.remove("hidden");
+    }
+  }
+
+  toggle.addEventListener("change", () => {
+    target = toggle.checked ? LIMIT_ALT : "laeq10";
+    toggle.checked = limitModeCur === LIMIT_ALT;   // don't move until the server confirms
+    $("limitModalTitle").textContent = target === LIMIT_ALT
+      ? "Switch to 95 dBA Slow" : "Switch to 90 dB LAeq 10s";
+    input.value = "";
+    err.classList.add("hidden");
+    modal.classList.remove("hidden");
+    setTimeout(() => input.focus(), 40);
+  });
+
+  $("limitCancel").addEventListener("click", cancel);
+  $("limitConfirm").addEventListener("click", confirm);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") confirm();
+    if (e.key === "Escape") cancel();
+  });
+  modal.addEventListener("click", (e) => { if (e.target === modal) cancel(); });
 })();
 
 // ---- boot ---------------------------------------------------------------

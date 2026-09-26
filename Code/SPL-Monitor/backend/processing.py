@@ -93,6 +93,15 @@ class Monitor:
         self.venue = cfg.get("activeVenue")
         self.venues = cfg.get("venues", {})
         self.vtracker = ViolationTracker(cfg)
+        # Passcode-gated limit-mode toggle (FSQ: 90 LAeq 10s / 95 dBA-Slow).
+        # No "limitModes" in config => legacy venue yellow/red + violations block.
+        self.limit_modes = cfg.get("limitModes") or {}
+        self.default_limit_mode = cfg.get("limitMode") if cfg.get("limitMode") in self.limit_modes else None
+        if self.default_limit_mode is None and self.limit_modes:
+            self.default_limit_mode = next(iter(self.limit_modes))
+        self.limit_mode = None
+        if self.default_limit_mode:
+            self.set_limit_mode(self.default_limit_mode)
         self.latest = None
         # rolling chart history so a page refresh / new client gets the full
         # graph immediately instead of an empty window that refills over long_secs
@@ -114,7 +123,27 @@ class Monitor:
             return True
         return False
 
+    def set_limit_mode(self, name):
+        m = self.limit_modes.get(name)
+        if m is None:
+            return False
+        self.limit_mode = name
+        self.vtracker.set_rule(m["metric"], m["red"], m.get("sustainSeconds", 0))
+        return True
+
+    def limit_mode_info(self):
+        m = self.limit_modes.get(self.limit_mode) or {}
+        return {"limitMode": self.limit_mode, "limitLabel": m.get("label"),
+                "limitModes": {k: v.get("label", k) for k, v in self.limit_modes.items()}}
+
+    def light_metric(self):
+        m = self.limit_modes.get(self.limit_mode)
+        return m["metric"] if m else "LAeq 10s"
+
     def limits(self):
+        m = self.limit_modes.get(self.limit_mode)
+        if m:
+            return m.get("yellow"), m.get("red")
         v = self.venues.get(self.venue, {})
         return v.get("yellow"), v.get("red")
 
@@ -197,8 +226,18 @@ class Monitor:
         laeq_long = native_long if use_native else computed_long
 
         yellow, red = self.limits()
-        # Traffic light and headroom key off the 10-s LAeq (the hero metric)
-        light = self._light(laeq_short, yellow, red)
+        # Traffic light and headroom key off the active limit mode's metric:
+        # the 10-s LAeq by default, or the native SPL A Slow in 95 dBA-Slow mode.
+        light_metric = self.light_metric()
+        if light_metric == "LAeq 10s":
+            light_level = laeq_short
+        else:
+            light_level = metrics.get(light_metric)
+            if light_level is not None and light_level < 0:
+                light_level = None
+            if light_level is None:
+                light_level = inst
+        light = self._light(light_level, yellow, red)
         pred = self._predict(laeq_long, laeq_short, red)
 
         # C-weighted "bass cop": live = native LCeq 10s (fallback computed), the
@@ -244,8 +283,8 @@ class Monitor:
                        for k, v in sorted(metrics.items())}
 
         headroom = None
-        if laeq_short is not None and red is not None:
-            headroom = round(red - laeq_short, 1)
+        if light_level is not None and red is not None:
+            headroom = round(red - light_level, 1)
 
         state = {
             "t": now,
@@ -265,7 +304,9 @@ class Monitor:
             "light": light,
             "longFill": 1.0 if use_native else round(self.long.fill_fraction(now), 3),
             "complianceMetric": self.native_long_metric if use_native else "computed 6-min",
-            "lightMetric": "LAeq 10s",
+            "lightMetric": light_metric,
+            "lightLevel": _r(light_level),
+            **self.limit_mode_info(),
             "prediction": pred,
             "peakC": metrics.get("Peak C"),
             "splCSlow": metrics.get("SPL C Slow"),
@@ -301,8 +342,9 @@ class Monitor:
         # not in the native stream, fall back to our computed 10-second LAeq so it
         # still works; a native Smaart "LAeq 10s" metric overrides it automatically.
         vmetrics = dict(metrics)
-        if laeq_short is not None:
-            vmetrics.setdefault(self.vtracker.metric, laeq_short)
+        fallback = laeq_short if self.vtracker.metric == "LAeq 10s" else light_level
+        if fallback is not None:
+            vmetrics.setdefault(self.vtracker.metric, fallback)
         state["violations"] = self.vtracker.process(vmetrics)
         self.latest = state
 
