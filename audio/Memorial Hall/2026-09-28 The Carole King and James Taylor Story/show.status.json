@@ -8,16 +8,20 @@
       "note": "venue=memo console=DiGiCo Quantum 225"
     },
     "packet_built": {
-      "at": "2026-09-26T19:12:52",
+      "at": "2026-09-26T19:29:45",
       "note": "15 channels, full packet"
     },
     "ses_built": {
-      "at": "2026-09-26T19:12:59",
+      "at": "2026-09-26T19:29:45",
       "note": "memo \u00b7 15 channels \u00b7 The Carole King and James Taylor Story.ses"
+    },
+    "published": {
+      "at": "2026-09-26T19:30:05",
+      "note": "kb.tinydoorstudios.com/show-memo-2026-09-28-the-carole-king-and-james-taylor-story"
     }
   },
   "rev": "Rev 1.0 Deep Think",
-  "spec_md5": "3f8082bd56da1dd4a376bce7ae778222",
-  "md_md5": "3be9848b52623487ef4022a291d99156",
+  "spec_md5": "4f6821b13344e97bebb31ff10a95019f",
+  "md_md5": "64c3d33e412a9982a93e54e90b82f561",
   "ses_md5": "b35fbb252124a39eb7a80f66fc152064"
 }

@@ -5,14 +5,14 @@
  "show_name": "The Carole King and James Taylor Story",
  "artist": "The Carole King & James Taylor Story (Phoebe Katis, Dan Clews)",
  "genre": "1970s singer-songwriter folk-pop (acoustic duo)",
- "show_date": "2026-09-28 + 2026-09-30",
+ "show_date": "2026-09-28",
  "foh_engineer": "Brian Lloyd",
  "mon_engineer": "Brian Lloyd (wedges from FOH)",
  "rev": "Rev 1.0 Deep Think",
  "app_version": "deep-think-1.0",
  "artist_profile": "Phoebe Katis (piano, vocals) and Dan Clews (fingerstyle acoustic, vocals) have toured this 'show-umentary' for ten years, framed around King and Taylor's 1970 Troubadour sets. The set is the hits: Fire and Rain, Sweet Baby James, I Feel the Earth Move, Natural Woman, You've Got a Friend. Reviews call Phoebe 'breathy and formal' beside King's chest voice, and say Dan channels Taylor's soft baritone and picking convincingly. For the mix: two quiet voices, a piano that is the whole band in her half, a guitar that is the whole band in his. Nothing is loud, so gain before feedback and bleed off the open lid drive every choice.",
  "room_context": "Memo, 556 seats, RT60 about 1.6 s. The 125 and 250–315 modes are treated once, on the piano group and the vocal low-mids. The room supplies the long tail, so every reverb decay is pulled 30–40%.",
- "style_note": "Two voices, one C3, one guitar. Keep it warm, keep it dry-ish, let the room sing.",
+ "style_note": "Two nights, 09-28 and 09-30. Two voices, one C3, one guitar. Keep it warm, keep it dry-ish, let the room sing.",
  "changes": [
   "Ch 7 mic: input list 'KSM105' → Neumann KMS 105 (Brian confirmed).",
   "Ch 13/14 renamed Pno Rec Hi / Pno Rec Lo; the ORTF pair runs highs left from the bend, so the piano group pans audience view (Hi left) to match.",
@@ -49,7 +49,7 @@
  ],
  "research": {
   "genre_verified": "1970s singer-songwriter folk-pop — Night Owl Shows show page (Troubadour 1970 framing), BroadwayWorld BroadStage review 2026-05-08, Harris Center listing, Kent Stage live video.",
-  "gig": "Two nights at Memo (09-28, 09-30), seated theatre show with history segments between songs.",
+  "gig": "Two nights at Memo: 2026-09-28 and 2026-09-30, seated theatre show with history segments between songs.",
   "units": [
    {
     "ch": "1/2",

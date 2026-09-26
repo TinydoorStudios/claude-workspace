@@ -1,5 +1,5 @@
 # The Carole King and James Taylor Story — FOH Channel Processing
-## Memorial Hall · DiGiCo Quantum 225 · 2026-09-28 + 2026-09-30 · Rev 1.0 Deep Think
+## Memorial Hall · DiGiCo Quantum 225 · 2026-09-28 · Rev 1.0 Deep Think
 *Deep-research pass. Active channels only. Band order: B4 (high) -> B3 -> B2 -> B1 (low).*
 
 ## Ch 1 | Piano Hi | DPA 4099 CORE+ Extreme SPL

@@ -1,0 +1,29 @@
+# Constraint card — Carole King & James Taylor Story, Memo 09-28 / 09-30
+
+- R1/R2/R3 Q225. HPF·LPF·B4→B1, B1 = LF. Whole dB. Q 0.3–10. ±18.
+- R4 Locked .md format, names ≤12 chars, lint gates the patcher.
+- R5 spec.json is truth; regenerate everything from it.
+- R6/R7 reportlab packet: md, xlsx, Show Packet, EQ Rationale, MASTER, .ses, spec, phone sheet. No generated stage plot.
+- R8 Cuts first. R9 vocals (ch 6/7/8) cuts ONLY. R10 no high shelf. R11 indoor −4 to −7, Q 1.5–2, boosts +3 to +6.
+- R13 acoustic/folk genre = conservative; 1.5–2k piezo quack is the primary cut on the acoustic DI.
+- R14 Memo 63/125/200/250–315: no boosts there; DEQ where static won't hold. RT60 ~1.6 s. Stomp box = kick-class risk channel.
+- R15 every boost cites a capsule fact; no deep cut in a baked scoop.
+- R16 two-mic: piano DPA Hi/Lo pair = one signal, lanes owned; Schoeps record pair vs DPAs; phase/mono check.
+- R17 two lead vocals (Dan/Phoebe) slotted by voice type, not cloned.
+- R18 dynamics as COMP/GATE lines only, never patched.
+- R19 reverbs: 3 vocal + 1–2 instrument + general. Brian 2026-09-26: 7th Heaven + CLA Epic are the ONLY Memo reverbs now. 7th Heaven names verbatim from KB, "(factory)" anchors. CLA Epic = no KB yet → research + write-back.
+- R21 artist research fresh; live footage > press.
+- R22 instrument → mic → genre → venue.
+- R23 per unit fresh web pass, ≥1 freq+dB capsule fact, named source.
+- R24 AGREE/DISAGREE/THIN before numbers.
+- R25 five-layer trace matches bands.
+- R27 research visible; numbers in a later message.
+- R28 unknowns = ask (KSM105 identity, wireless vs wired).
+- R31 mic-library authoritative.
+- R32 locker fork every mic'd input; DIs (ch4, ch5) exempt; crowd rig exempt.
+- R33 Memo wireless = faders 41–44.
+- R35 crowd rig 57/58/59 patched, KB EQ fixed.
+- R37 Local inputs "Local N".
+- R39 one question at a time, forks first.
+- R41 .ses PASS lines. R42 no console-verify gate. R43 status file.
+- Locked this session: DPA Hi/Lo + MK4 ORTF → Millennia HV-3D-8 ch1–4, line into stagebox, console gain unity, 48V at HV-3; SM57 plate hole H2 → wedges only; full stick; wedges L/R of pianist.
