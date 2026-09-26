@@ -132,14 +132,14 @@ def _restore_limit_mode(app):
         return
     if saved.get("day") == app["daily"].report_day() and monitor.set_limit_mode(saved.get("mode")):
         print(f"[limit] restored mode {monitor.limit_mode}", flush=True)
-    app["limit_mode_day"] = app["daily"].report_day()
+    app["limit_state"]["day"] = app["daily"].report_day()
 
 
 async def _apply_limit_mode(app, mode, why):
     monitor = app["monitor"]
     if not monitor.set_limit_mode(mode):
         return False
-    app["limit_mode_day"] = app["daily"].report_day()
+    app["limit_state"]["day"] = app["daily"].report_day()
     _save_limit_mode(app)
     await app["hub"].broadcast({"type": "limitMode", **monitor.limit_mode_info()})
     print(f"[limit] mode -> {mode} ({why})", flush=True)
@@ -295,8 +295,8 @@ async def status_ticker(app):
             monitor = app["monitor"]
             if monitor.limit_modes:
                 day = app["daily"].report_day()
-                if day != app.get("limit_mode_day"):
-                    app["limit_mode_day"] = day
+                if day != app["limit_state"]["day"]:
+                    app["limit_state"]["day"] = day
                     if monitor.limit_mode != monitor.default_limit_mode:
                         await _apply_limit_mode(app, monitor.default_limit_mode, "report-day rollover")
     except asyncio.CancelledError:
@@ -393,6 +393,7 @@ def build_app():
     app["showinfo"] = ShowInfoTracker(cfg)
     app["source"] = make_source(cfg)
     app["alerts_enabled"] = True
+    app["limit_state"] = {"day": None}   # mutable: report day the mode was last set/checked
     app.router.add_get("/", index)
     app.router.add_post("/api/reset-strikes", reset_strikes_handler)
     app.router.add_post("/api/toggle-alerts", toggle_alerts_handler)
