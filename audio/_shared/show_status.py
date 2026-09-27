@@ -91,6 +91,7 @@ def stamp(folder, stage, note=None, extra=None, strict=False):
         with open(_path(folder), "w", encoding="utf-8") as f:
             json.dump(st, f, indent=2)
             f.write("\n")
+        _push_board(folder)
         return st
     except Exception:
         if strict:
@@ -98,6 +99,29 @@ def stamp(folder, stage, note=None, extra=None, strict=False):
         print(f"  (show_status: could not stamp {stage!r} in {folder} — "
               "non-fatal, continuing)", file=sys.stderr)
         return None
+
+
+_WORKSPACE = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+_PUSH = os.path.join(_WORKSPACE, "Code", "landing-redesign", "push-shows.command")
+
+
+def _push_board(folder):
+    """Refresh the /rack/ shows board after a stamp (2026-09-27). Fire-and-forget:
+    detached, delayed a few seconds so back-to-back stamps collapse into one push,
+    skipped for anything outside audio/ (selftest fixtures) or SHOWS_BOARD_PUSH=0.
+    Never raises; a failed push just leaves the board stale until the next one."""
+    try:
+        if os.environ.get("SHOWS_BOARD_PUSH") == "0" or not os.path.exists(_PUSH):
+            return
+        audio = os.path.join(_WORKSPACE, "audio") + os.sep
+        if not os.path.realpath(folder).startswith(os.path.realpath(audio)):
+            return
+        import subprocess
+        subprocess.Popen(["/bin/bash", _PUSH, "--delay"], stdin=subprocess.DEVNULL,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+    except Exception:
+        pass
 
 
 def render(st):

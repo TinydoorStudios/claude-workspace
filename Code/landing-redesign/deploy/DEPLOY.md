@@ -80,3 +80,9 @@ stage (SCAF/PKT/SES/WIKI from show.status.json), stage-plot presence and build f
 Show folders live on the Mac, so `../export_shows.py` builds `deploy/rack/shows.json`
 and `../push-shows.command` ships it to `/opt/landing/html/rack/shows.json`. It is
 NOT on a timer yet — run push-shows.command after builds, or add a launchd agent.
+
+**Auto-push (2026-09-27):** `audio/_shared/show_status.py` fires push-shows.command
+(`--delay`, detached, 5 s debounce via /tmp/push-shows.lock, log /tmp/push-shows.log)
+after every stamp — scaffold, packet, .ses, publish. Skipped outside audio/ and when
+`SHOWS_BOARD_PUSH=0`. Fallback: `~/Desktop/Refresh Shows Board.command`; the board's
+sync note turns yellow and says so when the feed is over 24 h old.

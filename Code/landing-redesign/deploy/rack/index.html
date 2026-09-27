@@ -242,7 +242,9 @@ function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 function renderShows(D){
   const today=new Date(D.today+'T12:00:00');
   const age=Math.round(Date.now()/1000-(D.generated||0));
-  document.getElementById('shNote').textContent=(D.shows||[]).length+' SHOWS · SYNCED '+(age<3600?Math.round(age/60)+'M':fmtUp(age))+' AGO';
+  const n=document.getElementById('shNote');
+  n.textContent=(D.shows||[]).length+' SHOWS · SYNCED '+(age<3600?Math.round(age/60)+'M':fmtUp(age))+' AGO'+(age>86400?' — STALE, RUN "REFRESH SHOWS BOARD" ON THE MAC':'');
+  n.style.color=age>86400?'var(--warn)':'';
   let last='', rows=[];
   (D.shows||[]).forEach(s=>{
     const d=new Date(s.date+'T12:00:00'), days=Math.round((d-today)/864e5);
