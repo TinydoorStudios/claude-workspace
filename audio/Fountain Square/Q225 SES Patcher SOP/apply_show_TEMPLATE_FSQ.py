@@ -8,9 +8,20 @@ This file holds only the FSQ template's calibration. Fix bugs in the
 engine (both venues inherit); recalibrate templates here.
 
 TEMPLATE: `Fountain Square/_TEMPLATE/brian fsq start.ses`
-(9,830,689 bytes, md5 c3d23d89…, installed 2026-09-27 from
+(5,528,719 bytes, md5 974d10f4…, installed 2026-09-27 (second drop, "b") from
 `~/.wine/drive_c/Templates/brian fsq start sept 2026.ses`).
 
+2026-09-27b — SECOND LIBRARY TRIM. Brian trimmed the preset library again
+(section 1: 6,665,730 -> 2,363,760 B, 3751 -> 147 presets; groups left:
+2025, BLANKS, CLA, Chilli 6, Choruses, Delays, FSQ, Hall/Non-Lin/Plate/Room
+Reverbs, MR tour mixes, Pitch Shifters, RR, Soul Asylum, Specials). Every
+later section moved down by exactly 0x41A492. Parsed per-fader vet vs the
+9,830,689-byte file: zero changes on all 64 faders (names, EQ, DEQ, HPF/LPF,
+Mustard, gates, do-not-write tags); only sections 7/8 differ (save
+timestamps + runtime pointers, as in every resave). Constants below =
+first-trim values - 0x41A492. Still the 07-26 state (see below).
+
+History — first trim, 9,830,689 bytes (retired 2026-09-27b):
 2026-09-27 — PRESET-LIBRARY TRIM. Brian cut the preset library out in the
 offline editor. File section 1 (0x1D6.., the library) shrank and everything
 after it moved down by exactly 0x1CAFBB9, so surf_base / scan_lo / scan_hi
@@ -115,7 +126,7 @@ from q225_ses_engine import main_cli   # noqa: E402
 
 CAL = dict(
     venue='fsq',
-    template_size=9_830_689,
+    template_size=5_528_719,
     # Template channel-map gotchas (Brian, 2026-07-08, Hot Magnolias):
     #   fader 9 'Overheads' is a STEREO channel — BOTH overhead mics live on
     #   that one fader; never split an OH pair across 9/10.
@@ -124,13 +135,14 @@ CAL = dict(
     protected={10: "SNARE PL8 is the snare plate reverb return, not an input. "
                    "Overheads are STEREO on fader 9 (both mics, one fader) — "
                    "an OH pair never spills onto 10."},
-    surf_base=0x66A873,    # fader 1 surface-label slot (length byte)
+    surf_base=0x2503E1,    # fader 1 surface-label slot (length byte)
     surf_stride=125,
     n_faders=64,
     block_mode='scan',
-    scan_lo=0x898447,      # current-scene channel-block region
-    scan_hi=0x8F3647,      # f1 blk 0x8988DE .. f64 blk 0x8F3428, stride 0x16AE
-                           # (= 2026-08-01 values - 0x1CAFBB9 library trim)
+    scan_lo=0x47DFB5,      # current-scene channel-block region
+    scan_hi=0x4D91B5,      # f1 blk 0x47E44C .. f64 blk 0x4D8F96, stride 0x16AE
+                           # (= 2026-08-01 values - 0x1CAFBB9 - 0x41A492,
+                           #  the two 2026-09-27 library trims)
     max_block_span=0x4000, # wider = non-unique name (FX returns) — refuse
     # Tripwire — surface-table names, faders 1..64:
     expected_names=[

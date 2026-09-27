@@ -8,14 +8,23 @@ This file holds only the Memo template's calibration. Fix bugs in the
 engine (both venues inherit); recalibrate templates here.
 
 TEMPLATE: `Memorial Hall/_TEMPLATE/brian memo start sept 2026.ses`
-(7,195,808 bytes, md5 77630594…, installed 2026-09-27 — Brian trimmed the
-preset library in the offline editor. Section 1 shrank and everything after
-it moved down by exactly 0x1D0DDF9: surf_base and block_base shift by that,
-stride/geometry/names unchanged. The parameter vet vs the June file found
-real channel changes — see memo-template-recalibration memory: ch 1-39 (not
-4) HPF 20->25 Hz and LPF stored 25000->20000; B4 6300/Q0.71 -> 5162/Q3.93
-(0 dB); ch 34/35 B4 -9.95 dB and B3 +9.81 dB @1.6k; ch 4/12 band freq/Q
-moves at 0 dB; ch 33-39 0x0705 1->0; Hall (f49) 0x08E1 1->0.)
+(4,610,646 bytes, md5 9e609383…, installed 2026-09-27 (second drop, "b").
+Brian trimmed the preset library a second time (section 1: 6,280,130 ->
+3,694,968 B, 1980 -> 1298 presets); everything after moved down by exactly
+0x27724A vs the first trim (0x1F85043 vs the June file). Parsed vet vs the
+first trim: zero channel changes. Brian then chose "revert to June": the
+channel changes that came in with the first trim were written back to the
+June values in place (same-length 4-byte writes, 430 bytes): ch 1-39 (not 4)
+HPF 25->20 Hz, LPF stored 20000->25000, B4 5162/Q3.93->6300/Q0.71; ch 34/35
+B4 -9.95 dB and B3 +9.81 dB -> 0 dB; ch 4 and ch 12 band freqs/Qs -> June;
+ch 33-39 0x0705 bidx 0/1 0->1; Hall (f49) 0x08E1 0->1. Re-vet vs June:
+zero parsed differences on all 72 faders. (The "new 0x0500/7 record" on
+33-39 was a parser artifact: a 0.0 value in 0x0705 reads as tag 0x0500
+one byte early. It vanished with the revert.) Left as found: surface-table
+byte +34 on faders 4/12/41 (unknown meaning), sections 4/9 small deltas.
+
+History — first trim, 7,195,808 bytes (retired 2026-09-27b): section 1
+shrank by 0x1D0DDF9 vs June and carried the channel changes reverted above.
 
 Previous: `brian memo june 2026.ses`
 (37,661,337 bytes — full console save, swapped in 2026-07-01; the old
@@ -47,12 +56,12 @@ from q225_ses_engine import main_cli   # noqa: E402
 
 CAL = dict(
     venue='memo',
-    template_size=7_195_808,
-    surf_base=0x60C696,    # fader 1 surface-label slot (length byte)
+    template_size=4_610_646,
+    surf_base=0x39544C,    # fader 1 surface-label slot (length byte)
     surf_stride=125,
     n_faders=72,
     block_mode='positional',
-    block_base=0x616FA3,   # channel 1 current-scene block (first name copy)
+    block_base=0x39FD59,   # channel 1 current-scene block (first name copy)
     block_stride=0x15A6,   # contiguous, one per channel
     block_pre=0x30,        # bounds: [first - pre, first + span)
     block_span=0x15A0,

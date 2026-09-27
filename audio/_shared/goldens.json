@@ -1,12 +1,12 @@
 {
   "fsq": {
-    "md5": "818530f059b2341c4833f112b4572132",
+    "md5": "36ff7f61689464081521b220b751024c",
     "template": "brian fsq start.ses",
-    "template_bytes": 9830689
+    "template_bytes": 5528719
   },
   "memo": {
-    "md5": "281bf76c11d0f0efdc577169cd804c35",
+    "md5": "250d3b93e7afed6e30b53c17f12e4456",
     "template": "brian memo start sept 2026.ses",
-    "template_bytes": 7195808
+    "template_bytes": 4610646
   }
 }

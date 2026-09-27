@@ -21,9 +21,9 @@ venue constants. The patcher scripts already encode everything.
 | fsq | `~/Documents/Claude/audio/Fountain Square/_TEMPLATE/brian fsq start.ses` | `~/Documents/Claude/audio/Fountain Square/Q225 SES Patcher SOP/apply_show_TEMPLATE_FSQ.py` | `~/Documents/Claude/audio/Fountain Square/YYYY-MM-DD ShowName/` |
 | memo | `~/Documents/Claude/audio/Memorial Hall/_TEMPLATE/brian memo start sept 2026.ses` | `~/Documents/Claude/audio/Memorial Hall/Q225 SES Patcher SOP/apply_show_TEMPLATE.py` | `~/Documents/Claude/audio/Memorial Hall/YYYY-MM-DD ShowName/` |
 
-Template sizes (output must match exactly): fsq **9,830,689** bytes
+Template sizes (output must match exactly): fsq **5,528,719** bytes
 (console save with the preset library trimmed, installed 2026-09-27; earlier
-templates retired to `_TEMPLATE/_retired/`), memo **7,195,808** bytes
+templates retired to `_TEMPLATE/_retired/`), memo **4,610,646** bytes
 (`brian memo start sept 2026.ses`, preset library trimmed, installed
 2026-09-27; `brian memo june 2026.ses` is retired to `_TEMPLATE/_retired/`).
 Both patchers carry an offset tripwire and abort if the template's fader
@@ -75,7 +75,7 @@ The run must print ALL of these (both venues — the shared engine at
 - `readback: PASS` — the engine automatically re-reads EVERY MD channel
   from the output (names, all bands at the mapped bidx, HPF ×0.8 /
   LPF ×1.25 scaling, DEQ) and compares against the MD
-- file size = template size (fsq 9,830,689 · memo 7,195,808)
+- file size = template size (fsq 5,528,719 · memo 4,610,646)
 
 Any FAIL or `!!` line = stop, report, do not deliver. To re-verify an
 existing .ses later without rebuilding:
