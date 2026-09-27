@@ -3651,6 +3651,22 @@ def daily_digest():
            "error": None if ok else err}
 
 
+@app.get("/internal/board")
+def internal_board():
+    """Advance panel feed for tinydoorstudios.com/rack/ (2026-09-27). The VM's
+    status-writer polls this every 30 s and drops it into the gated rack page,
+    so the board shows the same bills and Needs-you items as /dashboard
+    without its session login. Read-only; token-protected like the other
+    /internal endpoints."""
+    _internal_auth()
+    def body(r):
+        return r[0] if isinstance(r, tuple) else r
+    d, n = body(dashboard_data()), body(dashboard_needs())
+    return {"bills": d.get("bills", []), "needs": n.get("items", []),
+            "error": d.get("error") or n.get("error"),
+            "generated_at": dt.datetime.now().isoformat()}
+
+
 @app.post("/internal/crew-report")
 def crew_report_endpoint():
     """Standalone, on-demand only (n8n's 'Crew Report' webhook — its daily

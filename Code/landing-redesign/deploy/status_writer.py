@@ -115,6 +115,34 @@ def pve_push():
         return {}
 
 
+ADVANCE_ENV = "/opt/band-advance/advance.env"
+ADVANCE_OUT = "/opt/landing/html/rack/advance.json"
+
+
+def advance_board():
+    """Band-advance bills + Needs-you items for the rack page's advance panel
+    (2026-09-27). Separate file and separate failure path: a down advance app
+    must never stop status.json from being written."""
+    try:
+        token = ""
+        with open(ADVANCE_ENV) as f:
+            for line in f:
+                if line.startswith("ADVANCE_INTERNAL_TOKEN="):
+                    token = line.split("=", 1)[1].strip().strip('"\'')
+        req = urllib.request.Request("http://127.0.0.1:8097/internal/board",
+                                     headers={"X-Advance-Token": token})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            data = json.load(r)
+    except Exception as e:
+        data = {"bills": [], "needs": [], "error": e.__class__.__name__}
+    data["generated"] = int(time.time())
+    tmp = ADVANCE_OUT + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(data, f, separators=(",", ":"))
+    os.chmod(tmp, 0o644)
+    os.replace(tmp, ADVANCE_OUT)
+
+
 def main():
     data = {
         "generated": int(time.time()),
@@ -129,6 +157,7 @@ def main():
     with open(tmp, "w") as f:
         json.dump(data, f, separators=(",", ":"))
     os.replace(tmp, OUT)
+    advance_board()
 
 
 if __name__ == "__main__":
