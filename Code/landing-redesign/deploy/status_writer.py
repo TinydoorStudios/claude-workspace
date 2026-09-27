@@ -115,6 +115,25 @@ def pve_push():
         return {}
 
 
+TICKETS_SQL = ("select coalesce(json_agg(t order by t.created_at desc),'[]') from ("
+               "select ticket_id, venue, severity, category, title, status, monday_item_id, "
+               "created_at from tickets where status <> 'resolved' and duplicate_of is null) t")
+
+
+def gear_tickets():
+    """Open gear tickets from the ledger (2026-09-27, rack open-issues strip).
+    Postgres status is reconciled from Monday nightly, so a ticket closed on
+    the board today can linger here until 7am. None on any failure."""
+    try:
+        out = subprocess.run(
+            ["docker", "exec", "n8n-postgres-1", "sh", "-c",
+             'psql -U "$POSTGRES_USER" -d tickets -Atc "$0"', TICKETS_SQL],
+            capture_output=True, text=True, timeout=10)
+        return json.loads(out.stdout) if out.returncode == 0 else None
+    except Exception:
+        return None
+
+
 ADVANCE_ENV = "/opt/band-advance/advance.env"
 ADVANCE_OUT = "/opt/landing/html/rack/advance.json"
 
@@ -150,6 +169,7 @@ def main():
         "services": services(),
         "docker": docker_ps(),
         "systems": systems(),
+        "tickets": gear_tickets(),
     }
     data.update(pve_push())  # adds "pve" and "guests" keys when fresh
     os.makedirs(os.path.dirname(OUT), exist_ok=True)

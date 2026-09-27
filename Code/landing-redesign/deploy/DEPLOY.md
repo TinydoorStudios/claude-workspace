@@ -95,3 +95,12 @@ by status_writer.py every 30 s using ADVANCE_INTERNAL_TOKEN from
 /opt/band-advance/advance.env, written to `/opt/landing/html/rack/advance.json`
 (behind the same basic-auth gate — it carries band emails, never make it public).
 A down advance app shows as an error on the panel and never blocks status.json.
+
+## Open issues panel (2026-09-27)
+
+Third panel on /rack/. Gear tickets: open, non-duplicate rows from the `tickets` ledger
+(n8n-postgres-1), queried by status_writer.py into status.json `tickets`, sorted by
+severity, each linking to its Monday item. Ledger status is reconciled from Monday
+nightly, so a ticket closed on the board shows until the 7am run. KB write-backs:
+unticked lines of `audio/Live Sound KB/_learning/PENDING.md`, parsed by
+export_shows.py into shows.json `pending` (rides the same auto-push).

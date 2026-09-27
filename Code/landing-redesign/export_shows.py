@@ -71,12 +71,34 @@ def scan(today):
     return shows
 
 
+PENDING = os.path.join(AUDIO, "Live Sound KB", "_learning", "PENDING.md")
+
+
+def pending_items():
+    """Unticked KB write-backs / reconciliations in PENDING.md (2026-09-27,
+    rack open-issues strip). Walked with Brian at the top of every deep build."""
+    items, section = [], None
+    try:
+        with open(PENDING, encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("## "):
+                    section = line[3:].strip()
+                m = re.match(r"- \[ \] \*\*(.+?)\*\*\s*[—-]\s*(.+)", line.strip())
+                if m:
+                    body = re.sub(r"\s*[—-]\s*[^—]*\d{4}-\d{2}-\d{2}\s*$", "", m.group(2)).strip()
+                    items.append({"kind": m.group(1), "text": body, "section": section})
+    except OSError:
+        return None
+    return items
+
+
 def main():
     today = datetime.date.today()
     data = {
         "generated": int(datetime.datetime.now().timestamp()),
         "today": today.isoformat(),
         "shows": scan(today),
+        "pending": pending_items(),
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     tmp = OUT + ".tmp"

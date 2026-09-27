@@ -123,6 +123,22 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
 .bills .act span:first-child{color:var(--ink)}
 .bills .ser{color:var(--dim);font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
 .bills .rv{color:var(--warn);font-size:9px;letter-spacing:1px}
+.iss{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:860px){.iss{grid-template-columns:1fr}}
+.tk{display:flex;gap:10px;align-items:flex-start;background:var(--inset);border:1px solid var(--edge);
+  border-left:2px solid var(--dim);border-radius:3px;padding:7px 10px;margin-bottom:5px;text-decoration:none;color:var(--ink);font-size:10.5px}
+.tk:hover{background:#0c121b}
+.tk.s1{border-left-color:var(--bad)} .tk.s2{border-left-color:var(--hot)} .tk.s3{border-left-color:var(--warn)}
+.tk .id{color:var(--dim);font-size:9px;letter-spacing:1px;white-space:nowrap;padding-top:1px}
+.tk .bd{flex:1;min-width:0} .tk .bd small{display:block;color:var(--mut);font-size:9px;letter-spacing:.8px;margin-top:2px;text-transform:uppercase}
+.tk .ag{color:var(--dim);font-size:9px;white-space:nowrap}
+.tk.none{border-left-color:var(--ok)}
+.pd{font-size:10.5px;color:var(--ink);padding:6px 0;border-top:1px solid var(--edge)}
+.pd:first-of-type{border-top:0}
+.pd b{font-size:8.5px;letter-spacing:1px;color:var(--cy);font-weight:400;text-transform:uppercase;margin-right:6px}
+.pd.rc b{color:#c9a6ff}
+.pdsec{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin:8px 0 2px}
+.hint{font-size:9px;color:var(--dim);letter-spacing:1px;margin-top:8px}
 .foot{color:var(--dim);font-size:10px;letter-spacing:2px;margin-top:26px;text-align:center;text-transform:uppercase}
 </style>
 </head>
@@ -148,6 +164,15 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
   <div class="adv">
     <div><div class="sub">Needs you</div><div id="advNeeds"></div></div>
     <div><div class="sub">Bills · today forward</div><div class="tally" id="advTally"></div><table class="shows bills" id="advBills"></table></div>
+  </div>
+</div>
+
+<div class="panel">
+  <span class="ck"></span>
+  <div class="plabel">OPEN ISSUES<span class="rule"></span><span class="note" id="issNote"></span></div>
+  <div class="iss">
+    <div><div class="sub" id="tkHead">Gear tickets</div><div id="tkList"><div class="hint">loading…</div></div></div>
+    <div><div class="sub" id="pdHead">KB write-backs · PENDING.md</div><div id="pdList"><div class="hint">loading…</div></div></div>
   </div>
 </div>
 
@@ -194,6 +219,7 @@ function led(state){ // true | false | null
 }
 
 function render(S){
+  renderTickets(S.tickets);
   const note = document.getElementById('stsNote');
   const age = Math.round(Date.now()/1000 - (S.generated || 0));
   note.textContent = 'LIVE · UPDATED ' + (age < 90 ? age + 'S AGO' : 'STALE — ' + fmtUp(age) + ' OLD');
@@ -271,6 +297,7 @@ poll(); setInterval(poll, 15000);
 const PIPS=[['scaffolded','SCAF'],['packet_built','PKT'],['ses_built','SES'],['published','WIKI']];
 function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function renderShows(D){
+  renderPending(D.pending);
   const today=new Date(D.today+'T12:00:00');
   const age=Math.round(Date.now()/1000-(D.generated||0));
   const n=document.getElementById('shNote');
@@ -350,6 +377,37 @@ async function pollAdv(){
   }catch(e){document.getElementById('advNote').textContent='ADVANCE FEED UNREACHABLE';}
 }
 pollAdv(); setInterval(pollAdv, 30000);
+
+// ── open issues: gear tickets (status.json → render) + PENDING.md (shows.json → renderShows) ──
+const MONDAY='https://3cdc-cast.monday.com/boards/18405931866/pulses/';
+const SEV={'Show-stopper':1,'Fix before next use':2,'Annoying but working':3,'Note for the record':4};
+const VSHORT={'Fountain Square':'FSQ','Memorial Hall':'MEMO','Washington Park':'WP','Elm Street Plaza':'ESP'};
+function renderTickets(T){
+  const el=document.getElementById('tkList');
+  if(T==null){el.innerHTML='<div class="hint">TICKET LEDGER UNREACHABLE</div>';return;}
+  const t=[...T].sort((a,b)=>(SEV[a.severity]||5)-(SEV[b.severity]||5)||b.created_at.localeCompare(a.created_at));
+  document.getElementById('tkHead').textContent='Gear tickets · '+t.length+' open';
+  el.innerHTML=t.length?t.map(x=>{
+    const days=Math.floor((Date.now()-Date.parse(x.created_at))/864e5);
+    const title=String(x.title||'').replace(/^[^—]+—\s*/,'');
+    const tag=x.monday_item_id?'a href="'+MONDAY+esc(x.monday_item_id)+'" target="_blank" rel="noopener"':'div';
+    return '<'+tag+' class="tk s'+(SEV[x.severity]||4)+'"><span class="id">'+esc(x.ticket_id)+'</span>'+
+      '<span class="bd">'+esc(title)+'<small>'+(VSHORT[x.venue]||esc(x.venue||''))+' · '+esc(x.severity||'')+'</small></span>'+
+      '<span class="ag">'+(days<1?'today':days+'d')+'</span></'+(x.monday_item_id?'a':'div')+'>';
+  }).join(''):'<div class="tk none"><span class="bd">No open tickets</span></div>';
+}
+function renderPending(P){
+  const el=document.getElementById('pdList');
+  if(P==null){el.innerHTML='<div class="hint">PENDING.md NOT READ</div>';return;}
+  document.getElementById('pdHead').textContent='KB write-backs · '+P.length+' waiting';
+  let sec='', out=[];
+  P.forEach(x=>{
+    if(x.section!==sec){sec=x.section;out.push('<div class="pdsec">'+esc(sec.replace(/^From\s+/,'').replace(/\s+—\s+queued.*$/,''))+'</div>');}
+    out.push('<div class="pd'+(/^Reconc/.test(x.kind)?' rc':'')+'"><b>'+(/^Reconc/.test(x.kind)?'recon':'write')+'</b>'+esc(x.text)+'</div>');
+  });
+  el.innerHTML=P.length?out.join('')+'<div class="hint">WALKED WITH YOU AT THE TOP OF THE NEXT DEEP BUILD</div>'
+    :'<div class="tk none"><span class="bd">Queue is clear</span></div>';
+}
 </script>
 </body>
 </html>

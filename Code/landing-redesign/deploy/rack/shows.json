@@ -1,5 +1,5 @@
 {
- "generated": 1790528487,
+ "generated": 1790533336,
  "today": "2026-09-27",
  "shows": [
   {
@@ -196,6 +196,48 @@
    "rev": null,
    "plot": false,
    "wiki": null
+  }
+ ],
+ "pending": [
+  {
+   "kind": "KB write-back",
+   "text": "mic-shure-sm57: piano plate-hole monitor row (HPF 160, \u22125 @ 250, \u22124 @ 500, no top).",
+   "section": "From The Carole King and James Taylor Story (Memo 2026-09-28) \u2014 queued 2026-09-26"
+  },
+  {
+   "kind": "KB write-back",
+   "text": "eq-starting-points: stomp box (piezo) DI row (+3 @ 85 between Memo modes, \u22124 @ 130, \u22125 @ 350, LPF 5k).",
+   "section": "From The Carole King and James Taylor Story (Memo 2026-09-28) \u2014 queued 2026-09-26"
+  },
+  {
+   "kind": "KB write-back",
+   "text": "eq-starting-points: high/low spaced piano pair \u2014 per-mic correction on channels, room EQ on the linked group.",
+   "section": "From The Carole King and James Taylor Story (Memo 2026-09-28) \u2014 queued 2026-09-26"
+  },
+  {
+   "kind": "KB write-back",
+   "text": "reverb-reference-memo: CLA Epic section (controls from Waves user guide v2; Slap/Plate vocal, Throw with Trigger; no ducker) + 7th Heaven/Epic as the only Memo reverbs.",
+   "section": "From The Carole King and James Taylor Story (Memo 2026-09-28) \u2014 queued 2026-09-26"
+  },
+  {
+   "kind": "KB write-back",
+   "text": "mic-library: Millennia HV-3D-8 (8 ch) as an outboard front end; no KB page yet.",
+   "section": "From The Carole King and James Taylor Story (Memo 2026-09-28) \u2014 queued 2026-09-26"
+  },
+  {
+   "kind": "Reconciliation",
+   "text": "SM57 piano plate hole: KB has no row \u2192 THIN; web consensus used, KB row queued (Brian: research + update).",
+   "section": "From The Carole King and James Taylor Story (Memo 2026-09-28) \u2014 queued 2026-09-26"
+  },
+  {
+   "kind": "Reconciliation",
+   "text": "Stomp box DI: KB has no row \u2192 THIN; web values used with Memo mode placement, KB row queued.",
+   "section": "From The Carole King and James Taylor Story (Memo 2026-09-28) \u2014 queued 2026-09-26"
+  },
+  {
+   "kind": "Reconciliation",
+   "text": "No other web\u2194KB disagreements.",
+   "section": "From The Carole King and James Taylor Story (Memo 2026-09-28) \u2014 queued 2026-09-26"
   }
  ]
 }

@@ -68,3 +68,4 @@ _inbox/*
 # Q225 showfiles are regenerated from the FOH .md + venue template — keep history, stop adding new ones (2026-09-14)
 *.ses
 Code/landing-redesign/deploy/rack/advance.json
+Code/landing-redesign/deploy/rack/status.json
