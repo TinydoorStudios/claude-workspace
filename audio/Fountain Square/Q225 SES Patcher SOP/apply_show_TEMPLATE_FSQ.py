@@ -8,8 +8,28 @@ This file holds only the FSQ template's calibration. Fix bugs in the
 engine (both venues inherit); recalibrate templates here.
 
 TEMPLATE: `Fountain Square/_TEMPLATE/brian fsq start.ses`
-(39,910,700 bytes — full console save, installed 2026-08-01 from
-`~/.wine/drive_c/Projects/brian fsq start july 2026.ses`).
+(9,830,689 bytes, md5 c3d23d89…, installed 2026-09-27 from
+`~/.wine/drive_c/Templates/brian fsq start sept 2026.ses`).
+
+2026-09-27 — PRESET-LIBRARY TRIM. Brian cut the preset library out in the
+offline editor. File section 1 (0x1D6.., the library) shrank and everything
+after it moved down by exactly 0x1CAFBB9, so surf_base / scan_lo / scan_hi
+all shift by that amount; stride, block geometry, EQ windows and LPF offsets
+are identical per fader. The input-preset group 'Memo' is gone (known).
+Parameter-level vet vs the 39,910,700-byte 2026-08-01 template found this
+file was trimmed from the 2026-07-26 save (39,910,618 bytes — its section
+table differs from that file only by the library shift), so it carries the
+07-26 state, NOT the 08-01 one:
+  - faders 57/58 are back to 'Ch 57' / 'Ch 58' (were 'Click - Tempo' /
+    'FOH Playback'); these are the 26 surface-table bytes.
+  - tom-gate sidechains on 6/7/8 are back to the shared 129.7-317.0 Hz band
+    (08-01 had per-drum 216.9-262.2 / 152.5-241.8 / 96.2-116.3). Gate enable,
+    threshold and release unchanged.
+  - no 'Auto Tempo' macro (the -82 bytes in section 18).
+Every other EQ / DEQ / filter / Mustard / do-not-write value is identical on
+all 64 faders. Retired 39,910,700-byte file: `_TEMPLATE/_retired/`.
+
+History — the 2026-08-01 template (39,910,700 bytes):
 
 The 2026-08-01 save is a RENAME-ONLY RESAVE of the 2026-07-26 template:
 identical block bounds, EQ windows and LPF offsets on all 64 faders, and
@@ -65,9 +85,9 @@ wholesale: surface table at 0x231A42C, current-scene channel blocks at
 per fader (+1 surface slot = name×20). Block mode stays 'scan'.
 
 NAMED SPARES: 45/46 are '4:Dnt64 57'/'4:Dnt64 58' (the desk auto-named
-them after the Dante card ports). As of 2026-08-01, 57/58 are named too —
-'Click - Tempo' and 'FOH Playback' — so the free spare range is now
-faders 47-56, not 47-58.
+them after the Dante card ports). In the 2026-09-27 template 57/58 are plain
+'Ch 57'/'Ch 58' again (the 08-01 'Click - Tempo'/'FOH Playback' names did not
+survive — the trim was made from the 07-26 save), so 47-58 are free spares.
 
 BASELINE: vocals/wireless (faders 25-36) ship a starting curve (HPF 184,
 B4 -18 @5k Q20, B2 -6.3 @335); instrument channels 1-24 are flat.
@@ -95,7 +115,7 @@ from q225_ses_engine import main_cli   # noqa: E402
 
 CAL = dict(
     venue='fsq',
-    template_size=39_910_700,
+    template_size=9_830_689,
     # Template channel-map gotchas (Brian, 2026-07-08, Hot Magnolias):
     #   fader 9 'Overheads' is a STEREO channel — BOTH overhead mics live on
     #   that one fader; never split an OH pair across 9/10.
@@ -104,12 +124,13 @@ CAL = dict(
     protected={10: "SNARE PL8 is the snare plate reverb return, not an input. "
                    "Overheads are STEREO on fader 9 (both mics, one fader) — "
                    "an OH pair never spills onto 10."},
-    surf_base=0x231A42C,   # fader 1 surface-label slot (length byte)
+    surf_base=0x66A873,    # fader 1 surface-label slot (length byte)
     surf_stride=125,
     n_faders=64,
     block_mode='scan',
-    scan_lo=0x2548000,     # current-scene channel-block region
-    scan_hi=0x25A3200,     # f1 blk 0x2548497 .. f64 blk 0x25A2FE1, stride 0x16AE
+    scan_lo=0x898447,      # current-scene channel-block region
+    scan_hi=0x8F3647,      # f1 blk 0x8988DE .. f64 blk 0x8F3428, stride 0x16AE
+                           # (= 2026-08-01 values - 0x1CAFBB9 library trim)
     max_block_span=0x4000, # wider = non-unique name (FX returns) — refuse
     # Tripwire — surface-table names, faders 1..64:
     expected_names=[
@@ -123,7 +144,7 @@ CAL = dict(
         'Bricasti 3', 'Bricasti 4', '4:Dnt64 57', '4:Dnt64 58', 'Ch 47',
         'Ch 48',
         'Ch 49', 'Ch 50', 'Ch 51', 'Ch 52', 'Ch 53', 'Ch 54', 'Ch 55',
-        'Ch 56', 'Click - Tempo', 'FOH Playback', 'Mon 2 FOH', 'RTA',
+        'Ch 56', 'Ch 57', 'Ch 58', 'Mon 2 FOH', 'RTA',
         'Hotshot 2 FOH', 'Tech Feed', 'Crowd', 'Pandora',
     ],
 )

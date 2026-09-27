@@ -31,7 +31,7 @@ VENUES = {
     "fsq":  ("Fountain Square/Q225 SES Patcher SOP/apply_show_TEMPLATE_FSQ.py",
              "Fountain Square/_TEMPLATE/brian fsq start.ses"),
     "memo": ("Memorial Hall/Q225 SES Patcher SOP/apply_show_TEMPLATE.py",
-             "Memorial Hall/_TEMPLATE/brian memo june 2026.ses"),
+             "Memorial Hall/_TEMPLATE/brian memo start sept 2026.ses"),
 }
 BUILD_PACKET = os.path.join(AUDIO, "_skills", "show-deep-build", "scripts", "build_packet.py")
 FIXTURE = os.path.join(HERE, "selftest_fixture.spec.json")

@@ -1,7 +1,7 @@
 # Q225 .ses Show Patcher — Model Briefing
 
 > **SUPERSEDED 2026-07-01 — read this first.** The Memo template is now
-> `Memorial Hall/_TEMPLATE/brian memo june 2026.ses` (37,661,337 bytes, a full
+> `Memorial Hall/_TEMPLATE/brian memo start sept 2026.ses` (7,195,808 bytes since 2026-09-27; was `brian memo june 2026.ses`, 37,661,337 bytes, a full
 > console save in the FSQ layout: surface-label table + current-scene channel
 > blocks). `apply_show_TEMPLATE.py` was rebuilt on the console-verified FSQ
 > engine (offset tripwire, MD-driven CLI, stray-byte verification). The strip

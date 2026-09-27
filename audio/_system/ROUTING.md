@@ -17,7 +17,7 @@ Knowledge lives in one place: `Live Sound KB/Wiki/`. This file routes; the KB ho
 
 | Say | Venue | Folder | FOH console | Monitors | Base .ses | Patcher | PA | Tempest | KB specs to load |
 |---|---|---|---|---|---|---|---|---|---|
-| Memo | Memorial Hall | `Memorial Hall/` | DiGiCo Q225 (house) | per show (IEM/wedges) | `_TEMPLATE/brian memo june 2026.ses` | `apply_show_TEMPLATE.py` * | house | — (indoor) | venue-memorial-hall, console-digico-q225, eq-starting-points, reverb-reference-memo, mic-library |
+| Memo | Memorial Hall | `Memorial Hall/` | DiGiCo Q225 (house) | per show (IEM/wedges) | `_TEMPLATE/brian memo start sept 2026.ses` | `apply_show_TEMPLATE.py` * | house | — (indoor) | venue-memorial-hall, console-digico-q225, eq-starting-points, reverb-reference-memo, mic-library |
 | FSQ | Fountain Square | `Fountain Square/` | DiGiCo Q225 | Midas M32 | `_TEMPLATE/brian fsq start.ses` | `apply_show_TEMPLATE_FSQ.py` | L-Acoustics A15 / KS21 (X12 fills) | #215217 | venue-fountain-square, console-digico-q225, console-midas-m32, eq-starting-points, input-list-design-spec |
 | WP | Washington Park | `Washington Park/` | Midas M32 | M32 | — (no Q225 pipeline) | — (M32: Stage 2 manual) | JBL SRX915 / SRX906 / SRX928 | none | venue-washington-park, console-midas-m32, eq-starting-points |
 | ESP | Elm Street Plaza | `Elm Street Plaza/` | confirm at first show | confirm | — | — | confirm at first show | #211956 | venue-elm-street-plaza |

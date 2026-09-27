@@ -19,13 +19,13 @@ venue constants. The patcher scripts already encode everything.
 | Venue | Template (never edit) | SOP patcher | Show folders |
 |---|---|---|---|
 | fsq | `~/Documents/Claude/audio/Fountain Square/_TEMPLATE/brian fsq start.ses` | `~/Documents/Claude/audio/Fountain Square/Q225 SES Patcher SOP/apply_show_TEMPLATE_FSQ.py` | `~/Documents/Claude/audio/Fountain Square/YYYY-MM-DD ShowName/` |
-| memo | `~/Documents/Claude/audio/Memorial Hall/_TEMPLATE/brian memo june 2026.ses` | `~/Documents/Claude/audio/Memorial Hall/Q225 SES Patcher SOP/apply_show_TEMPLATE.py` | `~/Documents/Claude/audio/Memorial Hall/YYYY-MM-DD ShowName/` |
+| memo | `~/Documents/Claude/audio/Memorial Hall/_TEMPLATE/brian memo start sept 2026.ses` | `~/Documents/Claude/audio/Memorial Hall/Q225 SES Patcher SOP/apply_show_TEMPLATE.py` | `~/Documents/Claude/audio/Memorial Hall/YYYY-MM-DD ShowName/` |
 
-Template sizes (output must match exactly): fsq **39,910,700** bytes
-(full console save, 2026-08-01 drop; earlier templates retired to
-`_TEMPLATE/_retired/`), memo **37,661,337** bytes
-(`brian memo june 2026.ses`, swapped in 2026-07-01 — the old 1,543,866-byte
-`brian memo v2.ses` is retired).
+Template sizes (output must match exactly): fsq **9,830,689** bytes
+(console save with the preset library trimmed, installed 2026-09-27; earlier
+templates retired to `_TEMPLATE/_retired/`), memo **7,195,808** bytes
+(`brian memo start sept 2026.ses`, preset library trimmed, installed
+2026-09-27; `brian memo june 2026.ses` is retired to `_TEMPLATE/_retired/`).
 Both patchers carry an offset tripwire and abort if the template's fader
 names don't match their calibration — a resaved template fails loudly;
 recalibrate, don't force it.
@@ -75,7 +75,7 @@ The run must print ALL of these (both venues — the shared engine at
 - `readback: PASS` — the engine automatically re-reads EVERY MD channel
   from the output (names, all bands at the mapped bidx, HPF ×0.8 /
   LPF ×1.25 scaling, DEQ) and compares against the MD
-- file size = template size (fsq 39,910,700 · memo 37,661,337)
+- file size = template size (fsq 9,830,689 · memo 7,195,808)
 
 Any FAIL or `!!` line = stop, report, do not deliver. To re-verify an
 existing .ses later without rebuilding:

@@ -118,7 +118,7 @@ def main(argv=None):
         print(f"  {p}")
     print("\nNext: the show-deep-build skill fills the MD (spec.json -> build_packet.py).")
     if patcher_rel:
-        tmpl = ("Memorial Hall/_TEMPLATE/brian memo june 2026.ses" if a.venue == 'memo'
+        tmpl = ("Memorial Hall/_TEMPLATE/brian memo start sept 2026.ses" if a.venue == 'memo'
                 else "Fountain Square/_TEMPLATE/brian fsq start.ses")
         print("Then the .ses, running the venue patcher IN PLACE (never copy it):\n"
               f'  python3 "{os.path.join(AUDIO, patcher_rel)}" \\\n'
