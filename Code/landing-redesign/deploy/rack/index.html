@@ -101,6 +101,28 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
 .shows .fl{width:1%;white-space:nowrap;text-align:right;font-size:9px;letter-spacing:1px}
 .fl .w{color:var(--warn)} .fl .b{color:var(--bad)} .fl .o{color:var(--ok)}
 @media (max-width:640px){.shows .pl{display:none}.pip{padding:2px 3px}}
+.adv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:14px}
+@media (max-width:860px){.adv{grid-template-columns:1fr}}
+.sub{font-size:9px;letter-spacing:2px;color:var(--mut);margin-bottom:8px;text-transform:uppercase}
+.need{display:block;background:var(--inset);border:1px solid var(--edge);border-left:2px solid var(--warn);
+  border-radius:3px;padding:8px 10px;margin-bottom:6px;text-decoration:none;color:var(--ink)}
+.need:hover{border-color:var(--edge2);border-left-color:var(--warn);background:#0c121b}
+.need b{display:block;font-size:10.5px;color:var(--warn);letter-spacing:.8px;margin-bottom:3px}
+.need span{font-size:10px;color:var(--mut)}
+.need.none{border-left-color:var(--ok)} .need.none b{color:var(--ok)}
+.tally{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.st{display:inline-block;font-size:8.5px;letter-spacing:1px;padding:2px 6px;border-radius:2px;white-space:nowrap;text-transform:uppercase}
+.st.finalized{background:rgba(47,230,160,.12);color:var(--ok)}
+.st.responded{background:rgba(201,166,255,.12);color:#c9a6ff}
+.st.ready,.st.followup{background:rgba(55,200,255,.10);color:var(--cy)}
+.st.due,.st.held{background:rgba(255,210,77,.12);color:var(--warn)}
+.st.cancelled{background:rgba(255,77,87,.10);color:var(--bad)}
+.st.queued{background:#121926;color:var(--dim)}
+.bills td{padding:6px 8px}
+.bills .act{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:2px 0}
+.bills .act span:first-child{color:var(--ink)}
+.bills .ser{color:var(--dim);font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.bills .rv{color:var(--warn);font-size:9px;letter-spacing:1px}
 .foot{color:var(--dim);font-size:10px;letter-spacing:2px;margin-top:26px;text-align:center;text-transform:uppercase}
 </style>
 </head>
@@ -118,6 +140,15 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
   <span class="ck"></span>
   <div class="plabel">SHOWS · NEXT 3 WEEKS<span class="rule"></span><span class="note" id="shNote">loading…</span></div>
   <table class="shows" id="shows"></table>
+</div>
+
+<div class="panel">
+  <span class="ck"></span>
+  <div class="plabel">BAND ADVANCE<span class="rule"></span><span class="note" id="advNote">loading…</span></div>
+  <div class="adv">
+    <div><div class="sub">Needs you</div><div id="advNeeds"></div></div>
+    <div><div class="sub">Bills · today forward</div><div class="tally" id="advTally"></div><table class="shows bills" id="advBills"></table></div>
+  </div>
 </div>
 
 <div class="panel">
@@ -279,6 +310,46 @@ async function pollShows(){
   }catch(e){document.getElementById('shNote').textContent='SHOWS FEED UNREACHABLE';}
 }
 pollShows(); setInterval(pollShows, 60000);
+
+// ── band advance (advance.json, written every 30 s by status-writer from /internal/board) ──
+const ADV='https://advance.tinydoorstudios.com';
+const STCSS={queued:'queued',awaiting:'ready',ready_to_send:'ready',followup_due:'due',followup_drafted:'followup',
+  responded:'responded',finalized:'finalized',held:'held',cancelled:'cancelled'};
+const STLBL={queued:'Queued',awaiting:'Awaiting',ready_to_send:'Awaiting',followup_due:'Follow-up due',
+  followup_drafted:'Follow-up sent',responded:'In progress',finalized:'Finalized',held:'On hold',cancelled:'Cancelled'};
+const VTAG={'Fountain Square':'FSQ','Memorial Hall':'MEMO','Washington Park':'WP','Elm Street Plaza':'ESP'};
+function renderAdv(D){
+  const age=Math.round(Date.now()/1000-(D.generated||0));
+  const n=document.getElementById('advNote');
+  n.textContent=D.error?'ADVANCE APP: '+D.error:'LIVE · UPDATED '+(age<90?age+'S AGO':'STALE — '+fmtUp(age)+' OLD');
+  n.style.color=(D.error||age>180)?'var(--bad)':'';
+  const needs=D.needs||[];
+  document.getElementById('advNeeds').innerHTML=needs.length?needs.map(x=>
+    '<a class="need" href="'+ADV+esc(x.link_path||'/dashboard')+'" target="_blank" rel="noopener"><b>'+esc(x.label)+'</b><span>'+esc(x.detail||'')+'</span></a>').join('')
+    :'<div class="need none"><b>Nothing waiting on you</b><span>All bookings matched, no doc changes to decide.</span></div>';
+  const tally={}, rows=[];
+  (D.bills||[]).forEach(b=>{
+    const d=new Date(b.date+'T12:00:00');
+    const dl=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase();
+    const when=b.days_until===0?'TODAY':b.days_until===1?'TMRW':'IN '+b.days_until+'D';
+    const acts=b.acts.map(a=>{ const k=a.state; const tk=k==='ready_to_send'?'awaiting':k; tally[tk]=(tally[tk]||0)+1;
+      return '<div class="act"><span>'+esc(a.band)+'</span><span class="st '+(STCSS[k]||'queued')+'">'+(STLBL[k]||esc(k))+'</span></div>';}).join('');
+    rows.push('<tr class="day"><td class="dt">'+dl+'<small>'+when+'</small></td>'+
+      '<td class="vn"><span class="tag '+(VTAG[b.venue]||'')+'">'+(VTAG[b.venue]||esc(b.venue))+'</span></td>'+
+      '<td class="nm">'+acts+'<div class="ser">'+esc(b.series||'')+(b.reviews?' · <span class="rv">'+b.reviews+' DOC CHANGE'+(b.reviews>1?'S':'')+'</span>':'')+'</div></td></tr>');
+  });
+  const order=['followup_due','held','responded','awaiting','followup_drafted','queued','finalized'];
+  document.getElementById('advTally').innerHTML=order.filter(k=>tally[k]).map(k=>'<span class="st '+STCSS[k]+'">'+tally[k]+' '+STLBL[k]+'</span>').join('');
+  document.getElementById('advBills').innerHTML=rows.join('')||'<tr><td class="nm">No upcoming bills.</td></tr>';
+}
+async function pollAdv(){
+  try{
+    const r=await fetch('advance.json?_t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(8000)});
+    if(!r.ok){document.getElementById('advNote').textContent='ADVANCE FEED HTTP '+r.status;return;}
+    renderAdv(await r.json());
+  }catch(e){document.getElementById('advNote').textContent='ADVANCE FEED UNREACHABLE';}
+}
+pollAdv(); setInterval(pollAdv, 30000);
 </script>
 </body>
 </html>

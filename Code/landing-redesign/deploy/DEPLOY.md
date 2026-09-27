@@ -85,3 +85,13 @@ and `../push-shows.command` ships it to `/opt/landing/html/rack/shows.json`.
 after every stamp — scaffold, packet, .ses, publish. Skipped outside audio/ and when
 `SHOWS_BOARD_PUSH=0`. Fallback: `~/Desktop/Refresh Shows Board.command`; the board's
 sync note turns yellow and says so when the feed is over 24 h old.
+
+## Band advance panel (2026-09-27)
+
+Second panel on /rack/: the advance app's bills (every act with its advance state) and
+its Needs-you items, each linking into advance.tinydoorstudios.com. Feed: the advance
+app's token-protected `GET /internal/board` (same data as its gated /dashboard), read
+by status_writer.py every 30 s using ADVANCE_INTERNAL_TOKEN from
+/opt/band-advance/advance.env, written to `/opt/landing/html/rack/advance.json`
+(behind the same basic-auth gate — it carries band emails, never make it public).
+A down advance app shows as an error on the panel and never blocks status.json.
