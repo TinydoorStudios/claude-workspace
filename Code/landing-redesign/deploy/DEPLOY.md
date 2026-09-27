@@ -114,8 +114,15 @@ Two-click (arm, then fire within 5 s). The page POSTs to `/rack/run/<hook>`; ngi
 is deliberately NOT a button: it sends due band mail.
 
 Same day, the tickets.tinydoorstudios.com vhost was narrowed from all of
-`/webhook|/rest|...` to just `/form/gear-ticket` + form assets. It had been exposing
-every n8n webhook publicly. n8n.tinydoorstudios.com still reaches n8n directly via the
-remote-managed tunnel (bypasses nginx), so its webhooks remain public there. The
-Outlook send/draft webhooks check X-Advance-Token; the run-now ones do not.
-Backups: /opt/landing/nginx.conf.bak.20260927-webhooks and .bak.20260927-buttons.
+`/webhook|/rest|...` to just `/form/gear-ticket` + form assets; it had been passing
+every n8n webhook through. n8n.tinydoorstudios.com still reaches n8n directly via the
+remote-managed tunnel, so webhooks are public there by design. Every run-now webhook
+now drops calls without X-Advance-Token (Check Token node). Daily Digest, Crew Report,
+FSQ Parking and Advance Lifecycle already had one; Report Reminder got its node
+2026-09-27 (live export backed up to /opt/n8n or /root as report-reminder.bak.20260927.json).
+The rack buttons get the header from nginx: `include /etc/nginx/run-token.conf`, a
+secret file at /opt/landing/secrets/run-token.conf (mounted in docker-compose.yml, NOT
+in this repo), generated from ADVANCE_INTERNAL_TOKEN in /opt/band-advance/advance.env.
+Rotate the token there and regenerate that file together.
+Backups: /opt/landing/nginx.conf.bak.20260927-webhooks, .bak.20260927-buttons,
+docker-compose.yml.bak.20260927.
