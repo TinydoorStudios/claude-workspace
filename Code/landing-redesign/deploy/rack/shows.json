@@ -1,0 +1,201 @@
+{
+ "generated": 1790528487,
+ "today": "2026-09-27",
+ "shows": [
+  {
+   "date": "2026-09-24",
+   "show": "The Latin Beat Project",
+   "venue": "FSQ",
+   "needs_ses": true,
+   "stages": {
+    "scaffolded": "2026-09-14T10:24:51",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": false,
+   "wiki": null
+  },
+  {
+   "date": "2026-09-26",
+   "show": "Moon Festival 2026",
+   "venue": "FSQ",
+   "needs_ses": true,
+   "stages": {
+    "scaffolded": "2026-09-26T18:57:20",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": false,
+   "wiki": null
+  },
+  {
+   "date": "2026-09-28",
+   "show": "The Carole King and James Taylor Story",
+   "venue": "MEMO",
+   "needs_ses": true,
+   "stages": {
+    "scaffolded": "2026-09-26T18:57:30",
+    "packet_built": "2026-09-26T19:29:45",
+    "ses_built": "2026-09-26T19:29:45",
+    "published": "2026-09-26T21:39:23"
+   },
+   "rev": "Rev 1.0 Deep Think",
+   "plot": false,
+   "wiki": "https://kb.tinydoorstudios.com/show-memo-2026-09-28-the-carole-king-and-james-taylor-story"
+  },
+  {
+   "date": "2026-09-28",
+   "show": "Al West Jr.",
+   "venue": "WP",
+   "needs_ses": false,
+   "stages": {
+    "scaffolded": "2026-09-14T10:24:51",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": false,
+   "wiki": null
+  },
+  {
+   "date": "2026-09-29",
+   "show": "Chaya Jones",
+   "venue": "FSQ",
+   "needs_ses": true,
+   "stages": {
+    "scaffolded": "2026-09-14T10:24:51",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": true,
+   "wiki": null
+  },
+  {
+   "date": "2026-09-30",
+   "show": "Snidely Whiplash",
+   "venue": "FSQ",
+   "needs_ses": true,
+   "stages": {
+    "scaffolded": "2026-09-26T18:57:21",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": false,
+   "wiki": null
+  },
+  {
+   "date": "2026-09-30",
+   "show": "The Laurelys",
+   "venue": "FSQ",
+   "needs_ses": true,
+   "stages": {
+    "scaffolded": "2026-09-26T18:57:21",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": true,
+   "wiki": null
+  },
+  {
+   "date": "2026-09-30",
+   "show": "The Love Handles",
+   "venue": "WP",
+   "needs_ses": false,
+   "stages": {
+    "scaffolded": "2026-09-14T10:24:52",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": true,
+   "wiki": null
+  },
+  {
+   "date": "2026-10-01",
+   "show": "Zumba Latin Band",
+   "venue": "FSQ",
+   "needs_ses": true,
+   "stages": {
+    "scaffolded": "2026-09-14T10:24:52",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": true,
+   "wiki": null
+  },
+  {
+   "date": "2026-10-02",
+   "show": "Goofjuice",
+   "venue": "FSQ",
+   "needs_ses": true,
+   "stages": {
+    "scaffolded": "2026-09-26T18:57:21",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": false,
+   "wiki": null
+  },
+  {
+   "date": "2026-10-02",
+   "show": "Sungaze",
+   "venue": "FSQ",
+   "needs_ses": true,
+   "stages": {
+    "scaffolded": "2026-09-26T18:57:21",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": true,
+   "wiki": null
+  },
+  {
+   "date": "2026-10-05",
+   "show": "Jordan Pollard Trio",
+   "venue": "WP",
+   "needs_ses": false,
+   "stages": {
+    "scaffolded": "2026-09-14T10:24:52",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": false,
+   "wiki": null
+  },
+  {
+   "date": "2026-10-12",
+   "show": "Queen City Cabaret",
+   "venue": "WP",
+   "needs_ses": false,
+   "stages": {
+    "scaffolded": "2026-09-14T10:24:52",
+    "packet_built": null,
+    "ses_built": null,
+    "published": null
+   },
+   "rev": null,
+   "plot": false,
+   "wiki": null
+  }
+ ]
+}

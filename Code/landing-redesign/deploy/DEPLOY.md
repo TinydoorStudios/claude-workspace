@@ -72,3 +72,11 @@ ssh tds 'chmod +x /usr/local/bin/pve-status-push.sh && \
   probes of its main page — the page probes `/healthz` instead.
 - Tempest station obs come through in °C regardless of units params — page converts.
 - The old `/opt/landing/index.html` single-file mount is gone; put files in `/opt/landing/html/`.
+
+## Shows board (2026-09-27)
+
+Top panel on /rack/: every show folder from 3 days back to 21 ahead with its pipeline
+stage (SCAF/PKT/SES/WIKI from show.status.json), stage-plot presence and build flags.
+Show folders live on the Mac, so `../export_shows.py` builds `deploy/rack/shows.json`
+and `../push-shows.command` ships it to `/opt/landing/html/rack/shows.json`. It is
+NOT on a timer yet — run push-shows.command after builds, or add a launchd agent.

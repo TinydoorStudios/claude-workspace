@@ -82,6 +82,25 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
 .svcchip .led.off{background:var(--bad);box-shadow:0 0 5px var(--bad)}
 .svcchip b{color:var(--ink);font-weight:600}
 .svcchip .ut{margin-left:auto;color:var(--dim);font-size:8.5px}
+.shows{width:100%;border-collapse:collapse;font-size:11px}
+.shows td{padding:7px 8px;border-top:1px solid var(--edge);vertical-align:middle}
+.shows tr:first-child td{border-top:0}
+.shows tr.past{opacity:.4}
+.shows tr.day td{border-top:1px solid var(--edge2)}
+.shows .dt{color:#fff;font-weight:700;letter-spacing:1px;white-space:nowrap;width:1%}
+.shows .dt small{display:block;color:var(--dim);font-size:9px;font-weight:400;letter-spacing:1.5px}
+.shows .vn{width:1%;white-space:nowrap}
+.tag{display:inline-block;font-size:9px;letter-spacing:1.5px;padding:2px 6px;border:1px solid var(--edge2);border-radius:2px;color:var(--mut)}
+.tag.MEMO{color:#c9a6ff;border-color:#4a3a6b} .tag.FSQ{color:var(--cy);border-color:var(--cy-dim)} .tag.WP{color:var(--ok);border-color:#1d5a44}
+.shows .nm{color:var(--ink)} .shows .nm a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--dim)}
+.shows .nm a:hover{color:var(--cy)}
+.pips{display:flex;gap:4px;white-space:nowrap;width:1%}
+.pip{font-size:8.5px;letter-spacing:1px;padding:2px 5px;border-radius:2px;background:#121926;color:var(--dim)}
+.pip.on{background:rgba(47,230,160,.12);color:var(--ok)}
+.pip.na{background:none;color:#2a3446}
+.shows .fl{width:1%;white-space:nowrap;text-align:right;font-size:9px;letter-spacing:1px}
+.fl .w{color:var(--warn)} .fl .b{color:var(--bad)} .fl .o{color:var(--ok)}
+@media (max-width:640px){.shows .pl{display:none}.pip{padding:2px 3px}}
 .foot{color:var(--dim);font-size:10px;letter-spacing:2px;margin-top:26px;text-align:center;text-transform:uppercase}
 </style>
 </head>
@@ -93,6 +112,12 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
   <span class="sp"></span>
   <span class="link" id="lnkSts"><span class="led"></span><span id="lnkStsTxt">STATUS FEED</span></span>
   <span class="clock"><span id="clk">--:--:--</span><small id="dte"></small></span>
+</div>
+
+<div class="panel">
+  <span class="ck"></span>
+  <div class="plabel">SHOWS · NEXT 3 WEEKS<span class="rule"></span><span class="note" id="shNote">loading…</span></div>
+  <table class="shows" id="shows"></table>
 </div>
 
 <div class="panel">
@@ -210,6 +235,48 @@ async function poll(){
   } catch(e){ offline('STATUS FEED UNREACHABLE'); }
 }
 poll(); setInterval(poll, 15000);
+
+// ── shows board (shows.json, pushed from the Mac by push-shows.command) ──
+const PIPS=[['scaffolded','SCAF'],['packet_built','PKT'],['ses_built','SES'],['published','WIKI']];
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function renderShows(D){
+  const today=new Date(D.today+'T12:00:00');
+  const age=Math.round(Date.now()/1000-(D.generated||0));
+  document.getElementById('shNote').textContent=(D.shows||[]).length+' SHOWS · SYNCED '+(age<3600?Math.round(age/60)+'M':fmtUp(age))+' AGO';
+  let last='', rows=[];
+  (D.shows||[]).forEach(s=>{
+    const d=new Date(s.date+'T12:00:00'), days=Math.round((d-today)/864e5);
+    const newDay=s.date!==last; last=s.date;
+    const st=s.stages||{}, built=!!st.packet_built;
+    const pips=PIPS.map(([k,l])=>{
+      if(k==='ses_built'&&!s.needs_ses) return '<span class="pip na">'+l+'</span>';
+      return '<span class="pip'+(st[k]?' on':'')+'">'+l+'</span>';
+    }).join('');
+    let flag='';
+    if(days<0) flag='';
+    else if(st.published) flag='<span class="o">READY</span>';
+    else if(!built&&days<=2) flag='<span class="b">NOT BUILT</span>';
+    else if(!built&&days<=7) flag='<span class="w">BUILD</span>';
+    if(days>=0&&!s.plot&&!built) flag+=(flag?' · ':'')+'<span class="w">NO PLOT</span>';
+    const when=days===0?'TODAY':days===1?'TMRW':days<0?Math.abs(days)+'D AGO':'IN '+days+'D';
+    const dl=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase();
+    rows.push('<tr class="'+(days<0?'past':'')+(newDay?' day':'')+'">'+
+      '<td class="dt">'+(newDay?dl+'<small>'+when+'</small>':'')+'</td>'+
+      '<td class="vn"><span class="tag '+s.venue+'">'+s.venue+'</span></td>'+
+      '<td class="nm">'+(s.wiki?'<a href="'+esc(s.wiki)+'" target="_blank" rel="noopener">'+esc(s.show)+'</a>':esc(s.show))+'</td>'+
+      '<td class="pl"><div class="pips">'+pips+'</div></td>'+
+      '<td class="fl">'+flag+'</td></tr>');
+  });
+  document.getElementById('shows').innerHTML=rows.join('')||'<tr><td class="nm">No shows in window.</td></tr>';
+}
+async function pollShows(){
+  try{
+    const r=await fetch('shows.json?_t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(8000)});
+    if(!r.ok){document.getElementById('shNote').textContent='SHOWS FEED HTTP '+r.status;return;}
+    renderShows(await r.json());
+  }catch(e){document.getElementById('shNote').textContent='SHOWS FEED UNREACHABLE';}
+}
+pollShows(); setInterval(pollShows, 60000);
 </script>
 </body>
 </html>
