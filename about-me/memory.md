@@ -48,6 +48,9 @@ Reference notes moved to the KB 2026-08-11 — canonical source is `Live Sound K
 
 ## Session Notes
 
+### 2026-09-27 — Tool scouting + shows board
+Skipped DeepSeek Harness, AnyDoc, OmniRoute. From Chase AI's "Claude OS" TikTok, took one idea: the dashboard should show skill outputs. Built the shows pipeline board on tinydoorstudios.com/rack/ (export_shows.py + push-shows.command, commit dbcf863). Feed isn't scheduled yet because the launchd agent was blocked.
+
 ### 2026-09-26 (afternoon/evening) — Advance tweaks, 1313 hard-coded, Smaart IP moved, CK/JT published (from git log, consolidated 2026-09-27)
 Band Advance: `9560c02` hard-codes `1313` into `VALID_GATE_PASSES` so it always opens the gate whatever advance.env says (the env value was never set on the VM); `55a6115` flattens a typed stage plot before it lands in the doc cell; `7b73760`/`8f1c5c9` relabel Edit buttons "View/Edit". SPL Monitor: FSQ Smaart host moved to `192.24.143.107` (Altafiber dynamic, was .121), runbook updated in `4b63646`; dashboard guide PDF gained Section 5 on the 90/95 switch (`4f1d916`). CK/JT: published to the wiki (`41ac488`), piano rig PDF folded into MASTER, CLA Epic loadable presets + 7th Heaven chart, mixes renamed from the input list; show-deep-build now runs the renamer every build (`9417e6a`).
 
