@@ -112,7 +112,7 @@ python3 "<venue patcher>" --src "<venue _TEMPLATE>/<template>.ses" \
 ```
 
 Require `bytes changed outside mic'd blocks: 0 PASS`, `do-not-write tags modified: 0 PASS`,
-`readback: PASS`, name×20 on every fader, identical size. Then the phone sheet:
+`readback: PASS`, name×20 on every fader, identical size. Then **rename the mixes from the input list** (it's part of the build, not optional): read the MIXES / AUX SENDS block and run the venue renamer on the built `.ses` — Memo `rename_memo.py --src <ses> --link "N=Name"` (Wedge N + Mix N macro + mix bus), FSQ `rename_fsq.py --mix/--iem` — dry-run, then `--write --dest` to a temp file, require `Verification: PASS`, copy it over the show `.ses`, and re-run `_shared/readback_verify.py`. Then the phone sheet:
 `python3 _shared/make_mobile_patch_sheet.py --spec "<show folder>/<Show>.spec.json"`.
 Open one page of each PDF and check for clipping.
 
