@@ -104,3 +104,18 @@ severity, each linking to its Monday item. Ledger status is reconciled from Mond
 nightly, so a ticket closed on the board shows until the 7am run. KB write-backs:
 unticked lines of `audio/Live Sound KB/_learning/PENDING.md`, parsed by
 export_shows.py into shows.json `pending` (rides the same auto-push).
+
+## Action buttons + webhook lockdown (2026-09-27)
+
+Fourth panel on /rack/: Send Daily Digest, Send Crew Report, Check Missing Reports.
+Two-click (arm, then fire within 5 s). The page POSTs to `/rack/run/<hook>`; nginx
+(`deploy/nginx.conf`, the live copy) proxies ONLY those three paths to n8n
+`/webhook/<hook>`, POST only, behind the /rack/ basic-auth gate. Advance Lifecycle
+is deliberately NOT a button: it sends due band mail.
+
+Same day, the tickets.tinydoorstudios.com vhost was narrowed from all of
+`/webhook|/rest|...` to just `/form/gear-ticket` + form assets. It had been exposing
+every n8n webhook publicly. n8n.tinydoorstudios.com still reaches n8n directly via the
+remote-managed tunnel (bypasses nginx), so its webhooks remain public there. The
+Outlook send/draft webhooks check X-Advance-Token; the run-now ones do not.
+Backups: /opt/landing/nginx.conf.bak.20260927-webhooks and .bak.20260927-buttons.

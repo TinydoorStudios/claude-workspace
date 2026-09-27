@@ -139,6 +139,16 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
 .pd.rc b{color:#c9a6ff}
 .pdsec{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin:8px 0 2px}
 .hint{font-size:9px;color:var(--dim);letter-spacing:1px;margin-top:8px}
+.acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.actb{font-family:var(--mono);text-align:left;cursor:pointer;background:var(--inset);border:1px solid var(--edge);
+  border-radius:3px;padding:10px 12px;color:var(--ink)}
+.actb:hover{border-color:var(--cy-dim)}
+.actb b{display:block;font-size:11px;letter-spacing:1.5px;color:#fff;margin-bottom:4px}
+.actb span{display:block;font-size:9.5px;color:var(--mut);letter-spacing:.5px;line-height:1.4}
+.actb em{display:block;font-style:normal;font-size:9px;letter-spacing:1.5px;margin-top:7px;color:var(--dim)}
+.actb.arm{border-color:var(--warn)} .actb.arm em{color:var(--warn)}
+.actb.ok em{color:var(--ok)} .actb.err em{color:var(--bad)}
+.actb:disabled{opacity:.6;cursor:wait}
 .foot{color:var(--dim);font-size:10px;letter-spacing:2px;margin-top:26px;text-align:center;text-transform:uppercase}
 </style>
 </head>
@@ -173,6 +183,16 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
   <div class="iss">
     <div><div class="sub" id="tkHead">Gear tickets</div><div id="tkList"><div class="hint">loading…</div></div></div>
     <div><div class="sub" id="pdHead">KB write-backs · PENDING.md</div><div id="pdList"><div class="hint">loading…</div></div></div>
+  </div>
+</div>
+
+<div class="panel">
+  <span class="ck"></span>
+  <div class="plabel">ACTIONS<span class="rule"></span><span class="note">click once to arm, again within 5 s to fire</span></div>
+  <div class="acts">
+    <button class="actb" data-hook="daily-digest-now"><b>SEND DAILY DIGEST</b><span>Today's shows, crew and advance status. Emails you and Andi.</span><em>READY</em></button>
+    <button class="actb" data-hook="crew-report-now"><b>SEND CREW REPORT</b><span>Who's staffing every venue, next 14 days. Emails you.</span><em>READY</em></button>
+    <button class="actb" data-hook="report-reminder-now"><b>CHECK MISSING REPORTS</b><span>Who owes a show report. Slack DM to you.</span><em>READY</em></button>
   </div>
 </div>
 
@@ -408,6 +428,23 @@ function renderPending(P){
   el.innerHTML=P.length?out.join('')+'<div class="hint">WALKED WITH YOU AT THE TOP OF THE NEXT DEEP BUILD</div>'
     :'<div class="tk none"><span class="bd">Queue is clear</span></div>';
 }
+// ── action buttons → /rack/run/<hook> (nginx allowlist, POST only, same basic-auth gate) ──
+document.querySelectorAll('.actb').forEach(b=>{
+  const em=b.querySelector('em'); let armT=null;
+  b.addEventListener('click',async()=>{
+    if(!b.classList.contains('arm')){
+      b.className='actb arm'; em.textContent='CLICK AGAIN TO FIRE';
+      armT=setTimeout(()=>{b.className='actb';em.textContent='READY';},5000); return;
+    }
+    clearTimeout(armT); b.disabled=true; em.textContent='FIRING…';
+    try{
+      const r=await fetch('run/'+b.dataset.hook,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(30000)});
+      b.className='actb '+(r.ok?'ok':'err');
+      em.textContent=(r.ok?'SENT ':'FAILED HTTP '+r.status+' ')+new Date().toLocaleTimeString('en-US',{hour12:false,timeZone:'America/New_York'});
+    }catch(e){b.className='actb err';em.textContent='FAILED — NO RESPONSE';}
+    b.disabled=false;
+  });
+});
 </script>
 </body>
 </html>
