@@ -1,5 +1,5 @@
 # memory.md
-*Last consolidation: 2026-09-27 — log in memory-archive-2026H2.md*
+*Last consolidation: 2026-09-28 — log in memory-archive-2026H2.md*
 
 *Living document — newest entries at the top of Session Notes. Never delete — archive instead.*
 *SIZE RULE: this file loads in full at every session start. Session Notes keep a trailing ~2 weeks and the file stays under 18KB; older notes roll into `memory-archive-YYYYHn.md`. Consolidation passes log to the archive, never here. (Updated 2026-09-14, previously: ~30KB / current calendar month — tightened 2026-08-25.)*
@@ -49,7 +49,7 @@ Reference notes moved to the KB 2026-08-11 — canonical source is `Live Sound K
 ## Session Notes
 
 ### 2026-09-27 — Tool scouting + shows board
-Skipped DeepSeek Harness, AnyDoc, OmniRoute. From Chase AI's "Claude OS" TikTok, took one idea: the dashboard should show skill outputs. Built the shows pipeline board on tinydoorstudios.com/rack/ (export_shows.py + push-shows.command, commit dbcf863). Feed isn't scheduled yet because the launchd agent was blocked.
+Skipped DeepSeek Harness, AnyDoc, OmniRoute. From Chase AI's "Claude OS" TikTok, took one idea: the dashboard should show skill outputs. Built the shows pipeline board on tinydoorstudios.com/rack/ (export_shows.py + push-shows.command, commit dbcf863). The launchd timer was blocked, so the feed now auto-pushes on every show_status stamp instead (`62ee86b`). (Updated 2026-09-28, previously: "Feed isn't scheduled yet because the launchd agent was blocked.") Afternoon, same day (from git log, consolidated 2026-09-28): /rack/ gained the band-advance panel (`/internal/board` → status_writer, `b8cdbf0`/`75ce2e6`), an open-issues panel (gear tickets + PENDING.md, `17e46d8`), and action buttons for digest / crew report / missing-reports through an nginx allowlist with X-Advance-Token, with the Report Reminder webhook now token-checked (`b7fd26b`/`9b7516d`); dark palette pass `92529dc`. Both Q225 templates got a second preset-library trim and Memo ch 1-39 went back to June (`bdb2b06`). Detail in auto-memory `[[landing-command-center]]`, `[[memo-template-recalibration]]`, `[[fsq-template-current]]`.
 
 ### 2026-09-26 (afternoon/evening) — Advance tweaks, 1313 hard-coded, Smaart IP moved, CK/JT published (from git log, consolidated 2026-09-27)
 Band Advance: `9560c02` hard-codes `1313` into `VALID_GATE_PASSES` so it always opens the gate whatever advance.env says (the env value was never set on the VM); `55a6115` flattens a typed stage plot before it lands in the doc cell; `7b73760`/`8f1c5c9` relabel Edit buttons "View/Edit". SPL Monitor: FSQ Smaart host moved to `192.24.143.107` (Altafiber dynamic, was .121), runbook updated in `4b63646`; dashboard guide PDF gained Section 5 on the 90/95 switch (`4f1d916`). CK/JT: published to the wiki (`41ac488`), piano rig PDF folded into MASTER, CLA Epic loadable presets + 7th Heaven chart, mixes renamed from the input list; show-deep-build now runs the renamer every build (`9417e6a`).

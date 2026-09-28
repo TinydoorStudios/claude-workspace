@@ -843,3 +843,9 @@ Home network, not the lab. Migrated the UniFi controller off UniFi OS Server on 
 - Added: 1 session note (09-26 afternoon/evening roundup) + active-projects bullets (Band Advance 09-26, SPL Monitor toggle shipped + Smaart IP) · Updated: 2 contradictions resolved (09-19 note + auto-memory passcode-lockdown said 1313 unconfigured → hard-coded 09-26; active-projects said SPL toggle "planned, not built" → shipped 09-26) · Archived/trimmed: 2 note(s) rotated for the 18KB cap: 2026-09-18 (night) — MANY ghost / purge_show; 2026-09-18 (evening) — Home UniFi on a UDM.
 - Promoted before rotating: covered by existing auto-memories (moon-festival-many-cleanup-2026-09-17, home-unifi-dream-machine).
 - Flagged to questions.md: none.
+
+### Memory Consolidation — 2026-09-28
+- Scanned: 1 day back (git log since the 09-27 watermark: `62ee86b`, `b8cdbf0`, `75ce2e6`, `17e46d8`, `b7fd26b`, `9b7516d`, `1faf01d`, `bdb2b06`, `92529dc`).
+- Added: 09-27 afternoon roundup appended to the 09-27 session note + active-projects Q225 bullet (templates trimmed twice, current sizes) · Updated: 1 contradiction resolved (09-27 note said the shows-board feed wasn't scheduled → auto-pushes on every show_status stamp, `62ee86b`) · Archived/trimmed: 0 (memory.md under 18KB, oldest note 09-19 inside the 2-week window).
+- Auto-memory: landing-command-center, memo-template-recalibration, fsq-template-current already current; no index changes.
+- Flagged to questions.md: none.
