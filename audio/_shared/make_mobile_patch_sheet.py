@@ -257,7 +257,7 @@ def build_html(spec):
           --nav:#0e1729; --accent:#5b9bd5; --ok:#34D399; }}
 }}
 html,body{{margin:0;padding:0;background:var(--bg);color:var(--fg);
-  font:400 17px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font:400 17px/1.4 "Avenir Next",Avenir,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   -webkit-text-size-adjust:100%}}
 header{{position:sticky;top:0;z-index:20;background:var(--nav);color:#fff;
   padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;box-shadow:0 2px 10px rgba(0,0,0,.25)}}
@@ -390,6 +390,9 @@ def build_pdf(spec, path):
     from reportlab.lib.colors import HexColor, white
     from reportlab.lib.units import inch
     from reportlab.pdfgen import canvas as rl_canvas
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import brand_fonts  # Avenir Next for the Helvetica names (2026-09-29)
+    brand_fonts.install()
 
     PW, PH = 3.9 * inch, 8.3 * inch          # ~ iPhone aspect
     M = 0.22 * inch

@@ -147,7 +147,7 @@ HTML = r"""<!doctype html>
   --line:#2a3441;--grid:#232c37;--header:#111820;--accent:#5b9bd5;--cut:#ff7b6b;--boost:#5fd18a;}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
-     font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif}
+     font:14px/1.45 "Avenir Next",Avenir,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 header{position:sticky;top:0;z-index:10;background:var(--header);color:#fff;padding:14px 18px 12px}
 header h1{margin:0 0 2px;font-size:17px;font-weight:700;letter-spacing:.2px;color:#fff}
 header .sub{font-size:12px;opacity:.75}

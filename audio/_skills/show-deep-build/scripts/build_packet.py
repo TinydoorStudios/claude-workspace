@@ -1245,6 +1245,10 @@ def main():
     # from the one the last build stamped, reconcile with Brian first.
     sys.path.insert(0, _shared_dir())
     import show_status
+    # Avenir Next on every PDF this build writes (Brian, 2026-09-29); see
+    # _shared/brand_fonts.py. Must run before any reportlab rendering.
+    import brand_fonts
+    brand_fonts.install()
     st = show_status.load(a.out) or {}
     md_path = os.path.join(a.out, f"{spec['show_name']} - FOH Channel Processing.md")
     stamped = st.get("md_md5")

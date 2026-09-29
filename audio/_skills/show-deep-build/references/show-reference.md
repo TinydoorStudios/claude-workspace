@@ -161,7 +161,7 @@ Moved out of the always-loaded project `CLAUDE.md` on 2026-09-14: this only matt
 | Mic notes / engineer notes bg | `#F4F0E8` (warm cream) |
 
 ### Typography
-- Body: Calibri (locked 2026-09-11 — default for any document created, not just show packets)
+- Body: Avenir Next; bold = Avenir Next Demi Bold (locked 2026-09-29, replaces the 09-11 Calibri rule — default for every document created). reportlab builds get it through `audio/_shared/brand_fonts.py`, which maps the Helvetica names onto Avenir; HTML uses `"Avenir Next", Avenir, …` first in the stack
 - Title: 20pt bold white
 - Section headers: 11pt bold black
 - Ch / Split Patch columns: Consolas font
