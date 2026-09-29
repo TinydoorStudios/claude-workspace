@@ -1,0 +1,62 @@
+{
+  "venue": "Memorial Hall",
+  "subtitle": "556 seats · Over-the-Rhine",
+  "_sources": "Memorial Hall Production Specifications (Dropbox/3CDC Memorial Hall/Production Assets, 'Updated March 2025'; same text in ~/Downloads/...docx 2026-09-29). The spec still lists a Yamaha CL3; CLAUDE.md and the Q225 template work say the house desk is now a DiGiCo Quantum 225, so the console lines are confirm until Brian settles them.",
+  "intro": "What Memorial Hall provides, and what we need from you. Virtual tour: memorialhallotr.com/virtual-tour",
+  "sections": [
+    {"title": "Stage", "items": [
+      {"label": "Shape", "text": "Trapezoidal. 22'5\" deep at center; back wall 22'5\" wide, 37'4\" at the widest point."},
+      {"label": "Height", "text": "11'5\" at the back wall ledge, 18' at center stage, 23' downstage center."},
+      {"label": "Shell", "text": "Permanent orchestra shell: upstage wall 12' high, scalloping to 20'+ at the plaster line."},
+      {"label": "Access", "text": "Stage-left and stage-right doorways, 2'7\" W × 6'10\" H. 5'11\" piano door on the USR wall."},
+      {"label": "Rigging", "text": "No soft goods and no overstage rigging for backdrops, soft goods or lighting."},
+      {"label": "House", "text": "556 seats, 11 accessible. Historic building, opened 1908."}
+    ]},
+    {"title": "Audio", "items": [
+      {"label": "PA", "text": "Sound Bridge line array per side: 6× Xyon 7108XY, 1× Xyon 6118XY 18\" sub. Front fills: 4× 3208HTH."},
+      {"label": "House console", "text": "DiGiCo Quantum 225 (spec sheet still lists Yamaha CL3 with Dante and a Rio 3224)", "confirm": true},
+      {"label": "FOH position", "text": "House right balcony, full view of the stage, no booth or overhang."},
+      {"label": "Tour console", "text": "Rear center of the orchestra (Box M). No drylines there; PA drivelines are stage left. Tour feeds L/R/front fill/sub to the house console and provides the ~150' run to the stage box."},
+      {"label": "Monitors", "text": "8× Sound Bridge 7122W 12\" wedges and 4× Sennheiser EW300 in-ear systems, mixed from FOH. No house monitor console; a console and split are a rental if needed. Monitor position is offstage left."},
+      {"label": "Sound limit", "text": "95 dB LAeq (A-weighted), measured at balcony center, per local ordinance.", "confirm": true}
+    ]},
+    {"title": "Microphones & DIs", "columns": 2, "items": [
+      "8× Shure SM58", "8× Shure SM57", "2× Shure SM81", "2× Shure Beta 27",
+      "1× Shure Beta 91A", "1× Shure Beta 52A", "1× Shure Beta 57A",
+      "4× Shure ULX-D2 Beta 58A wireless", "2× Shure SLX SM58 wireless",
+      "2× AKG C414", "2× Telefunken M60", "2× Sennheiser e609", "4× Sennheiser e604",
+      "3× lavaliers (may incur a fee)", "5× Countryman E6 (may incur a fee)",
+      "10× Radial JDI passive DI"
+    ]},
+    {"title": "Equipment & Risers", "items": [
+      {"label": "Piano", "text": "Yamaha C3 PE grand (6'1\") with Helpinstill pickups."},
+      {"label": "Backline", "text": "None. The venue carries no backline instruments or amps."},
+      {"label": "Stands", "text": "Tall, medium and short tripod booms, round-base booms and straights, tabletop stands, 11 guitar stands, 25 music stands, conductor's stand."},
+      {"label": "Seating", "text": "20 Wenger orchestra chairs, 6 backless barstools."},
+      {"label": "Risers", "text": "4× 4'×8'×12\" Wenger risers with black skirting, 6 Wenger 3-level choral risers, conductor's podium."},
+      {"label": "Other", "text": "Drum rugs, pipe and drape for the back wall, two podiums with gooseneck mics, 25 clip lights (may incur a fee)."}
+    ]},
+    {"title": "Lighting & Video", "items": [
+      {"label": "Console", "text": "ETC Ion Element 40, upper rear balcony center. House light control always stays with the house console and crew."},
+      {"label": "Rig", "text": "14 ETC Source 4 (14° and 19°), 10 ETC Lustre LED zoom, 2 Robin DLX movers, 6 LED wash-zoom movers, 14 LED overhead track wash, 8 LED uplights, 4 Elation Fuze 120, 4 stand-alone truss towers with LED pars."},
+      {"label": "Extras", "text": "Water-based hazer and 2 spotlights, both at additional cost."},
+      {"label": "Tour lighting", "text": "A tour console sits in the house left balcony; a ground package needs its own 150' of cable."},
+      {"label": "Video", "text": "Panasonic PT-RZ970BU laser projector (10,000 lm, WUXGA) onto a motorized 135\" × 240\" 16:9 screen, about 9' upstage of the lip. HDMI input from backstage. The screen can't be rehung."}
+    ]},
+    {"title": "Load-in & Power", "items": [
+      {"label": "Load-in", "text": "Street level through a 2'7\" × 6'10\" doorway into a freight elevator (5' W × 7'8\" L × 7' H). No loading dock; flat push. The stage is on the 2nd floor."},
+      {"label": "Parking", "text": "Details come with your advance."},
+      {"label": "Power", "text": "One 400A 3-phase disconnect backstage stage right. No shore power; generators are OK."}
+    ]},
+    {"title": "Dressing Rooms", "items": [
+      {"label": "Stage level", "text": "Rooms A (SR) and B (SL): 2–3 people each, vanity mirror and counter, private toilet."},
+      {"label": "Balcony level", "text": "Rooms C (SR) and D (SL): 5 people each, mirrors, tables, chairs, couches, no private toilet."},
+      {"label": "Studio", "text": "Large basement multipurpose room with mirrors, tables and chairs; restroom shared with staff."},
+      {"label": "Note", "text": "All rooms lock and are climate-controlled. No showers, towels or laundry onsite."}
+    ]},
+    {"title": "Terms", "items": [
+      "Load-out starts immediately after the performance, and the building must be clear within two hours of the end of the show.",
+      "Anything left behind may be disposed of; contact staff right away if you've left something."
+    ]}
+  ]
+}

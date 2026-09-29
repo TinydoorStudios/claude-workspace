@@ -143,7 +143,8 @@ def send_due(fail=None):
             _fail("booking_update", f"couldn't build the email: {e!r}")
             continue
         # 2026-09-21 sweep (MAIL-4): the Salsa series CC, like every other band email.
-        ok, err = mailer.send(ve.with_extra_recipients(email, r.get("series")), subject, body=body)
+        ok, err = mailer.send(ve.with_extra_recipients(email, r.get("series")), subject, body=body,
+                              venue=r.get("venue"))
         # 2026-09-21 sweep (PRIOR-13): a timeout may have delivered — resolve, don't re-send.
         unknown = (not ok) and mailer.outcome_unknown(err)
         with db.get_conn() as conn, conn.cursor() as cur:

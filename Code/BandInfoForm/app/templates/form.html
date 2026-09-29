@@ -4,29 +4,43 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ t('page_title') }}</title>
+{# 3CDC brand rollout 2026-09-29: light theme from app/brand/brand.json.
+   --venue/--accent/--btn follow the selected venue (server-side for a
+   prefilled/locked venue, then JS on change); corporate before a pick. #}
+{% set pv0 = prefill.get('venue') or cfg.venue_preselect %}
+{% set th = brand_theme.get(pv0) or brand_theme.get('_default') or {} %}
 <style>
   :root{
-    color-scheme: dark;
-    --navy:#1A3A5C; --accent:#4da3ff; --ink:#e6edf3; --muted:#8b97a6;
-    --line:#2a323d; --bg:#0d1117; --card:#161b22; --card2:#1c232d; --req:#f87171;
+    color-scheme: light;
+    --venue:{{ th.primary or '#4F8ABE' }}; --venue2:{{ th.secondary or '#C42033' }};
+    --accent:{{ th.accent or '#4F8ABE' }};
+    --btn:{{ th.button_bg or '#C42033' }}; --btnfg:{{ th.button_fg or '#FFFFFF' }};
+    --ink:#595A5C; --muted:#6B6C6E;
+    --line:#D9D9DB; --bg:#F2F2F2; --card:#FFFFFF; --card2:#F7F7F8; --req:#C42033;
     --gap:26px;               /* the single spacing value between every question */
+    --body:'Avenir Next',Avenir,'Segoe UI',Helvetica,Arial,sans-serif;
+    --head:'Avenir Next Condensed','Avenir Next',Avenir,'Arial Narrow',Arial,sans-serif;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-    font-size:15px;line-height:1.45;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+    font-size:15px;line-height:1.5;}
   .wrap{max-width:680px;margin:0 auto;padding:0 16px 64px;}
-  header{background:var(--navy);color:#fff;padding:28px 0;margin-bottom:24px;}
+  header{background:#fff;border-top:6px solid var(--venue);border-bottom:1px solid var(--line);
+    padding:22px 0 20px;margin-bottom:24px;}
   header .wrap{padding-bottom:0;}
-  header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.2px;}
-  header p{margin:6px 0 0;font-size:14px;color:#c7d6e6;}
+  .logos{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;}
+  .logos img{display:block;height:30px;width:auto;}
+  .logos #venuelogo{height:28px;max-width:60%;object-fit:contain;object-position:right;}
+  header h1{margin:0;font-family:var(--head);font-size:24px;font-weight:600;letter-spacing:.3px;
+    text-transform:uppercase;color:var(--accent);}
+  header p{margin:6px 0 0;font-size:14px;color:var(--ink);}
   .langtoggle{margin-top:10px;}
-  .langtoggle a{color:#dbe8f4;font-size:13px;font-weight:600;text-decoration:underline;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  .langtoggle a{color:var(--accent);font-size:13px;font-weight:600;text-decoration:underline;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:6px;
     padding:28px 26px;box-shadow:0 1px 2px rgba(16,24,40,.04);}
   .returning{max-width:680px;margin:0 auto 18px;padding:0 16px;}
-  .returning .box{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.35);border-radius:10px;
-    padding:14px 16px;font-size:14px;color:#86efac;}
+  .returning .box{background:#EEF6E0;border:1px solid #C8DA9A;border-radius:6px;
+    padding:14px 16px;font-size:14px;color:#4A5A12;}
 
   .field{margin-bottom:var(--gap);}
   .field:last-child{margin-bottom:0;}
@@ -37,16 +51,16 @@
 
   input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],select,textarea{
     width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
-    font:inherit;color:var(--ink);background:var(--card2);}
+    font:inherit;color:var(--ink);background:#fff;}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
-    box-shadow:0 0 0 3px rgba(77,163,255,.2);}
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);}
   textarea{min-height:84px;resize:vertical;}
   input[type=file]{width:100%;font-size:14px;padding:8px 0;}
 
-  .section{margin:34px 0 18px;padding-bottom:8px;border-bottom:2px solid var(--navy);}
+  .section{margin:34px 0 18px;padding-bottom:8px;border-bottom:3px solid var(--venue2);}
   .section:first-of-type{margin-top:4px;}
-  .section h2{margin:0;font-size:13px;font-weight:700;text-transform:uppercase;
-    letter-spacing:.08em;color:var(--navy);}
+  .section h2{margin:0;font-family:var(--head);font-size:16px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--accent);}
 
   .ack{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;}
   .ack ul{margin:8px 0 0;padding-left:18px;}
@@ -55,30 +69,36 @@
   .checkrow input{margin-top:3px;flex:0 0 auto;width:17px;height:17px;}
   .checkrow label{font-size:14px;font-weight:600;}
 
-  .locked{background:#20293a;color:var(--muted);cursor:not-allowed;}
+  .locked{background:#EDEDEE;color:var(--muted);cursor:not-allowed;}
   .lockhint{font-size:12.5px;color:var(--muted);margin:6px 0 0;}
   .hidden{display:none;}
   .conditional{border-left:3px solid var(--accent);padding-left:14px;margin-left:2px;
-    background:rgba(77,163,255,.06);border-radius:0 8px 8px 0;padding-top:14px;padding-bottom:2px;padding-right:12px;}
+    background:color-mix(in srgb, var(--accent) 6%, #fff);border-radius:0 8px 8px 0;padding-top:14px;padding-bottom:2px;padding-right:12px;}
 
-  button{background:var(--navy);color:#fff;border:0;border-radius:8px;
-    padding:13px 22px;font-size:15px;font-weight:600;cursor:pointer;margin-top:30px;}
-  button:hover{background:#234b70;}
+  button{background:var(--btn);color:var(--btnfg);border:0;border-radius:4px;
+    padding:13px 26px;font-family:var(--head);font-size:16px;font-weight:600;letter-spacing:.5px;
+    text-transform:uppercase;cursor:pointer;margin-top:30px;}
+  button:hover{filter:brightness(.92);}
+  button:disabled{opacity:.6;cursor:default;}
   .staffbar{max-width:680px;margin:0 auto 18px;padding:0 16px;}
-  .staffbar .box{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.4);border-radius:10px;
-    padding:14px 16px;font-size:14px;color:#fcd34d;}
-  .staffbar a{color:#fcd34d;}
+  .staffbar .box{background:#FFF6DC;border:1px solid #F2D27A;border-radius:6px;
+    padding:14px 16px;font-size:14px;color:#6B4E00;}
+  .staffbar a{color:#6B4E00;}
 </style>
 </head>
 <body>
 {% macro v(name) %}{{ prefill.get(name, '') }}{% endmacro %}
 {% set other_lang = 'en' if lang == 'es' else 'es' %}
 <header><div class="wrap">
+  <div class="logos">
+    <img src="/brand/3cdc-primary.png" alt="3CDC">
+    <img id="venuelogo" src="{{ th.logo or '' }}" alt="{{ pv0 or '' }}"{{ '' if th.logo else ' hidden' }}>
+  </div>
   <h1>{{ t('header_h1') }}</h1>
   <p>{{ cfg.intro }}</p>
   <p id="techpack" class="hidden" style="margin-top:8px;font-size:13px;">
     <a id="techpacklink" href="#" target="_blank" rel="noopener"
-       style="color:#dbe8f4;font-weight:600;text-decoration:underline;">{{ t('techpack_link') }}</a>
+       style="color:var(--accent);font-weight:600;text-decoration:underline;">{{ t('techpack_link') }}</a>
   </p>
   <p class="langtoggle"><a href="{{ lang_url(other_lang) }}">{{ t('lang_toggle') }}</a></p>
 </div></header>
@@ -493,6 +513,21 @@
   }
   venueSel.addEventListener('change', syncTechPack);
   syncTechPack();
+
+  // 3CDC brand: re-theme the page to the picked venue (colors + wordmark).
+  var THEMES = {{ brand_theme|tojson }};
+  var vLogo = document.getElementById('venuelogo');
+  function syncTheme(){
+    var th = THEMES[venueSel.value] || THEMES['_default'];
+    if(!th) return;
+    var r = document.documentElement.style;
+    r.setProperty('--venue', th.primary); r.setProperty('--venue2', th.secondary);
+    r.setProperty('--accent', th.accent);
+    r.setProperty('--btn', th.button_bg); r.setProperty('--btnfg', th.button_fg);
+    if(th.logo){ vLogo.src = th.logo; vLogo.alt = venueSel.value; vLogo.hidden = false; }
+    else { vLogo.hidden = true; }
+  }
+  venueSel.addEventListener('change', syncTheme);
 
   // Load-in acknowledgment: FSQ garage/QR text for Fountain Square only.
   var ackFsq = document.getElementById('ack_loadin_fsq');

@@ -1,0 +1,49 @@
+{
+  "venue": "Washington Park",
+  "subtitle": "Main Stage · Porch · Bandstand",
+  "_sources": "Handoffs/tech-packs/Washington Park — Tech Pack DRAFT.md (2026-09-14), forms_config.WP_LOCATIONS + SERIES_LOCATION (Brian-confirmed 2026-09-06/09/11), venue_email.py WP blocks, CLAUDE.md venue table. Items marked confirm are unverified.",
+  "intro": "What 3CDC provides at Washington Park, and what we need from you. Your series sets your stage; your advance email names your day-of contact. Text or call them when you're about 5 minutes out.",
+  "sections": [
+    {"title": "Stages", "table": {
+      "head": ["", "Main Stage", "Porch", "Bandstand"],
+      "rows": [
+        ["Size", "20' W × 20' D", "20' W × 12' D", {"text": "TBD", "confirm": true}],
+        ["Wedges (max)", "6", "2", "4"],
+        ["Lighting", "House LD", "None", "None"],
+        ["Drum riser", "Available", "No", "No"],
+        ["Band tent", "On request", "No", "On request"]
+      ]}, "items": [
+        {"label": "By series", "text": "Neo Soul Nights plays the Bandstand. Blues & Brews and Jazz At The Porch play the Porch."},
+        {"label": "Backline", "text": "None. Artists provide all instruments, amps and 1/4\" cables."}
+    ]},
+    {"title": "Audio", "items": [
+      {"label": "Engineer", "text": "3CDC provides an engineer who mixes FOH and monitors from FOH. Bringing your own? Say so on the advance form."},
+      {"label": "Main Stage console", "text": "Midas M32"},
+      {"label": "Main Stage PA", "text": "JBL: 1× SRX915 top + 8× SRX906 array per side, 2× SRX928 subs per side"},
+      {"label": "Porch / Bandstand", "text": "Console and PA for the smaller stages", "confirm": true},
+      {"label": "Microphones", "text": "House microphone inventory", "confirm": true},
+      {"label": "DIs", "text": "DI count and type", "confirm": true},
+      {"label": "Sound limit", "text": "Strict 95 dBA-Slow at the FOH position, city ordinance, for house and touring engineers alike. The house engineer may baffle amps to bring stage volume down."}
+    ]},
+    {"title": "Power", "items": [
+      {"label": "Stage power", "text": "Circuits available per stage", "confirm": true}
+    ]},
+    {"title": "Load-in & Parking", "items": [
+      {"label": "Arrival", "text": "Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive."},
+      {"label": "Parking", "text": "We follow up with parking validations after you advance. Note large vehicles or trailers on the form."},
+      {"label": "Load-in point", "text": "Where to load in for each stage", "confirm": true}
+    ]},
+    {"title": "Hospitality & Site", "items": [
+      {"label": "Merch", "text": "You provide the seller, point of sale and bank. We provide a tent next to the stage with a table and chairs."},
+      {"label": "Dressing rooms", "text": "No indoor rooms. On request, a 10×10 tent with sidewalls (Main Stage and Bandstand)."},
+      {"label": "Hospitality", "text": "Drink tickets and water for all performers and crew (third-party events: water only)."}
+    ]},
+    {"title": "House Rules", "items": [
+      "Family-friendly content only, including prerecorded tracks and sound check.",
+      "Stay on the stage: no crowd surfing, climbing or jumping off.",
+      "Nothing thrown or shot into the crowd.",
+      "Rain or shine; a lightning hold means clear the stage until the all-clear.",
+      "Payment after the performance. The full list is on the advance form."
+    ]}
+  ]
+}

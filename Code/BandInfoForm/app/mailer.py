@@ -44,11 +44,28 @@ def _log(line):
         pass
 
 
-def send(to, subject, body=None, html=None, attachment=None, timeout=90, attachments=None):
+def branded(body, html, venue):
+    """3CDC brand rollout (2026-09-29): a plain-text body sent with a `venue`
+    goes out as that venue's branded HTML (app/brand.py). Band-facing sends
+    pass venue; internal alerts don't and stay plain text. Branding can never
+    block a send: any render error falls back to the plain text."""
+    if html or not venue or not str(body or "").strip():
+        return html
+    try:
+        import brand
+        return brand.render_email(body, venue)
+    except Exception as e:  # noqa: BLE001
+        _log(f"BRAND render failed venue={venue!r}: {e!r} (sent plain text)")
+        return None
+
+
+def send(to, subject, body=None, html=None, attachment=None, timeout=90, attachments=None,
+         venue=None):
     """(ok, error). ok=True only on a confirmed send. Never raises.
     `attachment` is one (name, type, base64) tuple; `attachments` a list of
     them (review 2026-09-14, E4: a venue can attach a load-in doc AND a tech
-    pack). Both are accepted and combined."""
+    pack). Both are accepted and combined. `venue` brands a plain-text body."""
+    html = branded(body, html, venue)
     if os.environ.get("ADVANCE_MAIL_DISABLED") == "1":
         _log(f"SUPPRESSED (kill switch) to={to!r} subject={subject!r}")
         return False, "mail disabled"
@@ -63,6 +80,11 @@ def send(to, subject, body=None, html=None, attachment=None, timeout=90, attachm
     payload = {"to": to, "subject": subject}
     if html:
         payload["html"] = html
+        # a branded send keeps its plain text alongside: n8n sends html when
+        # present (b.html || b.body), and the text stays readable in the
+        # staging capture and anything else that inspects the payload
+        if body:
+            payload["body"] = body
     else:
         payload["body"] = body or ""
     all_att = ([attachment] if attachment else []) + list(attachments or [])

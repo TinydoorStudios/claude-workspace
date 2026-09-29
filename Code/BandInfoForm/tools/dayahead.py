@@ -338,7 +338,8 @@ def send_due(fail=None):
         doc_links = ve.venue_doc_links_text(r["venue"])
         if doc_links:
             body = f"{body}\n\n{doc_links}"
-        ok, err = mailer.send(ve.with_extra_recipients(email, r.get("series")), subject, body=body)
+        ok, err = mailer.send(ve.with_extra_recipients(email, r.get("series")), subject, body=body,
+                              venue=r.get("venue"))
         if not ok and mailer.outcome_unknown(err):
             # 2026-09-21 sweep (PRIOR-13): timed out, Graph may have sent it —
             # stamp it sent (error kept) so the next run can't double-send.

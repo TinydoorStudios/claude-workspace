@@ -421,7 +421,8 @@ def send_for_show(show_id, after_show=False):
                               schedule_lines, recap_lines, bilingual=bilingual)
     if msg:
         subject, body = msg
-        ok, err = mailer.send(ve.with_extra_recipients(email, s.get("show_series")), subject, body=body)
+        ok, err = mailer.send(ve.with_extra_recipients(email, s.get("show_series")), subject, body=body,
+                              venue=s.get("venue"))
         if ok:
             record(True, None)
             print(f"sent to {email}")

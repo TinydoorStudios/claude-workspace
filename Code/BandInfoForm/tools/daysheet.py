@@ -1213,6 +1213,14 @@ def build(event_id, template=None, stageplot_names=None):
     grid = find_grid(doc)
     if grid is None:
         print("Couldn't find the EVENT INFORMATION table.", file=sys.stderr); sys.exit(1)
+    # 3CDC brand rollout (2026-09-29): the venue wordmark goes in the header's
+    # right tab. Header only — docmerge never reads or merges the header, so a
+    # filed doc keeps whatever header it was created with. Never blocks a doc.
+    try:
+        import brand_docx
+        brand_docx.add_venue_logo(doc, event.get("venue"))
+    except Exception as e:  # noqa: BLE001
+        print(f"venue logo skipped: {e!r}", file=sys.stderr)
 
     fill_header(grid, event)
     fill_event_type(grid, event, n)

@@ -26,8 +26,10 @@ import os
 import re
 from pathlib import Path
 
+# brand/ sits beside this file both locally (app/brand) and on the VM, where
+# deploy_app.command flattens app/ into /opt/band-advance (brand ships with it)
 BRAND_DIR = Path(os.environ.get("ADVANCE_BRAND_DIR")
-                 or Path(__file__).resolve().parent.parent / "brand")
+                 or Path(__file__).resolve().parent / "brand")
 # Public base the email's <img> tags point at. Outlook strips data: URIs, so
 # production mail must reference hosted files (served by app.py /brand/<file>).
 LOGO_BASE = os.environ.get("ADVANCE_BRAND_URL", "https://advance.tinydoorstudios.com/brand/")
@@ -86,6 +88,29 @@ def palette(venue):
             "text": b["corporate"]["text"],
             # brand gray #9D9FA2 is 2.6:1 on white, too faint for 12-13px copy
             "muted": charcoal}
+
+
+_web = None
+
+
+def web_theme():
+    """{venue name or alias: theme} for the public form and thank-you page
+    (brand rollout phase 3). "_default" is the corporate look, used before a
+    venue is picked and for venues the guide doesn't cover."""
+    global _web
+    if _web is None:
+        b = brand()
+        out = {}
+        corp = palette("")
+        corp["logo"] = None
+        out["_default"] = corp
+        for name, v in b["venues"].items():
+            th = palette(name)
+            th["logo"] = f"/brand/{v['slug']}-typelogo.png"
+            for key in [name] + v.get("aliases", []):
+                out[key] = th
+        _web = out
+    return _web
 
 
 def _logo_src(rel, embed):

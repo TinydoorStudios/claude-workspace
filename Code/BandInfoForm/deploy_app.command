@@ -41,7 +41,7 @@ NEW_SHA="$(git -C "$HERE" rev-parse HEAD)"
 # ("app/") that doesn't match its remote path, keyed by the first path
 # component, so it stays a single source of truth instead of a second
 # hardcoded file list that could drift from this one.
-APP_FILES=(app.py advance_db.py forms_config.py i18n.py es_translate.py mailer.py status_labels.py)
+APP_FILES=(app.py advance_db.py forms_config.py i18n.py es_translate.py mailer.py status_labels.py brand.py)
 TOOLS_FILES=(
   draft_emails.py backfill.py event.py daysheet.py sheet.py import_sheet.py fieldspec.py
   build_template.py status_sheet.py package_run.py venue_email.py staffing.py
@@ -49,6 +49,7 @@ TOOLS_FILES=(
   run_again.py status_log.py daily_digest.py crew_report.py regen_show.py finalize_thankyou.py
   docmerge.py holds.py migrate_filed_docs.py import_riffpay.py dayahead.py booking_update.py
   doc_review.py missing_reports.py backfill_doc_columns.py backfill_stageplot_links.py
+  brand_docx.py
 )
 TOOLS_DIRS=(email_templates lists doc_templates staging)
 SHIPPED_FILES=("${APP_FILES[@]}" requirements.txt db/schema.sql)
@@ -73,7 +74,7 @@ _local_git_path() {
 # TREE but .deployed_commit records HEAD, so an uncommitted edit (ours or a
 # peer session's; the tree is shared) would reach production unrecorded and
 # the next deploy's drift check would refuse with a false "edited on the VM".
-DIRTY_PATHS=(app/templates ops db/migrations db/schema.sql backup requirements.txt)
+DIRTY_PATHS=(app/templates app/brand ops db/migrations db/schema.sql backup requirements.txt)
 for f in "${APP_FILES[@]}"; do DIRTY_PATHS+=("app/$f"); done
 for f in "${TOOLS_FILES[@]}"; do DIRTY_PATHS+=("tools/$f"); done
 for d in "${TOOLS_DIRS[@]}"; do DIRTY_PATHS+=("tools/$d"); done
@@ -151,7 +152,7 @@ fi
   fi
 
   echo "--- stage payloads ---"
-  tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   "${APP_FILES[@]}" templates || { echo "TAR app FAILED"; exit 1; }
+  tar -C "$HERE/app"   -czf /tmp/adv_app.tgz   "${APP_FILES[@]}" templates brand || { echo "TAR app FAILED"; exit 1; }
   tar -C "$HERE/tools" -czf /tmp/adv_tools.tgz "${TOOLS_FILES[@]}" "${TOOLS_DIRS[@]}" || { echo "TAR tools FAILED"; exit 1; }
   # db/schema.sql, backup/ and requirements.txt now ship too (audit ops #4)
   # — they used to just sit in git, never actually reaching the VM through

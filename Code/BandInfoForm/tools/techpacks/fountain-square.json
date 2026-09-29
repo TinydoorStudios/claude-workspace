@@ -1,0 +1,52 @@
+{
+  "venue": "Fountain Square",
+  "subtitle": "Mainstage",
+  "_sources": "Handoffs/tech-packs/Fountain Square — Tech Pack DRAFT.md (2026-09-14), venue_email.py FSQ blocks, the FSQ load-in doc (Production Specifications 2026, Kayla Loree), CLAUDE.md venue table. Every item marked confirm is unverified; the build refuses --final while any remain.",
+  "intro": "What 3CDC provides at Fountain Square, and what we need from you. Your advance email names your day-of contact; text or call them when you're about 5 minutes out.",
+  "sections": [
+    {"title": "Stage", "items": [
+      {"label": "Location", "text": "Mainstage, 520 Vine St, Cincinnati, OH 45202"},
+      {"label": "Dimensions", "text": "W × D, height to roof", "confirm": true},
+      {"label": "Cover", "text": "Covered stage (roof / canopy detail)", "confirm": true},
+      {"label": "Drum riser", "text": "Available on request; ask on the advance form (size)", "confirm": true},
+      {"label": "Backline", "text": "None. Artists provide all instruments, amps and 1/4\" cables."}
+    ]},
+    {"title": "Audio", "items": [
+      {"label": "Engineer", "text": "3CDC provides an engineer who mixes FOH and monitors from FOH. Bringing your own? Say so on the advance form."},
+      {"label": "FOH console", "text": "DiGiCo Quantum 225"},
+      {"label": "Monitor console", "text": "Midas M32, on select events; otherwise monitors are mixed from FOH", "confirm": true},
+      {"label": "PA", "text": "L-Acoustics: 4× A15 per side, 8× KS21 subs in a delayed arch"},
+      {"label": "Monitors", "text": "8× L-Acoustics X12 wedges"},
+      {"label": "Monitor mixes", "text": "Maximum wedge mixes per act", "confirm": true},
+      {"label": "In-ears", "text": "Bring your own IEM system; note it on the advance form", "confirm": true},
+      {"label": "Microphones", "text": "House microphone inventory", "confirm": true},
+      {"label": "DIs", "text": "DI count and type", "confirm": true},
+      {"label": "Sound limit", "text": "Strict 95 dBA-Slow at the FOH position, city ordinance, for house and touring engineers alike. The house engineer may baffle amps to bring stage volume down."}
+    ]},
+    {"title": "Lighting", "items": [
+      {"label": "Operator", "text": "3CDC provides a house LD on every show. Lighting requests go on the advance form."}
+    ]},
+    {"title": "Power", "items": [
+      {"label": "Stage power", "text": "Circuits and distro available on stage", "confirm": true}
+    ]},
+    {"title": "Load-in & Parking", "items": [
+      {"label": "Option 1", "text": "Temporarily park in the loading zone on 5th Street, next to the stage. Not a flat push: 4 steps, then flat."},
+      {"label": "Option 2", "text": "Temporarily park on 6th Street (paid city parking, not guaranteed open). Flat but long push through the connector to the stage ramp."},
+      {"label": "Time limit", "text": "15 minutes to load or unload with either option."},
+      {"label": "Parking", "text": "Fountain Square Garage. We send one QR validation per vehicle after you advance; scan it at the kiosk on entry or exit and don't pay. Clearance 6'8\"; note taller vehicles, trailers or buses on the form."},
+      {"label": "Details", "text": "The Load-In Information document attached to your welcome email has the maps."}
+    ]},
+    {"title": "Hospitality & Site", "items": [
+      {"label": "Merch", "text": "You provide the seller, point of sale and bank. We provide a tent next to the stage with a table and chairs."},
+      {"label": "Dressing rooms", "text": "No indoor rooms. On request, a 10×10 tent with sidewalls for private band space."},
+      {"label": "Hospitality", "text": "Drink tickets and water for all performers and crew (third-party events: water only)."}
+    ]},
+    {"title": "House Rules", "items": [
+      "Family-friendly content only, including prerecorded tracks and sound check.",
+      "Stay on the stage: no crowd surfing, climbing or jumping off.",
+      "Nothing thrown or shot into the crowd.",
+      "Rain or shine; a lightning hold means clear the stage until the all-clear.",
+      "Payment after the performance. The full list is on the advance form."
+    ]}
+  ]
+}

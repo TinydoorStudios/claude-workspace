@@ -267,6 +267,19 @@ def _inject_i18n():
     return {"lang": lang, "t": i18n.translator(lang), "lang_url": _lang_url}
 
 
+@app.context_processor
+def _inject_brand():
+    """3CDC venue themes for the public form + thank-you page (brand rollout
+    2026-09-29). A broken brand.json falls back to the corporate default in
+    the template rather than taking the form down."""
+    try:
+        import brand
+        return {"brand_theme": brand.web_theme()}
+    except Exception as e:  # noqa: BLE001
+        _log_db_error("brand_theme", e)
+        return {"brand_theme": {}}
+
+
 # ── public form ─────────────────────────────────────────────────────────────
 
 @app.get("/")
@@ -456,7 +469,7 @@ def submit():
     # thank-you page and save nothing — no artist, no show, no notify.
     if (f.get("website") or "").strip():
         lang = "es" if (f.get("form_lang") or "").strip().lower() == "es" else "en"
-        return render_template("thanks.html", band=f.get("band_name"),
+        return render_template("thanks.html", band=f.get("band_name"), venue=f.get("venue"),
                                lang=lang, t=i18n.translator(lang))
     # audit 2026-09-16 security #7: rate limit — 5/IP/hour, 60 site-wide/
     # hour. Fails open (never blocks a real submission over a DB hiccup) —
@@ -623,7 +636,7 @@ def submit():
                                 date=(rec.get("show_date") or "")[:10], sub=result["submission_id"]))
 
     submitted_lang = "es" if (f.get("form_lang") or "").strip().lower() == "es" else "en"
-    return render_template("thanks.html", band=band_name,
+    return render_template("thanks.html", band=band_name, venue=rec.get("venue"),
                             lang=submitted_lang, t=i18n.translator(submitted_lang))
 
 
@@ -792,18 +805,19 @@ def _notify_email(event_type, fields):
         _log_db_error("notify_email", e)
 
 
-def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=90, attachments=None):
+def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=90, attachments=None,
+                        venue=None):
     """(ok, error) — thin wrapper over mailer.send, the single send path
     (audit #3: a send only counts when n8n confirms Graph accepted it)."""
     return mailer.send(to, subject, body=body, html=html, attachment=attachment, timeout=timeout,
-                       attachments=attachments)
+                       attachments=attachments, venue=venue)
 
 
 def _send_internal_email(subject, html, to=None):
     return mailer.alert(subject, html, to=to)
 
 
-def _create_outlook_draft(to, subject, body=None, html=None, attachments=None, timeout=30):
+def _create_outlook_draft(to, subject, body=None, html=None, attachments=None, timeout=30, venue=None):
     """(ok, error, web_link) — put a message in Production@3cdc.org's drafts
     instead of sending it. The single draft path, shared by the artist page's
     "Email band" button and by a booking flagged "draft, don't send"
@@ -818,11 +832,14 @@ def _create_outlook_draft(to, subject, body=None, html=None, attachments=None, t
     if (os.environ.get("ADVANCE_STAGING") == "1"
             and not CREATE_DRAFT_URL.startswith("http://127.0.0.1:8199")):
         return False, "staging refuses non-stub url", None
+    html = mailer.branded(body, html, venue)
     content = html if html else (body or "")
     if not str(content).strip():
         return False, "empty body", None
     payload = {"to": to, "subject": subject}
     payload["html" if html else "body"] = content
+    if html and body:
+        payload["body"] = body  # plain text rides along; n8n prefers html
     att = list(attachments or [])
     if att:
         payload["attachment_name"], payload["attachment_type"], payload["attachment_content"] = att[0]
@@ -976,6 +993,27 @@ def _security_headers(resp):
     resp.headers.setdefault("X-Frame-Options", "DENY")
     resp.headers.setdefault("Referrer-Policy", "same-origin")
     resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    return resp
+
+
+@app.route("/brand/<path:filename>")
+def brand_asset(filename):
+    """Public logo files for branded band email (3CDC brand rollout,
+    2026-09-29). Email clients fetch these with no session, so ungated;
+    send_from_directory refuses anything outside brand/logos."""
+    import brand
+    resp = send_from_directory(brand.BRAND_DIR / "logos", filename, as_attachment=False)
+    resp.headers["Cache-Control"] = "public, max-age=604800"
+    return resp
+
+
+@app.route("/techpack/<slug>.pdf")
+def techpack_pdf(slug):
+    """Public venue tech pack (brand rollout phase 5). Only FINAL packs exist
+    here: tools/techpack.py refuses --final while any item is unconfirmed."""
+    import brand
+    resp = send_from_directory(brand.BRAND_DIR / "techpacks", f"{slug}.pdf", as_attachment=False)
+    resp.headers["Cache-Control"] = "public, max-age=3600"
     return resp
 
 
@@ -3147,7 +3185,7 @@ def advance_lifecycle():
                 if r.get("draft_only"):
                     ok, err, link = _create_outlook_draft(
                         welcome_to, subject, body=body.lstrip("\n"),
-                        attachments=ve.venue_attachments(r["venue"]))
+                        attachments=ve.venue_attachments(r["venue"]), venue=r["venue"])
                     if not ok:
                         fail(r["show_id"], "welcome_draft", err)
                         continue
@@ -3160,7 +3198,8 @@ def advance_lifecycle():
                                         "show_date": us_date(r["show_date"]), "link": link})
                     continue
                 ok, err = _send_outlook_email(welcome_to, subject, body=body.lstrip("\n"),
-                                              attachments=ve.venue_attachments(r["venue"]))
+                                              attachments=ve.venue_attachments(r["venue"]),
+                                              venue=r["venue"])
                 if not ok:
                     if mailer.outcome_unknown(err):
                         # audit 2026-09-16 #17: unknown outcome — Graph may
@@ -3284,7 +3323,8 @@ def advance_lifecycle():
                 doc_links = ve.venue_doc_links_text(r["venue"])
                 if doc_links:
                     body = f"{body}\n\n{doc_links}"
-                ok, err = _send_outlook_email(schedule_recipients(r), subject, body=body)
+                ok, err = _send_outlook_email(schedule_recipients(r), subject, body=body,
+                                              venue=r["venue"])
                 if not ok and mailer.outcome_unknown(err):
                     # 2026-09-21 sweep (PRIOR-13): timed out, Graph may have sent
                     # it — close the tier like a send so nothing ever retries it.
@@ -3335,7 +3375,8 @@ def advance_lifecycle():
             doc_links = ve.venue_doc_links_text(r["venue"])
             if doc_links:
                 body = f"{body}\n\n{doc_links}"
-            ok, err = _send_outlook_email(ve.with_extra_recipients(r["email"], r["series"]), subject, body=body)
+            ok, err = _send_outlook_email(ve.with_extra_recipients(r["email"], r["series"]), subject, body=body,
+                                          venue=r["venue"])
             if not ok and mailer.outcome_unknown(err):
                 # 2026-09-21 sweep (PRIOR-13): timed out, Graph may have sent it —
                 # close the tier like a send so the next run can't double-send.

@@ -4,18 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ t('thanks_title') }} — 3CDC Band Advance</title>
+{# 3CDC brand rollout 2026-09-29: same venue theme as the form #}
+{% set th = brand_theme.get(venue or '') or brand_theme.get('_default') or {} %}
 <style>
-  :root{color-scheme:dark;}
-  body{margin:0;background:#0d1117;color:#e6edf3;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
-  .box{max-width:560px;margin:14vh auto;background:#161b22;border:1px solid #2a323d;
-    border-radius:12px;padding:40px 34px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.3);}
-  h1{color:#4da3ff;font-size:22px;margin:0 0 10px;}
-  p{font-size:15px;line-height:1.5;color:#8b97a6;margin:0;}
+  :root{color-scheme:light;}
+  body{margin:0;background:#F2F2F2;color:#595A5C;
+    font-family:'Avenir Next',Avenir,'Segoe UI',Helvetica,Arial,sans-serif;}
+  .box{max-width:560px;margin:12vh auto;background:#fff;border:1px solid #D9D9DB;
+    border-top:6px solid {{ th.primary or '#4F8ABE' }};border-radius:6px;padding:32px 34px 38px;
+    text-align:center;box-shadow:0 1px 2px rgba(16,24,40,.04);}
+  .logos{display:flex;align-items:center;justify-content:center;gap:22px;margin-bottom:26px;}
+  .logos img{display:block;height:28px;width:auto;}
+  h1{color:{{ th.accent or '#4F8ABE' }};font-family:'Avenir Next Condensed','Avenir Next',Avenir,'Arial Narrow',Arial,sans-serif;
+    font-weight:600;text-transform:uppercase;letter-spacing:.3px;font-size:24px;margin:0 0 10px;}
+  p{font-size:15px;line-height:1.55;color:#595A5C;margin:0;}
+  @media (max-width:600px){.box{margin:24px 16px;padding:26px 20px 30px;}}
 </style>
 </head>
 <body>
   <div class="box">
+    <div class="logos">
+      <img src="/brand/3cdc-primary.png" alt="3CDC">
+      {% if th.logo %}<img src="{{ th.logo }}" alt="{{ venue }}">{% endif %}
+    </div>
     <h1>{{ t('thanks_title') }}{% if band %}, {{ band }}{% endif %}</h1>
     <p>{{ t('thanks_body') }}</p>
   </div>
