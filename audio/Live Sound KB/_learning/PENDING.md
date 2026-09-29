@@ -111,3 +111,14 @@ Format: `- [x] **<article>** — <the change> — <source show(s)>`
 - [x] **KB write-back** — eq-starting-points — front + rear mic on one open-back cab: rear leg polarity-flipped, LPF ~2k, body-only lane 70–250, box cut ~450; front mic HPF above the rear's lane (RatBoys 09-18). — RatBoys 2026-09-18
 - [x] **KB write-back** — eq-starting-points — pedal steel through a 1×12 combo: wide −7@350, −4@700, trim the mic's top; Steel Guitar Forum consensus (RatBoys 09-18). — RatBoys 2026-09-18
 - [x] **Reconciliation** — Nine units THIN — touring mics with no KB row (NXN2, NXN6 ×3, NXN5, Karma K-Micro, PRO 37, SM27 ×2, MD409). Brian: build from the web findings and add the rows. — RatBoys 2026-09-18
+
+## From The Carole King and James Taylor Story (Memo 2026-09-28) — queued 2026-09-26 — written 2026-09-29
+
+- [x] **KB write-back** — mic-shure-sm57: piano plate-hole monitor row (HPF 160, −5 @ 250, −4 @ 500, no top). — The Carole King and James Taylor Story 2026-09-28
+- [x] **KB write-back** — eq-starting-points: stomp box (piezo) DI row (+3 @ 85 between Memo modes, −4 @ 130, −5 @ 350, LPF 5k). — The Carole King and James Taylor Story 2026-09-28
+- [x] **KB write-back** — eq-starting-points: high/low spaced piano pair — per-mic correction on channels, room EQ on the linked group. — The Carole King and James Taylor Story 2026-09-28
+- [x] **KB write-back** — reverb-reference-memo: CLA Epic section (controls from Waves user guide v2; Slap/Plate vocal, Throw with Trigger; no ducker) + 7th Heaven/Epic as the only Memo reverbs. — The Carole King and James Taylor Story 2026-09-28
+- [x] **KB write-back** — mic-library: Millennia HV-3D-8 (8 ch) as an outboard front end; no KB page yet. — The Carole King and James Taylor Story 2026-09-28
+- [x] **Reconciliation** — SM57 piano plate hole: KB has no row → THIN; web consensus used, KB row queued (Brian: research + update). — The Carole King and James Taylor Story 2026-09-28
+- [x] **Reconciliation** — Stomp box DI: KB has no row → THIN; web values used with Memo mode placement, KB row queued. — The Carole King and James Taylor Story 2026-09-28
+- [x] **Reconciliation** — No other web↔KB disagreements. — The Carole King and James Taylor Story 2026-09-28
