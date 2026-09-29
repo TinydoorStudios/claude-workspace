@@ -1,0 +1,26 @@
+{
+  "show": "Snidely Whiplash",
+  "venue": "Fountain Square",
+  "date": "2026-09-30",
+  "stages": {
+    "scaffolded": {
+      "at": "2026-09-26T18:57:21",
+      "note": "venue=fsq console=DiGiCo Quantum 225"
+    },
+    "packet_built": {
+      "at": "2026-09-29T15:40:49",
+      "note": "17 channels, full packet"
+    },
+    "ses_built": {
+      "at": "2026-09-29T15:40:49",
+      "note": "fsq \u00b7 17 channels \u00b7 Snidely Whiplash.ses"
+    }
+  },
+  "show_key": "fsq-2026-09-30-snidely-whiplash",
+  "advance_show_id": 2536,
+  "advance_event": "Paint The Square Pink",
+  "rev": "Rev 1.0 Deep Build",
+  "spec_md5": "1b886029d8cd1f56e20b29af53145cf4",
+  "md_md5": "0d2e7781d004613f55e45695fec16fd1",
+  "ses_md5": "c848a8967d6933c2e2b7bc28bd59d940"
+}

@@ -212,3 +212,13 @@ build running), and processed artist pedal → XLR line feeds.
 
 Nothing here has been written to the wiki — staged for Brian, per the rule.
 
+
+## 2026-09-29 — Snidely Whiplash (FSQ 2026-09-30, Paint The Square Pink) — Rev 1.0
+
+Classic rock / pop party covers (Pete Scalia vocals+keys, Tony Scalia guitar). 11 units, all AGREE.
+Dry midday air (43→27% RH) inverted the humid-night posture: no OH 9k trim, baked presence trims
+held to −3, hat +3 @ 8k on the flat SM81. Toms slotted by size (box 400/350/300, stick
+6000/4500/5000); two e609 guitars slotted by lane (GTR 1 top: −4@6k −3@1.8k; GTR 2 mids: −5@3.5k).
+Locker fork GTR 2 → SM57 declined. Beta 58 on drum vocal dropped on research (PSW: more cymbal
+wash). **All five vocals held the FSQ template curve by Brian's call** — bands FLAT, HPF 184.4.
+Write-back candidates in the spec's kb_writeback (SM58-at-kit note; template-hold note).

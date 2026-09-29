@@ -1,0 +1,726 @@
+{
+ "venue": "fsq",
+ "venue_label": "Fountain Square (outdoor)",
+ "console_label": "DiGiCo Quantum 225",
+ "show_name": "Snidely Whiplash",
+ "artist": "Snidely Whiplash",
+ "genre": "Classic rock / pop party cover band",
+ "show_date": "2026-09-30",
+ "foh_engineer": "Brian Lloyd",
+ "mon_engineer": "—",
+ "show_time": "11:00am–1:00pm",
+ "rev": "Rev 1.0 Deep Build",
+ "app_version": "deep-think-1.0",
+ "show_key": "fsq-2026-09-30-snidely-whiplash",
+ "style_note": "Paint The Square Pink (American Cancer Society / Making Strides), 11a–1p. A long-running Cincinnati party band playing classic rock and pop to a lunchtime charity crowd, in warm, drying air.",
+ "artist_profile": "Snidely Whiplash is a Cincinnati cover band fronted by WCPO media personality Pete Scalia (vocals, keys) with his father Tony Scalia on guitar, 25-plus years on the circuit: the old Blue Note in Price Hill, Mt. Adams Pavilion, a residency at Jeff Ruby's, charity galas. Pete's roots are high-school KISS and Van Halen covers; the current set is rock, pop and crowd-favourite classics in top hats. Five players (two guitars, bass, keys, drums) and five vocal mics. For the mix that means a guitar-forward classic-rock band with a speaking-voice frontman: the lead vocal and the two guitars carry the show, the keys fill underneath, and nothing about this material wants a modern scooped kit or hyped top end.",
+ "room_context": "FSQ at midday: open plaza, no room gain, KS21 arch carrying the bottom. Cuts at outdoor depth (−7/−8) on drums and cabs; keys hold −6 because a board's 250–300 is warmth, not mechanical mud. The air is DRY (43% falling to 27% RH over the set), the opposite of the humid August nights, so high end is lost over the throw: no hat/overhead fizz trims this time, baked presence peaks trimmed only −3, and the one HF boost on the show (hat +3 @ 8k) is legal because the SM81 is flat. All five vocals hold the FSQ template curve by Brian's call.",
+ "research": {
+  "genre_verified": "Classic rock / pop party covers — CincyMusic band page ('rock, pop, and crowd-favorite classics'; 25+ years; Blue Note, Mt. Adams Pavilion, Jeff Ruby's) and petescalia.com (Pete on vocals/keys, dad Tony on guitar; KISS/Van Halen covers lineage). Not split.",
+  "gig": "Paint The Square Pink, Fountain Square, Wed 2026-09-30 11:00a–1:00p — American Cancer Society / Making Strides Against Breast Cancer awareness event (myfountainsquare.com). 3rd-party series; house engineers; 3 wedges, no own IEMs, drum riser, no backline.",
+  "conditions": "Open-Meteo forecast pulled 2026-09-29 for 39.10N −84.51W: 11:00 74°F 43% RH wind 4.6 mph gust 10.3 · 12:00 80°F 34% RH gust 11.9 · 13:00 84°F 27% RH gust 11.6 · precip 1%. Dry, light wind. Dry air absorbs HF over the throw → protect presence; OH HPF stays at 300 (no gust push to 400).",
+  "units": [
+   {
+    "ch": "2",
+    "source": "Kick (single mic)",
+    "mic": "Audix D6",
+    "finding": "Peaks at 60 Hz, 4 kHz and 10 kHz with 750 Hz about 15 dB below the peaks.",
+    "sources": "Tape Op D6 review via RecordingHacks; PSW 'EQ hints for a Kick Drum' / 'Positioning tips for Audix D6' (cut ~250–315, trim 12k noise)",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "D6 needs almost no EQ — no low or click boost (both baked); cut the 300 box PSW names",
+     "equip": "no kick size notated — no change",
+     "genre": "classic rock kick wants punch not a modern click — 4k left alone, no boost",
+     "artist": "single kick mic, no Kick In — the D6 carries both thump and beater, so its 60 and 4k stay intact",
+     "venue": "FSQ outdoor — box cut to −7 @ 300, HPF 35, LPF 10k (dry air, only the 10k fizz edge shaded)"
+    }
+   },
+   {
+    "ch": "3",
+    "source": "Snare top",
+    "mic": "Audix i5",
+    "finding": "+9 dB at 5.5 kHz and +5 dB at 150 Hz; −3 dB near 50 Hz and 16 kHz.",
+    "sources": "Sound On Sound i5 review; RecordingHacks i5; PSW 'Snare mic: i5 vs SM57 vs e604'",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "i5 bakes body and crack — trim 5.5k rather than add, cut box ~450",
+     "equip": "no snare size/tuning notated; no bottom mic (ch 4 blank) — no change beyond leaving wires to the top mic",
+     "genre": "classic rock backbeat keeps the 150 body — no cut there",
+     "artist": "covers band, fat 70s/80s snare — body kept",
+     "venue": "FSQ −7 @ 450 box; dry air → 5.5k trim held to −3; HPF 90 for kick bleed"
+    }
+   },
+   {
+    "ch": "5",
+    "source": "Hi-hat",
+    "mic": "Shure SM81",
+    "finding": "Flat 20 Hz–20 kHz; LF switch −6 dB/oct below 100 Hz or −18 dB/oct below 80 Hz; −10 dB pad.",
+    "sources": "Shure SM81 user guide (RecordingHacks mirror); PSW 'Mic for hats' (HPF hard, optional few dB ~7k)",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "flat capsule — HPF 250, snare-bleed box −6 @ 400",
+     "equip": "no hat size notated — no change",
+     "genre": "rock hat — clank −7 @ 900 so the hat reads as sizzle not stick",
+     "artist": "no change",
+     "venue": "dry air eats HF over the throw → +3 @ 8000 allowed on a flat capsule"
+    }
+   },
+   {
+    "ch": "6/7",
+    "source": "Rack toms ×2",
+    "mic": "Audix D2",
+    "finding": "Audix chart: ~+5 dB plateau 150–200 Hz, sag to ~+2 dB 500 Hz–1 kHz, ~+5/+6 dB presence 4–7 kHz, −10 dB by ~45 Hz.",
+    "sources": "Audix D2 cutsheet (RecordingHacks PDF mirror); PSW 'Audix D2/D4 vs e604', 'Tom EQ and Gating Tips' ('can be edgy'; minimal EQ, HPF)",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "box cut below the baked 500–1k sag, trim the baked presence −3",
+     "equip": "stage plot '3 TOMS', sizes not notated — generic 10/12 assumed",
+     "genre": "classic rock toms, big but short — slotted: Rack 1 box 400 / stick 6000, Rack 2 box 350 / stick 4500",
+     "artist": "no change",
+     "venue": "FSQ −7 on both box cuts; dry air holds the presence trims at −3; HPF 90 / 80"
+    }
+   },
+   {
+    "ch": "8",
+    "source": "Floor tom",
+    "mic": "Audix D4",
+    "finding": "+6 dB at 5 kHz, secondary peak above 10 kHz, rolloff below 70 Hz (current Audix chart).",
+    "sources": "RecordingHacks D4 (current chart reading); PSW 'Floor tom mics other than a 421', 'Audix D2/D4 vs e604' (low-mid muck)",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "trim the baked 5k −3, cut the low-mid muck",
+     "equip": "floor size not notated — no change",
+     "genre": "rock floor keeps its 80–100 thud (no 'woomp' notch)",
+     "artist": "no change",
+     "venue": "FSQ −8 @ 300, lowest of the three tom box lanes; HPF 60"
+    }
+   },
+   {
+    "ch": "9",
+    "source": "Overheads (stereo)",
+    "mic": "Shure Beta 27 (pair)",
+    "finding": "Flat 60 Hz–3 kHz with two peaks of +2 dB or less at 5.5 kHz and 9 kHz; HF −3 dB above 15 kHz.",
+    "sources": "RecordingHacks Beta 27; Sound On Sound Beta series; Gearspace KSM27/Beta 27 OH threads",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "near-flat LDC — cymbal-only role: HPF 300, bleed box −7 @ 400, crash honk −5 @ 1200",
+     "equip": "no cymbal set notated — no change",
+     "genre": "rock OHs are cymbals, not kit image — HPF high",
+     "artist": "no change",
+     "venue": "dry air → NO 9k fizz trim this time (the Buffalo Wabs trim was a humid night); light gusts keep HPF at 300"
+    }
+   },
+   {
+    "ch": "11",
+    "source": "Electric bass",
+    "mic": "Whirlwind IMP (passive DI)",
+    "finding": "20 Hz–20 kHz ±1 dB, 133:1, −20 dB level change — nothing baked.",
+    "sources": "Whirlwind IMP 2 spec (Full Compass / Sweetwater listings); PSW 'Basic EQ set-up for small rock band', 'EQ'ing bass direct into a board'",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "flat DI — full shaping allowed: mud −7 @ 250, definition +3 @ 800",
+     "equip": "bass amp on stage, DI is the only FOH source (ch 12 blank) — carries the whole low end",
+     "genre": "classic rock bass round and supportive, 800 definition so it reads on the A15s",
+     "artist": "no change",
+     "venue": "FSQ −7 on mud; HPF 40 leaves the KS21 arch its octave; LPF 5k drops DI clack"
+    }
+   },
+   {
+    "ch": "13/14",
+    "source": "Electric guitar ×2 (amps)",
+    "mic": "Sennheiser e609 Silver",
+    "finding": "~+3 dB broad lift 2.5–6 kHz centred near 4 kHz; 40 Hz–15 kHz.",
+    "sources": "Sennheiser e609 Silver spec / Thomann; PSW 'Sennheiser E609', 'E609 vs E906' (peak ~4k, Silver edgier)",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "cab box cut, trim the capsule's own 4k lift where the lane needs it",
+     "equip": "amp/cab models not notated — generic",
+     "genre": "two classic-rock guitars slotted: GTR 1 owns the top (keeps the 4k lift, fizz −4 @ 6000, −3 @ 1800 to leave GTR 2 the mids); GTR 2 owns the mids (−5 @ 3500 into the e609 lift)",
+     "artist": "Tony Scalia on one of them — which side unknown; lanes are by position, swap at soundcheck if the lead player is on 14",
+     "venue": "FSQ −8 box (400 / 300, different per guitar); HPF 100 / 90; dry air keeps trims at −4/−5"
+    }
+   },
+   {
+    "ch": "17/18",
+    "source": "Keyboards (stereo)",
+    "mic": "Whirlwind IMP ×2",
+    "finding": "20 Hz–20 kHz ±1 dB passive DI — the board is finished audio.",
+    "sources": "Whirlwind IMP 2 spec; PSW 'keys sounding muddy' (broad 300–500 cut in rock); Gearspace stereo-keys thread",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "no transducer to correct — one trim at the guitar/bass overlap",
+     "equip": "board model not notated — no change",
+     "genre": "keys under two guitars: −6 @ 300, no boosts",
+     "artist": "Pete plays and sings; the keys fill, they don't lead — top left alone",
+     "venue": "genre-over-venue: keys hold −6 (warmth, not mechanical mud); HPF 50 keeps the left hand"
+    }
+   },
+   {
+    "ch": "29",
+    "source": "Drummer vocal",
+    "mic": "Shure SM58",
+    "finding": "+5 dB presence at 4–6 kHz, gentle LF rolloff, strong proximity.",
+    "sources": "Shure SM58 spec / Thomann; PSW 'Beta 58 vs SM 58', 'Cymbal bleed in vocal mics' (Beta brighter, more cymbal wash)",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "SM58 cuts-only would be HPF ~150, box and presence trims",
+     "equip": "no change",
+     "genre": "BV — no change",
+     "artist": "no change",
+     "venue": "HELD: Brian's call — FSQ template vocal curve untouched (HPF 184.4, −18 @ 5024 notch, −6.3 @ 335)"
+    }
+   },
+   {
+    "ch": "33–36",
+    "source": "Vocals ×4 (Pete lead + three BVs)",
+    "mic": "Shure Beta 58A (house wireless)",
+    "finding": "50 Hz–16 kHz, attenuated below 500 Hz for proximity, presence peaks near 4 kHz and 10 kHz.",
+    "sources": "Shure Beta 58A user guide (RecordingHacks mirror); PSW 'Beta 58 feedback', 'Vocal EQ Tips 101' (~1k feedback point; 200 and 2–3k common cuts)",
+    "verdict": "AGREE",
+    "trace": {
+     "base": "cuts-only role slots would be lead HPF 100, BVs 110–130 with separate nasal lanes",
+     "equip": "no change",
+     "genre": "no change",
+     "artist": "Pete Scalia, male speaking-voice lead on W1; W2–W4 voices unknown",
+     "venue": "HELD: Brian's call — all four keep the FSQ template curve; ring out at soundcheck"
+    }
+   }
+  ],
+  "reconciliation": [
+   "No web↔KB disagreements on any of the eleven units — every capsule figure the web returned matches the mic-library row, including the corrected D6 (60 / 4k / 10k, 750 −15) and D4 (+6 @ 5k, <70 rolloff) rows."
+  ],
+  "kb_writeback": [
+   "mic-library SM58 / Beta 58 rows: add the drum-vocal note — at a kit the SM58 beats the Beta 58 (PSW: the Beta is brighter and picks up more cymbal wash; the SM58's 180° null suits a wedge straight in front). Raised as a locker idea on this build and dropped on the research.",
+   "eq-starting-points Vocals: note that FSQ shows may hold the template vocal curve by Brian's call (Snidely Whiplash 09-30) — all bands FLAT, HPF written at the template's exact 184.4 so nothing moves."
+  ]
+ },
+ "changes": [
+  "Overheads: sheet had OH L 9 / OH R 10 — folded to one STEREO channel on fader 9; fader 10 stays the SNARE PL8 return (R34).",
+  "All five vocals (29, 33–36) hold the FSQ template vocal curve instead of a deep-built curve (Brian). Research and the cuts-only slotting are on paper in the trace, not on the desk.",
+  "Dry-air posture (27–43% RH): no 9k fizz trim on the overheads, baked presence trims held to −3, hat +3 @ 8k — the reverse of the humid-night builds.",
+  "Name on the sheet 'Snydley' → 'Snidely' (advance database and every web source).",
+  "Blank rows on the sheet — ch 1 Kick In, 4 Snare Bottom, 12 Bass Mic, 15/16 Guitar 3/4 — left out; they keep their template names and flat EQ."
+ ],
+ "decisions": [
+  "Pending KB queue (Carole King / James Taylor, 8 items) → Brian: approve all; written to the four KB articles 2026-09-29.",
+  "Locker fork CH14 guitar 2: SM57 offered over e609 (6–7k vs 4k presence lanes) → Brian: keep both e609s.",
+  "Locker idea CH29 drum vocal: Beta 58 considered over SM58 → dropped on research (more cymbal wash, worse with a front wedge); not raised.",
+  "Q: Pete's mic — plot says '1 WIRELESS MIC / MIC (provided)', sheet says house W1 → Brian: don't know. Built on W1 Beta 58A, flagged confirm at load-in.",
+  "Q: keys stereo or mono (plot '1 KEYS') → Brian: stereo 17/18.",
+  "Q: advance says 4 vocalists, sheet has 5 vocal inputs → Brian: keep all 5.",
+  "Q: voice types for W2–W4 → Brian: 'they need to hold the FSQ vocal EQ'. Follow-up: which channels → all five vocals (29, 33–36)."
+ ],
+ "monitors": [
+  "3 wedges (drums, and two across the front per the plot); plot marks IEM at two vocal positions but advance says no own IEMs — confirm at load-in. Mixes block on the sheet is blank; monitor desk is the FSQ M32."
+ ],
+ "reverbs": [
+  {
+   "role": "vocal",
+   "preset": "Plates 1 / #06 Vocal Plate",
+   "settings": "Decay 1.5s (factory) · PreDelay 24ms (factory) · VLF −19 (factory) · E/L Max Early · Late −6 dB (from Equal factory reference, raised for outdoors) · Late Rolloff 8000Hz (from 6400Hz factory)",
+   "plugin_eq": "LC 200Hz on the return; no HS. Ducker Reverb mode, Thr −22dB so Pete's between-song talking stays dry.",
+   "why": "The default for Pete's lead and the harmony stacks on the mid-tempo classic-rock material. A forward, dense plate reads as 'record' vocal on 70s/80s covers. Rolloff opened to 8k because the air is dry and eating top on its own."
+  },
+  {
+   "role": "vocal",
+   "preset": "Chambers 1 / #10 Vocal Chamber",
+   "settings": "Decay 1.1s (from 1.60s factory) · PreDelay 10ms (from 0 factory) · VLF −10 (factory) · E/L Max Early · Late −6 dB (from Equal factory reference) · Late Rolloff 8000Hz (factory)",
+   "plugin_eq": "LC 200Hz on the return; Ducker Reverb mode, Thr −20dB.",
+   "why": "The up-tempo option: the rockers and party singalongs where a plate tail smears the next downbeat. Pulled to 1.1s with 10ms pre-delay so consonants land dry."
+  },
+  {
+   "role": "vocal",
+   "preset": "Halls 1 / #11 Gold Hall",
+   "settings": "Decay 1.4s (from 1.80s factory) · PreDelay 30ms (factory) · VLF −12 (from 0 factory) · E/L Max Early · Late −6 dB (from Equal factory reference) · Late Rolloff 7000Hz (from 6000Hz factory)",
+   "plugin_eq": "LC 250Hz on the return to keep it off the chest; no ducker — it's for held notes.",
+   "why": "The ballad and power-ballad hall from the KB's rock table, for the slow numbers a covers set always carries. Decay cut well under factory because a noon plaza can't carry a long hall, and VLF pulled from 0 to −12 per the KB so the subs don't feed it."
+  },
+  {
+   "role": "instrument",
+   "preset": "Plates 1 / #04 Snare Plate A",
+   "settings": "Decay 1.0s (from 1.20s factory) · PreDelay 0 (factory) · VLF −9 (factory) · E/L Max Early · Late −6 dB (from Equal factory reference) · Late Rolloff 8000Hz (from 6800Hz factory)",
+   "plugin_eq": "LC 300Hz on the return so it never puts back the snare box ch 3 cuts at 450.",
+   "why": "Lives on the template's fader 10 SNARE PL8 return, so it costs nothing. Classic-rock backbeats earn a bright plate splash; 1.0s reads as crack, not room."
+  },
+  {
+   "role": "instrument",
+   "preset": "Rooms 2 / #16 Guitar Room",
+   "settings": "Decay 1.0s (from 1.20s factory) · PreDelay 0 (factory) · VLF −11 (factory) · E/L Max Early · Late −6 dB (from Equal factory reference) · Late Rolloff 5200Hz (factory)",
+   "plugin_eq": "LC 250Hz; leave the baked 300ms slap in — it's the point.",
+   "why": "For guitar solos on the KISS/Van Halen-lineage material: the KB's British guitar room with its built-in slap gives a lead line size without a hall. Send from whichever guitar is soloing."
+  },
+  {
+   "role": "general",
+   "preset": "Rooms 1 / #01 Studio A",
+   "settings": "Decay 0.7s (factory) · PreDelay 4ms (factory) · VLF −3 (factory) · E/L Max Early · Late −6 dB (from Equal factory reference) · Late Rolloff 8400Hz (factory)",
+   "plugin_eq": "LC 200Hz; very low send.",
+   "why": "Transparent glue for keys and the drum bus if the dry plaza sounds too disconnected. First thing off if it clouds."
+  }
+ ],
+ "reverb_pairing": "Vocal Plate is the default and stays up; Vocal Chamber replaces it on the fast party numbers and Gold Hall on ballads. Pick one per song and keep it the same across all five vocals, so the picture doesn't move when a harmony comes in. Snare Plate A sits low under everything; its 300 LC and the vocal returns' 200–250 LC keep them apart. Guitar Room comes up only for solos. Studio A is the lowest send in the set. At noon on a dry plaza, start with Vocal Plate up modestly, Snare Plate barely up and the rest off until the set asks for them.",
+ "no_reverb": false,
+ "channels": [
+  {
+   "ch": 2,
+   "name": "Kick",
+   "instrument": "Kick Drum (single mic)",
+   "mic": "Audix D6",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Short",
+   "notes": "Only kick mic (sheet's Kick In on ch 1 is blank). Inside, off-centre toward the beater.",
+   "hpf": 35,
+   "lpf": 10000,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 300,
+     "q": 1.8,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "Tape Op: peaks at 60 Hz, 4 kHz and 10 kHz, with 750 Hz about 15 dB down. The thump and the beater are already built in, so there's no boost anywhere. The box cut sits at 300, where PSW engineers cut a D6, well below the baked 750 scoop so it doesn't dig deeper into a hole the capsule already has. Dynamics: no gate (a single kick mic in a covers set; the D6 rejects well). COMP: Red, 4:1, fast, 2–3 dB GR target to steady the four-on-the-floor numbers.",
+   "eq_summary": "One mic has to do inside and outside here, so the D6 keeps both of its humps: 60 Hz for the arch and 4k for the beater. The only move is −7 @ 300 to take out the box a plaza PA exaggerates. LPF 10k only shades the 10k fizz edge. In dry air the top doesn't need more help than that."
+  },
+  {
+   "ch": 3,
+   "name": "Snare",
+   "instrument": "Snare Top",
+   "mic": "Audix i5",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Short",
+   "notes": "Top only — no bottom mic (ch 4 blank), so wires come from this mic.",
+   "hpf": 90,
+   "lpf": 14000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 5500,
+     "q": 2.0,
+     "type": "BELL"
+    },
+    {
+     "b": 3,
+     "gain": -7,
+     "freq": 450,
+     "q": 2.0,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "SOS: +9 dB @ 5.5 kHz and +5 dB @ 150 Hz, which is the body the KB says beats the e604 outdoors. The crack is baked in, so it's trimmed −3 and never boosted. Only −3 because dry air takes top off over the throw anyway. Body at 150 left alone. GATE: none (it would chop ghost notes on shuffles). COMP: Green 4:1 fast attack-release, 3 dB GR.",
+   "eq_summary": "A fat classic-rock backbeat: keep the i5's 150 body, cut the 450 box at outdoor depth, and shave the baked 5.5k peak by only 3 dB since the plaza air is doing the rest. HPF 90 sheds the kick bleed. The snare plate on fader 10 adds the splash."
+  },
+  {
+   "ch": 5,
+   "name": "Hat",
+   "instrument": "Hi-Hat",
+   "mic": "Shure SM81",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Boom",
+   "notes": "SM81 LF switch ASSUMED FLAT, pad OUT. If found on the 18 dB/oct step, drop the desk HPF to 200.",
+   "hpf": 250,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": 3,
+     "freq": 8000,
+     "q": 1.5,
+     "type": "BELL"
+    },
+    {
+     "b": 3,
+     "gain": -7,
+     "freq": 900,
+     "q": 2.0,
+     "type": "BELL"
+    },
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "Shure user guide: flat 20 Hz–20 kHz with no presence peak, so the +3 @ 8k boosts cymbal, not a capsule bump. That's the one HF boost on the show, and it's there because dry air drops sizzle over the throw. −6 @ 400 is snare bleed; −7 @ 900 is stick clank.",
+   "eq_summary": "The hat owns the 8k sizzle for this kit (the overheads are left flat above 3k and sit at HPF 300). HPF 250 plus the 400 cut keep the snare from arriving twice, and −7 @ 900 takes the clank so it reads as a hat, not a stick."
+  },
+  {
+   "ch": 6,
+   "name": "Rack 1",
+   "instrument": "Rack Tom 1",
+   "mic": "Audix D2",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Clip",
+   "notes": "Template gate ON (native, not patched by us). Sizes not notated; if the sheet's racks/floor don't match the kit, move the gate sidechain at the desk.",
+   "hpf": 90,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 6000,
+     "q": 2.0,
+     "type": "BELL"
+    },
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "Audix chart: ~+5 dB at 150–200, a sag to ~+2 through 500 Hz–1 kHz, and ~+5/+6 presence at 4–7k. PSW calls it edgy. The box cut is at 400, below the baked sag, and the stick trim is at 6000 in the top of the presence bump. GATE: template native gate on 6/7/8 (thr −36, rel 227 ms). Leave it, and open the release if long fills get chopped.",
+   "eq_summary": "The small tom sits highest of the three: box lane 400 and stick lane 6000. The rack 2 and floor lanes step down from here, so three toms don't pile up in one octave on a fill."
+  },
+  {
+   "ch": 7,
+   "name": "Rack 2",
+   "instrument": "Rack Tom 2",
+   "mic": "Audix D2",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Clip",
+   "notes": "Template gate ON (native). Same mic as Rack 1, slotted lower.",
+   "hpf": 80,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 4500,
+     "q": 2.0,
+     "type": "BELL"
+    },
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 350,
+     "q": 2.0,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "Same D2 figures as Rack 1. Slotting is by drum size: box at 350 and the presence trim at 4500 (the bottom of the D2's 4–7k bump). The two racks share nothing but depth.",
+   "eq_summary": "The middle tom: lanes at 350 and 4500, between Rack 1's 400 / 6000 and the floor's 300 / 5000. HPF 80 keeps a little more body than the small tom."
+  },
+  {
+   "ch": 8,
+   "name": "Floor",
+   "instrument": "Floor Tom",
+   "mic": "Audix D4",
+   "section": "DRUMS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Clip",
+   "notes": "Template gate ON (native, floor sidechain band).",
+   "hpf": 60,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -3,
+     "freq": 5000,
+     "q": 2.0,
+     "type": "BELL"
+    },
+    {
+     "b": 2,
+     "gain": -8,
+     "freq": 300,
+     "q": 1.8,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "RecordingHacks (current Audix chart): +6 dB @ 5 kHz, a second peak above 10k, and rolloff below 70 Hz. That's why the 5k is trimmed and never boosted, and why the thud is left to the capsule instead of a low boost. PSW's 80 Hz 'woomp' notch isn't used: rock wants that thud.",
+   "eq_summary": "Deepest cut of the three toms (−8 @ 300) because the floor's muck is the one that fogs the bass. The 80–100 thud is untouched, and the baked 5k is trimmed −3."
+  },
+  {
+   "ch": 9,
+   "name": "Overheads",
+   "instrument": "Drum Overheads (stereo pair)",
+   "mic": "Shure Beta 27 (pair)",
+   "section": "DRUMS",
+   "phantom": true,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Boom",
+   "notes": "STEREO on fader 9 — sheet listed OH R on 10, which is the SNARE PL8 return (protected). Pad ASSUMED OUT, LF switch flat.",
+   "hpf": 300,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 3,
+     "gain": -5,
+     "freq": 1200,
+     "q": 2.0,
+     "type": "BELL"
+    },
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "RecordingHacks: flat 60 Hz–3 kHz, with two peaks of +2 dB or less at 5.5k and 9k. The KB's 9k fizz trim came from a humid night. At 27–43% RH that trim would cut real cymbal air, so the top is left flat.",
+   "eq_summary": "Cymbals only: HPF 300 so the overheads don't duplicate the kick and toms, −7 @ 400 for bleed, and −5 @ 1200 for crash honk. Above 3k they're untouched. The hat channel owns the 8k sizzle."
+  },
+  {
+   "ch": 11,
+   "name": "Bass DI",
+   "instrument": "Electric Bass (DI)",
+   "mic": "Whirlwind IMP (DI)",
+   "section": "BASS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "DI",
+   "notes": "Only bass source (ch 12 cab mic blank). Plot shows the bass amp 'Direct'. The IMP sits between instrument and amp.",
+   "hpf": 40,
+   "lpf": 5000,
+   "bands": [
+    {
+     "b": 3,
+     "gain": 3,
+     "freq": 800,
+     "q": 1.5,
+     "type": "BELL"
+    },
+    {
+     "b": 2,
+     "gain": -7,
+     "freq": 250,
+     "q": 1.8,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "Whirlwind: ±1 dB 20 Hz–20 kHz, nothing baked, so the +3 @ 800 is legal (a flat DI). No low boost: the kick's D6 owns 60 and the bass sits above it on the HPF 40. COMP: Purple (opto), 4:1, 3–4 dB GR for note-to-note evenness.",
+   "eq_summary": "The DI carries the whole low end, so it stays round. −7 @ 250 clears the mud the two guitars and keys also live in, and +3 @ 800 lets the line read on the tops for people far from the subs. LPF 5k drops the string clack a DI exaggerates."
+  },
+  {
+   "ch": 13,
+   "name": "Guitar 1",
+   "instrument": "Electric Guitar 1 (amp)",
+   "mic": "Sennheiser e609",
+   "section": "GUITAR",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Short",
+   "notes": "Hang over the grille, off-centre. Locker fork: SM57 offered on Guitar 2, Brian kept both e609s.",
+   "hpf": 100,
+   "lpf": 10000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -4,
+     "freq": 6000,
+     "q": 2.0,
+     "type": "BELL"
+    },
+    {
+     "b": 3,
+     "gain": -3,
+     "freq": 1800,
+     "q": 2.0,
+     "type": "BELL"
+    },
+    {
+     "b": 2,
+     "gain": -8,
+     "freq": 400,
+     "q": 2.0,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "Sennheiser: ~+3 dB lift 2.5–6k centred near 4k. GUITAR 1 OWNS THE TOP LANE: the 4k lift is kept, and only the 6k fizz above it is trimmed. −3 @ 1800 leaves the upper mids to Guitar 2.",
+   "eq_summary": "Two e609s means the capsules can't separate the guitars, so the EQ does. Guitar 1 keeps its 4k presence and gives up a little at 1800. Guitar 2 does the opposite. Box −8 @ 400 is outdoor depth. If Tony's lead is on 14, swap the two curves at soundcheck."
+  },
+  {
+   "ch": 14,
+   "name": "Guitar 2",
+   "instrument": "Electric Guitar 2 (amp)",
+   "mic": "Sennheiser e609",
+   "section": "GUITAR",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Short",
+   "notes": "Hang over the grille, off-centre. Kept on e609 (locker fork declined).",
+   "hpf": 90,
+   "lpf": 8000,
+   "bands": [
+    {
+     "b": 4,
+     "gain": -5,
+     "freq": 3500,
+     "q": 2.0,
+     "type": "BELL"
+    },
+    {
+     "b": 2,
+     "gain": -8,
+     "freq": 300,
+     "q": 2.0,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "Same e609 lift as Guitar 1. GUITAR 2 OWNS THE MID LANE: the lift is cut at 3500, inside the capsule's own bump, so Guitar 1's presence stands in front. The 1–2k honk is left alone for this guitar to live in. Box at 300 vs Guitar 1's 400.",
+   "eq_summary": "The mid-lane guitar: −5 @ 3500 hands the presence to Guitar 1, its 1–2k is left alone, and the box cut sits a third lower than Guitar 1's. LPF 8k keeps it behind. Nothing on these two curves matches."
+  },
+  {
+   "ch": 17,
+   "name": "Keys L",
+   "instrument": "Keyboards L",
+   "mic": "Whirlwind IMP (DI)",
+   "section": "KEYS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "DI",
+   "notes": "Stereo per Brian (plot said '1 KEYS'). If only one line arrives, use 17 and leave 18.",
+   "hpf": 50,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "IMP ±1 dB, so there's no transducer to correct. The board is finished audio. One trim where it overlaps the guitars and bass. Identical to Keys R by design.",
+   "eq_summary": "Pete's keys fill under two guitars. −6 @ 300 makes room without thinning a piano or organ patch. The venue rule would say −8, but a board's 300 is warmth, not mud. HPF 50 keeps the left hand."
+  },
+  {
+   "ch": 18,
+   "name": "Keys R",
+   "instrument": "Keyboards R",
+   "mic": "Whirlwind IMP (DI)",
+   "section": "KEYS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "DI",
+   "notes": "Stereo pair with 17.",
+   "hpf": 50,
+   "lpf": null,
+   "bands": [
+    {
+     "b": 2,
+     "gain": -6,
+     "freq": 300,
+     "q": 1.5,
+     "type": "BELL"
+    }
+   ],
+   "mic_notes": "Right half of the same board: identical curve to 17 so the stereo image doesn't tilt.",
+   "eq_summary": "Same as Keys L. Two halves of one instrument."
+  },
+  {
+   "ch": 29,
+   "name": "Drum Vox",
+   "instrument": "Drummer Vocal",
+   "mic": "Shure SM58",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "Boom",
+   "notes": "Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck. SM58 kept over Beta 58 (less cymbal wash).",
+   "hpf": 184.4,
+   "lpf": null,
+   "bands": [],
+   "mic_notes": "Held curve: HPF 184.4 · B4 −18 @ 5024 Q20 notch · B3 −0.5 @ 2229 · B2 −6.3 @ 335 · B1 +0.5 @ 189 — every band FLAT in the .md so the template passes through. Shure: +5 dB presence at 4–6 kHz. At a kit that's where cymbal wash lands, and the template's −18 @ 5024 notch sits right on it. If the drummer's vocal fights the cymbals, the research-backed move is −4 @ 5000 and −7 @ 400.",
+   "eq_summary": "Held at the FSQ house vocal curve (Brian's call). The 184 HPF already suits a BV at a kit."
+  },
+  {
+   "ch": 33,
+   "name": "Pete",
+   "instrument": "Lead Vocal (Pete Scalia) + keys",
+   "mic": "Shure Beta 58A (Wireless 1)",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "—",
+   "notes": "Wireless 1. Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck. Confirm at load-in: house W1 or Pete's own wireless (plot: '1 WIRELESS MIC / MIC (provided)').",
+   "hpf": 184.4,
+   "lpf": null,
+   "bands": [],
+   "mic_notes": "Held curve: HPF 184.4 · B4 −18 @ 5024 Q20 notch · B3 −0.5 @ 2229 · B2 −6.3 @ 335 · B1 +0.5 @ 189 — every band FLAT in the .md so the template passes through. Shure: peaks near 4k and 10k, attenuated below 500. The template's −18 @ 5024 notch and −6.3 @ 335 already cover the 4k edge and the proximity box. If a BV fights at soundcheck, the research-backed slots are HPF 110–130 with separate nasal lanes (1000 / 1600 / 2500).",
+   "eq_summary": "Pete's lead: held on the house curve. The one thing to watch is HPF 184 on a male speaking voice. If his between-song talk sounds thin, pull the HPF to 120 at the desk."
+  },
+  {
+   "ch": 34,
+   "name": "GTR 1 Voc",
+   "instrument": "Vocal — Guitar 1 player",
+   "mic": "Shure Beta 58A (Wireless 2)",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "—",
+   "notes": "Wireless 2. Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck.",
+   "hpf": 184.4,
+   "lpf": null,
+   "bands": [],
+   "mic_notes": "Held curve: HPF 184.4 · B4 −18 @ 5024 Q20 notch · B3 −0.5 @ 2229 · B2 −6.3 @ 335 · B1 +0.5 @ 189 — every band FLAT in the .md so the template passes through. Shure: peaks near 4k and 10k, attenuated below 500. The template's −18 @ 5024 notch and −6.3 @ 335 already cover the 4k edge and the proximity box. If a BV fights at soundcheck, the research-backed slots are HPF 110–130 with separate nasal lanes (1000 / 1600 / 2500).",
+   "eq_summary": "Held on the house curve with the other vocals so the harmony stack matches Pete's."
+  },
+  {
+   "ch": 35,
+   "name": "Bass Voc",
+   "instrument": "Vocal — bass player",
+   "mic": "Shure Beta 58A (Wireless 3)",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "—",
+   "notes": "Wireless 3. Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck.",
+   "hpf": 184.4,
+   "lpf": null,
+   "bands": [],
+   "mic_notes": "Held curve: HPF 184.4 · B4 −18 @ 5024 Q20 notch · B3 −0.5 @ 2229 · B2 −6.3 @ 335 · B1 +0.5 @ 189 — every band FLAT in the .md so the template passes through. Shure: peaks near 4k and 10k, attenuated below 500. The template's −18 @ 5024 notch and −6.3 @ 335 already cover the 4k edge and the proximity box. If a BV fights at soundcheck, the research-backed slots are HPF 110–130 with separate nasal lanes (1000 / 1600 / 2500).",
+   "eq_summary": "Held on the house curve with the other vocals so the harmony stack matches Pete's."
+  },
+  {
+   "ch": 36,
+   "name": "GTR 2 Voc",
+   "instrument": "Vocal — Guitar 2 player",
+   "mic": "Shure Beta 58A (Wireless 4)",
+   "section": "VOCALS",
+   "phantom": false,
+   "ribbon": false,
+   "tour": false,
+   "stand": "—",
+   "notes": "Wireless 4. Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck.",
+   "hpf": 184.4,
+   "lpf": null,
+   "bands": [],
+   "mic_notes": "Held curve: HPF 184.4 · B4 −18 @ 5024 Q20 notch · B3 −0.5 @ 2229 · B2 −6.3 @ 335 · B1 +0.5 @ 189 — every band FLAT in the .md so the template passes through. Shure: peaks near 4k and 10k, attenuated below 500. The template's −18 @ 5024 notch and −6.3 @ 335 already cover the 4k edge and the proximity box. If a BV fights at soundcheck, the research-backed slots are HPF 110–130 with separate nasal lanes (1000 / 1600 / 2500).",
+   "eq_summary": "Held on the house curve with the other vocals so the harmony stack matches Pete's."
+  }
+ ]
+}

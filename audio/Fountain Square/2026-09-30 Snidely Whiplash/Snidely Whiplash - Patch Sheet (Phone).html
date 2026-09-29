@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1A3A5C" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+<title>Snidely Whiplash — Patch Sheet</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f6f7f9; --fg:#111827; --dim:#6b7280; --card:#fff; --line:#e5e7eb;
+  --nav:#1A3A5C; --accent:#2E6DA4; --ok:#065F46;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#0b1220; --fg:#e9edf3; --dim:#94a3b8; --card:#151d2b; --line:#243247;
+          --nav:#0e1729; --accent:#5b9bd5; --ok:#34D399; }
+}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font:400 17px/1.4 "Avenir Next",Avenir,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:20;background:var(--nav);color:#fff;
+  padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+header h1{margin:0;font-size:21px;font-weight:700;letter-spacing:.2px}
+header .sub{margin-top:3px;font-size:13px;opacity:.85}
+.bar{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.bar button{flex:1 1 auto;min-height:40px;min-width:76px;border:0;border-radius:9px;
+  background:rgba(255,255,255,.14);color:#fff;font:600 14px/1 inherit;padding:0 10px}
+.bar button[aria-pressed="true"]{background:#fff;color:var(--nav)}
+.prog{margin-top:8px;font-size:13px;opacity:.9;display:flex;align-items:center;gap:8px}
+.prog .track{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
+.prog .fill{height:100%;width:0;background:#fff;transition:width .2s}
+.zones{padding:10px 14px;font-size:13px;color:var(--dim);border-bottom:1px solid var(--line)}
+.alerts{padding:12px 12px 2px;display:grid;gap:8px}
+.alert{border-radius:11px;padding:10px 12px;font-size:14.5px;display:grid;gap:2px;
+  border-left:5px solid currentColor}
+.alert b{font-size:13px;letter-spacing:.5px}
+.alert span{color:var(--fg);opacity:.9}
+.alert.danger{color:#B91C1C;background:#FEE2E2}
+.alert.power{color:#065F46;background:#D1FAE5}
+.alert.tour{color:#92400E;background:#FFF3CD}
+@media (prefers-color-scheme:dark){
+  .alert.danger{color:#FCA5A5;background:#2a1416} .alert.power{color:#6EE7B7;background:#0e2620}
+  .alert.tour{color:#FCD34D;background:#2a2110}
+}
+main{padding:8px 12px calc(env(safe-area-inset-bottom) + 28px)}
+.s-DRUMS { --tint:#FEF3C7; --head:#FDE68A; --ink:#92400E; --dk:#FBBF24; }
+.s-BASS { --tint:#DCFCE7; --head:#BBF7D0; --ink:#065F46; --dk:#34D399; }
+.s-RHYTHM { --tint:#DCFCE7; --head:#BBF7D0; --ink:#065F46; --dk:#34D399; }
+.s-GUITAR { --tint:#D1FAE5; --head:#A7F3D0; --ink:#047857; --dk:#6EE7B7; }
+.s-PIANO { --tint:#FCE7F3; --head:#FBCFE8; --ink:#9D174D; --dk:#F472B6; }
+.s-KEYS { --tint:#EDE9FE; --head:#DDD6FE; --ink:#5B21B6; --dk:#A78BFA; }
+.s-STRINGS { --tint:#DBEAFE; --head:#BFDBFE; --ink:#1E40AF; --dk:#60A5FA; }
+.s-HORNS { --tint:#FFEDD5; --head:#FCD9B4; --ink:#9A3412; --dk:#FB923C; }
+.s-VOCALS { --tint:#EDE9FE; --head:#DDD6FE; --ink:#4338CA; --dk:#818CF8; }
+.s-AMBIENT { --tint:#E0E7FF; --head:#C7D2FE; --ink:#3730A3; --dk:#818CF8; }
+.s-SPARE { --tint:#F3F4F6; --head:#E5E7EB; --ink:#374151; --dk:#9CA3AF; }
+.sechead{position:sticky;top:0;z-index:10;margin:16px 0 8px;padding:8px 12px;border-radius:9px;
+  font-size:13.5px;font-weight:800;letter-spacing:1px;background:var(--head);color:var(--ink)}
+@media (prefers-color-scheme:dark){ .sechead{background:#1c2942;color:var(--dk)} }
+.card{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+  border-left:6px solid var(--head);border-radius:13px;padding:12px;margin:0 0 8px;min-height:76px;
+  -webkit-tap-highlight-color:transparent;cursor:pointer}
+@media (prefers-color-scheme:dark){ .card{border-left-color:var(--dk)} }
+.num{flex:0 0 46px;text-align:center;font:800 27px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color:var(--ink);padding-top:2px}
+@media (prefers-color-scheme:dark){ .num{color:var(--dk)} }
+.main{flex:1;min-width:0}
+.inst{font-weight:700;font-size:18px;line-height:1.25}
+.sub{margin-top:1px;font-size:14.5px;color:var(--dim)}
+.mic{margin-top:3px;font-size:16px;color:var(--fg);opacity:.92}
+.meta{margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--dim)}
+.meta .patch{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:600;color:var(--accent)}
+.chips{margin-top:7px;display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-style:normal;font-size:11.5px;font-weight:800;letter-spacing:.5px;padding:4px 8px;border-radius:99px;white-space:nowrap}
+.c-power{background:#D1FAE5;color:#065F46} .c-danger{background:#FEE2E2;color:#B91C1C}
+.c-tour{background:#FFF3CD;color:#92400E} .c-info{background:#E0E7FF;color:#3730A3}
+@media (prefers-color-scheme:dark){
+  .c-power{background:#0e2620;color:#6EE7B7} .c-danger{background:#2a1416;color:#FCA5A5}
+  .c-tour{background:#2a2110;color:#FCD34D} .c-info{background:#18213a;color:#A5B4FC}
+}
+.note{margin-top:7px;font-size:13.5px;color:var(--dim);line-height:1.35}
+.tick{flex:0 0 30px;height:30px;border-radius:50%;border:2px solid var(--line);margin-top:2px;position:relative}
+.card.done{opacity:.5}
+.card.done .tick{background:var(--ok);border-color:var(--ok)}
+.card.done .tick:after{content:"";position:absolute;left:9px;top:4px;width:8px;height:15px;
+  border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
+.card.hide{display:none}
+footer{padding:6px 14px 30px;font-size:12.5px;color:var(--dim);text-align:center}
+</style></head><body>
+<header>
+  <h1>Snidely Whiplash — Patch</h1>
+  <div class="sub">Fountain Square (outdoor) · 2026-09-30 · 11:00am–1:00pm · 17 ch</div>
+  <div class="bar">
+    <button id="f-all" aria-pressed="true">All</button>
+    <button id="f-todo" aria-pressed="false">To do</button>
+    <button id="f-48v" aria-pressed="false">48V only</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="prog"><span id="count">0 / 17</span><span class="track"><span class="fill" id="fill"></span></span></div>
+</header>
+<div class="zones">Split patch zones: <b>R-1…R-16</b> red · <b>G-1…G-12</b> green · <b>B-1…B-12</b> blue · <b>O-1…O-12</b> orange · <b>WIRELESS</b> for the handhelds.</div>
+<section class="alerts">
+<div class="alert power"><b>48V ON THESE ONLY</b><span>Ch 5, 9. Everything else is a dynamic or a line feed — leave phantom off.</span></div>
+</section>
+<main id="list">
+<h2 class="sechead s-DRUMS">DRUMS / PERC</h2>
+<article class="card s-DRUMS" data-ch="2" data-phantom="0">
+  <div class="num">2</div>
+  <div class="main">
+    <div class="inst">Kick</div>
+    
+    <div class="mic">Audix D6</div>
+    <div class="meta"><span class="patch">Local 2</span><span class="stand">Stand: Short</span></div>
+    
+    <div class="note">Only kick mic (sheet&#x27;s Kick In on ch 1 is blank). Inside, off-centre toward the beater.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="3" data-phantom="0">
+  <div class="num">3</div>
+  <div class="main">
+    <div class="inst">Snare</div>
+    
+    <div class="mic">Audix i5</div>
+    <div class="meta"><span class="patch">Local 3</span><span class="stand">Stand: Short</span></div>
+    
+    <div class="note">Top only — no bottom mic (ch 4 blank), so wires come from this mic.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="5" data-phantom="1">
+  <div class="num">5</div>
+  <div class="main">
+    <div class="inst">Hat</div>
+    <div class="sub">Hi-Hat</div>
+    <div class="mic">Shure SM81</div>
+    <div class="meta"><span class="patch">Local 5</span><span class="stand">Stand: Boom</span></div>
+    <div class="chips"><i class="chip c-power">48V</i></div>
+    <div class="note">SM81 LF switch ASSUMED FLAT, pad OUT. If found on the 18 dB/oct step, drop the desk HPF to 200.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="6" data-phantom="0">
+  <div class="num">6</div>
+  <div class="main">
+    <div class="inst">Rack 1</div>
+    <div class="sub">Rack Tom 1</div>
+    <div class="mic">Audix D2</div>
+    <div class="meta"><span class="patch">Local 6</span><span class="stand">Stand: Clip</span></div>
+    
+    <div class="note">Template gate ON (native, not patched by us). Sizes not notated; if the sheet&#x27;s racks/floor don&#x27;t match the kit, move the gate sidechain at the desk.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="7" data-phantom="0">
+  <div class="num">7</div>
+  <div class="main">
+    <div class="inst">Rack 2</div>
+    <div class="sub">Rack Tom 2</div>
+    <div class="mic">Audix D2</div>
+    <div class="meta"><span class="patch">Local 7</span><span class="stand">Stand: Clip</span></div>
+    
+    <div class="note">Template gate ON (native). Same mic as Rack 1, slotted lower.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="8" data-phantom="0">
+  <div class="num">8</div>
+  <div class="main">
+    <div class="inst">Floor</div>
+    
+    <div class="mic">Audix D4</div>
+    <div class="meta"><span class="patch">Local 8</span><span class="stand">Stand: Clip</span></div>
+    
+    <div class="note">Template gate ON (native, floor sidechain band).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-DRUMS" data-ch="9" data-phantom="1">
+  <div class="num">9</div>
+  <div class="main">
+    <div class="inst">Overheads</div>
+    <div class="sub">Drum Overheads (stereo pair)</div>
+    <div class="mic">Shure Beta 27 (pair)</div>
+    <div class="meta"><span class="patch">Local 9</span><span class="stand">Stand: Boom</span></div>
+    <div class="chips"><i class="chip c-power">48V</i><i class="chip c-info">STEREO</i></div>
+    <div class="note">STEREO on fader 9 — sheet listed OH R on 10, which is the SNARE PL8 return (protected). Pad ASSUMED OUT, LF switch flat.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-BASS">BASS</h2>
+<article class="card s-BASS" data-ch="11" data-phantom="0">
+  <div class="num">11</div>
+  <div class="main">
+    <div class="inst">Bass DI</div>
+    <div class="sub">Electric Bass (DI)</div>
+    <div class="mic">Whirlwind IMP (DI)</div>
+    <div class="meta"><span class="patch">Local 11</span><span class="stand">Stand: DI</span></div>
+    
+    <div class="note">Only bass source (ch 12 cab mic blank). Plot shows the bass amp &#x27;Direct&#x27;. The IMP sits between instrument and amp.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-GUITAR">GUITAR</h2>
+<article class="card s-GUITAR" data-ch="13" data-phantom="0">
+  <div class="num">13</div>
+  <div class="main">
+    <div class="inst">Guitar 1</div>
+    <div class="sub">Electric Guitar 1 (amp)</div>
+    <div class="mic">Sennheiser e609</div>
+    <div class="meta"><span class="patch">Local 13</span><span class="stand">Stand: Short</span></div>
+    
+    <div class="note">Hang over the grille, off-centre. Locker fork: SM57 offered on Guitar 2, Brian kept both e609s.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-GUITAR" data-ch="14" data-phantom="0">
+  <div class="num">14</div>
+  <div class="main">
+    <div class="inst">Guitar 2</div>
+    <div class="sub">Electric Guitar 2 (amp)</div>
+    <div class="mic">Sennheiser e609</div>
+    <div class="meta"><span class="patch">Local 14</span><span class="stand">Stand: Short</span></div>
+    
+    <div class="note">Hang over the grille, off-centre. Kept on e609 (locker fork declined).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-KEYS">KEYS</h2>
+<article class="card s-KEYS" data-ch="17" data-phantom="0">
+  <div class="num">17</div>
+  <div class="main">
+    <div class="inst">Keys L</div>
+    <div class="sub">Keyboards L</div>
+    <div class="mic">Whirlwind IMP (DI)</div>
+    <div class="meta"><span class="patch">Local 17</span><span class="stand">Stand: DI</span></div>
+    
+    <div class="note">Stereo per Brian (plot said &#x27;1 KEYS&#x27;). If only one line arrives, use 17 and leave 18.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-KEYS" data-ch="18" data-phantom="0">
+  <div class="num">18</div>
+  <div class="main">
+    <div class="inst">Keys R</div>
+    <div class="sub">Keyboards R</div>
+    <div class="mic">Whirlwind IMP (DI)</div>
+    <div class="meta"><span class="patch">Local 18</span><span class="stand">Stand: DI</span></div>
+    <div class="chips"><i class="chip c-info">STEREO</i></div>
+    <div class="note">Stereo pair with 17.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<h2 class="sechead s-VOCALS">VOCALS</h2>
+<article class="card s-VOCALS" data-ch="29" data-phantom="0">
+  <div class="num">29</div>
+  <div class="main">
+    <div class="inst">Drum Vox</div>
+    <div class="sub">Drummer Vocal</div>
+    <div class="mic">Shure SM58</div>
+    <div class="meta"><span class="patch">Local 29</span><span class="stand">Stand: Boom</span></div>
+    
+    <div class="note">Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck. SM58 kept over Beta 58 (less cymbal wash).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="33" data-phantom="0">
+  <div class="num">33</div>
+  <div class="main">
+    <div class="inst">Pete</div>
+    <div class="sub">Lead Vocal (Pete Scalia) + keys</div>
+    <div class="mic">Shure Beta 58A (Wireless 1)</div>
+    <div class="meta"><span class="patch">Local 33</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WIRELESS 1</i></div>
+    <div class="note">Wireless 1. Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck. Confirm at load-in: house W1 or Pete&#x27;s own wireless (plot: &#x27;1 WIRELESS MIC / MIC (provided)&#x27;).</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="34" data-phantom="0">
+  <div class="num">34</div>
+  <div class="main">
+    <div class="inst">GTR 1 Voc</div>
+    <div class="sub">Vocal — Guitar 1 player</div>
+    <div class="mic">Shure Beta 58A (Wireless 2)</div>
+    <div class="meta"><span class="patch">Local 34</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WIRELESS 2</i></div>
+    <div class="note">Wireless 2. Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="35" data-phantom="0">
+  <div class="num">35</div>
+  <div class="main">
+    <div class="inst">Bass Voc</div>
+    <div class="sub">Vocal — bass player</div>
+    <div class="mic">Shure Beta 58A (Wireless 3)</div>
+    <div class="meta"><span class="patch">Local 35</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WIRELESS 3</i></div>
+    <div class="note">Wireless 3. Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+<article class="card s-VOCALS" data-ch="36" data-phantom="0">
+  <div class="num">36</div>
+  <div class="main">
+    <div class="inst">GTR 2 Voc</div>
+    <div class="sub">Vocal — Guitar 2 player</div>
+    <div class="mic">Shure Beta 58A (Wireless 4)</div>
+    <div class="meta"><span class="patch">Local 36</span><span class="stand">Stand: —</span></div>
+    <div class="chips"><i class="chip c-info">WIRELESS 4</i></div>
+    <div class="note">Wireless 4. Holds the FSQ template vocal EQ (Brian) — ring out at soundcheck.</div>
+  </div>
+  <div class="tick" aria-hidden="true"></div>
+</article>
+</main>
+<footer>Tap a channel to check it off — saved on this phone only.<br>
+Generated from Snidely Whiplash.spec.json · Rev 1.0 Deep Build</footer>
+<script>
+(function(){
+  var KEY = 'patch:' + "Snidely Whiplash";
+  var done = {};
+  try { done = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { done = {}; }
+  var cards = [].slice.call(document.querySelectorAll('.card'));
+  var total = cards.length, mode = 'all';
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(done)); } catch(e) {} }
+  function paint(){
+    var n = 0;
+    cards.forEach(function(c){
+      var id = c.dataset.ch, on = !!done[id];
+      c.classList.toggle('done', on);
+      if (on) n++;
+      var hide = (mode === 'todo' && on) || (mode === '48v' && c.dataset.phantom !== '1');
+      c.classList.toggle('hide', hide);
+    });
+    document.getElementById('count').textContent = n + ' / ' + total;
+    document.getElementById('fill').style.width = (total ? (n / total * 100) : 0) + '%';
+  }
+  cards.forEach(function(c){
+    c.addEventListener('click', function(){
+      var id = c.dataset.ch;
+      if (done[id]) { delete done[id]; } else { done[id] = 1; }
+      save(); paint();
+      if (navigator.vibrate) navigator.vibrate(8);
+    });
+  });
+  function setMode(m, btn){
+    mode = m;
+    ['f-all','f-todo','f-48v'].forEach(function(i){
+      document.getElementById(i).setAttribute('aria-pressed', i === btn ? 'true' : 'false');
+    });
+    paint();
+  }
+  document.getElementById('f-all').onclick  = function(){ setMode('all','f-all'); };
+  document.getElementById('f-todo').onclick = function(){ setMode('todo','f-todo'); };
+  document.getElementById('f-48v').onclick  = function(){ setMode('48v','f-48v'); };
+  document.getElementById('reset').onclick  = function(){
+    if (confirm('Clear every check mark?')) { done = {}; save(); paint(); }
+  };
+  paint();
+})();
+</script>
+</body></html>
