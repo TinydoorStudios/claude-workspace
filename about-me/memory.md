@@ -48,6 +48,9 @@ Reference notes moved to the KB 2026-08-11 — canonical source is `Live Sound K
 
 ## Session Notes
 
+### 2026-09-29 — Snidely Whiplash (FSQ 09-30) deep build
+Rev 1.0 packet + .ses built and committed (17845f4); all PASS. All five vocals hold the FSQ template curve (Brian) — written as FLAT bands + HPF 184.4 so the template passes through byte-exact. Dry-air posture (27–43% RH). Carole King PENDING items (8) approved and written to KB articles. Not yet published — waits for Brian's go.
+
 ### 2026-09-29 — Opus/Sonnet model routing made permanent
 show-deep-build runs on Opus 5.5 medium (frontmatter + a get_session model gate at step 1); new-show, send-it and show-wiki-push run on Sonnet 5.5 medium via frontmatter. Global ~/.claude/settings.json now has effortLevel medium alongside model opus. Guideline in audio/_system/PIPELINE.md. Reddit research requested but reddit.com is blocked in both Chrome and the built-in browser ("safety restrictions"); Brian can paste threads instead.
 
