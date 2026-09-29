@@ -14,7 +14,9 @@ Split of labor, deliberately:
     and hands the rows to build_missing() via /internal/missing-reports.
 
 Report-owing roles per Brian: Mix (FOH + Mon), Tech Lead, Stagehand / Stage
-Support. Cam-switch and "Other" don't owe a report. Brian himself is exempt.
+(Stage Support dropped 2026-09-27). Cam-switch and "Other" don't owe a report.
+Names that don't resolve to a real person on the codes tab (fragments,
+notes, times) are ignored. Brian himself is exempt.
 
 Deadline rule (Brian): a report for a show on date D is due by NOON the next
 day (D+1). Run at noon daily; a show is "due" once its D+1 noon has passed,
@@ -32,7 +34,7 @@ import crew_report as cr
 
 # Roles that owe a report. mix is handled separately (foh/mon are single
 # values, not a list); these are the list-valued roles pulled from an entry.
-_REQUIRED_LIST_ROLES = ("tech", "stagehand", "stage_support")
+_REQUIRED_LIST_ROLES = ("tech", "stagehand")
 
 # Person exempt from the rule (Brian). Compared against the canonical
 # "First Last" the codes tab resolves — BL / Brian / BRIAN all land here.
@@ -43,7 +45,11 @@ _EXEMPT = {"brian lloyd"}
 # grandfathered, the check only chases shows from launch day forward. The
 # system holds no per-person state, so this floor IS the "clear old flags":
 # every run recomputes live, and anything before the floor simply drops out.
-START_DATE = dt.date(2026, 9, 14)
+START_DATE = dt.date(2026, 9, 28)  # reset 2026-09-27 per Brian: nothing on/before 9/27 is chased
+
+# Non-show calls (training, load-ins/outs, strikes, meetings) never owe a report.
+_NON_SHOW = ("training", "load-in", "load in", "loadin", "load-out", "load out",
+             "loadout", "strike", "meeting", "walkthrough", "walk-through")
 
 
 def _venue_key(name):
@@ -131,6 +137,8 @@ def build_missing(submissions, days=7, today=None):
     codes_rows = st._fetch_csv(st.CODES_GID)
     schedule_rows = st._fetch_csv(st.SCHEDULE_GID)
     email_map = _codes_by_email(codes_rows)
+    known = {_norm_name(f"{r[1]} {r[2]}") for r in codes_rows[2:]
+             if len(r) >= 3 and (r[1] or "").strip() and (r[2] or "").strip()}
 
     # ---- submitted set: (person_key, venue_key, iso_date) ----
     submitted = set()
@@ -152,6 +160,8 @@ def build_missing(submissions, days=7, today=None):
     for d, entries in by_date.items():
         iso = d.isoformat()
         for e in entries:
+            if any(k in (e.get("event") or "").lower() for k in _NON_SHOW):
+                continue
             vkey = _venue_key(e["venue"])
             people = []
             mix = e.get("mix") or {}
@@ -166,11 +176,11 @@ def build_missing(submissions, days=7, today=None):
                     if tag in seen_list:      # merged stagehand/stage_support
                         continue
                     seen_list.add(tag)
-                    label = "Stagehand" if role in ("stagehand", "stage_support") else "Tech Lead"
+                    label = "Stagehand" if role == "stagehand" else "Tech Lead"
                     people.append((nm, label))
             for nm, role_label in people:
                 pkey = _norm_name(nm)
-                if not pkey or pkey in _EXEMPT:
+                if not pkey or pkey in _EXEMPT or pkey not in known:
                     continue
                 k = (pkey, vkey, iso)
                 if k not in expected:
