@@ -27,6 +27,11 @@ procedure and cites rules by number instead of restating them.
 ## Before anything: the branch, the queue, the card
 
 1. `git -C ~/Documents/Claude branch --show-current` must print `main` (R47). Otherwise stop.
+   Then the **model gate**: call `mcp__ccd_session_mgmt__get_session` with `"self"` (load it via
+   ToolSearch if deferred). The frontmatter above puts only this first turn on Opus; every later
+   turn (question round, locker forks, audit) runs on the session model. If the session `model`
+   isn't Opus or Fable, stop before any research and tell Brian in one line to switch the model
+   menu to Opus 5.5 · medium, then resume. A session can't change its own model, so don't try.
 2. Open `Live Sound KB/_learning/PENDING.md`. For each unchecked item, ask Brian ONE AT A TIME
    (AskUserQuestion, recommended option first): approve → write it into the named KB article now
    and tick it; skip → tick with "skipped <date>"; later → leave it. Staged KB edits go out with
