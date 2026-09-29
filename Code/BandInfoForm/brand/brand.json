@@ -1,0 +1,76 @@
+{
+  "_source": "3CDC Brand Guidelines (3cdc style guide-Final.pdf), read 2026-09-29. Logos in logos/ were cropped from that PDF's vector art at 600 dpi (Brian: final for now). Every generator reads colors, fonts and logos from here; nothing hardcodes a hex.",
+  "_corrections": {
+    "memorial-hall.primary": "Guide prints #A9AB36 (Washington Park's green, copy-paste error). Its own RGB 167/168/170 = #A7A8AA.",
+    "corporate.blue": "Guide prints RGB 91/137/55 next to #4F8ABE; the RGB is the typo. Hex used."
+  },
+  "fonts": {
+    "body": "Avenir Next",
+    "heading": "Avenir Next Condensed",
+    "body_stack": "'Avenir Next', Avenir, 'Segoe UI', Helvetica, Arial, sans-serif",
+    "heading_stack": "'Avenir Next Condensed', 'Avenir Next', Avenir, 'Arial Narrow', Arial, sans-serif",
+    "mac_ttc": {
+      "body": "/System/Library/Fonts/Avenir Next.ttc",
+      "heading": "/System/Library/Fonts/Avenir Next Condensed.ttc"
+    }
+  },
+  "corporate": {
+    "colors": {
+      "red":      {"hex": "#C42033", "pms": "200 C"},
+      "green":    {"hex": "#9EA638", "pms": "383 C"},
+      "blue":     {"hex": "#4F8ABE", "pms": "646 C"},
+      "gray":     {"hex": "#9D9FA2", "pms": "422 C"},
+      "charcoal": {"hex": "#595A5C", "pms": "425 C"}
+    },
+    "text": "#595A5C",
+    "logos": {
+      "primary": "logos/3cdc-primary.png",
+      "primary_black": "logos/3cdc-primary-black.png",
+      "horizontal": "logos/3cdc-secondary-horizontal.png",
+      "horizontal_black": "logos/3cdc-secondary-horizontal-black.png",
+      "stacked": "logos/3cdc-secondary-stacked.png",
+      "stacked_black": "logos/3cdc-secondary-stacked-black.png"
+    }
+  },
+  "venues": {
+    "Fountain Square": {
+      "slug": "fountain-square",
+      "address": "520 Vine St, Cincinnati, OH 45202",
+      "primary":   {"hex": "#007497", "pms": "633 C"},
+      "secondary": {"hex": "#55C0E9", "pms": "2985 C"}
+    },
+    "Washington Park": {
+      "slug": "washington-park",
+      "address": "1230 Elm St, Cincinnati, OH 45202",
+      "primary":   {"hex": "#A9AB36", "pms": "7747 C"},
+      "secondary": {"hex": "#CCDB2A", "pms": "381 C"}
+    },
+    "Ziegler Park": {
+      "slug": "ziegler-park",
+      "aliases": ["Zeigler Park"],
+      "address": "1322 Sycamore St, Cincinnati, OH 45202",
+      "primary":   {"hex": "#A32036", "pms": "201 C"},
+      "secondary": {"hex": "#5E2B2C", "pms": "490 C"}
+    },
+    "Memorial Hall": {
+      "slug": "memorial-hall",
+      "address": "1225 Elm St, Cincinnati, OH 45202",
+      "primary":   {"hex": "#A7A8AA", "pms": "6 C"},
+      "secondary": {"hex": "#853694", "pms": "2593 C"}
+    },
+    "Court Street Plaza": {
+      "slug": "court-street-plaza",
+      "address": "E Court St, Cincinnati, OH 45202",
+      "primary":   {"hex": "#FFB71E", "pms": "1235 C"},
+      "secondary": {"hex": "#F5E39C", "pms": "2001 C"}
+    },
+    "Imagination Alley": {
+      "slug": "imagination-alley",
+      "address": "1317 Vine St, Cincinnati, OH 45202",
+      "primary":   {"hex": "#D6006D", "pms": "266 C"},
+      "secondary": {"hex": "#F3A6D7", "pms": "230 C"}
+    }
+  },
+  "_logo_paths": "Per venue: logos/<slug>-primary.png (filled square), -secondary.png (outline), -typelogo.png (wordmark). White variants not extracted yet.",
+  "_not_in_guide": "Elm Street Plaza has no logo or palette in the guide; it falls back to the corporate 3CDC mark and colors."
+}
