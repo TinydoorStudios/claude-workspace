@@ -1,6 +1,8 @@
 ---
 name: new-show
 description: Scaffolds a show folder for any of Brian's venues — runs the advance bridge first (folders for booked shows scaffold themselves, with the band's stage plot and a brief skeleton), then creates the dated folder, the FOH Channel Processing .md stub and show.status.json for anything the bridge didn't cover. No patcher copy — the venue patcher is run in place. Trigger when Brian says "new show", "scaffold the show", "start a show folder", "set up the show folder", or names a venue + date + show with no paperwork yet. NOT the deep build — this only sets up files; EQ/paperwork is the show-deep-build skill, and building the .ses is send-it.
+model: claude-sonnet-5-5
+effort: medium
 ---
 
 # New Show — folder scaffold

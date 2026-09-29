@@ -21,6 +21,8 @@ instead of hunting for "the newest folder with a .ses".
 
 Overlay: on a non-Fable model, **fable-parity** loads alongside show-deep-build for stages 2's research (worksheets + serialization).
 
+**Model routing (2026-09-29).** Judgment work runs on Opus 5.5 at medium effort; mechanical work runs on Sonnet 5.5 at medium. Each skill's frontmatter sets its own `model:` and `effort:` so the switch happens on its own: show-deep-build → `claude-opus-5-5`, while new-show, send-it and show-wiki-push → `claude-sonnet-5-5`. The catch is that a skill's override only lasts for the turn that invoked it; the session model comes back on the next prompt. A deep build runs across many turns (the one-question-at-a-time round, the locker forks, the audit), so start a build in a session already set to Opus 5.5 medium, not Sonnet, or every answer after the first turn gets handled by Sonnet. The three Sonnet stages are one-shot runs, so their override covers the whole job. The ideal flow is a build on Opus, then a fresh Sonnet session for "send it" and the wiki push, which avoids re-sending the whole research context. Bump the deep build to Opus high only for a show that's genuinely unusual, like an uncovered instrument or a large classical spot-mic rig. fable-parity still loads on Opus.
+
 Disambiguation that has bitten before: "send it fsq/memo" (with a venue) = stage 3; bare "SEND IT" after a built show = stage 5.
 
 Skill sources — all of them, including `new-show`, `send-it`, `show-wiki-push`, `show-deep-build` and `pipeline-fix` — live in `audio/_skills/` and are symlinked into `.claude/skills/`, so Claude Code runs the live copy. Shows are built in Claude Code, never Cowork (2026-09-14); there are no `.skill` snapshots to re-upload.

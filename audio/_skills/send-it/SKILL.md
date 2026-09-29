@@ -1,6 +1,8 @@
 ---
 name: send-it
 description: Builds a DiGiCo Q225 .ses showfile from a show's FOH Channel Processing .md, against the correct venue template. Trigger when Brian says "send it fsq", "send it memo", "send it" plus a venue name, or asks to build/process/patch a .ses from paperwork. NOT the wiki push — when Brian gives the go to publish a built show, that's the show-wiki-push skill. Brian always names the venue; if he didn't, ask which one.
+model: claude-sonnet-5-5
+effort: medium
 ---
 
 # Send It — MD paperwork → Q225 .ses

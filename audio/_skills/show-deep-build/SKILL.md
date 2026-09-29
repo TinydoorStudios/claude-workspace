@@ -13,6 +13,8 @@ description: >
   live-sound forums cross-checked with the KB. Show builds produce the packet (FOH .md, .ses,
   Input List xlsx, Show/EQ/MASTER PDFs, phone patch sheet). Defaults to Q225/Wing; never
   CL3/M32 unless Brian names that desk.
+model: claude-opus-5-5
+effort: medium
 ---
 
 # Show Deep Build

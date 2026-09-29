@@ -1,6 +1,8 @@
 ---
 name: show-wiki-push
 description: Publishes a completed show (Fountain Square or Memorial Hall) to the Live Sound KB wiki with one command. Trigger when Brian says "push to wiki", "wrap it up", "push the show", or bare "SEND IT" AFTER a .ses has been built. Brian's explicit go is the ONLY gate — console verification is never required (shows are one-offs). If "send it" is paired with a venue name to BUILD a .ses ("send it fsq"/"send it memo"), that is the send-it skill, not this one. Runs Live Sound KB/_tools/publish_show.py, which writes the page from the FOH .md, ships the full packet as assets, updates the shows index and active-projects, publishes, verifies over HTTP, stamps the show published and queues its KB write-backs in _learning/PENDING.md.
+model: claude-sonnet-5-5
+effort: medium
 ---
 
 # Show Wiki Push
