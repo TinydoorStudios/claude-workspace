@@ -51,6 +51,67 @@ COMMON_REQUIREMENTS_ES = """\
 - Pausas por clima: si 3CDC anuncia una pausa por rayos, dejen de tocar y despejen el escenario de inmediato. El escenario se apaga hasta que nos den el aviso de que pasó el peligro, y ahí retomamos el show.
 - Pago: todos los grupos reciben su pago después de la presentación, no antes."""
 
+# Memorial Hall is indoors: the rain-or-shine and lightning-hold lines don't
+# apply, and Brian dropped the content/age term from Memo's terms (2026-09-29).
+# Everything else in COMMON_REQUIREMENTS carries over.
+COMMON_REQUIREMENTS_INDOOR = """\
+- Performer safety: stay on the stage. No crowd surfing, climbing, jumping off stage, or stepping on sound equipment.
+- Audience safety: do not throw or shoot anything into the crowd (confetti, t-shirts, bottles, merch/CDs, etc.).
+- Payment: all groups are paid after the performance, not before."""
+
+# "Stand-Alone Internal" is a booking-page placeholder, not a show name; the
+# welcome titles itself with the event name instead.
+def is_standalone_series(series):
+    return (series or "").strip().lower().startswith("stand-alone")
+
+
+MEMO_SCHEDULE_NOTE = ("  *Please confirm this schedule works, or tell us what to adjust, including set lengths. "
+                      "Please do not arrive before your load-in time without advance coordination.")
+
+
+def memo_schedule_rows(ev):
+    """The full Memo day as email rows, from the merged event answers
+    (memo_doc.values_for's `event`: times already 7:30p style, curfew filled).
+    Only what's actually filled in; [] when staff have typed no schedule at all."""
+    def t(k):
+        return str(ev.get(k) or "").strip()
+    out = []
+
+    def row(when, label):
+        if when:
+            out.append(f"  {when:<14}{label}")
+    row(t("crew_call"), "Crew Call")
+    row(t("backline_load_in"), "Backline Load-In")
+    row(t("artist_load_in"), "Artist Load-In")
+    row(t("sound_check"), "Sound Check")
+    row(t("crew_break"), "Crew Break")
+    row(t("security_meeting"), "Security Meeting")
+    row(t("doors"), "Doors")
+    row(t("house"), "House")
+
+    def span(a, b):
+        return f"{a}–{b}" if a and b else a
+    row(span(t("set_1"), t("set_1_end")), "Set 1")
+    if str(ev.get("intermission") or "").strip().lower() == "yes" and t("set_1_end") and t("set_2"):
+        row(span(t("set_1_end"), t("set_2")), "Intermission")
+    row(span(t("set_2"), t("set_2_end")), "Set 2")
+    row(t("end_of_show"), "End of Show / Load-Out")
+    row(t("curfew"), "Curfew")
+    return out if len(out) >= 3 else []
+
+
+INDOOR_VENUES = {"Memorial Hall"}
+
+
+def common_requirements_for(venue, lang="en"):
+    """The 3CDC-wide policy block for this venue: the indoor set for Memorial
+    Hall (English only — no Spanish Memo email exists), the standard set for
+    everyone else."""
+    if lang == "en" and (venue or "").strip() in INDOOR_VENUES:
+        return COMMON_REQUIREMENTS_INDOOR
+    return COMMON_REQUIREMENTS_ES if lang == "es" else COMMON_REQUIREMENTS
+
+
 # Generic, safe-to-send blocks for a venue we haven't customized yet (no FSQ specifics).
 DEFAULT = {
     "location": None,   # falls back to the venue name in the template
@@ -157,25 +218,39 @@ Hospitality & Site:
 - Hospitality: water is provided for all performers and crew.""",
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
-    # Memorial Hall (2026-09-29) — DRAFT copy from the two old Memo advance
-    # docs; Brian to review before the first Memo welcome goes out. Indoor
-    # theater: house console/LD, real dressing rooms, no outdoor-tent lines.
+    # Memorial Hall (2026-09-29) — rebuilt from Brian's old Memo advance email
+    # (the "Hi Feliks" one) plus the Memo tech specs. DRAFT: Brian reviews it
+    # before Memo welcomes are un-paused. Indoor theater, so no tents or drink
+    # tickets; the piano, house LD and crew lines are Memo's own. The
+    # venue tech packet is an `_attachment*` file in Series Email Templates/
+    # Memorial Hall/ (Brian uploads it separately; the "attached" lines assume it's there).
     "Memorial Hall": {
         "location": "Memorial Hall – Theater; 1225 Elm St, Cincinnati, OH 45202",
+        # Printed under the form link (advance.md.j2), before the details.
+        "review_note": "Everything we've filled in below comes from your contract and rider. Please check it for accuracy, and add anything we don't have.",
         "load_in": """\
 Load-In & Parking:
-Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive. We'll confirm parking and passes once we know how many vehicles you're bringing — note it on the form.""",
+Load in on Grant Street, on the south side of the building. It's a street-level door (2'7" W × 6'10" H) into a freight elevator; there's no dock. The building is locked until doors open for patrons, so call your day-of contact when you arrive and they'll let you in. Load-in details are in the attached tech packet.
+Tell us on the form what vehicles you're bringing and we'll follow up on parking. Please also give us a day-of contact for your team.""",
         "technical": """\
 Technical:
-- Audio: house DiGiCo Quantum 225 with a house engineer; tell us on the form if you're bringing your own engineer or console.
-- Lighting: house LD on the Memorial Hall console unless you're bringing an LD or a ground package.
-- The house grand piano and a drum riser are available on request.
-- Stage plot, input list, riders and any other files: upload as many as you need on the form.""",
+- PA: house Sound Bridge line array (main and balcony hangs), dual 18" subs and front fills. Full specs are in the attached tech packet.
+- Audio: our house engineer mixes FOH and monitors from the house DiGiCo Quantum 225 in the house right corner of the balcony. Coordinate in advance if you're bringing your own engineer or console.
+- Monitors, mics, stage plot and input list: tell us what you need on the form and upload your plot, input list and riders there.
+- Lighting: we provide a house LD on the house lighting console. Tell us on the form if you have specific requests or you're bringing your own LD.
+- Backline: our house piano is a Yamaha C3 PE grand, tuned before you arrive. It's available on request, along with 4' x 8' x 1' risers.
+- Scenic and projection: let us know on the form about any scenic or projection elements.
+- Crew: house techs cover sound, lighting and stagehand duties from load-in to load-out.""",
         "hospitality": """\
 Hospitality & Site:
-- Dressing rooms are indoors; coffee and tea set-ups are in the dressing rooms.
-- Merch, hospitality, hotel, runner and ground transportation: let us know on the form.""",
-        "requirements": "",
+- Merch: the house takes no cut. You provide your own point of sale and bank. If you'd like us to coordinate a seller, note it on the form and we'll send you their rate.
+- Meet & greet: any pre- or post-show meet & greet has to be approved through your advance so we can plan for it.
+- Photo / video: tell us on the form what your policy is for patrons.
+- Dressing rooms: five indoor rooms, lockable and climate-controlled.
+- Hospitality, hotel, runner and ground transportation: note what you need on the form.""",
+        "requirements": """\
+- Sound limit: 95 dB LAeq,6min (A-weighted, 6-minute average) measured at balcony center, per city ordinance, for all engineers (house or talent).
+- Building curfew: 90 minutes after the scheduled end of the show. All touring personnel, artists and gear must be out by then.""",
     },
 }
 

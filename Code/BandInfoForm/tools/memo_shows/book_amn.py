@@ -41,8 +41,8 @@ with db.get_conn() as conn, conn.cursor() as cur:
         "lead_name": "Joe", "lead_phone": "216-288-7269",
         "artist_name": ARTIST, "contact_name": "Bruce Lant",
         "contact_email": ans.get("contact_email"),
-        "email_note": "Booked by Nyquist from the redlined riders + cost model; no emails.",
-        "entered_by": "Nyquist (for Brian)",
+        "email_note": "",   # band-visible: never put a note (or any mention of the assistant) here
+        "entered_by": "Brian Lloyd",
         "skip_welcome_email": True,
     })
     artist_id = db.upsert_artist(cur, ARTIST, email=ans.get("contact_email"),
@@ -67,7 +67,7 @@ rec = {k: v for k, v in ans.items() if k in M.FIELDS}
 rec.update({"band_name": ARTIST, "venue": VENUE, "show_date": DATE, "show_series": "Stand-Alone Internal",
             "_form": M.FORM_KEY, "_staff_edit": True, "artist_id": str(artist_id),
             "memo_files": files, "_submitted_at": dt.datetime.now().isoformat(timespec="seconds"),
-            "_source_note": "Loaded by Nyquist from redlined riders, stage plot, cost model; approved by Brian 2026-09-29"})
+            "_source_note": "Loaded from redlined riders, stage plot, cost model; approved by Brian 2026-09-29"})
 (DATA / f"{stamp}__a-man-named-cash__memo.json").write_text(json.dumps(rec, indent=2))
 res = db.record_submission(rec, file_info=None, source="staff", carry_plot=False, stamp_responded=False)
 with db.get_conn() as conn, conn.cursor() as cur:

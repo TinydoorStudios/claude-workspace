@@ -632,6 +632,31 @@ def main():
                         f"  {sched('curfew')}   Curfew",
                     ])
 
+                # Memorial Hall (Brian, 2026-09-29): the day-of contact is the FOH mix on
+                # the staffing sheet that day (never the booking's lead), and the Day
+                # Schedule is the FULL Memo day — every time staff have filled in, the
+                # same rows the Prod Adv doc prints — not the five-row generic block.
+                if venue == "Memorial Hall" and show_id:
+                    try:
+                        import memo_doc
+                        with conn.cursor() as cur:
+                            memo_vals, _info = memo_doc.values_for(cur, show_id)
+                        foh = memo_doc.foh_contact(show_date, [r.get("event_name"), name])
+                    except Exception as e:  # noqa: BLE001 — fall back to the plain email
+                        conn.rollback()
+                        print(f"[draft_emails] Memo schedule/contact failed for {name} {show_date}: {e!r}",
+                              file=sys.stderr)
+                        memo_vals, foh = None, None
+                    # the "don't advance with them" note is for part-time crew, not the
+                    # advancing contact working the desk that night
+                    day_of_contact = foh or ""
+                    engineer_contact = bool(foh) and fs.ADVANCING_CONTACT.split(" (")[0] not in foh
+                    rows = ve.memo_schedule_rows(memo_vals.event) if memo_vals else []
+                    if rows:
+                        schedule_block = "\n".join(rows + [ve.MEMO_SCHEDULE_NOTE])
+                        schedule_locked = True     # the note above replaces the generic asterisk lines
+                        set_line = ""              # the sets are in the schedule
+
                 bill_block = ""
                 if len(bill) > 1:
                     lines = ["The bill:"]
@@ -740,13 +765,13 @@ def main():
                     blocks_en = ve.without_text_on_arrival(blocks_en, lang="en")
                 ctx = dict(
                     name=name, contact_name=_greeting_contact_name(r.get("contact_name"), name), venue=venue,
-                    blocks=blocks_en, common_requirements=ve.COMMON_REQUIREMENTS,
+                    blocks=blocks_en, common_requirements=ve.common_requirements_for(venue),
                     engineer_contact=engineer_contact,
                     personal_note=(f"{personal_note_en}\n\n" if personal_note_en else ""),
                     event_name=r.get("event_name") or "",
                     # 2026-09-21 sweep (MAIL-8): "3rd Party" is an internal class, not a
                     # show name — blank it so show_label falls back to the event name.
-                    series=("" if db.is_third_party(series) else (series or "")),
+                    series=("" if (db.is_third_party(series) or ve.is_standalone_series(series)) else (series or "")),
                     show_date=us_date(show_date),
                     # 2026-09-24 research #14: every band-facing subject ends with this.
                     subject_key=ve.subject_key(name, venue, show_date),

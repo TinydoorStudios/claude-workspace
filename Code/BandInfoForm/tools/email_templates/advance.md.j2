@@ -16,6 +16,11 @@ Hello{% if contact_name %} {{ contact_name }} and{% endif %}{% if name %} {{ nam
 {{ form_link }}
 
 {% if deadline %}Please complete it by {{ deadline }}.{% else %}Please complete it as soon as you can.{% endif %}
+{% if blocks.review_note %}
+
+
+{{ blocks.review_note }}
+{% endif %}
 
 ────────────────────────────────
 

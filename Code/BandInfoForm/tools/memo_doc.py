@@ -261,6 +261,21 @@ def crew_for(date, hints, override_text=""):
     return roles, other
 
 
+def foh_contact(date, hints):
+    """'Name (cell)' for the FOH mix on the staffing sheet that day: the day-of
+    contact on a Memo welcome (Brian, 2026-09-29). First code in the Mix cell is
+    FOH; a second is Monitors and never the contact. None when the date isn't
+    staffed, the row is ambiguous, the mix cell is blank or unresolved."""
+    cols = staffing.SCHEDULE_COLUMNS[M.VENUE]
+    row, codes = _staff_row(date, hints)
+    if not row:
+        return None
+    mix = staffing._split_mix_cell((row[cols["mix"]] or "").strip())
+    if len(mix) not in (1, 2):
+        return None
+    return staffing._format_row(staffing._resolve_row(mix[0], codes), with_cell=True)
+
+
 def crew_rows(roles, video, lead):
     slots = {"Stage Hand": 2, "Stage Support": 3}
     out = []
