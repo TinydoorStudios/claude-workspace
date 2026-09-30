@@ -3598,7 +3598,7 @@ def advance_lifecycle():
                         _log_db_error("schedule_missing", e)
                         missing = []
                     due_by = advance_db.advance_deadline(r["show_date"],
-                                                         r.get("booking_created_at"))
+                                                         r.get("booking_created_at"), venue=r.get("venue"))
                     # same rule build_reminder applies: a deadline that isn't
                     # actually before the show (a catch-up run reaching this
                     # tier late) is dropped, not printed as a date that reads
@@ -3667,7 +3667,8 @@ def advance_lifecycle():
                 tier, r["artist_name"], r["contact_name"], r["venue"], r["show_date"],
                 link, missing,
                 deadline=advance_db.advance_deadline(
-                    r["show_date"], booking_row.get("created_at") if booking_row else None),
+                    r["show_date"], booking_row.get("created_at") if booking_row else None,
+                    venue=r["venue"]),
                 set_times=((booking_row.get("event_start"), booking_row.get("event_end"),
                             booking_row.get("set_time")) if booking_row else None),
                 bilingual=bool(r["series"] and ve.is_bilingual_series(r["series"])))

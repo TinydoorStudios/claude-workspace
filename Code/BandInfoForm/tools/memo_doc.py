@@ -276,6 +276,37 @@ def foh_contact(date, hints):
     return staffing._format_row(staffing._resolve_row(mix[0], codes), with_cell=True)
 
 
+def cost_model_crew(date, ev_name):
+    """[(type, description)] for the show's cost model (Cost Model*.xlsx in its
+    Dropbox show folder): every Technicians row plus Stage Support, in sheet order.
+    [] when there's no cost model or it can't be read. Names, hours and money are
+    deliberately never returned."""
+    try:
+        import openpyxl
+        folder = show_folder(date, ev_name)
+        files = sorted(folder.glob("Cost Model*.xlsx"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not files:
+            return []
+        wb = openpyxl.load_workbook(files[0], data_only=True, read_only=True)
+        ws = next((w for w in wb.worksheets if "staff" in w.title.lower()), None)
+        if ws is None:
+            return []
+        out, on = [], False
+        for row in ws.iter_rows(values_only=True):
+            c = [("" if v is None else str(v).strip()) for v in row]
+            if not on:
+                on = len(c) > 1 and c[0] == "Staff" and c[1] == "Type"
+                continue
+            if c and c[0].upper().startswith("SUBTOTAL"):
+                break
+            if len(c) > 7 and (c[0] == "Technicians" or c[1] == "Stage Support"):
+                out.append((c[1], c[7]))
+        return out
+    except Exception as e:  # noqa: BLE001 — the email falls back to the generic crew line
+        print(f"[memo_doc] cost model unreadable: {e!r}")
+        return []
+
+
 def crew_rows(roles, video, lead):
     slots = {"Stage Hand": 2, "Stage Support": 3}
     out = []

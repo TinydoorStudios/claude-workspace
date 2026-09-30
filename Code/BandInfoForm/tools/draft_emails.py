@@ -538,7 +538,7 @@ def main():
                 with conn.cursor() as cur:
                     booking_row = db.find_booking(cur, venue, show_date, name)
                 deadline_date = db.advance_deadline(
-                    show_date, booking_row.get("created_at") if booking_row else None)
+                    show_date, booking_row.get("created_at") if booking_row else None, venue=venue)
                 deadline = ve.band_date(deadline_date)
                 deadline_es = ve.band_date(deadline_date, lang="es")
 
@@ -637,6 +637,8 @@ def main():
                 # Schedule is the FULL Memo day — every time staff have filled in, the
                 # same rows the Prod Adv doc prints — not the five-row generic block.
                 if venue == "Memorial Hall" and show_id:
+                    email_extra["backline_text"] = ve.MEMO_BACKLINE_DEFAULT
+                    email_extra["crew_text"] = ve.MEMO_CREW_DEFAULT
                     try:
                         import memo_doc
                         with conn.cursor() as cur:
@@ -649,6 +651,13 @@ def main():
                         memo_vals, foh = None, None
                     # the "don't advance with them" note is for part-time crew, not the
                     # advancing contact working the desk that night
+                    if memo_vals:
+                        email_extra["backline_text"] = ve.memo_backline_text(memo_vals.acts)
+                        try:
+                            email_extra["crew_text"] = ve.memo_crew_text(
+                                memo_doc.cost_model_crew(show_date, r.get("event_name") or name))
+                        except Exception as e:  # noqa: BLE001
+                            print(f"[draft_emails] cost model crew failed for {name}: {e!r}", file=sys.stderr)
                     day_of_contact = foh or ""
                     engineer_contact = bool(foh) and fs.ADVANCING_CONTACT.split(" (")[0] not in foh
                     rows = ve.memo_schedule_rows(memo_vals.event) if memo_vals else []

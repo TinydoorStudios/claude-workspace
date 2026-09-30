@@ -51,18 +51,57 @@ COMMON_REQUIREMENTS_ES = """\
 - Pausas por clima: si 3CDC anuncia una pausa por rayos, dejen de tocar y despejen el escenario de inmediato. El escenario se apaga hasta que nos den el aviso de que pasó el peligro, y ahí retomamos el show.
 - Pago: todos los grupos reciben su pago después de la presentación, no antes."""
 
-# Memorial Hall is indoors: the rain-or-shine and lightning-hold lines don't
-# apply, and Brian dropped the content/age term from Memo's terms (2026-09-29).
-# Everything else in COMMON_REQUIREMENTS carries over.
-COMMON_REQUIREMENTS_INDOOR = """\
-- Performer safety: stay on the stage. No crowd surfing, climbing, jumping off stage, or stepping on sound equipment.
-- Audience safety: do not throw or shoot anything into the crowd (confetti, t-shirts, bottles, merch/CDs, etc.).
-- Payment: all groups are paid after the performance, not before."""
+# Memorial Hall is indoors: no rain-or-shine or lightning-hold lines, and Brian
+# dropped the content/age, performer-safety, audience-safety and payment lines
+# from Memo's email (2026-09-29), so its common block is empty.
+COMMON_REQUIREMENTS_INDOOR = ""   # Brian, 2026-09-29: no performer-safety, audience-safety or payment lines for Memo
 
 # "Stand-Alone Internal" is a booking-page placeholder, not a show name; the
 # welcome titles itself with the event name instead.
 def is_standalone_series(series):
     return (series or "").strip().lower().startswith("stand-alone")
+
+
+MEMO_BACKLINE_DEFAULT = "let us know on the form if backline needs to be arranged."
+MEMO_BACKLINE_ARRANGED = "your backline has been arranged; please check the details on the form."
+MEMO_CREW_DEFAULT = "house crew covers sound, lighting and stagehand duties from load-in to load-out."
+
+
+def memo_backline_text(acts):
+    """Per artist: 'ordered' in any act's backline notes means staff already
+    arranged it; otherwise the standard ask."""
+    for a in acts or []:
+        if "ordered" in str(a.get("backline_notes") or "").lower():
+            return MEMO_BACKLINE_ARRANGED
+    return MEMO_BACKLINE_DEFAULT
+
+
+def memo_crew_text(items):
+    """Crew from the show's cost model: `items` is [(type, description)] for its
+    Technicians rows plus Stage Support. No names, hours or money."""
+    if not items:
+        return MEMO_CREW_DEFAULT
+    parts, support = [], []
+    for typ, desc in items:
+        typ, desc = str(typ).strip(), str(desc or "").strip()
+        if typ.lower() == "stage support":
+            support.append(desc)
+            continue
+        a = "an" if typ[:1].lower() in "aeiou" else "a"
+        if desc[1:2].islower():      # 'Spot op' -> 'spot op'; leave FOH / LX / Video-style acronyms alone
+            desc = desc[:1].lower() + desc[1:]
+        parts.append(f"{a} {typ.lower()}" + (f" ({desc})" if desc else ""))
+    if support:
+        rooms = sorted(re.sub(r"^DR\s+", "", d, flags=re.I) for d in support)
+        if all(re.fullmatch(r"[A-Za-z]", r) for r in rooms) and len(rooms) > 1:
+            parts.append(f"stage support for dressing rooms {', '.join(rooms[:-1])} and {rooms[-1]}")
+        else:
+            parts.append(f"{len(support)} stage support" + (f" ({', '.join(d for d in support if d)})" if any(support) else ""))
+    if len(parts) > 1:
+        body = ", ".join(parts[:-1]) + " and " + parts[-1]
+    else:
+        body = parts[0]
+    return f"house crew for your show is {body}."
 
 
 MEMO_SCHEDULE_NOTE = ("  *Please confirm this schedule works, or tell us what to adjust, including set lengths. "
@@ -72,7 +111,8 @@ MEMO_SCHEDULE_NOTE = ("  *Please confirm this schedule works, or tell us what to
 def memo_schedule_rows(ev):
     """The full Memo day as email rows, from the merged event answers
     (memo_doc.values_for's `event`: times already 7:30p style, curfew filled).
-    Only what's actually filled in; [] when staff have typed no schedule at all."""
+    Only what's actually filled in; [] when staff have typed no schedule at all.
+    Crew call and backline load-in are left off (crew-side times, Brian 2026-09-29)."""
     def t(k):
         return str(ev.get(k) or "").strip()
     out = []
@@ -80,8 +120,6 @@ def memo_schedule_rows(ev):
     def row(when, label):
         if when:
             out.append(f"  {when:<14}{label}")
-    row(t("crew_call"), "Crew Call")
-    row(t("backline_load_in"), "Backline Load-In")
     row(t("artist_load_in"), "Artist Load-In")
     row(t("sound_check"), "Sound Check")
     row(t("crew_break"), "Crew Break")
@@ -226,27 +264,31 @@ Hospitality & Site:
     # Memorial Hall/ (Brian uploads it separately; the "attached" lines assume it's there).
     "Memorial Hall": {
         "location": "Memorial Hall – Theater; 1225 Elm St, Cincinnati, OH 45202",
+        # Replaces the "it replaces the questions we used to ask" sentence (advance.md.j2).
+        "intro_tail": "It takes about five minutes.",
         # Printed under the form link (advance.md.j2), before the details.
-        "review_note": "Everything we've filled in below comes from your contract and rider. Please check it for accuracy, and add anything we don't have.",
+        "review_note": "Some of the information we already have is included below and on the form, based on your contract and rider. Please check it for accuracy, and add anything we don't have.",
         "load_in": """\
 Load-In & Parking:
-Load in on Grant Street, on the south side of the building. It's a street-level door (2'7" W × 6'10" H) into a freight elevator; there's no dock. The building is locked until doors open for patrons, so call your day-of contact when you arrive and they'll let you in. Load-in details are in the attached tech packet.
+Load in on Grant Street, on the south side of the building. It's a street-level door (2'7" W × 6'10" H) into a freight elevator; there's no dock. The doors are locked at all times, so call your day-of contact when you arrive and they'll let you in. Load-in details are in the attached tech packet.
 Tell us on the form what vehicles you're bringing and we'll follow up on parking. Please also give us a day-of contact for your team.""",
+        # {backline_text} / {crew_text} are set per show by draft_emails.py
+        # (memo_backline_text / memo_crew_text below); it always supplies both.
         "technical": """\
 Technical:
-- PA: house Sound Bridge line array (main and balcony hangs), dual 18" subs and front fills. Full specs are in the attached tech packet.
+- PA: full specs are in the attached tech packet.
 - Audio: our house engineer mixes FOH and monitors from the house DiGiCo Quantum 225 in the house right corner of the balcony. Coordinate in advance if you're bringing your own engineer or console.
 - Monitors, mics, stage plot and input list: tell us what you need on the form and upload your plot, input list and riders there.
 - Lighting: we provide a house LD on the house lighting console. Tell us on the form if you have specific requests or you're bringing your own LD.
-- Backline: our house piano is a Yamaha C3 PE grand, tuned before you arrive. It's available on request, along with 4' x 8' x 1' risers.
 - Scenic and projection: let us know on the form about any scenic or projection elements.
-- Crew: house techs cover sound, lighting and stagehand duties from load-in to load-out.""",
+- Backline: {backline_text}
+- Crew: {crew_text}""",
         "hospitality": """\
 Hospitality & Site:
 - Merch: the house takes no cut. You provide your own point of sale and bank. If you'd like us to coordinate a seller, note it on the form and we'll send you their rate.
 - Meet & greet: any pre- or post-show meet & greet has to be approved through your advance so we can plan for it.
 - Photo / video: tell us on the form what your policy is for patrons.
-- Dressing rooms: five indoor rooms, lockable and climate-controlled.
+- Dressing rooms: up to four dressing rooms and a black box studio/meeting room. Details are in the attached tech packet.
 - Hospitality, hotel, runner and ground transportation: note what you need on the form.""",
         "requirements": """\
 - Sound limit: 95 dB LAeq,6min (A-weighted, 6-minute average) measured at balcony center, per city ordinance, for all engineers (house or talent).

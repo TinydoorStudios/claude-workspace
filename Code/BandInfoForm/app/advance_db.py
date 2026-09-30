@@ -123,13 +123,18 @@ def _as_date(v):
     return to_date(v)
 
 
-def advance_deadline(show_date, booking_created_at=None):
+# Days before the show a venue wants the form back (default a week). Memorial
+# Hall asks for two weeks (Brian, 2026-09-29).
+DEADLINE_LEAD_DAYS = {"Memorial Hall": 14}
+
+
+def advance_deadline(show_date, booking_created_at=None, venue=None):
     """2026-09-24 research #2: THE deadline for a band's advance — one date,
     used by the welcome, every reminder tier and every internal surface, so a
     band is never told two different things (Lennd: "give artists one deadline
     for everything"; Stage Portal states it at booking).
 
-    A week before the show, or two weeks after the booking was logged when
+    A week before the show (two for Memorial Hall), or two weeks after the booking was logged when
     that lands sooner, then clamped: never after the day before the show, and
     never in the past (a show booked inside the window still gets a real date
     a band can act on, not "by last Tuesday"). The floor wins that clamp, so a
@@ -138,7 +143,7 @@ def advance_deadline(show_date, booking_created_at=None):
     d = _as_date(show_date)
     if not d:
         return None
-    deadline = d - dt.timedelta(days=7)
+    deadline = d - dt.timedelta(days=DEADLINE_LEAD_DAYS.get((venue or "").strip(), 7))
     booked = _as_date(booking_created_at)
     if booked:
         deadline = min(deadline, booked + dt.timedelta(days=14))
