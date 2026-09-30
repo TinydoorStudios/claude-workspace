@@ -528,6 +528,15 @@ def _render_memo_form(seed, payload, token=None, saved=False, status=200):
                             if prior["data"].get(k) not in (None, "", []):
                                 state.setdefault(k, prior["data"][k])
                 files = state.pop("memo_files", [])
+                if not staff and show_id and files:
+                    # the band doesn't need to see the files we uploaded ourselves
+                    # (Brian, 2026-09-29); their own earlier uploads still show
+                    cur.execute("""SELECT data FROM submissions WHERE show_id=%s
+                                   AND data->>'_form' = %s AND data->>'_staff_edit' = 'true'""",
+                                (show_id, memo_fields.FORM_KEY))
+                    ours = {fi.get("stored_name") for r in cur.fetchall()
+                            for fi in (r["data"].get("memo_files") or [])}
+                    files = [fi for fi in files if fi.get("stored_name") not in ours]
                 prefill.update(state)
                 if staff and show_id:
                     pending = len(advance_db.open_memo_decisions(cur, show_id=show_id))

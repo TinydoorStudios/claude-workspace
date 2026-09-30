@@ -171,7 +171,8 @@ def main():
     check(st == 200 and ">Schedule<" not in html and "hospitality_amount" not in html
           and "internal_notes" not in html and "budget $1,100" not in html,
           "band view hides every staff section/field, internal notes included")
-    check("Plot page 1.pdf" in html, "band sees files already on file")
+    check("Plot page 1.pdf" not in html and "Already on file" not in html,
+          "band doesn't see the files staff uploaded")
     st, html, _ = band.req("/memo/submit", [
         ("token", tok), ("band_name", BAND1), ("show_date", DATE.isoformat()),
         ("wedges", "4"), ("iems", "Yes"), ("iem_count", "2"), ("own_iems", "Yes"),
@@ -181,11 +182,17 @@ def main():
         ("photography", "No"),
         ("photo_restrictions", "No flash, first three songs"), ("backline", "Yes"),
         ("backline_notes", "Fender Twin"), ("contact_phone", "513-555-0100"),
+        ("console_foh", "Tour"), ("console_foh_name", "Avid S6L"), ("foh_footprint", "10' x 6'"),
         ("buyout_amount", "99999"), ("doors", "03:00"),            # staff-only: must be ignored
     ], files=[("up_input_list", "Input List.xlsx", b"PK\x03\x04fake"),
               ("up_hospitality", "Hosp Rider.pdf", pdf("h"))])
     check(st == 200 and "Thank" in html, "band submit lands on the thank-you page")
 
+    st, html, _ = band.req(link)
+    check("Input List.xlsx" in html and "Plot page 1.pdf" not in html,
+          "band still sees their own uploads, not ours")
+    check("Total FOH footprint needed" in html and "do our best to accommodate" in html
+          and "Avid S6L" in html, "tour FOH follow-ups + note on the band form")
     sid = show_id_for(BAND1)
     check(sid, "submissions landed on one Memo show")
     with db.get_conn() as conn, conn.cursor() as cur:
@@ -213,6 +220,7 @@ def main():
         check("ARTIST: " + BAND1 in t, "artist name on the doc")
         check("7:00p" in t and "10:15p" in t, "schedule times printed 7:00p style")
         check("11:45p" in t, "curfew = end of show + 90 min")
+        check("Tour FOH" in t and "Avid S6L" in t and "10' x 6'" in t, "tour FOH console name + footprint on the doc")
         check("Set 1 End" in t and "8:55p" in t and "Set 2 Start" in t and "9:15p" in t,
               "both sets carry a start and an end time")
         check("3:00a" not in t, "band could not set a staff field (doors)")

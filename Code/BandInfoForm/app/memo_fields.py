@@ -91,6 +91,11 @@ SECTIONS = [
           options=("Yes", "House")),
         F("engineer_mon", "Monitor engineer's name", show_if=("own_mon", "Yes")),
         F("console_foh", "FOH console", "choice", options=("House Q225", "Tour")),
+        # Tour FOH follow-ups (Brian, 2026-09-29)
+        F("console_foh_name", "Console name", show_if=("console_foh", "Tour")),
+        F("foh_footprint", "Total FOH footprint needed", show_if=("console_foh", "Tour"),
+          placeholder="e.g. 8' wide x 6' deep",
+          help="We'll do our best to accommodate your size requirements."),
         F("console_mon", "Monitor console", "choice", options=("House", "Tour")),
         F("wedges", "Number of wedges", "number"),
         # mirrors the Fountain Square IEM question chain (Brian, 2026-09-29)

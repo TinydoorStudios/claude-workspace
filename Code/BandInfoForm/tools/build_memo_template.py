@@ -319,8 +319,14 @@ def grid(cell, artists=1, V=BLANK):
         return V.act(i, name) or ("House" if o == "House" else "Tour (TBD)" if o == "Yes" else "")
     row("Engineer", lambda i: f"FOH – {eng(i, 'own_foh', 'engineer_foh')}\n"
                               f"Mon – {eng(i, 'own_mon', 'engineer_mon')}")
+    def tour_foh(i):
+        """the Tour follow-ups: console name + footprint, only when Tour is ticked"""
+        if V.act(i, "console_foh") != "Tour":
+            return ""
+        bits = [b for b in (V.act(i, "console_foh_name"), V.act(i, "foh_footprint")) if b]
+        return ("\nTour FOH – " + " · ".join(bits)) if bits else ""
     row("Consoles", lambda i: f"FOH –  {opts(('House Q225', 'Tour'), V.act(i, 'console_foh'), gap)}\n"
-                              f"Mon –  {opts(('House', 'Tour'), V.act(i, 'console_mon'), gap)}")
+                              f"Mon –  {opts(('House', 'Tour'), V.act(i, 'console_mon'), gap)}{tour_foh(i)}")
     iem = lambda i: opts(("Yes", "No"), V.act(i, "iems"), gap)  # noqa: E731
 
     def iem_more(i):
