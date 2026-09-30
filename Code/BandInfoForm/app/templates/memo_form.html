@@ -91,6 +91,9 @@
 {% if staff %}<div class="banner staff">Staff view: you can see and fill every section, including the
   ones the artist never sees (marked <span class="tag">Staff</span>). Blank fields never erase what someone
   else already entered.</div>{% endif %}
+{% if staff and pending %}<div class="banner staff"><strong>{{ pending }} band change(s) waiting on you.</strong>
+  The band sent different answers to questions already settled here; the form and doc keep the current answers until
+  you pick. <a href="{{ review_url }}">Decide on Doc Review</a></div>{% endif %}
 {% if returning %}<div class="banner ok">Welcome back. We've filled in your answers from your last
   Memorial Hall show, so just check them and change anything that's different.</div>{% endif %}
 

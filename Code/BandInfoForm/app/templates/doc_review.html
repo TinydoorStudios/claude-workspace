@@ -61,6 +61,33 @@
   </div>
   {% endif %}
 
+  {% if memo_open %}
+  <form method="post" action="{{ url_for('memo_decide') }}" class="card"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="venue" value="{{ venue }}">
+    <input type="hidden" name="date" value="{{ d.isoformat() }}">
+    <h2>Band changed an answer ({{ memo_open|length }})</h2>
+    <p class="muted">The band sent a different answer to a question that was already settled on this Memorial Hall advance.
+      Nothing on the doc changes until you pick which one remains.</p>
+    {% for m in memo_open %}
+    <div class="change">
+      <div class="field">{{ m.label }}{% if bands|length > 1 %} — {{ m.artist_name }}{% endif %}</div>
+      <div class="vals">
+        <label class="opt"><span class="lbl"><input type="radio" name="m{{ m.id }}" value="keep">Keep current</span>
+          <div class="val">{{ m.current_value or '(blank)' }}</div></label>
+        <label class="opt"><span class="lbl"><input type="radio" name="m{{ m.id }}" value="apply">Use band's new answer</span>
+          <div class="val">{{ m.new_value or '(blank)' }}</div></label>
+      </div>
+      <div class="muted" style="margin-top:6px">Sent {{ m.created_at.strftime('%-m/%-d %-I:%M %p') }}</div>
+    </div>
+    {% endfor %}
+    <div class="bar">
+      <button class="primary" type="submit">Save decisions</button>
+      <button class="plain" type="button" onclick="pickm('keep')">Keep current for all</button>
+      <button class="plain" type="button" onclick="pickm('apply')">Use new for all</button>
+    </div>
+  </form>
+  {% endif %}
+
   {% if notices %}
   <form method="post" action="{{ url_for('doc_review_decide') }}" class="card"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     <input type="hidden" name="venue" value="{{ venue }}">
@@ -112,7 +139,7 @@
       <button class="plain" type="button" onclick="pick('apply')">Use new for all</button>
     </div>
   </form>
-  {% elif not (sub and waiting_check) %}
+  {% elif not (sub and waiting_check) and not memo_open %}
   <div class="card"><p class="muted">No doc changes waiting for this show.</p></div>
   {% endif %}
 
@@ -137,6 +164,9 @@ setInterval(function(){
   if (!document.querySelector('input[type=radio]:checked')) location.reload();
 }, 3000);
 {% endif %}
+function pickm(v){
+  document.querySelectorAll('input[type=radio][name^="m"][value="' + v + '"]').forEach(function(r){ r.checked = true; });
+}
 function pick(v){
   document.querySelectorAll('input[type=radio][value="' + v + '"]:not(:disabled)').forEach(function(r){ r.checked = true; });
 }

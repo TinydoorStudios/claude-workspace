@@ -7,6 +7,7 @@ still gets the thank-you page. The disk JSON remains the durable record and the
 backfill tool can replay anything the DB missed.
 """
 import hmac
+import html
 import ipaddress
 import json
 import re
@@ -491,14 +492,13 @@ def _memo_show_id(cur, seed, artist_id):
 
 
 def _memo_state(cur, show_id):
-    cur.execute("""SELECT data FROM submissions WHERE show_id=%s AND data->>'_form' = %s
-                   ORDER BY submitted_at, id""", (show_id, memo_fields.FORM_KEY))
-    return memo_fields.merge([r["data"] for r in cur.fetchall()])
+    return advance_db.memo_state(cur, show_id)
 
 
 def _render_memo_form(seed, payload, token=None, saved=False, status=200):
     staff = bool(session.get("auth"))
     prefill, files, artist_name, returning = {}, [], None, False
+    pending = 0
     artist_id = payload.get("a")
     show_id = None
     if DB_OK and (artist_id or seed.get("show_id") or seed.get("band_name")):
@@ -527,6 +527,8 @@ def _render_memo_form(seed, payload, token=None, saved=False, status=200):
                                 state.setdefault(k, prior["data"][k])
                 files = state.pop("memo_files", [])
                 prefill.update(state)
+                if staff and show_id:
+                    pending = len(advance_db.open_memo_decisions(cur, show_id=show_id))
         except Exception as e:
             _log_db_error("memo_prefill", e)
     if artist_name or seed.get("band_name"):
@@ -548,6 +550,8 @@ def _render_memo_form(seed, payload, token=None, saved=False, status=200):
         series=seed.get("series") or "", artist_tok=artist_token(artist_id) if artist_id else "",
         known_artist=bool(artist_id), venue=memo_fields.VENUE,
         defaults=memo_fields.DEFAULTS, max_mb=MEMO_UPLOAD_MAX // (1024 * 1024),
+        pending=pending, review_url=url_for("doc_review", venue=memo_fields.VENUE, date=seed.get("date"))
+        if seed.get("date") else "",
     ), status
 
 
@@ -619,6 +623,32 @@ def memo_submit():
                            "mime": up.mimetype, "size": dest.stat().st_size if dest.exists() else None})
     rec["memo_files"] = memo_files
 
+    # a band answer that differs from one already on this show is held for
+    # Brian's call, not applied (2026-09-29); staff saves apply as typed
+    held, current, held_show = {}, {}, None
+    if not staff and DB_OK:
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                aid = verified_artist_id
+                if not aid:
+                    found = advance_db.find_artist_by_name(cur, band_name)
+                    aid = found["id"] if found else None
+                sid = seed.get("show_id")
+                if not sid and aid:
+                    sh = advance_db.show_for_artist_at(cur, aid, memo_fields.VENUE, show_date)
+                    sid = sh["id"] if sh else None
+                if sid:
+                    held_show = int(sid)
+                    current = advance_db.memo_state(cur, held_show)
+            answers = {k: rec[k] for k in memo_fields.FIELDS if k in rec}
+            _apply, held = memo_fields.split_changes(current, answers)
+            for k in held:
+                rec.pop(k, None)
+            if held:
+                rec["_held"] = held
+        except Exception as e:
+            _log_db_error("memo_hold", e)
+
     disk_path = DATA / f"{stamp}__{slug}__memo.json"
     disk_path.write_text(json.dumps(rec, indent=2))
 
@@ -637,6 +667,12 @@ def memo_submit():
             rec["_db"] = {"artist_id": result["artist_id"], "show_id": result["show_id"],
                           "submission_id": result["submission_id"]}
             disk_path.write_text(json.dumps(rec, indent=2))
+            if held:
+                with advance_db.get_conn() as conn, conn.cursor() as cur:
+                    advance_db.add_memo_decisions(cur, result["show_id"], current, held,
+                                                  result["submission_id"], "band")
+                    conn.commit()
+                _memo_changes_email(band_name, show_date, current, held)
         except Exception as e:
             _log_db_error("memo_record_submission", e)
             _alert_db_write_failure(rec, e)
@@ -656,6 +692,43 @@ def memo_submit():
             return redirect(url_for("memo_staff_open", show_id=result["show_id"], saved=1))
     return render_template("thanks.html", band=band_name, venue=memo_fields.VENUE,
                            lang="en", t=i18n.translator("en"))
+
+
+def _memo_changes_email(band, show_date, current, held):
+    """Internal ping: the band changed answers already on their Memo advance."""
+    url = f"{PUBLIC_URL}{url_for('doc_review', venue=memo_fields.VENUE, date=show_date)}"
+    rows = "".join(
+        f"<tr><td><b>{html.escape((memo_fields.FIELDS.get(k) or {}).get('label', k))}</b></td>"
+        f"<td>{html.escape(memo_fields.display(current.get(k)))}</td>"
+        f"<td>{html.escape(memo_fields.display(v))}</td></tr>" for k, v in held.items())
+    body = (f"<p>{html.escape(band)} changed {len(held)} answer(s) on their Memorial Hall advance "
+            f"({html.escape(show_date)}). Nothing changes on the doc until you pick which one remains.</p>"
+            f"<table cellpadding='6'><tr><th align='left'>Question</th><th align='left'>Current</th>"
+            f"<th align='left'>Band's new answer</th></tr>{rows}</table>"
+            f"<p><a href='{url}'>Decide on Doc Review</a></p>")
+    try:
+        _send_internal_email(f"Memo advance changes to decide — {band} {show_date}", body)
+    except Exception as e:
+        _log_db_error("memo_changes_email", e)
+
+
+@app.post("/doc-review/memo")
+def memo_decide():
+    """Keep / Use new for held Memo band changes (gated + CSRF via /doc-review)."""
+    venue = request.form.get("venue") or memo_fields.VENUE
+    date = request.form.get("date") or ""
+    shows = set()
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        for key, val in request.form.items():
+            if not key.startswith("m") or not key[1:].isdigit() or val not in ("keep", "apply"):
+                continue
+            sid = advance_db.resolve_memo_decision(cur, int(key[1:]), val == "apply")
+            if sid:
+                shows.add(sid)
+        conn.commit()
+    for sid in shows:
+        _spawn_tool("memo_doc.py", "--show-id", str(sid), log_name="memo_doc.log")
+    return redirect(url_for("doc_review", venue=venue, date=date))
 
 
 @app.get("/show/<int:show_id>/memo")
@@ -1442,6 +1515,13 @@ def dashboard_data():
                              AND event_date >= CURRENT_DATE
                            GROUP BY venue, event_date""")
             open_reviews = {(r["event_date"], r["venue"]): r["n"] for r in cur.fetchall()}
+            cur.execute("""SELECT s.venue, s.show_date AS event_date, count(*) AS n
+                           FROM memo_decisions d JOIN shows s ON s.id = d.show_id
+                           WHERE d.resolved_at IS NULL AND s.show_date >= CURRENT_DATE
+                           GROUP BY s.venue, s.show_date""")
+            for r in cur.fetchall():
+                k = (r["event_date"], r["venue"])
+                open_reviews[k] = open_reviews.get(k, 0) + r["n"]
             cur.execute("""SELECT s.id AS show_id, ev.id AS event_id, ev.name AS event_name
                            FROM shows s
                            JOIN event_acts ea ON ea.artist_id = s.artist_id
@@ -2959,6 +3039,7 @@ def doc_review():
                        WHERE s.venue=%s AND s.show_date=%s AND s.cancelled_at IS NULL ORDER BY a.name""",
                     (venue, d))
         bands = [r["name"] for r in cur.fetchall()]
+        memo_open = advance_db.open_memo_decisions(cur, venue, d)
     # an artist_name notice carries the two spellings for its own card
     for n in notices:
         doc_name, booked_name = _notice_artist_names(n)
@@ -2974,7 +3055,7 @@ def doc_review():
     applying = any(n.get("apply_requested_at") and not n.get("apply_error") for n in notices)
     return render_template("doc_review.html", venue=venue, d=d, notices=notices, sub=sub,
                            waiting=waiting_check or applying, waiting_check=waiting_check,
-                           recent=recent, bands=bands)
+                           recent=recent, bands=bands, memo_open=memo_open)
 
 
 def _notice_artist_names(n):

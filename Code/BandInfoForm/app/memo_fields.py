@@ -226,3 +226,31 @@ def merge(datas):
                 files.append(fi)
     state["memo_files"] = files
     return state
+
+
+def display(v):
+    """How a stored answer reads to a person (a multi group joins)."""
+    if isinstance(v, (list, tuple)):
+        return ", ".join(v) if v else "(none)"
+    return "" if v is None else str(v)
+
+
+def _same(a, b):
+    if isinstance(a, (list, tuple)) or isinstance(b, (list, tuple)):
+        return sorted(a or []) == sorted(b or [])
+    return str(a or "").strip() == str(b or "").strip()
+
+
+def split_changes(current, new):
+    """(apply, held) for a band save (Brian, 2026-09-29: changes to the advance
+    are asked, not applied). A field already answered on this show whose new
+    value differs is held for Brian's call; everything else applies."""
+    apply, held = {}, {}
+    for k, v in new.items():
+        cur = current.get(k)
+        answered = cur not in (None, "") and not (isinstance(cur, list) and not cur)
+        if answered and not _same(cur, v):
+            held[k] = v
+        else:
+            apply[k] = v
+    return apply, held

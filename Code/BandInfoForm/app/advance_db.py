@@ -3342,3 +3342,66 @@ def _release_show_if_empty(cur, show_id, artist_id):
         cur.execute("""DELETE FROM artists a WHERE a.id=%s
                        AND NOT EXISTS (SELECT 1 FROM shows WHERE artist_id=a.id)
                        AND NOT EXISTS (SELECT 1 FROM submissions WHERE artist_id=a.id)""", (artist_id,))
+
+
+# ── Memorial Hall: held band changes (2026-09-29) ───────────────────────────
+def memo_state(cur, show_id):
+    """Merged Memo answers for one show (oldest -> newest, blank never erases)."""
+    import memo_fields
+    cur.execute("""SELECT data FROM submissions WHERE show_id=%s AND data->>'_form' = %s
+                   ORDER BY submitted_at, id""", (show_id, memo_fields.FORM_KEY))
+    return memo_fields.merge([r["data"] for r in cur.fetchall()])
+
+
+def add_memo_decisions(cur, show_id, current, held, submission_id, source):
+    import json
+    import memo_fields
+    for k, v in held.items():
+        cur.execute("""INSERT INTO memo_decisions (show_id, field, current_value, new_value,
+                           new_raw, submission_id, source)
+                       VALUES (%s,%s,%s,%s,%s,%s,%s)""",
+                    (show_id, k, memo_fields.display(current.get(k)), memo_fields.display(v),
+                     json.dumps(v), submission_id, source))
+
+
+def open_memo_decisions(cur, venue=None, event_date=None, show_id=None):
+    """Undecided held changes, with the band and the field's label."""
+    import memo_fields
+    sql = """SELECT d.*, s.venue, s.show_date, a.name AS artist_name
+             FROM memo_decisions d JOIN shows s ON s.id = d.show_id
+             JOIN artists a ON a.id = s.artist_id
+             WHERE d.resolved_at IS NULL"""
+    params = []
+    if show_id is not None:
+        sql += " AND d.show_id = %s"
+        params.append(show_id)
+    if venue is not None:
+        sql += " AND s.venue = %s AND s.show_date = %s"
+        params += [venue, event_date]
+    cur.execute(sql + " ORDER BY d.show_id, d.id", params)
+    rows = cur.fetchall()
+    for r in rows:
+        r["label"] = (memo_fields.FIELDS.get(r["field"]) or {}).get("label", r["field"])
+    return rows
+
+
+def resolve_memo_decision(cur, decision_id, use_new):
+    """Keep the current answer, or apply the held one as a staff save.
+    Returns the show id, or None if it was already decided."""
+    import datetime as _dt
+    import memo_fields
+    cur.execute("""UPDATE memo_decisions SET resolved_at = now(), resolution = %s
+                   WHERE id = %s AND resolved_at IS NULL RETURNING *""",
+                ("applied" if use_new else "kept", decision_id))
+    d = cur.fetchone()
+    if not d:
+        return None
+    if use_new:
+        s = show_with_artist(cur, d["show_id"])
+        data = {d["field"]: d["new_raw"], "_form": memo_fields.FORM_KEY, "_staff_edit": True,
+                "band_name": s["artist_name"], "venue": s["venue"],
+                "show_date": s["show_date"].isoformat(),
+                "_submitted_at": _dt.datetime.now().isoformat(timespec="seconds"),
+                "_source_note": f"memo decision {decision_id}: used the band's new answer"}
+        insert_submission(cur, s["artist_id"], d["show_id"], data, source="staff")
+    return d["show_id"]

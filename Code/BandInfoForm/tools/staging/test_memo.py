@@ -241,6 +241,41 @@ def main():
     t = doc_text(doc) if doc.exists() else ""
     check("$ 250" in t and "7:30p" in t, "a blank save kept earlier answers and added the new one")
 
+    # ── a band change to a settled answer is asked, not applied
+    maillog = Path(os.environ["MAILLOG"])
+    m0 = len(maillog.read_text().splitlines()) if maillog.exists() else 0
+    st, html, _ = band.req("/memo/submit", [
+        ("token", tok), ("band_name", BAND1), ("show_date", DATE.isoformat()),
+        ("wedges", "5"), ("photography", "Yes"), ("meet_greet", "No")], files=[])
+    check(st == 200, "band resubmits with two changed answers and one new one")
+    with db.get_conn() as conn, conn.cursor() as cur:
+        opn = db.open_memo_decisions(cur, show_id=sid)
+    check(sorted(d["field"] for d in opn) == ["photography", "wedges"],
+          f"two held decisions, the new answer applied ({[d['field'] for d in opn]})")
+    print("   ", memo_doc(sid))
+    t = doc_text(doc) if doc.exists() else ""
+    check("Wedges: 4" in t and "Wedges: 5" not in t, "doc keeps the current answer while undecided")
+    lines = maillog.read_text().splitlines()[m0:] if maillog.exists() else []
+    check(any("changes to decide" in ln for ln in lines), "internal 'changes to decide' ping sent (stub)")
+    st, html, _ = staff.req(link)
+    check("band change(s) waiting on you" in html, "staff form shows the waiting banner")
+    st, html, _ = staff.req(f"/doc-review?venue=Memorial%20Hall&date={DATE.isoformat()}")
+    check(st == 200 and "Band changed an answer (2)" in html, "Doc Review lists both as questions")
+    ids = {d["field"]: d["id"] for d in opn}
+    st, html, _ = staff.req("/doc-review/memo", {"csrf": csrf_of(html), "venue": "Memorial Hall",
+                                                 "date": DATE.isoformat(),
+                                                 f"m{ids['wedges']}": "apply",
+                                                 f"m{ids['photography']}": "keep"})
+    with db.get_conn() as conn, conn.cursor() as cur:
+        left = db.open_memo_decisions(cur, show_id=sid)
+    check(st == 200 and not left, "both decided")
+    time.sleep(3)
+    print("   ", memo_doc(sid))
+    t = doc_text(doc) if doc.exists() else ""
+    check("Wedges: 5" in t, "Use new -> the band's answer is on the doc")
+    ph = t.split("Photography")[1][:30] if "Photography" in t else ""
+    check("☒ No" in ph, f"Keep current -> photography stays No ({ph!r})")
+
     # ── second act on the same event -> two-artist doc
     st, link2, h2 = book(staff, BAND2, f"duo+{TAG}@example.com", "19:00", "19:40")
     if not link2:
