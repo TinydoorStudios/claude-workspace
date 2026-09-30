@@ -21,8 +21,8 @@ or a band completes the advance form (`/submit`). The Flask app POSTs the event 
 this workflow's webhook (best-effort, never blocks the request it came from); the
 workflow checks a shared-secret header, formats a short HTML summary, and sends it
 via Gmail — reusing the existing `3CDCProduction@gmail.com` OAuth2 credential (the
-same one the SPL Nightly Summary Email workflow already uses). Recipient is
-`blloyd@3cdc.org`, hardcoded in the Gmail node — change there if that should move.
+same one the SPL Nightly Summary Email workflow already uses). Recipients are
+`blloyd@3cdc.org` and `Jmayborg@3cdc.org` (booking events; added 2026-09-30), hardcoded in the Format Email node — change there if that should move.
 
 - Workflow: `advance_notify.json` (id `advance-notify`, token placeholdered same as
   above — the live copy carries the real `ADVANCE_INTERNAL_TOKEN`).
