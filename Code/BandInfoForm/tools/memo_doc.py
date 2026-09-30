@@ -209,6 +209,27 @@ def _staff_row(date, hints):
     return (hit[0], codes) if len(hit) == 1 else (None, codes)
 
 
+TBD = "TBD"
+
+
+def _memo_tokens(cell):
+    """Staffing-sheet cell -> people. In the Memo block a bare '1' is a slot
+    that's staffed but not yet named (Brian, 2026-09-29: "a 1 means TBD"), so
+    '1 + 1' is two TBDs; *NOTES* inline ('1 *FOLLOWSPOT* MA') are dropped, and
+    '1 MA' is MA filling that one slot."""
+    cell = re.sub(r"\*[^*]*\*", " ", cell or "")
+    out = []
+    for tok in staffing._split_mix_cell(cell.strip()):
+        tok = tok.strip()
+        if tok.isdigit():
+            out += [TBD] * max(1, min(int(tok), 6))
+            continue
+        tok = re.sub(r"^\d+\s+", "", tok).strip()
+        if tok:
+            out.append(tok)
+    return out
+
+
 def crew_for(date, hints, override_text=""):
     cols = staffing.SCHEDULE_COLUMNS[M.VENUE]
     row, codes = _staff_row(date, hints)
@@ -223,8 +244,8 @@ def crew_for(date, hints, override_text=""):
                 roles["Monitors"] = [staffing._format_row_or_raw(mix[1], codes)]
 
         def names(key):
-            return staffing._resolve_names(
-                staffing._split_mix_cell((row[cols[key]] or "").strip()), codes)
+            return [t if t == TBD else staffing._format_row_or_raw(t, codes)
+                    for t in _memo_tokens(row[cols[key]])]
         roles["LX"] = names("tech")
         roles["Stage Hand"] = names("stagehand")
         roles["Stage Support"] = names("stage_support")
@@ -254,7 +275,7 @@ def crew_rows(roles, video, lead):
         n = slots.get(role, 1)
         vals = names[:n] + [""] * (n - len(names[:n]))
         if len(names) > n:   # never drop a name: the last slot carries the rest
-            vals[-1] = ", ".join(names[n - 1:])
+            vals[-1] = ", ".join(dict.fromkeys(names[n - 1:]))   # "TBD, TBD" -> "TBD"
         out += [(role, v) for v in vals]
     return out
 
@@ -324,6 +345,35 @@ def values_for(cur, show_id):
     V = T.Values(event=event, acts=acts, crew=crew)
     info = {"date": date, "event": ev_name, "acts": acts, "n": len(acts)}
     return V, info
+
+
+def values_from_answers(ans, date, ev_name, artist):
+    """A Values object straight from one answers dict (memo_fields keys), no
+    database — for a show that isn't booked yet (docs ingested first, booking
+    later). Same defaults, crew, clock and curfew rules as values_for()."""
+    event = {k: v for k, v in ans.items() if k in M.FIELDS and not M.FIELDS[k]["per_act"]}
+    act = {k: v for k, v in ans.items() if k in M.FIELDS and M.FIELDS[k]["per_act"]}
+    act["_name"] = artist
+    for k, dv in M.DEFAULTS.items():
+        if k in M.FIELDS and M.FIELDS[k]["per_act"]:
+            act.setdefault(k, dv)
+    act["_files"] = ans.get("memo_files", [])
+    plots = [nm for f, nm in planned(date, act) if f.get("kind") == "stage_plot"]
+    plots += ans.get("_stage_plot_files", [])
+    act["_stage_plot"] = ("See folder — " + ", ".join(plots)) if plots else ""
+    for f in M.SECTIONS[1][2]:
+        if event.get(f["key"]) and f["kind"] == "time":
+            event[f["key"]] = _clock(event[f["key"]])
+    if not event.get("curfew") and event.get("end_of_show"):
+        event["curfew"] = _plus(event["end_of_show"], M.CURFEW_AFTER_END_MIN)
+    event["_date"] = date.strftime("%A, %B %-d, %Y")
+    event["_event"] = ev_name
+    roles, other = crew_for(date, [ev_name, artist], event.get("crew_override", ""))
+    crew = crew_rows(roles, event.get("video"), event.get("memo_lead"))
+    if other:
+        act["additional_info"] = (act.get("additional_info", "") + "\nStaffing sheet (Other): "
+                                  + ", ".join(other)).strip()
+    return T.Values(event=event, acts=[act], crew=crew)
 
 
 def show_folder(date, ev_name):
@@ -502,7 +552,18 @@ def main():
     ap.add_argument("--artist")
     ap.add_argument("--out")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--answers", help="answers .json (memo_fields keys + _show) — build with no DB")
     a = ap.parse_args()
+    if a.answers:
+        ans = json.loads(Path(a.answers).read_text())
+        sh = ans.get("_show") or {}
+        d = dt.date.fromisoformat(sh.get("date") or a.date)
+        ev = sh.get("event") or sh.get("artist")
+        V = values_from_answers(ans, d, ev, sh.get("artist") or a.artist)
+        out = Path(a.out) if a.out else show_folder(d, ev) / f"MEMO Adv - {_safe_name(ev)}.docx"
+        T.build_advance(out, 1, V)
+        print(f"memo doc from answers: {out}")
+        return
     sid = a.show_id
     if not sid:
         with db.get_conn() as conn, conn.cursor() as cur:

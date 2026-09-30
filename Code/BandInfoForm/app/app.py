@@ -2125,6 +2125,11 @@ def booking():
         show_date = advance_db.to_date(data.get("event_date"))
         days_out = (show_date - dt.date.today()).days if show_date else None
         urgent = days_out is not None and 0 <= days_out <= advance_db.welcome_days(data.get("venue"))
+        # a paused-welcome venue (Memo) has nothing to send now, so it never
+        # kicks the on-demand email run — that run sends every OTHER show's due
+        # email too (the 2026-09-18 "lifecycle is not a dry run" lesson)
+        if advance_db.welcome_paused(data.get("venue")):
+            urgent = False
         scope = f"{data['venue']}|{show_date.isoformat()}" if show_date else None
         if urgent:
             threading.Thread(target=_run_pipeline_then_trigger_now, args=(scope,), daemon=True).start()
