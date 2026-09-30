@@ -179,19 +179,19 @@ def build_email(r):
     set_line = ve.set_line(r.get("event_start"), r.get("event_end"), r.get("set_time"))
     body = (f"{greeting},\n\n"
             f"Quick confirmation for {when_word}, {day}, at {r['venue']}"
-            f"{(' — ' + blocks['location']) if blocks.get('location') else ''}.\n\n"
+            f"{(', ' + blocks['location']) if blocks.get('location') else ''}.\n\n"
             + (f"{set_line}\n\n" if set_line else "")
             + f"Day Schedule:\n{sched}\n\n")
     if contact:
         body += f"Day-of Contact: {contact}\n"
         if is_engineer:
-            body += "  Please do not call them before show day; they are part-time staff.\n"
+            body += "  Please don't call them before show day; they're part-time staff.\n"
         body += "\n"
     body += f"{_without_form_refs(blocks['load_in'])}\n\n"
     if recap:
         body += "What we have on file for you:\n" + "\n".join(f"  {k}: {v}" for k, v in recap) + "\n\n"
     see_you = "See you today" if when_word == "today" else "See you tomorrow"
-    body += ("If anything has changed — headcount, gear, arrival time — reply to this email today "
+    body += ("If anything has changed (headcount, gear, arrival time), reply to this email today "
              f"and we'll update it.\n\n{see_you},\n3CDC Events / Production")
     if r.get("series") and ve.is_bilingual_series(r["series"]):
         blocks_es = ve.blocks_for(r["venue"], series=r.get("series"), lang="es",
@@ -205,13 +205,17 @@ def build_email(r):
         set_line_es = ve.set_line(r.get("event_start"), r.get("event_end"),
                                   r.get("set_time"), lang="es")
         body_es = (f"{greeting_es},\n\n"
-                   f"Confirmación rápida para {when_word_es}, {d.strftime('%d/%m/%Y')}, en {r['venue']}.\n\n"
+                   f"Confirmación rápida para {when_word_es}, {d.strftime('%d/%m/%Y')}, en {r['venue']}"
+                   f"{(', ' + blocks_es['location']) if blocks_es.get('location') else ''}.\n\n"
                    + (f"{set_line_es}\n\n" if set_line_es else "")
                    + f"Horario del día:\n{sched_es}\n\n")
         if contact:
-            body_es += f"Contacto del día del evento: {contact}\n\n"
+            body_es += f"Contacto del día del evento: {contact}\n"
+            if is_engineer:
+                body_es += "  Por favor no los llamen antes del día del show; son personal de medio tiempo.\n"
+            body_es += "\n"
         body_es += (f"{_without_form_refs(blocks_es['load_in'], 'es')}\n\n"
-                    "Si algo cambió — número de personas, equipo, hora de llegada — respondan a este "
+                    "Si algo cambió (número de personas, equipo, hora de llegada), respondan a este "
                     f"correo hoy y lo actualizamos.\n\n{see_you_es},\n3CDC Eventos / Producción")
         sep = "─" * 42
         body = f"{body}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
@@ -272,9 +276,9 @@ def build_schedule_email(r, chase="", chase_es=""):
     subject = ve.band_subject(base, r["artist_name"], r["venue"], d)
     contact, is_engineer = _day_of_contact(r)
     set_txt = ve.set_line(r.get("event_start"), r.get("event_end"), r.get("set_time"))
-    second = ("Times are set on our end; what's still open on yours is at the bottom."
+    second = ("The times are set on our end. What we still need from you is at the bottom."
               if chase else
-              "Nothing needed from you — pass it on to anyone travelling with you.")
+              "Nothing needed from you. Pass it on to anyone traveling with you.")
     body = (f"{_greeting(r)},\n\n"
             f"Here's the confirmed schedule for your show at {r['venue']} on {day}. {second}\n\n"
             + (f"{set_txt}\n\n" if set_txt else "")
@@ -282,7 +286,7 @@ def build_schedule_email(r, chase="", chase_es=""):
     if contact:
         body += f"Day-of Contact: {contact}\n"
         if is_engineer:
-            body += "  Please do not call them before show day; they are part-time staff.\n"
+            body += "  Please don't call them before show day; they're part-time staff.\n"
         body += "\n"
     body += "If any of these times need to move, let us know now rather than on show day.\n\n"
     if chase:
@@ -291,18 +295,21 @@ def build_schedule_email(r, chase="", chase_es=""):
     if r.get("series") and ve.is_bilingual_series(r["series"]):
         set_es = ve.set_line(r.get("event_start"), r.get("event_end"),
                              r.get("set_time"), lang="es")
-        second_es = ("Los horarios ya están fijos de nuestro lado; lo que falta del suyo "
-                     "está al final." if chase else
-                     "No necesitamos nada de su parte — compártanlo con quien venga con ustedes.")
+        second_es = ("Los horarios ya están definidos de nuestro lado. Lo que aún necesitamos "
+                     "de ustedes está al final." if chase else
+                     "No necesitamos nada de ustedes. Compártanlo con quien viaje con ustedes.")
         body_es = (f"{_greeting(r, es=True)},\n\n"
                    f"Este es el horario confirmado de su show en {r['venue']} el "
                    f"{d.strftime('%d/%m/%Y')}. {second_es}\n\n"
                    + (f"{set_es}\n\n" if set_es else "")
                    + f"Horario del día:\n{_schedule_text(r, lang='es')}\n\n")
         if contact:
-            body_es += f"Contacto del día del evento: {contact}\n\n"
-        body_es += ("Si alguno de estos horarios tiene que cambiar, avísennos ahora y no "
-                    "el día del show.\n\n")
+            body_es += f"Contacto del día del evento: {contact}\n"
+            if is_engineer:
+                body_es += "  Por favor no los llamen antes del día del show; son personal de medio tiempo.\n"
+            body_es += "\n"
+        body_es += ("Si alguno de estos horarios tiene que cambiar, avísennos ahora en lugar de "
+                    "esperar al día del show.\n\n")
         if chase:
             body_es += f"{chase_es}\n\n"
         body_es += "Gracias,\n3CDC Eventos / Producción"

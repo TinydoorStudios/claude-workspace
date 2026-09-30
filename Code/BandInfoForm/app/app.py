@@ -2471,7 +2471,7 @@ def _recap_for_draft(sub):
         ("Crew", sub.get("crew_count")),
         ("Monitors", f"{sub['monitors']} wedges" if sub.get("monitors") is not None else None),
         ("IEMs", (d.get("uses_iems") or yn(sub.get("own_iems")))
-                 + (f" — own system: {yn(sub.get('own_iems'))}" if str(d.get("uses_iems", "")).lower() == "yes" else "")
+                 + (f", own system: {yn(sub.get('own_iems'))}" if str(d.get("uses_iems", "")).lower() == "yes" else "")
                  if (d.get("uses_iems") or sub.get("own_iems") is not None) else None),
         ("Split snake", sub.get("split_snake")),
         ("Stage", sub.get("stage_type")),
@@ -2626,7 +2626,7 @@ def _build_reply_draft(show, artist, sub):
     body = (f"{greeting},\n\n\n\n"
             "Thanks,\nBrian Lloyd\n3CDC Events / Production\n(315) 404-5648\n\n"
             "──────────────────────────────\n"
-            f"For reference, what you sent us for {show['venue']}{(' on ' + when) if when else ''}:\n"
+            f"For reference, here's what you sent us for {show['venue']}{(' on ' + when) if when else ''}:\n"
             f"{_recap_for_draft(sub)}\n")
     return subject, body
 

@@ -203,89 +203,89 @@ REMINDER_TIERS = (15, 10, 7, 5, 3, 2, 1)
 # get listed; missing_for_show caps the list so a reminder stays readable on a
 # phone.
 MISSING_LABELS = {
-    "form":       {"en": "your advance form — we have nothing on file yet",
-                   "es": "su formulario de avance — todavía no tenemos nada"},
+    "form":       {"en": "your advance form (we have nothing on file yet)",
+                   "es": "su formulario de avance (todavía no tenemos nada registrado)"},
     "plot":       {"en": "your stage plot and input list",
-                   "es": "su plano de escenario y lista de entradas"},
+                   "es": "su plano de escenario / lista de entradas"},
     "escort":     {"en": "a cell number for whoever's on stage that day",
                    "es": "un número de celular de quien esté en el escenario ese día"},
     "performers": {"en": "how many of you are on stage",
                    "es": "cuántas personas suben al escenario"},
     "monitors":   {"en": "how many monitor mixes you need",
                    "es": "cuántas mezclas de monitor necesitan"},
-    "phone":      {"en": "a phone number we can reach you on",
+    "phone":      {"en": "a phone number where we can reach you",
                    "es": "un teléfono donde podamos localizarlos"},
     # nothing identifiable is missing (staff typed the answers in at booking) —
     # we're waiting on the band to confirm what we already hold.
-    "confirm":    {"en": "a yes from you that what we have on file is right",
-                   "es": "que nos confirmen que lo que tenemos registrado está bien"},
+    "confirm":    {"en": "a quick yes that what we have on file is right",
+                   "es": "una confirmación rápida de que lo que tenemos registrado es correcto"},
 }
 
 _TIER_LEAD = {
     15: {"en": "We're about two weeks out from your show at {venue} on {day}, and we still need {missing}.",
-         "es": "Faltan unas dos semanas para su show en {venue} el {day} y todavía nos falta {missing}."},
+         "es": "Faltan unas dos semanas para su show en {venue} el {day} y todavía necesitamos {missing}."},
     10: {"en": "We're ten days out from your show at {venue} on {day}, and we still need {missing}.",
-         "es": "Faltan diez días para su show en {venue} el {day} y todavía nos falta {missing}."},
+         "es": "Faltan diez días para su show en {venue} el {day} y todavía necesitamos {missing}."},
     7:  {"en": "One week out from your show at {venue} on {day}. We still need {missing}.",
-         "es": "Falta una semana para su show en {venue} el {day}. Todavía nos falta {missing}."},
-    5:  {"en": "Five days out from {venue} on {day}, and we still need {missing}.",
-         "es": "Faltan cinco días para {venue} el {day} y todavía nos falta {missing}."},
-    3:  {"en": "Three days out from {venue} on {day}, and we still need {missing}.",
-         "es": "Faltan tres días para {venue} el {day} y todavía nos falta {missing}."},
-    2:  {"en": "Two days out from {venue} on {day}, and we still don't have {missing}.",
-         "es": "Faltan dos días para {venue} el {day} y todavía no tenemos {missing}."},
-    1:  {"en": "Your show at {venue} on {day} is right on top of us and we still don't have {missing}.",
-         "es": "Su show en {venue} el {day} ya está encima y todavía no tenemos {missing}."},
+         "es": "Falta una semana para su show en {venue} el {day}. Todavía necesitamos {missing}."},
+    5:  {"en": "Five days out from your show at {venue} on {day}, and we still need {missing}.",
+         "es": "Faltan cinco días para su show en {venue} el {day} y todavía necesitamos {missing}."},
+    3:  {"en": "Three days out from your show at {venue} on {day}, and we still need {missing}.",
+         "es": "Faltan tres días para su show en {venue} el {day} y todavía necesitamos {missing}."},
+    2:  {"en": "Two days out from your show at {venue} on {day}, and we still don't have {missing}.",
+         "es": "Faltan dos días para su show en {venue} el {day} y todavía no tenemos {missing}."},
+    1:  {"en": "Your show at {venue} on {day} is right on top of us, and we still don't have {missing}.",
+         "es": "Su show en {venue} el {day} está a la vuelta de la esquina, y todavía no tenemos {missing}."},
 }
 # The part that makes each tier different: what happens next if we don't get it.
 _TIER_THEN = {
-    15: {"en": "We need it by {deadline}.",
-         "es": "Lo necesitamos antes del {deadline}."},
-    10: {"en": "We need it by {deadline}.",
-         "es": "Lo necesitamos antes del {deadline}."},
-    7:  {"en": "We need it by {deadline} to have your show built in time.",
-         "es": "Lo necesitamos antes del {deadline} para armar su show a tiempo."},
+    15: {"en": "We need this by {deadline}.",
+         "es": "Lo necesitamos a más tardar el {deadline}."},
+    10: {"en": "We need this by {deadline}.",
+         "es": "Lo necesitamos a más tardar el {deadline}."},
+    7:  {"en": "We need this by {deadline} so your show gets built in time.",
+         "es": "Lo necesitamos a más tardar el {deadline} para tener su show armado a tiempo."},
     5:  {"en": "We're past the deadline, and your show gets built from this paperwork this week.",
-         "es": "Ya pasó la fecha límite y su show se arma con esta información esta semana."},
-    3:  {"en": "Your engineer builds your show from this paperwork the day before, so this is what's holding it up.",
-         "es": "Su ingeniero arma su show con esta información el día anterior, así que esto es lo que lo detiene."},
+         "es": "Ya pasó la fecha límite, y su show se arma con esta información esta semana."},
+    3:  {"en": "Your engineer builds your show from this paperwork the day before the show, so right now it's the holdup.",
+         "es": "Su ingeniero arma su show con esta información el día antes del show, así que por ahora es lo que nos tiene detenidos."},
     2:  {"en": "Your show gets built tomorrow, so today is the last good day to send it.",
          "es": "Su show se arma mañana, así que hoy es el último buen día para enviarlo."},
-    1:  {"en": "If we don't hear back today, we'll set you up ad hoc on the day.",
-         "es": "Si no tenemos noticias hoy, lo resolvemos sobre la marcha el día del show."},
+    1:  {"en": "If we don't hear back today, we'll set you up ad hoc on show day.",
+         "es": "Si no tenemos noticias hoy, lo armamos sobre la marcha el día del show."},
 }
 # Only when the stage plot is one of the missing things (tier 3).
-_PLOT_CLAUSE = {"en": "With no stage plot you get a generic patch and we sort the rest at soundcheck.",
-                "es": "Sin plano de escenario les armamos un patch genérico y resolvemos el resto en la prueba de sonido."}
+_PLOT_CLAUSE = {"en": "Without a stage plot you get a generic patch, and we sort out the rest at sound check.",
+                "es": "Sin plano de escenario, les armamos un patch genérico y resolvemos el resto en la prueba de sonido."}
 _TIER_ASK = {
     15: {"en": ("The form takes about five minutes, and you can upload every file there:",
-                "If you've already sent this over, disregard. Replying to this email works too."),
-         "es": ("El formulario toma unos cinco minutos y ahí pueden subir todos sus archivos:",
+                "If you've already sent this over, just ignore this note. You can also reply to this email."),
+         "es": ("El formulario toma unos cinco minutos, y ahí pueden subir todos sus archivos:",
                 "Si ya nos lo enviaron, ignoren este mensaje. También pueden responder a este correo.")},
     10: {"en": ("The form takes about five minutes:",
-                "If you've already sent this over, disregard. Replying to this email works too."),
+                "If you've already sent this over, just ignore this note. You can also reply to this email."),
          "es": ("El formulario toma unos cinco minutos:",
                 "Si ya nos lo enviaron, ignoren este mensaje. También pueden responder a este correo.")},
     7:  {"en": ("Everything goes in here:",
-                "If you've already sent this over, disregard. Replying to this email works too."),
+                "If you've already sent this over, just ignore this note. You can also reply to this email."),
          "es": ("Todo va aquí:",
                 "Si ya nos lo enviaron, ignoren este mensaje. También pueden responder a este correo.")},
     5:  {"en": ("Everything goes in here:",
-                "Or reply to this email with it and we'll enter it for you."),
+                "Or reply to this email with the details and we'll enter them for you."),
          "es": ("Todo va aquí:",
-                "O respondan a este correo con la información y nosotros la cargamos.")},
+                "O respondan a este correo con los datos y nosotros los ingresamos.")},
     2:  {"en": ("Still the fastest way:",
-                "Or reply to this email with it and we'll enter it for you."),
+                "Or reply to this email with the details and we'll enter them for you."),
          "es": ("La forma más rápida sigue siendo esta:",
-                "O respondan a este correo con la información y nosotros la cargamos.")},
+                "O respondan a este correo con los datos y nosotros los ingresamos.")},
     3:  {"en": ("Still the fastest way:",
-                "Or reply to this email with it and we'll enter it for you."),
+                "Or reply to this email with the details and we'll enter them for you."),
          "es": ("La forma más rápida sigue siendo esta:",
-                "O respondan a este correo con la información y nosotros la cargamos.")},
+                "O respondan a este correo con los datos y nosotros los ingresamos.")},
     1:  {"en": ("Last call:",
-                "Reply to this email today with whatever you've got and we'll get it in."),
-         "es": ("Última oportunidad:",
-                "Respondan a este correo hoy con lo que tengan y lo cargamos.")},
+                "Reply to this email today with whatever you've got, and we'll get it in."),
+         "es": ("Última llamada:",
+                "Respondan a este correo hoy con lo que tengan y lo ingresamos.")},
 }
 _TIER_SUBJECT = {
     15: {"with": "Two weeks out — your show details by {deadline}",
@@ -670,7 +670,7 @@ def main():
                 if len(bill) > 1:
                     lines = ["The bill:"]
                     for a in bill:
-                        when = a.get("set_start") or "time TBC"
+                        when = a.get("set_start") or "time TBD"
                         line = f"  - {when}  {a['name']}"
                         if a.get("set_time"):
                             line += f" — {_setlen(a['set_time'])}"

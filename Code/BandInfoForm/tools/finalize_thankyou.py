@@ -287,17 +287,17 @@ def build_email(band, venue, show_date, schedule_lines, recap_lines, bilingual):
     body_en = (
         f"Hey {band},\n\n"
         f"Everything's locked in for your set at {venue} on {day_phrase}. "
-        f"Thanks for getting the advance squared away — makes the whole night "
+        f"Thanks for getting the advance squared away. It makes the whole night "
         f"run smoother for everybody.\n\n"
     )
     if sched_block:
         body_en += f"Here's the day, start to finish:\n\n{sched_block}\n\n"
     if recap_block:
-        body_en += f"And a quick recap of what we've got on file for you:\n\n{recap_block}\n\n"
+        body_en += f"And here's what we have on file for you:\n\n{recap_block}\n\n"
     body_en += (
-        f"If anything changes before the show — headcount, gear, anything — "
-        f"just reply to this email and I'll get it updated. Same goes for "
-        f"show day: if something comes up, reply here and I'll get right "
+        f"If anything changes before the show (headcount, gear, whatever), "
+        f"just reply to this email and we'll update it. Same goes for "
+        f"show day: if something comes up, reply here and we'll get right "
         f"back to you.\n\n"
         f"See you {day_phrase.split(',')[0]}.\n\n"
         f"3CDC Events / Production"
@@ -308,15 +308,15 @@ def build_email(band, venue, show_date, schedule_lines, recap_lines, bilingual):
 
     body_es = (
         f"Hola {band},\n\n"
-        f"Todo está confirmado para su presentación en {venue} el {show_date.strftime('%d/%m/%Y')}. "
-        f"Gracias por completar el formulario de avance — esto ayuda a que "
-        f"la noche salga bien para todos.\n\n"
-        f"Si algo cambia antes del show — el número de personas, equipo, lo "
-        f"que sea — respondan a este correo y lo actualizamos. Lo mismo "
-        f"aplica el día del evento: si surge algo, respondan aquí y les "
+        f"Todo está confirmado para su set en {venue} el {show_date.strftime('%d/%m/%Y')}. "
+        f"Gracias por dejar el avance en orden. Eso ayuda a que toda la "
+        f"noche salga mejor para todos.\n\n"
+        f"Si algo cambia antes del show (número de personas, equipo, lo "
+        f"que sea), respondan a este correo y lo actualizamos. Lo mismo "
+        f"aplica el día del show: si surge algo, respondan aquí y les "
         f"contestamos enseguida.\n\n"
         f"Nos vemos pronto.\n\n"
-        f"3CDC Events / Production"
+        f"3CDC Eventos / Producción"
     )
     sep = "─" * 42
     body = f"{body_en}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
@@ -334,7 +334,7 @@ def build_after_show_email(band, venue, show_date, bilingual):
         f"advance squared away ahead of time. It made the whole night run smoother "
         f"for everybody.\n\n"
         f"If there's anything from the day you want us to know about (load-in, sound, "
-        f"hospitality, anything), just reply to this email.\n\n"
+        f"hospitality, whatever), just reply to this email.\n\n"
         f"Hope to have you back soon.\n\n"
         f"3CDC Events / Production"
     )
@@ -342,12 +342,12 @@ def build_after_show_email(band, venue, show_date, bilingual):
         return subject, body_en
     body_es = (
         f"Hola {band},\n\n"
-        f"Gracias por tocar en {venue} el {show_date.strftime('%d/%m/%Y')} y por completar "
-        f"el formulario de avance a tiempo. Eso ayudó a que la noche saliera bien para todos.\n\n"
+        f"Gracias por tocar en {venue} el {show_date.strftime('%d/%m/%Y')} y por dejar el "
+        f"avance en orden con anticipación. Eso ayudó a que toda la noche saliera mejor para todos.\n\n"
         f"Si hay algo del día que quieran contarnos (la carga, el sonido, la hospitalidad, "
         f"lo que sea), respondan a este correo.\n\n"
         f"Esperamos verlos de nuevo pronto.\n\n"
-        f"3CDC Events / Production"
+        f"3CDC Eventos / Producción"
     )
     sep = "─" * 42
     return subject, f"{body_en}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"

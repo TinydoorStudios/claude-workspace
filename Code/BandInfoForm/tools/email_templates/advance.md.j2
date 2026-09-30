@@ -7,7 +7,7 @@ Subject: Welcome to {% if show_label %}{{ show_label }}{% else %}your 3CDC show{
 
 Hello{% if contact_name %} {{ contact_name }} and{% endif %}{% if name %} {{ name }}{% endif %},
 
-{% if returning %}Good to have you back{% if show_label %} for {{ show_label }}{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your advance at the link — we've pre-filled your last submission, so just confirm or update anything that's changed.{% else %}Welcome to {% if show_label %}{{ show_label }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your show advance at the link.{% if blocks.intro_tail %} {{ blocks.intro_tail }}{% else %} It replaces the questions we used to ask in this email — contact info, stage plot, monitors, merch, headcount, and the acknowledgments — and takes about five minutes. Your show info is already filled in.{% endif %}{% endif %}
+{% if returning %}Good to have you back{% if show_label %} for {{ show_label }}{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your advance at the link. We've pre-filled it from your last submission, so just confirm or update anything that's changed.{% else %}Welcome to {% if show_label %}{{ show_label }}{% else %}your 3CDC show{% endif %} at {{ venue }}{% if show_date %} on {{ show_date }}{% endif %}. Please review the details below, then complete your show advance at the link.{% if blocks.intro_tail %} {{ blocks.intro_tail }}{% else %} It replaces the questions this email used to ask (contact info, stage plot, monitors, merch, headcount, acknowledgments) and takes about five minutes. Your show info is already filled in.{% endif %}{% endif %}
 
 
 
@@ -27,16 +27,16 @@ Hello{% if contact_name %} {{ contact_name }} and{% endif %}{% if name %} {{ nam
 Venue / Location: {% if blocks.location %}{{ blocks.location }}{% else %}{{ venue }}{% endif +%}
 Advancing Contact: {{ advancing_contact }}
 {% if day_of_contact %}Day-of Contact: {{ day_of_contact }}
-{% if engineer_contact %}  Please do not advance with them or call them prior to show day, as they are part-time staff.
-{% endif %}{% else %}Day-of Contact: we'll send your day-of contact the week of the show.
+{% if engineer_contact %}  Please don't advance with them or call them before show day; they're part-time staff.
+{% endif %}{% else %}Day-of Contact: we'll send you their details the week of the show.
 {% endif %}{% if set_line %}{{ set_line }}
 {% endif %}
 {% if bill_block %}{{ bill_block }}
 
 {% endif %}Day Schedule:
 {{ schedule_block }}
-{% if not schedule_locked %}{% if not multiband %}  *Please take set breaks as needed. Please do not arrive before your load-in time without advance coordination.
-{% else %}  *Please do not arrive before your load-in time without advance coordination.
+{% if not schedule_locked %}{% if not multiband %}  *Take set breaks as needed. Please don't arrive before your load-in time unless we've arranged it in advance.
+{% else %}  *Please don't arrive before your load-in time unless we've arranged it in advance.
 {% endif %}{% endif %}
 
 {{ blocks.load_in }}
@@ -45,7 +45,7 @@ Advancing Contact: {{ advancing_contact }}
 
 {{ blocks.hospitality }}
 
-Performance Requirements (failure to comply may result in a warning or termination of the show, with payment canceled or delayed):
+Performance Requirements (failure to comply may result in a warning or the show being shut down, with payment canceled or delayed):
 {% if blocks.requirements %}{{ blocks.requirements }}
 {% endif %}{{ common_requirements }}
 
@@ -58,7 +58,7 @@ For reference, here's what was on your advance from {{ advance_recap.venue }} on
 
 {% for k, val in advance_recap.rows %}  - {{ k }}: {{ val }}
 {% endfor %}
-{% endif %}You acknowledge all of the above by completing the form. Let me know if you have any questions or concerns.
+{% endif %}By completing the form, you acknowledge all of the above. Let us know if you have any questions or concerns.
 
 Thanks,
 3CDC Events / Production

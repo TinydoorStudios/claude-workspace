@@ -263,7 +263,7 @@ VENUE_LOCATION = {
 # old FSQ-standard SCHEDULE_DEFAULTS (6:00p/6:30p/7:00p/10:00p/11:00p) were
 # being sent as fact at every venue; they're gone.
 SCHEDULE_TBD = "TBD — your day-of contact will confirm"
-SCHEDULE_TBD_ES = "Por confirmar — su contacto del día del evento lo confirmará"
+SCHEDULE_TBD_ES = "Por confirmar; su contacto del día del evento se lo confirmará"
 
 ACT_FIELDS = [
     # "Slot" was here until 2026-09-15. Position on the bill is derived from

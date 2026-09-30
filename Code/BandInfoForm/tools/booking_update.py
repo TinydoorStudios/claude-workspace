@@ -77,8 +77,8 @@ def build_email(r):
     subject = ve.band_subject("Updated booking details", r["artist_name"],
                               r["venue"], r["event_date"])
     body = (f"Hello {r['artist_name']},\n\n"
-            f"A couple of details on your booking at {r['venue']} on "
-            f"{r['event_date'].strftime('%A, %B %-d')} changed:\n\n"
+            f"Some details on your booking at {r['venue']} on "
+            f"{r['event_date'].strftime('%A, %B %-d')} have changed:\n\n"
             + "\n".join(lines) +
             "\n\nEverything else on file for you stays the same. Reply to this email "
             "if anything here doesn't look right.\n\n3CDC Events / Production")
@@ -88,11 +88,11 @@ def build_email(r):
         lines_es = [f"  {FIELD_LABELS_ES.get(f, FIELD_LABELS.get(f, f))}: "
                     f"{_fmt(f, d['old'], 'es')}  ->  {_fmt(f, d['new'], 'es')}" for f, d in ordered]
         body_es = (f"Hola {r['artist_name']},\n\n"
-                   f"Cambiaron algunos detalles de su presentación en {r['venue']} el "
+                   f"Cambiaron algunos detalles de su show en {r['venue']} el "
                    f"{r['event_date'].strftime('%d/%m/%Y')}:\n\n"
                    + "\n".join(lines_es) +
-                   "\n\nTodo lo demás que tenemos registrado sigue igual. Si algo aquí no se ve "
-                   "bien, respondan a este correo.\n\n3CDC Eventos / Producción")
+                   "\n\nTodo lo demás que tenemos registrado sigue igual. Si algo de esto no les "
+                   "parece correcto, respondan a este correo.\n\n3CDC Eventos / Producción")
         sep = "─" * 42
         body = f"{body}\n\n{sep}\nESPAÑOL / SPANISH VERSION BELOW\n{sep}\n\n{body_es}"
     return subject, body

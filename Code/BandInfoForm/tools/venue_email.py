@@ -31,11 +31,11 @@ from pathlib import Path
 
 # 3CDC-wide, appended under Performance Requirements for every venue.
 COMMON_REQUIREMENTS = """\
-- Content: family-friendly only — no foul language or gestures, including prerecorded tracks, live vocals, and sound check.
-- Performer safety: stay on the stage. No crowd surfing, climbing, jumping off stage, or stepping on sound equipment.
-- Audience safety: do not throw or shoot anything into the crowd (confetti, t-shirts, bottles, merch/CDs, etc.).
-- Weather: rain or shine. Booking evaluates weather about 3 hours before start; if you don't hear otherwise, assume the show goes on.
-- Weather holds: if 3CDC calls a hold for lightning, stop and clear the stage right away. The stage goes dark until we get the all-clear, then we pick the show back up.
+- Content: family-friendly only. No foul language or gestures, including in prerecorded tracks, live vocals and sound check.
+- Performer safety: stay on the stage. No crowd surfing, climbing, jumping off the stage, or stepping on sound equipment.
+- Audience safety: don't throw or shoot anything into the crowd (confetti, T-shirts, bottles, merch, CDs, etc.).
+- Weather: rain or shine. We check the weather about 3 hours before start; if you don't hear otherwise, the show goes on.
+- Weather holds: if 3CDC calls a lightning hold, stop and clear the stage right away. The stage stays dark until we get the all-clear, then we pick the show back up.
 - Payment: all groups are paid after the performance, not before."""
 
 # Spanish translation of COMMON_REQUIREMENTS — draft, 2026-09-12. Kept as a
@@ -44,11 +44,11 @@ COMMON_REQUIREMENTS = """\
 # pick requirements + COMMON_REQUIREMENTS_ES the same way the English path
 # picks blocks_for(...) + COMMON_REQUIREMENTS.
 COMMON_REQUIREMENTS_ES = """\
-- Contenido: solo apto para toda la familia — no se permite lenguaje ni gestos obscenos, incluyendo pistas pregrabadas, voces en vivo y la prueba de sonido.
+- Contenido: solo apto para toda la familia. No se permite lenguaje soez ni gestos obscenos, incluyendo las pistas pregrabadas, las voces en vivo y la prueba de sonido.
 - Seguridad de los artistas: permanezcan en el escenario. No se permite lanzarse al público, trepar, saltar del escenario ni pisar el equipo de sonido.
-- Seguridad del público: no lancen ni disparen nada hacia el público (confeti, camisetas, botellas, mercancía/CDs, etc.).
-- Clima: el show se realiza con lluvia o con sol. El equipo de producción evalúa las condiciones climáticas aproximadamente 3 horas antes del inicio; si no reciben aviso contrario, asuman que el show continúa.
-- Pausas por clima: si 3CDC anuncia una pausa por rayos, dejen de tocar y despejen el escenario de inmediato. El escenario se apaga hasta que nos den el aviso de que pasó el peligro, y ahí retomamos el show.
+- Seguridad del público: no lancen ni disparen nada hacia el público (confeti, camisetas, botellas, mercancía, CD, etc.).
+- Clima: el show se hace con lluvia o con sol. Revisamos el clima unas 3 horas antes del inicio; si no les avisamos otra cosa, el show sigue adelante.
+- Pausas por clima: si 3CDC anuncia una pausa por rayos, dejen de tocar y despejen el escenario de inmediato. El escenario permanece apagado hasta que recibamos el aviso de que ya pasó el peligro, y entonces retomamos el show.
 - Pago: todos los grupos reciben su pago después de la presentación, no antes."""
 
 # Memorial Hall is indoors: no rain-or-shine or lightning-hold lines, and Brian
@@ -62,8 +62,8 @@ def is_standalone_series(series):
     return (series or "").strip().lower().startswith("stand-alone")
 
 
-MEMO_BACKLINE_DEFAULT = "let us know on the form if backline needs to be arranged."
-MEMO_BACKLINE_ARRANGED = "your backline has been arranged; please check the details on the form."
+MEMO_BACKLINE_DEFAULT = "tell us on the form if you need backline arranged."
+MEMO_BACKLINE_ARRANGED = "your backline is arranged. Check the details on the form."
 MEMO_CREW_DEFAULT = "house crew covers sound, lighting and stagehand duties from load-in to load-out."
 
 
@@ -87,25 +87,30 @@ def memo_crew_text(items):
         if typ.lower() == "stage support":
             support.append(desc)
             continue
-        a = "an" if typ[:1].lower() in "aeiou" else "a"
+        words = typ.split()
+        first = words[0] if words else ""
+        # 'an audio', 'a lighting'; a leading acronym goes by its spoken letter ('an FOH', 'an LX')
+        vowel = first[:1].lower() in ("aefhilmnorsx" if len(first) > 1 and first.isupper() else "aeiou")
+        a = "an" if vowel else "a"
+        typ = " ".join(w if len(w) > 1 and w.isupper() else w.lower() for w in words)   # keep FOH / LX upper
         if desc[1:2].islower():      # 'Spot op' -> 'spot op'; leave FOH / LX / Video-style acronyms alone
             desc = desc[:1].lower() + desc[1:]
-        parts.append(f"{a} {typ.lower()}" + (f" ({desc})" if desc else ""))
+        parts.append(f"{a} {typ}" + (f" ({desc})" if desc else ""))
     if support:
         rooms = sorted(re.sub(r"^DR\s+", "", d, flags=re.I) for d in support)
         if all(re.fullmatch(r"[A-Za-z]", r) for r in rooms) and len(rooms) > 1:
             parts.append(f"stage support for dressing rooms {', '.join(rooms[:-1])} and {rooms[-1]}")
         else:
-            parts.append(f"{len(support)} stage support" + (f" ({', '.join(d for d in support if d)})" if any(support) else ""))
+            parts.append(f"{len(support)} stage support staff" + (f" ({', '.join(d for d in support if d)})" if any(support) else ""))
     if len(parts) > 1:
         body = ", ".join(parts[:-1]) + " and " + parts[-1]
     else:
         body = parts[0]
-    return f"house crew for your show is {body}."
+    return f"your house crew is {body}."
 
 
-MEMO_SCHEDULE_NOTE = ("  *Please confirm this schedule works, or tell us what to adjust, including set lengths. "
-                      "Please do not arrive before your load-in time without advance coordination.")
+MEMO_SCHEDULE_NOTE = ("  *Please confirm this schedule works or tell us what to adjust, including set lengths. "
+                      "Don't arrive before your load-in time unless we've arranged it in advance.")
 
 
 def memo_schedule_rows(ev):
@@ -158,13 +163,13 @@ Load-In & Parking:
 Your day-of contact will coordinate load-in and parking with you. Text or call them when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive. Note any large-vehicle needs on the form.""",
     "technical": """\
 Technical:
-- Backline / instrumentation: artists provide all instruments, including amps and 1/4" cables.
-- Audio: we provide an engineer who mixes FOH and monitors. Coordinate in advance if you're bringing your own.
-- Stage plot / input list, stage layout, monitor count, and any scenic elements — all on the form.""",
+- Backline / instrumentation: you provide all instruments, including amps and 1/4" cables.
+- Audio: we provide an engineer who mixes FOH and monitors. Coordinate in advance if you're bringing your own engineer.
+- On the form: stage plot / input list, stage layout, monitor count, and any scenic elements.""",
     "hospitality": """\
 Hospitality & Site:
 - Merch: if you're selling, you provide the seller, point of sale, and bank; ask your day-of contact about a table.
-- Hospitality: water is provided for all performers and crew.""",
+- Hospitality: we provide water for all performers and crew.""",
     "requirements": "",   # venue-specific rule lines (optional)
 }
 
@@ -178,13 +183,13 @@ Carga y estacionamiento:
 Su contacto del día del evento coordinará la carga y el estacionamiento con ustedes. Llámenlo o envíenle un mensaje de texto cuando estén a unos 5 minutos de llegar, y preséntense en persona en cuanto lleguen. Indiquen en el formulario si necesitan espacio para vehículos grandes.""",
     "technical": """\
 Técnico:
-- Backline / instrumentación: los artistas proporcionan todos los instrumentos, incluyendo amplificadores y cables de 1/4 de pulgada.
+- Backline / instrumentación: ustedes proporcionan todos los instrumentos, incluyendo amplificadores y cables de 1/4".
 - Audio: proporcionamos un ingeniero que mezcla el FOH y los monitores. Coordinen con anticipación si van a traer su propio ingeniero.
-- El plano de escenario / lista de entradas, la distribución del escenario, la cantidad de monitores y cualquier elemento escenográfico — todo se indica en el formulario.""",
+- En el formulario: plano de escenario / lista de entradas, distribución del escenario, cantidad de monitores y cualquier elemento escenográfico.""",
     "hospitality": """\
 Hospitalidad y sitio:
-- Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el banco; pregúntenle a su contacto del día del evento sobre una mesa.
-- Hospitalidad: se proporciona agua para todos los artistas y el equipo de trabajo.""",
+- Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el fondo de caja; pregúntenle a su contacto del día del evento sobre una mesa.
+- Hospitalidad: proporcionamos agua para todos los artistas y el equipo de trabajo.""",
     "requirements": "",
 }
 
@@ -194,7 +199,7 @@ VENUE_EMAIL = {
         "load_in": """\
 Load-In & Parking:
 The load-in process at Fountain Square has changed — please review the attached document and acknowledge understanding on the form. Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
-We will follow up with QR codes that serve as your Fountain Square Garage validations. Each vehicle needs its own QR code before arriving; scan at the kiosk on entry or exit (please don't pay). Garage clearance is 6'8". Need more validations or large-vehicle parking? Note it on the form.""",
+We'll send QR codes that serve as your Fountain Square Garage validations. Each vehicle needs its own QR code before arriving. Scan it at the kiosk when you enter or exit (please don't pay). Garage clearance is 6'8". Need more validations or large-vehicle parking? Note it on the form.""",
         # 3rd-party version (Brian, 2026-09-16): same load-in line and the
         # attached document, but no garage-QR/validation paragraph — that
         # process is for a touring band's own vehicles, and a 3rd-party event
@@ -204,21 +209,21 @@ Load-In & Parking:
 The load-in process at Fountain Square has changed — please review the attached document and acknowledge understanding on the form. Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.""",
         "technical": """\
 Technical:
-- Backline / instrumentation: artists provide all instruments, including amps and 1/4" cables.
-- Audio: we provide an engineer who mixes FOH and monitors from FOH. Coordinate in advance if you're bringing your own. All engineers mix within the 95 dBA-Slow ordinance; the FSQ engineer may baffle amps to reduce stage volume if needed.
+- Backline / instrumentation: you provide all instruments, including amps and 1/4" cables.
+- Audio: we provide an engineer who mixes FOH and monitors from FOH. Coordinate in advance if you're bringing your own engineer. All engineers mix within the 95 dBA-Slow ordinance, and the Fountain Square engineer may baffle amps to reduce stage volume if needed.
 - Lighting: we provide a house LD.
-- Stage plot / input list, flat vs. drum riser, monitor count, and any scenic elements — all on the form.""",
+- On the form: stage plot / input list, flat vs. drum riser, monitor count, and any scenic elements.""",
         "hospitality": """\
 Hospitality & Site:
 - Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
-- Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
-- Hospitality: drink tickets and water are provided for all performers and crew.""",
+- Dressing rooms: no indoor rooms, but on request we can provide a 10×10 tent with sidewalls for private band space.
+- Hospitality: we provide drink tickets and water for all performers and crew.""",
         # 3rd-party (Brian, 2026-09-25): no drink tickets for a 3rd-party event.
         "hospitality_third_party": """\
 Hospitality & Site:
 - Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
-- Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
-- Hospitality: water is provided for all performers and crew.""",
+- Dressing rooms: no indoor rooms, but on request we can provide a 10×10 tent with sidewalls for private band space.
+- Hospitality: we provide water for all performers and crew.""",
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
     # WP copy adapted from the Fountain Square block (Brian, 2026-09-11): FSQ→WP
@@ -233,27 +238,27 @@ Hospitality & Site:
         "load_in": """\
 Load-In & Parking:
 Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
-We will follow-up with parking validations.""",
+We'll follow up with parking validations.""",
         # 3rd-party (Brian, 2026-09-25): no parking-validation line.
         "load_in_third_party": """\
 Load-In & Parking:
 Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.""",
         "technical": """\
 Technical:
-- Backline / instrumentation: artists provide all instruments, including amps and 1/4" cables.
-- Audio: we provide an engineer who mixes FOH and monitors from FOH. Coordinate in advance if you're bringing your own. All engineers mix within the 95 dBA-Slow ordinance; the Washington Park engineer may baffle amps to reduce stage volume if needed.{lighting_line}
-- Stage plot / input list, {riser_phrase}monitor count, and any scenic elements — all on the form.""",
+- Backline / instrumentation: you provide all instruments, including amps and 1/4" cables.
+- Audio: we provide an engineer who mixes FOH and monitors from FOH. Coordinate in advance if you're bringing your own engineer. All engineers mix within the 95 dBA-Slow ordinance, and the Washington Park engineer may baffle amps to reduce stage volume if needed.{lighting_line}
+- On the form: stage plot / input list, {riser_phrase}monitor count, and any scenic elements.""",
         "hospitality": """\
 Hospitality & Site:
 - Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
-- Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
-- Hospitality: drink tickets and water are provided for all performers and crew.""",
+- Dressing rooms: no indoor rooms, but on request we can provide a 10×10 tent with sidewalls for private band space.
+- Hospitality: we provide drink tickets and water for all performers and crew.""",
         # 3rd-party (Brian, 2026-09-25): no drink tickets for a 3rd-party event.
         "hospitality_third_party": """\
 Hospitality & Site:
 - Merch: if you're selling, you provide the seller, point of sale, and bank; we provide a tent next to the stage with a table and chairs.
-- Dressing rooms: no indoor rooms; on request we can provide a 10×10 tent with sidewalls for private band space.
-- Hospitality: water is provided for all performers and crew.""",
+- Dressing rooms: no indoor rooms, but on request we can provide a 10×10 tent with sidewalls for private band space.
+- Hospitality: we provide water for all performers and crew.""",
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
     # Memorial Hall (2026-09-29) — rebuilt from Brian's old Memo advance email
@@ -267,27 +272,27 @@ Hospitality & Site:
         # Replaces the "it replaces the questions we used to ask" sentence (advance.md.j2).
         "intro_tail": "It takes about five minutes.",
         # Printed under the form link (advance.md.j2), before the details.
-        "review_note": "Some of the information we already have is included below and on the form, based on your contract and rider. Please check it for accuracy, and add anything we don't have.",
+        "review_note": "We've filled in what we already have from your contract and rider, below and on the form. Please check it for accuracy and add anything we're missing.",
         "load_in": """\
 Load-In & Parking:
 Load in on Grant Street, on the south side of the building. It's a street-level door (2'7" W × 6'10" H) into a freight elevator; there's no dock. The doors are locked at all times, so call your day-of contact when you arrive and they'll let you in. Load-in details are in the attached tech packet.
-Tell us on the form what vehicles you're bringing and we'll follow up on parking. Please also give us a day-of contact for your team.""",
+Tell us on the form which vehicles you're bringing and we'll follow up on parking. Please also give us a day-of contact for your team.""",
         # {backline_text} / {crew_text} are set per show by draft_emails.py
         # (memo_backline_text / memo_crew_text below); it always supplies both.
         "technical": """\
 Technical:
 - PA: full specs are in the attached tech packet.
-- Audio: our house engineer mixes FOH and monitors from the house DiGiCo Quantum 225 in the house right corner of the balcony. Coordinate in advance if you're bringing your own engineer or console.
-- Monitors, mics, stage plot and input list: tell us what you need on the form and upload your plot, input list and riders there.
-- Lighting: we provide a house LD on the house lighting console. Tell us on the form if you have specific requests or you're bringing your own LD.
-- Scenic and projection: let us know on the form about any scenic or projection elements.
+- Audio: our house engineer mixes FOH and monitors from the house DiGiCo Quantum 225, in the house-right corner of the balcony. Coordinate in advance if you're bringing your own engineer or console.
+- Monitors, mics, stage plot and input list: tell us what you need on the form, and upload your plot, input list and riders there.
+- Lighting: we provide a house LD on the house lighting console. Tell us on the form if you have specific requests or are bringing your own LD.
+- Scenic and projection: tell us on the form about any scenic or projection elements.
 - Backline: {backline_text}
 - Crew: {crew_text}""",
         "hospitality": """\
 Hospitality & Site:
 - Merch: the house takes no cut. You provide your own point of sale and bank. If you'd like us to coordinate a seller, note it on the form and we'll send you their rate.
-- Meet & greet: any pre- or post-show meet & greet has to be approved through your advance so we can plan for it.
-- Photo / video: tell us on the form what your policy is for patrons.
+- Meet & greet: any pre- or post-show meet & greet must be approved through your advance so we can plan for it.
+- Photo / video: tell us on the form your policy on patron photography and video.
 - Dressing rooms: up to four dressing rooms and a black box studio/meeting room. Details are in the attached tech packet.
 - Hospitality, hotel, runner and ground transportation: note what you need on the form.""",
         "requirements": """\
@@ -309,29 +314,29 @@ VENUE_EMAIL_ES = {
         "load_in": """\
 Carga y estacionamiento:
 El proceso de carga en Fountain Square ha cambiado — por favor revisen el documento adjunto y confirmen que lo entendieron en el formulario. Llamen o envíen un mensaje de texto a su contacto del día del evento cuando estén a unos 5 minutos de llegar, y preséntense en persona en cuanto lleguen.
-Les enviaremos códigos QR que funcionan como sus validaciones del estacionamiento Fountain Square Garage. Cada vehículo necesita su propio código QR antes de llegar; escaneen en el quiosco al entrar o salir (por favor no paguen). La altura máxima del estacionamiento es de 6'8". ¿Necesitan más validaciones o espacio para vehículos grandes? Indíquenlo en el formulario.""",
+Les enviaremos códigos QR que funcionan como sus validaciones del estacionamiento Fountain Square Garage. Cada vehículo necesita su propio código QR antes de llegar. Escaneen el código en el quiosco al entrar o al salir (por favor no paguen). La altura máxima del estacionamiento es de 6'8". ¿Necesitan más validaciones o espacio para vehículos grandes? Indíquenlo en el formulario.""",
         # 3rd-party version — see load_in_third_party in VENUE_EMAIL (English) above.
         "load_in_third_party": """\
 Carga y estacionamiento:
 El proceso de carga en Fountain Square ha cambiado — por favor revisen el documento adjunto y confirmen que lo entendieron en el formulario. Llamen o envíen un mensaje de texto a su contacto del día del evento cuando estén a unos 5 minutos de llegar, y preséntense en persona en cuanto lleguen.""",
         "technical": """\
 Técnico:
-- Backline / instrumentación: los artistas proporcionan todos sus instrumentos, incluyendo amplificadores y cables de 1/4".
-- Audio: proporcionamos un ingeniero que mezcla el FOH y los monitores desde el FOH. Coordinen con anticipación si van a traer su propio ingeniero. Todos los ingenieros deben mezclar dentro del límite de la ordenanza de 95 dBA-Slow; el ingeniero de Fountain Square puede reducir el volumen de los amplificadores en el escenario si es necesario.
-- Iluminación: proporcionamos un LD (diseñador de iluminación) de la casa.
-- El plano de escenario / lista de entradas, escenario plano o con plataforma para batería, cantidad de monitores y cualquier elemento escenográfico — todo se indica en el formulario.""",
+- Backline / instrumentación: ustedes proporcionan todos los instrumentos, incluyendo amplificadores y cables de 1/4".
+- Audio: proporcionamos un ingeniero que mezcla el FOH y los monitores desde el FOH. Coordinen con anticipación si van a traer su propio ingeniero. Todos los ingenieros mezclan dentro del límite de la ordenanza de 95 dBA-Slow, y el ingeniero de Fountain Square puede poner baffles a los amplificadores para reducir el volumen del escenario si es necesario.
+- Iluminación: proporcionamos un diseñador de iluminación (LD) de la casa.
+- En el formulario: plano de escenario / lista de entradas, escenario plano o con plataforma para batería, cantidad de monitores y cualquier elemento escenográfico.""",
         "hospitality": """\
 Hospitalidad y sitio:
-- Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el banco; nosotros proporcionamos una carpa junto al escenario con una mesa y sillas.
-- Camerinos: no contamos con camerinos bajo techo; a solicitud podemos proporcionar una carpa de 10×10 con paredes laterales para un espacio privado de la banda.
-- Hospitalidad: se proporcionan boletos de bebida y agua para todos los artistas y el equipo de trabajo.""",
+- Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el fondo de caja; nosotros proporcionamos una carpa junto al escenario con una mesa y sillas.
+- Camerinos: no contamos con camerinos bajo techo, pero a solicitud podemos proporcionar una carpa de 10×10 pies con paredes laterales como espacio privado para la banda.
+- Hospitalidad: proporcionamos vales de bebida y agua para todos los artistas y el equipo de trabajo.""",
         # 3rd-party — see hospitality_third_party in VENUE_EMAIL (English) above.
         "hospitality_third_party": """\
 Hospitalidad y sitio:
-- Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el banco; nosotros proporcionamos una carpa junto al escenario con una mesa y sillas.
-- Camerinos: no contamos con camerinos bajo techo; a solicitud podemos proporcionar una carpa de 10×10 con paredes laterales para un espacio privado de la banda.
-- Hospitalidad: se proporciona agua para todos los artistas y el equipo de trabajo.""",
-        "requirements": "- Límite de sonido: estricto 95 dBA-Slow en la posición de FOH, para todos los ingenieros (de la casa o del talento).",
+- Mercancía: si van a vender, ustedes proporcionan el vendedor, el punto de venta y el fondo de caja; nosotros proporcionamos una carpa junto al escenario con una mesa y sillas.
+- Camerinos: no contamos con camerinos bajo techo, pero a solicitud podemos proporcionar una carpa de 10×10 pies con paredes laterales como espacio privado para la banda.
+- Hospitalidad: proporcionamos agua para todos los artistas y el equipo de trabajo.""",
+        "requirements": "- Límite de sonido: máximo estricto de 95 dBA-Slow en la posición de FOH, para todos los ingenieros (de la casa o de la banda).",
     },
     # Add other venues here as Brian asks for them in Spanish.
 }
