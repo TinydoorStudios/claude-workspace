@@ -119,7 +119,36 @@ offers the staff fill link.
   send the form link from the booking page, and the T-3 "no answer" alert still
   fires, treated like a manual show. `venue_email.VENUE_EMAIL["Memorial Hall"]`
   is DRAFT copy for when it's turned on.
-- **Tests:** `tools/staging/test_memo.py` (32 checks) against the staging clone.
+- **Band changes are asked, not applied:** a band save that changes an answer
+  staff already settled is HELD in the `memo_decisions` table
+  (`advance_db.add_memo_decisions`), not merged. Each held change shows on Doc Review
+  (Keep current / Use new), in the dashboard count, as a banner on the staff form,
+  and triggers an internal email. Staff saves apply as typed; a blank never erases.
+- **Internal notes:** staff-only (`internal_notes` in `memo_fields.py`). Prints on the
+  doc, never rendered on the band's form. Budgets and deals go here and nowhere else.
+- **Crew slots:** a staffing-sheet "1" means TBD. Stage Hand ×2 and Stage Support ×3
+  slots are left open when the sheet has fewer names; Memo Lead (Joe · 216-288-7269)
+  always prints last.
+- **Paused venues don't run emails:** a Memo booking never triggers the on-demand
+  email run (that run sends OTHER shows' due mail). The staff "New booking" summary
+  still sends on every booking-page save.
+- **Booking a Memo show with no email:** `tools/memo_shows/book_amn.py` writes the
+  bookings/artist/show rows and a staff submission straight to the DB from an answers
+  JSON (`amn_answers.json` is the A Man Named Cash example), marks the show manual, and
+  registers the riders as uploads. Run on the VM from `/opt/band-advance` with
+  `advance.env` loaded. `tools/memo_shows/render_holly.py` draws a sample fill for
+  review; `tools/memo_shows/samples/` holds reference PDFs. First real show through it:
+  A Man Named Cash, 10/16/26 (show 4654, booking 77).
+- **Doc-ingest workflow (redlined riders and plots):** red Acrobat markup wins over the
+  black print; "Print to PDF" text is outlined, so read it from the page image. Extract,
+  show Brian for approval, then load as a staff save. Processed backline is marked
+  "Backline ordered" on the advance and not listed.
+- **Gotchas:** loading a band's `/s/` link stamps first-opened on the dashboard, so
+  check with the `/f/` token or the test client. Memo files read 0 bytes on the Mac
+  (Dropbox online-only), read them on the VM. `tools/staging/pages.sh` exports through
+  Word and occasionally hangs; quitting Word clears it. Staging needs a fresh
+  `setup.sh` before every `run_tests`.
+- **Tests:** `tools/staging/test_memo.py` (52 checks) against the staging clone.
 
 ## The shape
 

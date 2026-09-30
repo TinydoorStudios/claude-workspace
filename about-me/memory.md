@@ -48,6 +48,12 @@ Reference notes moved to the KB 2026-08-11 — canonical source is `Live Sound K
 
 ## Session Notes
 
+### 2026-09-29 — Memorial Hall advance: form, doc, filing (live)
+Memo now has its own advance. The two old Memo docs became one branded, one-page Prod Adv. It has a one-artist and a two-artist layout; the two-artist version is used when a second act is booked under the same Event Name. Memo also has its own form. All questions are Yes/No, and the IEM and engineer follow-ups work like FSQ's. Staff-only sections are hidden from the band. The form has seven multi-file upload boxes, and every save adds to the same record. Docs and uploads are filed into the team's per-show folder (`<MM.YYYY> MEMO/<MM.DD.YY> <Event>/`). Uploads are renamed by date + act + type. Crew comes from the staffing sheet's Memorial Hall block. Memo's welcome goes out at 30 days, with chases at 15/10/7/5/3/2/1. The welcome is PAUSED until Brian approves the copy. Staging passed 158/158, 620/620 and 42/42; deployed as 92ec8a2. Later that night: band changes to settled answers are held for Brian (5e6009d), staff-only Internal notes, and the first real show, A Man Named Cash (10/16/26), booked with no emails. Scripts, sample fills and superseded drafts now live in `Code/BandInfoForm/tools/memo_shows/` and `_superseded/memo-drafts-2026-09-29/` (moved out of Handoffs). Auto-memory `[[memo-advance-doc]]`; system notes in ARCHITECTURE.md.
+
+### 2026-09-29 — Memorial Hall tech specs, Version 1
+Rebuilt Memo's production specs from Brian's "2026 edit" .docx into a branded 10-page spec sheet: page 1 is contacts + an At a Glance table, then Stage, Load-in/Power, Audio, Lighting, Video, Backline, Dressing Rooms, Terms, with all 23 source photos kept and captioned. Avenir Next, Memo purple/gray, Memo wordmark header, 3CDC footer. Files + generator in `audio/Memorial Hall/Tech Specs/` (`build_v1.py` → .docx, Word exports the PDF). Brian chose the SPL wording "95 dBA LAeq (6-minute), balcony center" for Memo. Not yet folded into techpack.py / memorial-hall.json.
+
 ### 2026-09-29 — Snidely Whiplash (FSQ 09-30) deep build
 Rev 1.0 packet + .ses built and committed (17845f4); all PASS. All five vocals hold the FSQ template curve (Brian) — written as FLAT bands + HPF 184.4 so the template passes through byte-exact. Dry-air posture (27–43% RH). Carole King PENDING items (8) approved and written to KB articles. Not yet published — waits for Brian's go.
 
