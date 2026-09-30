@@ -157,7 +157,26 @@ Hospitality & Site:
 - Hospitality: water is provided for all performers and crew.""",
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
-    # Add Memorial Hall / etc. here as Brian supplies the content.
+    # Memorial Hall (2026-09-29) — DRAFT copy from the two old Memo advance
+    # docs; Brian to review before the first Memo welcome goes out. Indoor
+    # theater: house console/LD, real dressing rooms, no outdoor-tent lines.
+    "Memorial Hall": {
+        "location": "Memorial Hall – Theater; 1225 Elm St, Cincinnati, OH 45202",
+        "load_in": """\
+Load-In & Parking:
+Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive. We'll confirm parking and passes once we know how many vehicles you're bringing — note it on the form.""",
+        "technical": """\
+Technical:
+- Audio: house DiGiCo Quantum 225 with a house engineer; tell us on the form if you're bringing your own engineer or console.
+- Lighting: house LD on the Memorial Hall console unless you're bringing an LD or a ground package.
+- The house grand piano and a drum riser are available on request.
+- Stage plot, input list, riders and any other files: upload as many as you need on the form.""",
+        "hospitality": """\
+Hospitality & Site:
+- Dressing rooms are indoors; coffee and tea set-ups are in the dressing rooms.
+- Merch, hospitality, hotel, runner and ground transportation: let us know on the form.""",
+        "requirements": "",
+    },
 }
 
 # Spanish translation of VENUE_EMAIL — draft, 2026-09-12, Fountain Square

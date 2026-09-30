@@ -69,6 +69,58 @@ automatically after a sync) writes `Nyquist/show-packet-status.json`; Dropbox ca
 Wiki — so one sheet answers both "has the band advanced" and "is the FOH paperwork built".
 Nothing in the database changed for this; the key is computed, not stored.
 
+## Memorial Hall: its own form, doc and folder (2026-09-29)
+
+Memo books through the same `/booking` page, lifecycle and short links as every
+other venue, but the band's link opens **`templates/memo_form.html`**, not the
+universal form. One spec drives everything: **`app/memo_fields.py`** (sections,
+fields, band vs staff audience, upload buckets). A signed-in staff member sees
+every field, so Brian can fill a show end to end; the band's link shows only
+their questions. After a Memo booking is saved, the confirmation page always
+offers the staff fill link.
+
+- **Many hands:** every save (`POST /memo/submit`) is a new submission with
+  `data._form = "memo"` holding only what that person sent. The form and the doc
+  read `memo_fields.merge()` of all of them oldest → newest: a later non-blank
+  answer wins, a blank never erases. Staff-only fields are taken only from a
+  signed-in session carrying its CSRF token.
+- **Files:** seven upload buckets, each `multiple`, 25 MB per file, 95 MB per
+  request (`MAX_CONTENT_LENGTH`, raised for everyone; Cloudflare caps at 100).
+  One `files` row per file with its bucket as `kind`; the submission's
+  `memo_files` list carries them. `stage_plot_file` is never set on a Memo
+  submission, so the universal stage-plot filing loops skip Memo.
+- **Doc + folder:** `tools/memo_doc.py` (spawned after every Memo save; also the
+  Memo branch at the top of `docmerge.file_event_doc`, so package_run/regen reach
+  it too) files into the team's per-show folder
+  `3CDC Memorial Hall/<MM.YYYY> MEMO/<MM.DD.YY> <Event>/`, reusing a folder the
+  team already made for that show. The doc is `MEMO Adv - <Event>.docx`, drawn
+  fresh by `build_memo_template.build_advance(..., Values)`, the same code that
+  draws the blank templates. Uploads are filed as `<MM.DD.YY> <Act> Stage Plot.pdf`
+  (Input List, Tech Rider, Hospitality Rider, Lighting Plot and Notes, Video
+  Projection Content; a second file in a bucket gets ` 2`); "Anything else" keeps
+  the name it was sent with. Bytes already in the folder are never copied twice.
+  A filled two-artist doc draws in a compact profile so it stays on one page.
+  A hash ledger (`data/memo_docs.json`) spots a hand-edited doc; it is never
+  overwritten, the new version lands beside it as `(updated MMDDYY-HHMM)`.
+- **Bill:** acts = Memo shows (and booking-only acts) on the same date with the
+  same booking Event Name. One act → one-artist layout; a second act → the
+  two-artist layout. Three or more: first two on the doc plus a notice.
+- **Crew:** staffing sheet Memorial Hall block — Mix → FOH/Monitors, Tech → LX,
+  Stagehand → 2 Stage Hand slots, Stage Support → 3 slots, Other → Additional
+  Info; Video and Memo Lead (default Joe) are typed on the form; a staff "Crew
+  override" box beats the sheet. Curfew = End of Show + 90 min when blank.
+- **Follow-ups:** `show_if` in the spec gives the FSQ-style chains (IEMs → how
+  many / own rig → split; own FOH/monitor engineer → name; backline → what;
+  risers → how many, each 4' x 8' x 1'). A follow-up is only parsed while its
+  question is answered that way.
+- **Email ladder:** `advance_db.VENUE_LADDERS` — Memo welcomes at 30 days and
+  chases at 15/10/7/5/3/2/1 (others: 21 and 10/7/3/1). Memo is `paused` as of
+  2026-09-29: no automatic welcome (so no chase/schedule/day-ahead either); staff
+  send the form link from the booking page, and the T-3 "no answer" alert still
+  fires, treated like a manual show. `venue_email.VENUE_EMAIL["Memorial Hall"]`
+  is DRAFT copy for when it's turned on.
+- **Tests:** `tools/staging/test_memo.py` (32 checks) against the staging clone.
+
 ## The shape
 
 A **front half Nyquist drives** (batch intake → draft emails → you send) and a

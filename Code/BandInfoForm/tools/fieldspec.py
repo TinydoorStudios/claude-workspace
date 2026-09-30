@@ -17,7 +17,7 @@ from pathlib import Path
 
 VENUES = [
     "Fountain Square", "Washington Park", "Elm Street Plaza",
-    "Court Street Plaza", "Zeigler Park", "Imagination Alley",
+    "Court Street Plaza", "Zeigler Park", "Imagination Alley", "Memorial Hall",
 ]
 # SLOTS (opener / direct_support / headliner) retired 2026-09-15 — an act's
 # position on the bill is Artist 1/2/3, derived from its set start time. See

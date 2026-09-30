@@ -361,7 +361,8 @@ def shows_due_for_initial_advance(cur):
                              WHERE sub.show_id = s.id AND sub.source <> 'staff')
              AND s.show_date IS NOT NULL
              AND s.show_date >= CURRENT_DATE
-             AND s.show_date <= CURRENT_DATE + 21
+             AND s.show_date <= CURRENT_DATE + """ + _welcome_window_sql() + """
+             AND """ + _paused_sql() + """
              AND b.skip_welcome_email IS NOT TRUE
              -- a "draft, don't send" welcome that's already sitting in the
              -- drafts folder isn't due again; un-ticking the box clears the
@@ -409,8 +410,63 @@ SCHEDULE_TIER = 7
 # most one of these emails per run no matter how many tiers are open.
 CHASE_TIERS = tuple(t for t in FOLLOWUP_TIERS if t != SCHEDULE_TIER)
 
+# Per-venue ladders (Brian, 2026-09-29): Memorial Hall's welcome goes out 30
+# days out and chases at 15/10/7/5/3/2/1. Every other venue keeps the default
+# above (welcome at 21, chases at 10/7/3/1). Tier 7 stays the confirmed-
+# schedule email everywhere. A venue not listed here runs the default.
+DEFAULT_WELCOME_DAYS = 21
+# "paused": no welcome goes out automatically (and so no chase, schedule or
+# day-ahead email either — they all wait on the welcome). Brian, 2026-09-29:
+# Memo's welcome copy is on hold; staff send the show's form link by hand.
+# Flip it to False (and review venue_email's Memo block) to turn Memo on.
+VENUE_LADDERS = {
+    "Memorial Hall": {"welcome": 30, "tiers": (15, 10, 7, 5, 3, 2, 1), "paused": True},
+}
+
+
+def welcome_paused(venue):
+    return bool(VENUE_LADDERS.get((venue or "").strip(), {}).get("paused"))
+
+
+def welcome_days(venue):
+    return VENUE_LADDERS.get((venue or "").strip(), {}).get("welcome", DEFAULT_WELCOME_DAYS)
+
+
+def tiers_for(venue):
+    return VENUE_LADDERS.get((venue or "").strip(), {}).get("tiers", FOLLOWUP_TIERS)
+
+
+# every chase tier any venue runs, widest first — app.py's follow-up loop walks this
+ALL_CHASE_TIERS = tuple(sorted({t for t in FOLLOWUP_TIERS if t != SCHEDULE_TIER}
+                               | {t for v in VENUE_LADDERS.values() for t in v["tiers"]
+                                  if t != SCHEDULE_TIER}, reverse=True))
+
+
+def _welcome_window_sql(col="s.venue"):
+    """SQL for 'this show's welcome window in days', per VENUE_LADDERS."""
+    whens = " ".join(f"WHEN {col} = '{v}' THEN {c['welcome']}"
+                     for v, c in VENUE_LADDERS.items() if "'" not in v)
+    return f"(CASE {whens} ELSE {DEFAULT_WELCOME_DAYS} END)" if whens else str(DEFAULT_WELCOME_DAYS)
+
+
+def _paused_sql(col="s.venue"):
+    """SQL: this show's venue isn't on a paused welcome."""
+    paused = [v for v, c in VENUE_LADDERS.items() if c.get("paused") and "'" not in v]
+    return (f"COALESCE({col}, '') NOT IN (" + ", ".join(f"'{v}'" for v in paused) + ")"
+            if paused else "TRUE")
+
+
+def _tier_venue_sql(tier):
+    """(sql, params) limiting a tier's due query to the venues whose ladder has it."""
+    custom = list(VENUE_LADDERS)
+    having = [v for v, c in VENUE_LADDERS.items() if tier in c["tiers"]]
+    default_has = tier in FOLLOWUP_TIERS
+    return ("(s.venue = ANY(%s::text[]) OR (%s::boolean AND COALESCE(s.venue, '') <> ALL(%s::text[])))",
+            [having, default_has, custom])
+
 
 def shows_due_for_followup(cur, days_before=7):
+    vsql, vparams = _tier_venue_sql(days_before)
     """Shows within `days_before` days of their date with no response and no
     reminder resolved yet AT THIS TIER (advance_reminders is keyed per
     show+tier, so each of FOLLOWUP_TIERS gates independently). 'Resolved'
@@ -440,9 +496,10 @@ def shows_due_for_followup(cur, days_before=7):
                              WHERE r.show_id = s.id AND r.days_before = %s)
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
+             AND """ + vsql + """
              AND NOT """ + THIRD_PARTY_SILENT_SQL + """
            ORDER BY s.id, b.id DESC NULLS LAST""",
-        (days_before, days_before),
+        (days_before, days_before, *vparams),
     )
     return sorted(cur.fetchall(), key=lambda r: (r["show_date"], r["show_id"]))
 
@@ -614,7 +671,7 @@ def mark_schedule_sent(cur, show_id, sent=True, chased=False):
         )
 
 
-def mark_stale_followup_tiers_skipped(cur, show_id, days_out):
+def mark_stale_followup_tiers_skipped(cur, show_id, days_out, venue=None):
     """Live-send migration (Brian, 2026-09-13): right after a show's welcome
     sends, pre-skip — for good, never reconsidered — any FOLLOWUP_TIERS
     mark that's already on or before TODAY relative to `days_out` (the
@@ -626,12 +683,16 @@ def mark_stale_followup_tiers_skipped(cur, show_id, days_out):
     as their own date arrives. No-ops if days_out is None (no show_date)."""
     if days_out is None:
         return
+    if venue is None:
+        cur.execute("SELECT venue FROM shows WHERE id=%s", (show_id,))
+        row = cur.fetchone()
+        venue = row["venue"] if row else None
     # Review 2026-09-14 (M1): a band booked 4 days out used to get the
     # welcome, the 3-day reminder the next morning and the 1-day reminder two
     # days later. No band-facing reminder fires within 48 hours of the
     # welcome: a tier is skipped when its day is less than 2 days after
     # today, i.e. tier > days_out - 2.
-    for tier in FOLLOWUP_TIERS:
+    for tier in tiers_for(venue):
         if tier > days_out - 2:
             cur.execute(
                 "INSERT INTO advance_reminders (show_id, days_before, sent) "
@@ -672,7 +733,9 @@ def shows_due_for_unresponded_alert(cur, days_before=3):
              AND (
                   (s.advance_draft_created_at IS NOT NULL
                    AND s.advance_draft_created_at <= now() - interval '24 hours')
-               OR (b.skip_welcome_email IS TRUE AND s.advance_draft_created_at IS NULL
+               -- a paused-welcome venue (Memo) is staff-sent like a manual show
+               OR ((b.skip_welcome_email IS TRUE OR NOT """ + _paused_sql() + r""")
+                   AND s.advance_draft_created_at IS NULL
                    AND COALESCE(b.created_at, s.created_at) <= now() - interval '24 hours')
              )
            ORDER BY s.id, b.id DESC NULLS LAST""",
@@ -1672,7 +1735,7 @@ def update_booking(cur, booking_id, data: dict):
     new_d, old_d = vals.get("event_date") or before.get("event_date"), before.get("event_date")
 
     def _win(d):
-        return bool(d) and 0 <= (d - today).days <= 21
+        return bool(d) and 0 <= (d - today).days <= welcome_days(vals.get("venue") or before.get("venue"))
     cur_show = (show_for_booking(cur, vals.get("artist_name"), vals.get("venue"), new_d)
                 or show_for_booking(cur, before.get("artist_name"), before.get("venue"), old_d))
     contacted = bool(vals.get("skip_welcome_email")) or bool(
@@ -2771,7 +2834,7 @@ def needs_attention(cur):
                     "link_path": None, "since": f["created_at"]})
     cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date FROM shows s
                    JOIN artists a ON a.id=s.artist_id
-                   WHERE s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 21
+                   WHERE s.show_date BETWEEN CURRENT_DATE AND CURRENT_DATE + """ + _welcome_window_sql() + """
                      AND s.cancelled_at IS NULL AND s.held_at IS NULL AND s.responded_at IS NULL
                      AND COALESCE(a.last_email, '') = ''
                      -- 2026-09-21 sweep (PRIOR-16): a 3rd-party show that opted in

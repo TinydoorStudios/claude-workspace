@@ -51,7 +51,7 @@
     {% if will_notify %}
     <p class="hint" style="margin:0">{{ saved.artist_name }} will get an "info changed" email listing these at the next daily run — or, if their welcome hasn't gone out yet, the welcome carries the new details instead.</p>
     {% else %}
-    <p class="hint" style="margin:0">No email goes out for this change (not yet inside the 21-day window, or a contact-only field).</p>
+    <p class="hint" style="margin:0">No email goes out for this change (not yet inside the welcome window, or a contact-only field).</p>
     {% endif %}
     {% else %}
     <p class="hint" style="margin-top:0">No band-facing fields changed — nothing to notify the band about.</p>
@@ -66,16 +66,16 @@
   </div>
   {% if fill_link %}
   <div class="card" style="border-color:rgba(77,163,255,.4)">
-    <p class="hint" style="margin-top:0;color:#e6edf3;font-size:14px">{% if silent_third %}3rd-party event — {{ saved.artist_name }} won't be emailed. Fill in the advance yourself here:{% else %}Welcome email skipped — {{ saved.artist_name }} won't be emailed. Fill in their advance yourself here, right now, from what they sent you:{% endif %}</p>
+    <p class="hint" style="margin-top:0;color:#e6edf3;font-size:14px">{% if is_memo %}Memorial Hall advance — fill in everything you have now (schedule, crew, rooms, money, any band details and files). {% if saved.skip_welcome_email or welcome_paused %}No welcome email will go out{% if welcome_paused and not saved.skip_welcome_email %} (Memorial Hall welcome emails are paused){% endif %} — send the band this link yourself; it opens the same record, showing only their questions.{% else %}The band's own link opens this same record, showing only their questions.{% endif %}{% elif silent_third %}3rd-party event — {{ saved.artist_name }} won't be emailed. Fill in the advance yourself here:{% else %}Welcome email skipped — {{ saved.artist_name }} won't be emailed. Fill in their advance yourself here, right now, from what they sent you:{% endif %}</p>
     <p style="margin:12px 0"><a class="btn" href="{{ fill_link }}" target="_blank" rel="noopener" style="font-size:15px">{{ fill_link }}</a></p>
-    <p class="hint">Venue{% if saved.event_date %} and date{% endif %} are already filled in and locked; everything else is blank for you to type in.</p>
+    <p class="hint">Venue{% if saved.event_date %} and date{% endif %} are already filled in and locked; {% if is_memo %}come back to this link any time — every save adds to the same show.{% else %}everything else is blank for you to type in.{% endif %}</p>
   </div>
   {% endif %}
   <div class="card">
-    {% if saved.skip_welcome_email or silent_third %}
+    {% if saved.skip_welcome_email or silent_third or welcome_paused %}
     <p class="hint" style="margin-top:0">Sheet seed, advance doc, and venue-tree filing are running now — same as any booking. No welcome email will go out for this one.</p>
     {% elif urgent %}
-    <p class="hint" style="margin-top:0">This show is inside the 21-day window already — running right now, not waiting for the next daily check. Seeding the sheet, building the advance doc, filing it into the venue tree, and sending the advance email via Outlook. Usually a couple minutes.</p>
+    <p class="hint" style="margin-top:0">This show is inside the {{ welcome_days or 21 }}-day window already — running right now, not waiting for the next daily check. Seeding the sheet, building the advance doc, filing it into the venue tree, and sending the advance email via Outlook. Usually a couple minutes.</p>
     {% else %}
     <p class="hint" style="margin-top:0">This is already running in the background — seeding the sheet, building the advance doc, and filing it into the venue tree. The initial advance email sends itself via Outlook on the next daily check.</p>
     {% endif %}
@@ -519,6 +519,10 @@
     field.style.display = show ? 'block' : 'none';
     loc.required = show;
     if (!show) { loc.value = ''; }
+    // Memorial Hall has its own advance form (opened after saving), so the
+    // universal band-answers section doesn't apply there (2026-09-29)
+    var ba = document.getElementById('band_answers');
+    if (ba) { ba.style.display = venue.value === 'Memorial Hall' ? 'none' : ''; }
   }
   onVenueChange();
   function onManualChange() {

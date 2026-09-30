@@ -41,7 +41,7 @@ NEW_SHA="$(git -C "$HERE" rev-parse HEAD)"
 # ("app/") that doesn't match its remote path, keyed by the first path
 # component, so it stays a single source of truth instead of a second
 # hardcoded file list that could drift from this one.
-APP_FILES=(app.py advance_db.py forms_config.py i18n.py es_translate.py mailer.py status_labels.py brand.py)
+APP_FILES=(app.py advance_db.py forms_config.py i18n.py es_translate.py mailer.py status_labels.py brand.py memo_fields.py)
 TOOLS_FILES=(
   draft_emails.py backfill.py event.py daysheet.py sheet.py import_sheet.py fieldspec.py
   build_template.py status_sheet.py package_run.py venue_email.py staffing.py
@@ -49,7 +49,7 @@ TOOLS_FILES=(
   run_again.py status_log.py daily_digest.py crew_report.py regen_show.py finalize_thankyou.py
   docmerge.py holds.py migrate_filed_docs.py import_riffpay.py dayahead.py booking_update.py
   doc_review.py missing_reports.py backfill_doc_columns.py backfill_stageplot_links.py
-  brand_docx.py
+  brand_docx.py build_memo_template.py memo_doc.py
 )
 TOOLS_DIRS=(email_templates lists doc_templates staging)
 SHIPPED_FILES=("${APP_FILES[@]}" requirements.txt db/schema.sql)

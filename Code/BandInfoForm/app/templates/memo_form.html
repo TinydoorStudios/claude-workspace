@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memorial Hall Advance — 3CDC</title>
+{# Memorial Hall advance (2026-09-29). Fields come from app/memo_fields.py;
+   staff (signed in) see every section, the band's link sees theirs. #}
+{% set th = brand_theme.get(venue) or brand_theme.get('_default') or {} %}
+<style>
+  :root{
+    color-scheme: light;
+    --venue:{{ th.primary or '#A7A8AA' }}; --venue2:{{ th.secondary or '#853694' }};
+    --accent:{{ th.accent or '#853694' }};
+    --btn:{{ th.button_bg or '#853694' }}; --btnfg:{{ th.button_fg or '#FFFFFF' }};
+    --ink:#595A5C; --muted:#6B6C6E; --line:#D9D9DB; --bg:#F2F2F2; --card:#FFFFFF;
+    --card2:#F7F7F8; --req:#C42033; --gap:22px;
+    --body:'Avenir Next',Avenir,'Segoe UI',Helvetica,Arial,sans-serif;
+    --head:'Avenir Next Condensed','Avenir Next',Avenir,'Arial Narrow',Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px 64px;}
+  header{background:#fff;border-top:6px solid var(--venue);border-bottom:1px solid var(--line);
+    padding:22px 0 20px;margin-bottom:24px;}
+  header .wrap{padding-bottom:0;}
+  .logos{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;}
+  .logos img{display:block;height:30px;width:auto;}
+  .logos .venue{height:28px;max-width:60%;object-fit:contain;object-position:right;}
+  header h1{margin:0;font-family:var(--head);font-size:24px;font-weight:600;letter-spacing:.3px;
+    text-transform:uppercase;color:var(--accent);}
+  header p{margin:6px 0 0;font-size:14px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:28px 26px;
+    box-shadow:0 1px 2px rgba(16,24,40,.04);}
+  .banner{border-radius:6px;padding:14px 16px;font-size:14px;margin-bottom:18px;}
+  .banner.staff{background:#FFF6DC;border:1px solid #F2D27A;color:#6B4E00;}
+  .banner.ok{background:#EEF6E0;border:1px solid #C8DA9A;color:#4A5A12;}
+  .field{margin-bottom:var(--gap);}
+  label.q{display:block;font-weight:600;font-size:15px;margin-bottom:6px;}
+  .req{color:var(--req);margin-left:2px;}
+  .help{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.4;}
+  input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],
+  input[type=time],textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+    font:inherit;color:var(--ink);background:#fff;}
+  input:focus,textarea:focus{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);}
+  textarea{min-height:80px;resize:vertical;}
+  .opts{display:flex;flex-wrap:wrap;gap:8px 18px;}
+  .opts label{display:flex;align-items:center;gap:7px;font-size:15px;cursor:pointer;}
+  .opts input{width:17px;height:17px;margin:0;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+  .section{margin:34px 0 18px;padding-bottom:8px;border-bottom:3px solid var(--venue2);
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+  .section:first-of-type{margin-top:4px;}
+  .section h2{margin:0;font-family:var(--head);font-size:16px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--accent);}
+  .tag{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+    background:#FFF6DC;color:#6B4E00;border:1px solid #F2D27A;border-radius:3px;padding:1px 6px;}
+  .upl{border:1px dashed var(--line);border-radius:8px;padding:12px 14px;margin-bottom:12px;background:var(--card2);}
+  .upl label.q{margin-bottom:4px;font-size:14px;}
+  input[type=file]{width:100%;font-size:14px;}
+  .picked{font-size:13px;color:var(--muted);margin:4px 0 0;}
+  .onfile{font-size:13.5px;margin:0 0 16px;padding:10px 14px;background:var(--card2);
+    border:1px solid var(--line);border-radius:8px;}
+  .onfile ul{margin:6px 0 0;padding-left:18px;}
+  .locked{background:#EDEDEE;color:var(--muted);}
+  button{background:var(--btn);color:var(--btnfg);border:0;border-radius:4px;padding:13px 26px;
+    font-family:var(--head);font-size:16px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
+    cursor:pointer;margin-top:26px;}
+  button:disabled{opacity:.6;cursor:default;}
+  .hp{position:absolute;left:-9999px;}
+  .conditional{border-left:3px solid var(--accent);padding:12px 12px 2px 14px;margin-left:2px;
+    background:color-mix(in srgb, var(--accent) 6%, #fff);border-radius:0 8px 8px 0;}
+  .hidden{display:none;}
+  @media (max-width:520px){.grid2{grid-template-columns:1fr;}.card{padding:22px 16px;}}
+</style>
+</head>
+<body>
+{% macro v(name) %}{{ prefill.get(name, '') }}{% endmacro %}
+<header><div class="wrap">
+  <div class="logos">
+    <img src="/brand/3cdc-primary.png" alt="3CDC">
+    {% if th.logo %}<img class="venue" src="{{ th.logo }}" alt="Memorial Hall">{% endif %}
+  </div>
+  <h1>Memorial Hall Production Advance</h1>
+  <p>Please fill in what you can so we have everything we need for your show. You can come back
+     to this same link any time to add or change something, and upload as many files as you need.</p>
+</div></header>
+<div class="wrap">
+{% if saved %}<div class="banner ok">Saved. The advance doc in Dropbox updates in a minute or two.</div>{% endif %}
+{% if staff %}<div class="banner staff">Staff view: you can see and fill every section, including the
+  ones the artist never sees (marked <span class="tag">Staff</span>). Blank fields never erase what someone
+  else already entered.</div>{% endif %}
+{% if returning %}<div class="banner ok">Welcome back. We've filled in your answers from your last
+  Memorial Hall show, so just check them and change anything that's different.</div>{% endif %}
+
+<form class="card" id="memoform" action="{{ url_for('memo_submit') }}" method="post"
+      enctype="multipart/form-data"{{ ' novalidate' if staff else '' }}>
+  <input type="hidden" name="token" value="{{ token }}">
+  {% if staff %}<input type="hidden" name="csrf" value="{{ csrf_token() }}">{% endif %}
+  {% if artist_tok %}<input type="hidden" name="artist_token" value="{{ artist_tok }}">{% endif %}
+  <div class="hp" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+
+  <div class="section"><h2>Show</h2></div>
+  <div class="grid2">
+    <div class="field">
+      <label class="q">Artist / band name<span class="req">*</span></label>
+      <input type="text" name="band_name" value="{{ v('band_name') }}"{{ ' required' if not staff else '' }}
+             {{ 'readonly class=locked' if known_artist else '' }}>
+    </div>
+    <div class="field">
+      <label class="q">Show date<span class="req">*</span></label>
+      <input type="date" name="show_date" value="{{ show_date }}" required
+             {{ 'readonly class=locked' if locked_date else '' }}>
+    </div>
+  </div>
+
+  {% for sec in sections %}
+  <div class="section"><h2>{{ sec.title }}</h2>{% if staff and sec.staff_only %}<span class="tag">Staff</span>{% endif %}</div>
+  {% for fld in sec.fields %}
+  {% set k = fld.key %}
+  <div class="field{{ ' conditional' if fld.show_if else '' }}" data-key="{{ k }}"{% if fld.show_if %} data-show-if="{{ fld.show_if[0] }}" data-show-val="{{ fld.show_if[1] }}"{% endif %}>
+    <label class="q">{{ fld.label }}{% if staff and fld.audience == 'staff' and not sec.staff_only %} <span class="tag">Staff</span>{% endif %}</label>
+    {% if fld.kind in ('choice', 'yesno') %}
+      <div class="opts">
+      {% for o in fld.options %}
+        <label><input type="radio" name="{{ k }}" value="{{ o }}"{{ ' checked' if v(k) == o else '' }}> {{ o }}</label>
+      {% endfor %}
+      </div>
+    {% elif fld.kind == 'multi' %}
+      <input type="hidden" name="{{ k }}__seen" value="1">
+      <div class="opts">
+      {% for o in fld.options %}
+        <label><input type="checkbox" name="{{ k }}" value="{{ o }}"{{ ' checked' if o in (prefill.get(k) or []) else '' }}> {{ o }}</label>
+      {% endfor %}
+      </div>
+    {% elif fld.kind == 'textarea' %}
+      <textarea name="{{ k }}" placeholder="{{ fld.placeholder or '' }}">{{ v(k) }}</textarea>
+    {% elif fld.kind == 'time' %}
+      <input type="time" name="{{ k }}" value="{{ v(k) }}">
+    {% elif fld.kind == 'number' %}
+      <input type="number" min="0" name="{{ k }}" value="{{ v(k) }}">
+    {% else %}
+      <input type="{{ 'email' if k == 'contact_email' else 'tel' if k == 'contact_phone' else 'text' }}"
+             name="{{ k }}" value="{{ v(k) }}" placeholder="{{ fld.placeholder or '' }}">
+    {% endif %}
+    {% if fld.help %}<p class="help">{{ fld.help }}</p>{% endif %}
+  </div>
+  {% endfor %}
+  {% endfor %}
+
+  <div class="section"><h2>Files</h2></div>
+  <p class="help" style="margin:0 0 14px;">Upload as many files as you like in each box: PDF, image, Word or
+    Excel, up to {{ max_mb }} MB each. Everything goes straight to our production folder for your show.
+    For large video files, paste a download link in "Video content details" instead.</p>
+  {% if files %}
+  <div class="onfile"><strong>Already on file for this show</strong>
+    <ul>{% for fi in files %}<li>{{ upload_kinds.get(fi.kind, 'File') }}: {{ fi.filename }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  {% for name, label, kind in uploads %}
+  <div class="upl">
+    <label class="q" for="{{ name }}">{{ label }}</label>
+    <input type="file" id="{{ name }}" name="{{ name }}" multiple
+           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx">
+    <p class="picked" data-for="{{ name }}"></p>
+  </div>
+  {% endfor %}
+
+  <button type="submit" id="go">{{ 'Save' if staff else 'Submit advance' }}</button>
+</form>
+</div>
+<script>
+(function () {
+  var MAX = {{ max_mb }} * 1024 * 1024, TOTAL = 90 * 1024 * 1024;
+  var form = document.getElementById('memoform');
+  function sizes() {
+    var total = 0, bad = [];
+    form.querySelectorAll('input[type=file]').forEach(function (inp) {
+      var names = [];
+      Array.prototype.forEach.call(inp.files, function (f) {
+        total += f.size; names.push(f.name);
+        if (f.size > MAX) bad.push(f.name);
+      });
+      var p = form.querySelector('.picked[data-for="' + inp.name + '"]');
+      if (p) p.textContent = names.length ? names.length + ' file(s): ' + names.join(', ') : '';
+    });
+    return {total: total, bad: bad};
+  }
+  form.addEventListener('change', function (e) { if (e.target.type === 'file') sizes(); });
+
+  // follow-up questions (FSQ pattern): shown only while their question is
+  // answered the right way; hidden ones are cleared so they aren't sent
+  var conds = form.querySelectorAll('[data-show-if]');
+  function answer(name) {
+    var el = form.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+  function syncConds() {
+    conds.forEach(function (box) {
+      var parentBox = form.querySelector('[data-key="' + box.dataset.showIf + '"]');
+      var parentShown = !parentBox || !parentBox.classList.contains('hidden');
+      var show = parentShown && answer(box.dataset.showIf) === box.dataset.showVal;
+      box.classList.toggle('hidden', !show);
+      if (!show) {
+        box.querySelectorAll('input[type=radio],input[type=checkbox]').forEach(function (i) { i.checked = false; });
+        box.querySelectorAll('input[type=text],input[type=number],input[type=tel],textarea').forEach(function (i) { i.value = ''; });
+      }
+    });
+  }
+  form.addEventListener('change', function (e) { if (e.target.type === 'radio') syncConds(); });
+  syncConds(); syncConds();   // twice: a chain (IEMs -> own -> split) settles in two passes
+  form.addEventListener('submit', function (e) {
+    var s = sizes();
+    if (s.bad.length) { e.preventDefault(); alert('Too large (' + {{ max_mb }} + ' MB max each): ' + s.bad.join(', ')); return; }
+    if (s.total > TOTAL) { e.preventDefault(); alert('That\'s more than 90 MB in one go. Submit some files now and the rest after — the link stays open.'); return; }
+    document.getElementById('go').disabled = true;
+  });
+})();
+</script>
+</body>
+</html>

@@ -879,6 +879,11 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
     action in created|merged|unchanged|locked|past|conflict|dry-run, path,
     notices (list), hand_edited (bool), renamed_from (str|None), review
     (bool), applied (keys written from `force`)."""
+    if (ev.get("venue") or "").strip() == "Memorial Hall":
+        # Memo files its own doc into a folder per show (tools/memo_doc.py,
+        # 2026-09-29) — never the universal day-sheet into the month folder.
+        import memo_doc
+        return memo_doc.file_for_event(ev, acts, dry_run=dry_run, today=today)
     today = today or dt.date.today()
     d = ev.get("event_date")
     res = {"action": None, "path": None, "notices": [], "hand_edited": False,

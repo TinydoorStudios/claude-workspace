@@ -195,7 +195,9 @@ def summarize_submission(sub):
 # something the previous one didn't. Brian, 2026-09-24: the ask is always the
 # form or a reply to this email — never "call us".
 
-REMINDER_TIERS = (10, 7, 3, 1)
+# 15/5/2 are Memorial Hall's extra rungs (Brian, 2026-09-29: welcome at 30,
+# chases at 15/10/7/5/3/2/1); every other venue still runs 10/7/3/1.
+REMINDER_TIERS = (15, 10, 7, 5, 3, 2, 1)
 
 # What a band is still owing us, in words they'd use. Order is the order they
 # get listed; missing_for_show caps the list so a reminder stays readable on a
@@ -220,23 +222,35 @@ MISSING_LABELS = {
 }
 
 _TIER_LEAD = {
+    15: {"en": "We're about two weeks out from your show at {venue} on {day}, and we still need {missing}.",
+         "es": "Faltan unas dos semanas para su show en {venue} el {day} y todavía nos falta {missing}."},
     10: {"en": "We're ten days out from your show at {venue} on {day}, and we still need {missing}.",
          "es": "Faltan diez días para su show en {venue} el {day} y todavía nos falta {missing}."},
     7:  {"en": "One week out from your show at {venue} on {day}. We still need {missing}.",
          "es": "Falta una semana para su show en {venue} el {day}. Todavía nos falta {missing}."},
+    5:  {"en": "Five days out from {venue} on {day}, and we still need {missing}.",
+         "es": "Faltan cinco días para {venue} el {day} y todavía nos falta {missing}."},
     3:  {"en": "Three days out from {venue} on {day}, and we still need {missing}.",
          "es": "Faltan tres días para {venue} el {day} y todavía nos falta {missing}."},
+    2:  {"en": "Two days out from {venue} on {day}, and we still don't have {missing}.",
+         "es": "Faltan dos días para {venue} el {day} y todavía no tenemos {missing}."},
     1:  {"en": "Your show at {venue} on {day} is right on top of us and we still don't have {missing}.",
          "es": "Su show en {venue} el {day} ya está encima y todavía no tenemos {missing}."},
 }
 # The part that makes each tier different: what happens next if we don't get it.
 _TIER_THEN = {
+    15: {"en": "We need it by {deadline}.",
+         "es": "Lo necesitamos antes del {deadline}."},
     10: {"en": "We need it by {deadline}.",
          "es": "Lo necesitamos antes del {deadline}."},
     7:  {"en": "We need it by {deadline} to have your show built in time.",
          "es": "Lo necesitamos antes del {deadline} para armar su show a tiempo."},
+    5:  {"en": "We're past the deadline, and your show gets built from this paperwork this week.",
+         "es": "Ya pasó la fecha límite y su show se arma con esta información esta semana."},
     3:  {"en": "Your engineer builds your show from this paperwork the day before, so this is what's holding it up.",
          "es": "Su ingeniero arma su show con esta información el día anterior, así que esto es lo que lo detiene."},
+    2:  {"en": "Your show gets built tomorrow, so today is the last good day to send it.",
+         "es": "Su show se arma mañana, así que hoy es el último buen día para enviarlo."},
     1:  {"en": "If we don't hear back today, we'll set you up ad hoc on the day.",
          "es": "Si no tenemos noticias hoy, lo resolvemos sobre la marcha el día del show."},
 }
@@ -244,6 +258,10 @@ _TIER_THEN = {
 _PLOT_CLAUSE = {"en": "With no stage plot you get a generic patch and we sort the rest at soundcheck.",
                 "es": "Sin plano de escenario les armamos un patch genérico y resolvemos el resto en la prueba de sonido."}
 _TIER_ASK = {
+    15: {"en": ("The form takes about five minutes, and you can upload every file there:",
+                "If you've already sent this over, disregard. Replying to this email works too."),
+         "es": ("El formulario toma unos cinco minutos y ahí pueden subir todos sus archivos:",
+                "Si ya nos lo enviaron, ignoren este mensaje. También pueden responder a este correo.")},
     10: {"en": ("The form takes about five minutes:",
                 "If you've already sent this over, disregard. Replying to this email works too."),
          "es": ("El formulario toma unos cinco minutos:",
@@ -252,6 +270,14 @@ _TIER_ASK = {
                 "If you've already sent this over, disregard. Replying to this email works too."),
          "es": ("Todo va aquí:",
                 "Si ya nos lo enviaron, ignoren este mensaje. También pueden responder a este correo.")},
+    5:  {"en": ("Everything goes in here:",
+                "Or reply to this email with it and we'll enter it for you."),
+         "es": ("Todo va aquí:",
+                "O respondan a este correo con la información y nosotros la cargamos.")},
+    2:  {"en": ("Still the fastest way:",
+                "Or reply to this email with it and we'll enter it for you."),
+         "es": ("La forma más rápida sigue siendo esta:",
+                "O respondan a este correo con la información y nosotros la cargamos.")},
     3:  {"en": ("Still the fastest way:",
                 "Or reply to this email with it and we'll enter it for you."),
          "es": ("La forma más rápida sigue siendo esta:",
@@ -262,10 +288,16 @@ _TIER_ASK = {
                 "Respondan a este correo hoy con lo que tengan y lo cargamos.")},
 }
 _TIER_SUBJECT = {
+    15: {"with": "Two weeks out — your show details by {deadline}",
+         "without": "Two weeks out — we still need your show details"},
     10: {"with": "Reminder — we need your show details by {deadline}",
          "without": "Reminder — we still need your show details"},
     7:  {"with": "One week out — your show details by {deadline}",
          "without": "One week out — we still need your show details"},
+    5:  {"with": "Five days out — we still need your show details",
+         "without": "Five days out — we still need your show details"},
+    2:  {"with": "Two days out — we still need your show details",
+         "without": "Two days out — we still need your show details"},
     3:  {"with": "Three days out — your show details by {deadline}",
          "without": "Three days out — we still need your show details"},
     1:  {"with": "Last call — your show details by {deadline}",

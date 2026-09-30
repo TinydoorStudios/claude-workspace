@@ -30,6 +30,7 @@ from werkzeug.exceptions import HTTPException
 from itsdangerous import URLSafeTimedSerializer, URLSafeSerializer, BadData
 
 import forms_config
+import memo_fields
 import i18n
 import es_translate
 import mailer
@@ -78,7 +79,7 @@ TOOLS_DIR = BASE / "tools"
 
 app = Flask(__name__)
 app.secret_key = SECRET
-app.config["MAX_CONTENT_LENGTH"] = 30 * 1024 * 1024  # 30 MB cap on the stage-plot upload
+app.config["MAX_CONTENT_LENGTH"] = 95 * 1024 * 1024  # 95 MB/request: Memo takes several files (Cloudflare caps at 100)
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     # Strict, not Lax (audit 2026-09-16 security #4): every *.tinydoorstudios.com
@@ -158,13 +159,15 @@ def _upload_ext(upload):
     return safe_ext or orig_ext, safe, safe_ext
 
 
-def _upload_problem(upload):
+def _upload_problem(upload, what="Stage plot", max_bytes=None):
     """(status, message) when this stage plot would be refused, else None.
     2026-09-21 sweep (APPB-7): split out of _save_upload so the booking/edit
-    forms can refuse a bad file BEFORE they commit anything."""
+    forms can refuse a bad file BEFORE they commit anything. `what` names the
+    file in the message (Memo's upload buckets, 2026-09-29)."""
+    max_bytes = max_bytes or UPLOAD_MAX_BYTES
     ext = _upload_ext(upload)[0]
     if ext not in UPLOAD_MAGIC:
-        return 400, "Stage plot must be a PDF, image, Word, or Excel file."
+        return 400, f"{what} must be a PDF, image, Word, or Excel file ({upload.filename})."
     head = upload.stream.read(8)
     upload.stream.seek(0)
     if not any(head.startswith(sig) for sig in UPLOAD_MAGIC[ext]):
@@ -173,8 +176,9 @@ def _upload_problem(upload):
     upload.stream.seek(0, 2)  # SEEK_END
     size = upload.stream.tell()
     upload.stream.seek(0)
-    if size > UPLOAD_MAX_BYTES:
-        return 413, "Stage plot is too large (15 MB max) — please compress it and try again."
+    if size > max_bytes:
+        return 413, (f"{what} is too large ({max_bytes // (1024 * 1024)} MB max) — "
+                     "please compress it and try again.")
     return None
 
 
@@ -183,11 +187,11 @@ def _booking_upload_problem(files):
     return _upload_problem(up) if up and up.filename else None
 
 
-def _save_upload(upload, stamp, slug):
+def _save_upload(upload, stamp, slug, what="Stage plot", max_bytes=None):
     """Validate + save one uploaded stage plot. Returns (stored_name, dest)
     or aborts 400/413. Shared by both upload sites (/submit and the staff
     booking-answers path) so neither can drift from the other again."""
-    problem = _upload_problem(upload)
+    problem = _upload_problem(upload, what, max_bytes)
     if problem:
         abort(*problem)
     ext, safe, safe_ext = _upload_ext(upload)
@@ -284,6 +288,8 @@ def _inject_brand():
 
 @app.get("/")
 def form():
+    if (request.args.get("venue") or "").strip() == memo_fields.VENUE:
+        return _render_memo_form({"venue": memo_fields.VENUE}, {})
     cfg = forms_config.get_config(
         series_key=request.args.get("series"),
         venue=request.args.get("venue"),
@@ -379,6 +385,8 @@ def prefilled_form(token):
                 payload = {**payload, "a": cur_show["artist_id"]}
         except Exception as e:
             _log_db_error("prefill_show", e)
+    if (seed.get("venue") or "").strip() == memo_fields.VENUE:
+        return _render_memo_form(seed, payload, token=token, saved=bool(request.args.get("saved")))
     series = seed.get("series") or request.args.get("series")
     # An act's position on the bill used to tailor its form here — FSQ hid the
     # drum-riser question from openers and direct support. Every artist is asked
@@ -460,6 +468,209 @@ def prefilled_form(token):
         known_artist_id=known_artist_id, artist_tok=artist_token(known_artist_id),
         locked_venue=locked_venue, locked_date=locked_date,
     )
+
+
+# ── Memorial Hall: its own form, several files, many hands (2026-09-29) ─────
+# Memo doesn't use the universal band form. memo_fields.py is the one spec;
+# templates/memo_form.html renders it; tools/memo_doc.py files the doc and
+# every upload into the show's own Dropbox folder. A signed-in staff member
+# sees every field (Brian can fill a show end to end); the band's link shows
+# only the band's fields. Every save is a new submission marked _form=memo,
+# and the form always opens on the merged state of all of them, so whoever
+# comes next sees what's already in.
+MEMO_UPLOAD_MAX = 25 * 1024 * 1024
+
+
+def _memo_show_id(cur, seed, artist_id):
+    if seed.get("show_id"):
+        return int(seed["show_id"])
+    if artist_id and seed.get("date"):
+        s = advance_db.show_for_artist_at(cur, artist_id, memo_fields.VENUE, seed["date"])
+        return s["id"] if s else None
+    return None
+
+
+def _memo_state(cur, show_id):
+    cur.execute("""SELECT data FROM submissions WHERE show_id=%s AND data->>'_form' = %s
+                   ORDER BY submitted_at, id""", (show_id, memo_fields.FORM_KEY))
+    return memo_fields.merge([r["data"] for r in cur.fetchall()])
+
+
+def _render_memo_form(seed, payload, token=None, saved=False, status=200):
+    staff = bool(session.get("auth"))
+    prefill, files, artist_name, returning = {}, [], None, False
+    artist_id = payload.get("a")
+    show_id = None
+    if DB_OK and (artist_id or seed.get("show_id") or seed.get("band_name")):
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                if not artist_id and seed.get("band_name"):
+                    # the booking page's fill link carries no artist id (the
+                    # pipeline may not have made one yet): find it by name so a
+                    # second visit still opens on everything saved so far
+                    found = advance_db.find_artist_by_name(cur, seed["band_name"])
+                    artist_id = found["id"] if found else None
+                artist = advance_db.get_artist(cur, artist_id) if artist_id else None
+                artist_name = artist["name"] if artist else None
+                show_id = _memo_show_id(cur, seed, artist_id)
+                state = _memo_state(cur, show_id) if show_id else {}
+                if not any(k in state for k in memo_fields.BAND_KEYS) and artist_id:
+                    # returning band: their last Memo answers, band fields only
+                    cur.execute("""SELECT data FROM submissions WHERE artist_id=%s
+                                   AND data->>'_form' = %s ORDER BY submitted_at DESC LIMIT 1""",
+                                (artist_id, memo_fields.FORM_KEY))
+                    prior = cur.fetchone()
+                    if prior:
+                        returning = True
+                        for k in memo_fields.BAND_KEYS:
+                            if prior["data"].get(k) not in (None, "", []):
+                                state.setdefault(k, prior["data"][k])
+                files = state.pop("memo_files", [])
+                prefill.update(state)
+        except Exception as e:
+            _log_db_error("memo_prefill", e)
+    if artist_name or seed.get("band_name"):
+        prefill["band_name"] = artist_name or seed["band_name"]
+    for k in ("contact_name", "contact_email"):
+        if seed.get(k) and not prefill.get(k):
+            prefill[k] = seed[k]
+    sections = []
+    for title, _aud, fields in memo_fields.SECTIONS:
+        vis = [f for f in fields if staff or f["audience"] in ("band", "both")]
+        if vis:
+            sections.append({"title": title, "fields": vis,
+                             "staff_only": all(f["audience"] == "staff" for f in vis)})
+    return render_template(
+        "memo_form.html", sections=sections, uploads=memo_fields.UPLOADS,
+        upload_kinds=memo_fields.UPLOAD_KINDS, prefill=prefill, files=files,
+        staff=staff, token=token or "", saved=saved, returning=returning,
+        show_date=seed.get("date") or "", locked_date=bool(seed.get("date")),
+        series=seed.get("series") or "", artist_tok=artist_token(artist_id) if artist_id else "",
+        known_artist=bool(artist_id), venue=memo_fields.VENUE,
+        defaults=memo_fields.DEFAULTS, max_mb=MEMO_UPLOAD_MAX // (1024 * 1024),
+    ), status
+
+
+@app.post("/memo/submit")
+def memo_submit():
+    f = request.form
+    if (f.get("website") or "").strip():          # honeypot
+        return render_template("thanks.html", band=f.get("band_name"), venue=memo_fields.VENUE,
+                               lang="en", t=i18n.translator("en"))
+    # staff fields are only taken from a signed-in session that also carries
+    # its CSRF token — a cross-site post riding the cookie is treated as a band
+    staff = bool(session.get("auth")) and hmac.compare_digest(
+        (f.get("csrf") or "").encode("utf-8"), (session.get("csrf") or "").encode("utf-8"))
+    limited = False
+    if DB_OK and os.environ.get("ADVANCE_STAGING") != "1" and not staff:
+        try:
+            key = _submit_rate_key(_client_ip())
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                limited = advance_db.submit_rate_limited(cur, key)
+                if not limited:
+                    advance_db.record_submit_attempt(cur, key)
+                conn.commit()
+        except Exception as e:
+            _log_db_error("memo_rate_limit", e)
+    if limited:
+        abort(429)
+
+    token = (f.get("token") or "").strip()
+    payload = read_prefill_token(token) or {} if token else {}
+    seed = payload.get("s") or {}
+    verified_artist_id = verify_artist_token(f.get("artist_token"))
+    band_name = (f.get("band_name") or "").strip()[:300].strip()
+    show_date = (seed.get("date") or f.get("show_date") or "").strip()[:10]
+    if not band_name and verified_artist_id and DB_OK:
+        try:
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                band_name = (advance_db.get_artist(cur, verified_artist_id) or {}).get("name") or ""
+        except Exception as e:
+            _log_db_error("memo_band_name", e)
+    if not band_name:
+        abort(400, "Artist / band name is required.")
+    if not show_date:
+        abort(400, "Show date is required.")
+
+    # every bucket takes several files; refuse the whole post before saving any
+    picked = []
+    for field, label, kind in memo_fields.UPLOADS:
+        for up in request.files.getlist(field):
+            if up and up.filename:
+                problem = _upload_problem(up, label, MEMO_UPLOAD_MAX)
+                if problem:
+                    abort(*problem)
+                picked.append((up, label, kind))
+
+    stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    slug = _slug(band_name)
+    rec = memo_fields.parse(f, staff)
+    rec.update({"band_name": band_name, "venue": memo_fields.VENUE, "show_date": show_date,
+                "show_series": seed.get("series") or "", "_form": memo_fields.FORM_KEY,
+                "_submitted_at": dt.datetime.now().isoformat(timespec="seconds")})
+    if staff:
+        rec["_staff_edit"] = True
+    if verified_artist_id:
+        rec["artist_id"] = str(verified_artist_id)
+    memo_files = []
+    for i, (up, label, kind) in enumerate(picked):
+        stored, dest = _save_upload(up, f"{stamp}-{i:02d}", slug, label, MEMO_UPLOAD_MAX)
+        memo_files.append({"kind": kind, "filename": up.filename, "stored_name": stored,
+                           "mime": up.mimetype, "size": dest.stat().st_size if dest.exists() else None})
+    rec["memo_files"] = memo_files
+
+    disk_path = DATA / f"{stamp}__{slug}__memo.json"
+    disk_path.write_text(json.dumps(rec, indent=2))
+
+    result = None
+    if DB_OK:
+        try:
+            result = advance_db.record_submission(
+                rec, file_info=None, source="staff" if staff else "form",
+                carry_plot=False, stamp_responded=not staff)
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                for fi in memo_files:
+                    advance_db.insert_file(cur, result["submission_id"], result["artist_id"],
+                                           fi["filename"], fi["stored_name"], kind=fi["kind"],
+                                           mime=fi["mime"], size=fi["size"])
+                conn.commit()
+            rec["_db"] = {"artist_id": result["artist_id"], "show_id": result["show_id"],
+                          "submission_id": result["submission_id"]}
+            disk_path.write_text(json.dumps(rec, indent=2))
+        except Exception as e:
+            _log_db_error("memo_record_submission", e)
+            _alert_db_write_failure(rec, e)
+
+    if not staff:
+        _notify_submission(rec)
+        _notify_email("submission", rec)
+    if result and result.get("match"):
+        _email_submission_match(result, rec)
+    if result and result.get("show_id"):
+        _spawn_tool("memo_doc.py", "--show-id", str(result["show_id"]), log_name="memo_doc.log")
+
+    if staff:
+        if token:
+            return redirect(url_for("prefilled_form", token=token, saved=1))
+        if result and result.get("show_id"):
+            return redirect(url_for("memo_staff_open", show_id=result["show_id"], saved=1))
+    return render_template("thanks.html", band=band_name, venue=memo_fields.VENUE,
+                           lang="en", t=i18n.translator("en"))
+
+
+@app.get("/show/<int:show_id>/memo")
+def memo_staff_open(show_id):
+    """Staff: open a Memo show's form by id (gated under /show). Mints the
+    same signed link the band gets, so staff and band edit one record."""
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.show_with_artist(cur, show_id)
+    if not s or s["venue"] != memo_fields.VENUE:
+        abort(404)
+    tok = _signer.dumps({"a": s["artist_id"], "s": {
+        "venue": s["venue"], "date": s["show_date"].isoformat(),
+        "series": s.get("show_series") or "", "show_id": s["id"]}})
+    kw = {"saved": 1} if request.args.get("saved") else {}
+    return redirect(url_for("prefilled_form", token=tok, **kw))
 
 
 @app.post("/submit")
@@ -1913,7 +2124,7 @@ def booking():
         _notify_email("booking", data)
         show_date = advance_db.to_date(data.get("event_date"))
         days_out = (show_date - dt.date.today()).days if show_date else None
-        urgent = days_out is not None and 0 <= days_out <= 21
+        urgent = days_out is not None and 0 <= days_out <= advance_db.welcome_days(data.get("venue"))
         scope = f"{data['venue']}|{show_date.isoformat()}" if show_date else None
         if urgent:
             threading.Thread(target=_run_pipeline_then_trigger_now, args=(scope,), daemon=True).start()
@@ -1926,12 +2137,17 @@ def booking():
         # already entered right here (Brian, 2026-09-16 — the band's own
         # questions are now on this page, so the two-step "save, then click a
         # link to a second form" path is the fallback, not the default).
+        # Memorial Hall: staff always get the show's Memo form to fill what
+        # they have now (2026-09-29) — the band's own link opens the same record.
+        is_memo = data.get("venue") == memo_fields.VENUE
         fill_link = (_manual_fill_link(data)
-                    if (data["skip_welcome_email"] or silent_third) and not band_answers_saved
-                    else None)
+                    if ((data["skip_welcome_email"] or silent_third) and not band_answers_saved)
+                    or is_memo else None)
         return render_template("booking.html", venues=forms_config.VENUES,
                                saved=data, urgent=urgent, band_answers_saved=band_answers_saved,
-                               fill_link=fill_link, silent_third=silent_third)
+                               fill_link=fill_link, silent_third=silent_third, is_memo=is_memo,
+                               welcome_days=advance_db.welcome_days(data.get("venue")),
+                               welcome_paused=advance_db.welcome_paused(data.get("venue")))
     return _booking_form(form={})[0]
 
 
@@ -3238,7 +3454,7 @@ def advance_lifecycle():
         # ── follow-ups: closest open tier only, per show (#21) ──
         with advance_db.get_conn() as conn, conn.cursor() as cur:
             by_show = {}
-            for tier in advance_db.CHASE_TIERS:
+            for tier in advance_db.ALL_CHASE_TIERS:   # per-venue ladders (Memo: 15/10/5/3/2/1)
                 for r in advance_db.shows_due_for_followup(cur, tier):
                     by_show.setdefault(r["show_id"], []).append((tier, r))
             # 2026-09-24 research #3: tier 7 is no longer a chase — it's the

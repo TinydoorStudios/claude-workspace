@@ -23,6 +23,9 @@ import i18n
 VENUES = [
     "Fountain Square", "Washington Park", "Elm Street Plaza",
     "Court Street Plaza", "Zeigler Park", "Imagination Alley",
+    # Memorial Hall (2026-09-29) books through the same /booking page, but its
+    # band link opens its own form (memo_fields.py + templates/memo_form.html).
+    "Memorial Hall",
 ]
 
 # Per-venue "tech pack" — a link (PDF or page) showing what 3CDC provides at that
@@ -37,6 +40,7 @@ TECH_PACKS = {
     "Court Street Plaza": "",
     "Zeigler Park": "",
     "Imagination Alley": "",
+    "Memorial Hall": "",
 }
 
 
