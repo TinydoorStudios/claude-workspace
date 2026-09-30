@@ -14,7 +14,8 @@ ev = {"_date": "Saturday, October 4, 2026", "_event": "Holly Bowling", "presente
       "artist_load_in": "3:00p", "sound_check": "4:30p", "crew_break": "5:30p",
       "security_meeting": "6:15p", "doors": "7:00p", "house": "7:30p", "set_1": "8:00p",
       "set_1_end": "8:55p", "intermission": "Yes", "set_2": "9:15p", "set_2_end": "10:15p", "end_of_show": "10:15p", "curfew": "11:45p",
-      "stage_support_rooms": ["A", "Studio"], "settlement": "Yes", "settlement_contact": "Tour manager"}
+      "stage_support_rooms": ["A", "Studio"], "settlement": "Yes", "settlement_contact": "Tour manager",
+      "internal_notes": "Backline budget $1,100; promo rate offered for a 2nd hotel night; guarantee vs 85% after 15% promoter profit."}
 act = {"_name": "Holly Bowling Band", "set_length": "Two 50-minute sets with a 20-minute intermission",
        "_stage_plot": "See folder — 10.04.26 Holly Bowling Band Stage Plot.pdf, "
                       "10.04.26 Holly Bowling Band Stage Plot 2.pdf",

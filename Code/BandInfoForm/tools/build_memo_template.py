@@ -394,6 +394,8 @@ def grid(cell, artists=1, V=BLANK):
                                       f"Cell: {V.act(i, 'contact_phone')}{gap}{gap}{gap}{gap}"
                                       f"Email: {V.act(i, 'contact_email')}")
     row("Additional Info", txt("additional_info"))
+    r = erow("Internal Notes", V.ev("internal_notes"))   # staff-only on the form
+    shade(whole(r), PANEL)
 
     gv = (RIGHT_W - GL - Inches(0.1)) // artists
     fixed(t, [GL] + [gv] * artists)

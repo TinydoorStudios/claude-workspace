@@ -147,6 +147,11 @@ SECTIONS = [
         F("settlement", "Settlement", "yesno", "staff", per_act=False),
         F("settlement_contact", "Settlement contact", audience="staff", per_act=False),
     ]),
+    ("Internal notes", "staff", [
+        F("internal_notes", "Internal notes", "textarea", "staff", per_act=False,
+          help="Budgets, deals, anything for us only. Prints on the advance doc; "
+               "the band never sees it."),
+    ]),
     ("Day-of contact", "band", [
         F("contact_name", "Name"),
         F("contact_phone", "Cell"),

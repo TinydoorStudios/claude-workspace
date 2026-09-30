@@ -157,6 +157,7 @@ def main():
         ("buyout", "No"), ("parking", "SP+ Lot"), ("dashboard_passes", "3"),
         ("dressing_rooms__seen", "1"), ("dressing_rooms", "A"), ("dressing_rooms", "B"),
         ("settlement", "Yes"), ("settlement_contact", "Tour manager"),
+        ("internal_notes", "Backline budget $1,100 internal"),
     ], files=[("up_stage_plot", "Plot page 1.pdf", pdf("p1")),
               ("up_stage_plot", "Plot page 2.pdf", pdf("p2")),
               ("up_tech_rider", "Tech Rider 2026.pdf", pdf("tr"))])
@@ -167,8 +168,9 @@ def main():
     # ── the band's own view: no staff sections, staff answers invisible, uploads
     band = Client()
     st, html, _ = band.req(link)
-    check(st == 200 and ">Schedule<" not in html and "hospitality_amount" not in html,
-          "band view hides every staff section/field")
+    check(st == 200 and ">Schedule<" not in html and "hospitality_amount" not in html
+          and "internal_notes" not in html and "budget $1,100" not in html,
+          "band view hides every staff section/field, internal notes included")
     check("Plot page 1.pdf" in html, "band sees files already on file")
     st, html, _ = band.req("/memo/submit", [
         ("token", tok), ("band_name", BAND1), ("show_date", DATE.isoformat()),
@@ -227,6 +229,7 @@ def main():
         check("#: 2" in t and "4' x 8' x 1'" in t, "risers + count + size note")
         check("1 sprinter" in t and "1 bus" in t, "vehicle types + counts")
         check("VIDEO" not in t and "Pre-Roll" not in t, "video section gone")
+        check("Backline budget $1,100 internal" in t, "internal notes print on the doc")
         check("ARTIST 2" not in t, "one artist -> one-artist layout")
 
     # ── blank never erases: staff saves again with the hospitality box blank
