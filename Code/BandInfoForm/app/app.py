@@ -496,7 +496,9 @@ def _memo_state(cur, show_id):
 
 
 def _render_memo_form(seed, payload, token=None, saved=False, status=200):
-    staff = bool(session.get("auth"))
+    # ?as=band lets a signed-in staff member see exactly the band's form (Brian,
+    # 2026-09-29). It only ever hides things; submit still decides staff on its own.
+    staff = bool(session.get("auth")) and request.args.get("as") != "band"
     prefill, files, artist_name, returning = {}, [], None, False
     pending = 0
     artist_id = payload.get("a")
