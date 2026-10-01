@@ -2830,6 +2830,17 @@ def show_uncancel(show_id):
     return _back(url_for("artist_detail", artist_id=s["artist_id"]))
 
 
+def _parking_sheet_show(cur, s):
+    """The show row plus who the parking sheet goes to: the artist's last
+    email, else the booking's contact email (the artist row can lag the booking)."""
+    cur.execute("SELECT contact_name, contact_email FROM bookings WHERE venue=%s AND event_date=%s "
+                "AND lower(btrim(regexp_replace(artist_name, '\\s+', ' ', 'g'))) = %s "
+                "ORDER BY id DESC LIMIT 1", (s["venue"], s["show_date"], s["match_key"]))
+    b = cur.fetchone() or {}
+    return dict(s, contact_name=b.get("contact_name") or "",
+                to_email=(s.get("last_email") or b.get("contact_email") or "").strip())
+
+
 def _parking_sheet_email(s):
     """(subject, body) for the standalone parking-sheet email."""
     first = ((s.get("contact_name") or "").split() or [""])[0]
@@ -2855,11 +2866,8 @@ def show_parking_sheet(show_id):
         s = advance_db.show_with_artist(cur, show_id)
         if not s:
             abort(404)
-        cur.execute("SELECT contact_name FROM bookings WHERE venue=%s AND event_date=%s "
-                    "AND lower(btrim(regexp_replace(artist_name, '\\s+', ' ', 'g'))) = %s "
-                    "ORDER BY id DESC LIMIT 1", (s["venue"], s["show_date"], s["match_key"]))
-        s = dict(s, contact_name=(cur.fetchone() or {}).get("contact_name") or "")
-    to = ve.with_extra_recipients(s.get("last_email") or "", s.get("show_series"))
+        s = _parking_sheet_show(cur, s)
+    to = ve.with_extra_recipients(s["to_email"], s.get("show_series"))
     subject, body = _parking_sheet_email(s)
     return render_template("parking_sheet.html", s=s, to=to, subject=subject, body=body)
 
@@ -2875,11 +2883,8 @@ def show_parking_sheet_send(show_id):
             abort(404)
         if s.get("parking_sheet_sent_at"):
             return redirect(url_for("show_parking_sheet", show_id=show_id))
-        cur.execute("SELECT contact_name FROM bookings WHERE venue=%s AND event_date=%s "
-                    "AND lower(btrim(regexp_replace(artist_name, '\\s+', ' ', 'g'))) = %s "
-                    "ORDER BY id DESC LIMIT 1", (s["venue"], s["show_date"], s["match_key"]))
-        s = dict(s, contact_name=(cur.fetchone() or {}).get("contact_name") or "")
-    to = ve.with_extra_recipients(s.get("last_email") or "", s.get("show_series"))
+        s = _parking_sheet_show(cur, s)
+    to = ve.with_extra_recipients(s["to_email"], s.get("show_series"))
     sheet = ve.parking_sheet_attachment()
     if not to or not sheet:
         abort(400, "no contact email on file" if not to else "parking sheet file missing")

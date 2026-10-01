@@ -173,6 +173,9 @@ def main():
     st, html, _ = staff.req(f"/show/{sid}/parking-sheet")
     check(st == 200 and "Send the parking sheet" in html and "Washington Park Garage Parking.pdf" in html,
           "parking-sheet page shows the preview and the send button")
+    if "Send the parking sheet" not in html:
+        h = re.sub(r"\s+", " ", re.sub(r"<style.*?</style>", "", html, flags=re.S))
+        print("   DEBUG", st, h[h.find("</header>"):][:1500])
     n0 = mail_count()
     c = csrf_of(html)
     st, html2, _ = staff.req(f"/show/{sid}/parking-sheet", {"csrf": c}, method="POST")
