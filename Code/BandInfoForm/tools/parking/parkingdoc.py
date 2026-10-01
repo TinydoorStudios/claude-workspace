@@ -23,7 +23,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Image as RLImage
-from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from xml.sax.saxutils import escape
 
 HERE = Path(__file__).resolve().parent
@@ -35,14 +35,15 @@ SOURCE = HERE / "wp-garage-aerial-source.jpg"
 ANNOTATED = HERE / "wp-garage-aerial-annotated.jpg"
 ROUTE_SOURCE = HERE / "memo-route-aerial-source.jpg"
 ROUTE_ANNOTATED = HERE / "memo-route-aerial-annotated.jpg"
-CROP_BOTTOM = 690          # the capture carries Google's map controls below this line
+CROP_BOX = (0, 225, 1512, 625)     # the capture carries Google's map controls below y=690; this is the band with both entrances
+ROUTE_CROP = (60, 150, 900, 1010)
 
 # (number, marker x, marker y, label, label side) in source-image pixels
 ENTRANCES = [
     (1, 195, 402, "Elm Street entrance", "right"),
     (2, 1392, 446, "Race Street entrance", "left"),
 ]
-STREETS = [("ELM ST", 52, 560, 90), ("RACE ST", 1476, 130, 90)]   # text, x, y, rotation
+STREETS = [("ELM ST", 52, 560, 90), ("RACE ST", 1476, 340, 90)]   # text, x, y, rotation
 
 _AV = "/System/Library/Fonts/Avenir Next.ttc"
 _AVC = "/System/Library/Fonts/Avenir Next Condensed.ttc"
@@ -69,14 +70,14 @@ STEPS = [
 ENTRANCE_NOTE = ("Two entrances lead to the same garage: Elm Street, across from Music Hall, and "
                  "Race Street at 13th Street. Use whichever is easier from your route.")
 ROUTE_INTRO = ("After you unload at Memorial Hall, it's about 500 feet to the garage: east on Grant "
-               "Street, left (north) on Elm Street, then right into the Elm Street entrance.")
+               "Street, left (north) on Elm Street, then right into the Elm Street entrance (1 on the map).")
 HELP = ("If a code won't scan, ask the garage attendant or text your day-of contact.")
 CREDIT = "Aerial imagery: Google Maps. Imagery ©2026 Airbus, Maxar Technologies; map data ©2026 Google."
 
 
 def annotate():
     """Source aerial + numbered entrance markers + street names -> ANNOTATED."""
-    im = Image.open(SOURCE).convert("RGBA").crop((0, 0, 1512, CROP_BOTTOM))
+    im = Image.open(SOURCE).convert("RGBA").crop((0, 0, 1512, 690))
     over = Image.new("RGBA", im.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(over)
     big = ImageFont.truetype(_AV, 34, index=2)
@@ -101,10 +102,10 @@ def annotate():
         tag = tag.rotate(rot, expand=True)
         over.alpha_composite(tag, (int(x - tag.width / 2), int(y - tag.height / 2)))
     # north arrow, top-left
-    d.polygon([(46, 34), (30, 74), (46, 64), (62, 74)], fill=(255, 255, 255, 235))
-    d.text((46, 98), "N", font=mid, fill=(255, 255, 255, 255), anchor="mm",
+    d.polygon([(46, 234), (30, 274), (46, 264), (62, 274)], fill=(255, 255, 255, 235))
+    d.text((46, 298), "N", font=mid, fill=(255, 255, 255, 255), anchor="mm",
            stroke_width=3, stroke_fill=(35, 31, 32, 255))
-    Image.alpha_composite(im, over).convert("RGB").save(ANNOTATED, quality=92)
+    Image.alpha_composite(im, over).convert("RGB").crop(CROP_BOX).save(ANNOTATED, quality=92)
     return ANNOTATED
 
 
@@ -123,21 +124,21 @@ def annotate_route():
     im = Image.open(ROUTE_SOURCE).convert("RGBA")
     over = Image.new("RGBA", im.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(over)
-    d.line(ROUTE_PATH, fill=(255, 255, 255, 255), width=22, joint="curve")
-    d.line(ROUTE_PATH, fill=MARK + (255,), width=12, joint="curve")
+    d.line(ROUTE_PATH, fill=(255, 255, 255, 255), width=30, joint="curve")
+    d.line(ROUTE_PATH, fill=MARK + (255,), width=17, joint="curve")
     # arrowheads: one mid-route heading north, one at the end heading into the ramp
     def arrow(p0, p1):
         ang = math.atan2(p1[1] - p0[1], p1[0] - p0[0])
         tip = p1
         pts = [tip]
         for da in (2.55, -2.55):
-            pts.append((tip[0] + 34 * math.cos(ang + da), tip[1] + 34 * math.sin(ang + da)))
+            pts.append((tip[0] + 46 * math.cos(ang + da), tip[1] + 46 * math.sin(ang + da)))
         d.polygon(pts, fill=MARK + (255,), outline=(255, 255, 255, 255))
     arrow((712, 720), (708, 660))
     arrow((700, 256), (760, 249))
-    big = ImageFont.truetype(_AV, 34, index=2)
-    mid = ImageFont.truetype(_AV, 26, index=2)
-    small = ImageFont.truetype(_AV, 22, index=2)
+    big = ImageFont.truetype(_AV, 46, index=2)
+    mid = ImageFont.truetype(_AV, 36, index=2)
+    small = ImageFont.truetype(_AV, 32, index=2)
 
     def pill(text, cx, cy, font=mid, fill=(255, 255, 255, 235), ink=(35, 31, 32, 255), anchor="mm"):
         tw = d.textlength(text, font=font)
@@ -148,31 +149,31 @@ def annotate_route():
 
     # start dot + label
     sx, sy = ROUTE_START
-    d.ellipse((sx - 20, sy - 20, sx + 20, sy + 20), fill=(255, 255, 255, 255))
-    d.ellipse((sx - 14, sy - 14, sx + 14, sy + 14), fill=(35, 31, 32, 255))
-    pill("Unload at Memorial Hall", sx - 30, sy + 52, anchor="rm")
+    d.ellipse((sx - 27, sy - 27, sx + 27, sy + 27), fill=(255, 255, 255, 255))
+    d.ellipse((sx - 19, sy - 19, sx + 19, sy + 19), fill=(35, 31, 32, 255))
+    pill("Unload at Memorial Hall", 80, sy + 58, anchor="lm")
     # end marker, numbered like the entrance map
     ex, ey = ROUTE_END
-    ex += 38
-    r = 30
+    ex += 44
+    r = 40
     d.ellipse((ex - r - 4, ey - r - 4, ex + r + 4, ey + r + 4), fill=(255, 255, 255, 255))
     d.ellipse((ex - r, ey - r, ex + r, ey + r), fill=MARK + (255,))
     d.text((ex, ey - 1), "1", font=big, fill=(255, 255, 255, 255), anchor="mm")
-    pill("Elm Street entrance", ex + r + 12, ey - 64, anchor="lm")
+    pill("Elm Street entrance", ex - r - 14, ey - 70, anchor="rm")
     # building and street names
     pill("MEMORIAL HALL", 530, 735, font=small, fill=(35, 31, 32, 215), ink=(255, 255, 255, 255))
-    for text, x, y, rot in [("GRANT ST", 250, 910, -3), ("ELM ST", 640, 560, 81)]:
+    for text, x, y, rot in [("GRANT ST", 270, 905, -3), ("ELM ST", 610, 520, 81)]:
         tw = int(d.textlength(text, font=small))
-        tag = Image.new("RGBA", (tw + 28, 38), (0, 0, 0, 0))
+        tag = Image.new("RGBA", (tw + 34, 48), (0, 0, 0, 0))
         td = ImageDraw.Draw(tag)
-        td.rounded_rectangle((0, 0, tw + 27, 37), radius=19, fill=(35, 31, 32, 205))
-        td.text(((tw + 28) / 2, 19), text, font=small, fill=(255, 255, 255, 255), anchor="mm")
+        td.rounded_rectangle((0, 0, tw + 33, 47), radius=24, fill=(35, 31, 32, 205))
+        td.text(((tw + 34) / 2, 24), text, font=small, fill=(255, 255, 255, 255), anchor="mm")
         tag = tag.rotate(rot, expand=True)
         over.alpha_composite(tag, (int(x - tag.width / 2), int(y - tag.height / 2)))
-    d.polygon([(1040, 30), (1024, 70), (1040, 60), (1056, 70)], fill=(255, 255, 255, 235))
-    d.text((1040, 94), "N", font=mid, fill=(255, 255, 255, 255), anchor="mm",
+    d.polygon([(850, 200), (830, 250), (850, 238), (870, 250)], fill=(255, 255, 255, 235))
+    d.text((850, 282), "N", font=mid, fill=(255, 255, 255, 255), anchor="mm",
            stroke_width=3, stroke_fill=(35, 31, 32, 255))
-    Image.alpha_composite(im, over).convert("RGB").save(ROUTE_ANNOTATED, quality=92)
+    Image.alpha_composite(im, over).convert("RGB").crop(ROUTE_CROP).save(ROUTE_ANNOTATED, quality=92)
     return ROUTE_ANNOTATED
 
 
@@ -224,10 +225,10 @@ def build(out_dir=None):
     head = Table([[logo(corp, 0.34 * inch), logo(vlogo, 0.30 * inch)]], colWidths=[W / 2, W / 2])
     head.setStyle(TableStyle([("ALIGN", (1, 0), (1, 0), "RIGHT"), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                               ("LEFTPADDING", (0, 0), (-1, -1), 0), ("RIGHTPADDING", (0, 0), (-1, -1), 0)]))
-    flow = [head, Spacer(1, 14),
+    flow = [head, Spacer(1, 8),
             Paragraph("PARKING &amp; VALIDATION", st["title"]),
             Paragraph("Washington Park Garage · 1230 Elm St, Cincinnati, OH 45202", st["sub"]),
-            Spacer(1, 10), Paragraph(escape(INTRO), st["intro"]), Spacer(1, 12)]
+            Spacer(1, 6), Paragraph(escape(INTRO), st["intro"]), Spacer(1, 7)]
 
     rows = []
     for i, (head_t, body_t) in enumerate(STEPS, 1):
@@ -235,27 +236,31 @@ def build(out_dir=None):
                      [Paragraph(escape(head_t), st["step"]), Paragraph(escape(body_t), st["stepb"])]])
     t = Table(rows, colWidths=[0.42 * inch, W - 0.42 * inch])
     ts = [("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (1, 0), (1, -1), 10),
-          ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+          ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
           ("LINEBELOW", (0, 0), (-1, -2), 0.5, RULE)]
     for r in range(len(rows)):
         ts += [("BACKGROUND", (0, r), (0, r), colors.HexColor(pal["button_bg"])),
                ("VALIGN", (0, r), (0, r), "MIDDLE"),
-               ("TOPPADDING", (0, r), (0, r), 11), ("BOTTOMPADDING", (0, r), (0, r), 11)]
+               ("TOPPADDING", (0, r), (0, r), 7), ("BOTTOMPADDING", (0, r), (0, r), 7)]
     t.setStyle(TableStyle(ts))
-    flow += [t, Spacer(1, 14)]
+    flow += [t, Spacer(1, 9)]
 
-    flow += [Paragraph("WHERE TO ENTER", st["h"]), Spacer(1, 4),
-             Paragraph(escape(ENTRANCE_NOTE), st["note"]), Spacer(1, 7)]
     iw, ih = Image.open(ANNOTATED).size
-    flow += [RLImage(str(ANNOTATED), width=W, height=W * ih / iw), Spacer(1, 3),
-             Paragraph(escape(CREDIT), st["cap"]), Spacer(1, 10),
-             Paragraph(escape(HELP), st["note"])]
+    flow += [Paragraph("WHERE TO ENTER", st["h"]), Spacer(1, 3),
+             Paragraph(escape(ENTRANCE_NOTE), st["note"]), Spacer(1, 5),
+             RLImage(str(ANNOTATED), width=W, height=W * ih / iw), Spacer(1, 9)]
+
     rw, rh = Image.open(ROUTE_ANNOTATED).size
-    flow += [PageBreak(),
-             Paragraph("FROM MEMORIAL HALL TO THE GARAGE", st["title"]),
-             Spacer(1, 6), Paragraph(escape(ROUTE_INTRO), st["intro"]), Spacer(1, 10),
-             RLImage(str(ROUTE_ANNOTATED), width=W, height=W * rh / rw), Spacer(1, 3),
-             Paragraph(escape(CREDIT), st["cap"])]
+    col = 3.25 * inch
+    route_img = RLImage(str(ROUTE_ANNOTATED), width=col, height=col * rh / rw)
+    side = [Paragraph("FROM MEMORIAL HALL", st["h"]), Spacer(1, 4),
+            Paragraph(escape(ROUTE_INTRO), st["note"]), Spacer(1, 8),
+            Paragraph(escape(HELP), st["note"]), Spacer(1, 14), Paragraph(escape(CREDIT), st["cap"])]
+    two = Table([[route_img, side]], colWidths=[col + 0.2 * inch, W - col - 0.2 * inch])
+    two.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                             ("RIGHTPADDING", (0, 0), (0, 0), 10), ("RIGHTPADDING", (1, 0), (1, 0), 0),
+                             ("TOPPADDING", (0, 0), (-1, -1), 0), ("BOTTOMPADDING", (0, 0), (-1, -1), 0)]))
+    flow += [two]
     doc.build(flow, onFirstPage=on_page)
     return out
 
