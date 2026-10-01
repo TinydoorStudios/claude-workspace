@@ -23,7 +23,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Image as RLImage
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from xml.sax.saxutils import escape
 
 HERE = Path(__file__).resolve().parent
@@ -33,6 +33,8 @@ import brand  # noqa: E402
 OUT_NAME = "Washington Park Garage Parking.pdf"
 SOURCE = HERE / "wp-garage-aerial-source.jpg"
 ANNOTATED = HERE / "wp-garage-aerial-annotated.jpg"
+ROUTE_SOURCE = HERE / "memo-route-aerial-source.jpg"
+ROUTE_ANNOTATED = HERE / "memo-route-aerial-annotated.jpg"
 CROP_BOTTOM = 690          # the capture carries Google's map controls below this line
 
 # (number, marker x, marker y, label, label side) in source-image pixels
@@ -66,6 +68,8 @@ STEPS = [
 ]
 ENTRANCE_NOTE = ("Two entrances lead to the same garage: Elm Street, across from Music Hall, and "
                  "Race Street at 13th Street. Use whichever is easier from your route.")
+ROUTE_INTRO = ("After you unload at Memorial Hall, it's about 500 feet to the garage: east on Grant "
+               "Street, left (north) on Elm Street, then right into the Elm Street entrance.")
 HELP = ("If a code won't scan, ask the garage attendant or text your day-of contact.")
 CREDIT = "Aerial imagery: Google Maps. Imagery ©2026 Airbus, Maxar Technologies; map data ©2026 Google."
 
@@ -104,10 +108,79 @@ def annotate():
     return ANNOTATED
 
 
+# Memorial Hall -> Elm Street entrance, in ROUTE_SOURCE pixels (1092 x 1092).
+# The start is on Grant Street at Memorial Hall's south side; move it to the real
+# unload spot if that differs.
+ROUTE_PATH = [(470, 918), (690, 908), (728, 884), (738, 858), (718, 760), (704, 700), (680, 500),
+              (650, 300), (655, 268), (690, 256), (748, 250)]
+ROUTE_START = (470, 918)
+ROUTE_END = (748, 250)
+
+
+def annotate_route():
+    """Route aerial: Memorial Hall's unload point to the Elm Street garage entrance."""
+    import math
+    im = Image.open(ROUTE_SOURCE).convert("RGBA")
+    over = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(over)
+    d.line(ROUTE_PATH, fill=(255, 255, 255, 255), width=22, joint="curve")
+    d.line(ROUTE_PATH, fill=MARK + (255,), width=12, joint="curve")
+    # arrowheads: one mid-route heading north, one at the end heading into the ramp
+    def arrow(p0, p1):
+        ang = math.atan2(p1[1] - p0[1], p1[0] - p0[0])
+        tip = p1
+        pts = [tip]
+        for da in (2.55, -2.55):
+            pts.append((tip[0] + 34 * math.cos(ang + da), tip[1] + 34 * math.sin(ang + da)))
+        d.polygon(pts, fill=MARK + (255,), outline=(255, 255, 255, 255))
+    arrow((712, 720), (708, 660))
+    arrow((700, 256), (760, 249))
+    big = ImageFont.truetype(_AV, 34, index=2)
+    mid = ImageFont.truetype(_AV, 26, index=2)
+    small = ImageFont.truetype(_AV, 22, index=2)
+
+    def pill(text, cx, cy, font=mid, fill=(255, 255, 255, 235), ink=(35, 31, 32, 255), anchor="mm"):
+        tw = d.textlength(text, font=font)
+        pw, ph = tw + 36, font.size + 20
+        x0 = cx - pw / 2 if anchor == "mm" else (cx if anchor == "lm" else cx - pw)
+        d.rounded_rectangle((x0, cy - ph / 2, x0 + pw, cy + ph / 2), radius=ph / 2, fill=fill)
+        d.text((x0 + pw / 2, cy - 1), text, font=font, fill=ink, anchor="mm")
+
+    # start dot + label
+    sx, sy = ROUTE_START
+    d.ellipse((sx - 20, sy - 20, sx + 20, sy + 20), fill=(255, 255, 255, 255))
+    d.ellipse((sx - 14, sy - 14, sx + 14, sy + 14), fill=(35, 31, 32, 255))
+    pill("Unload at Memorial Hall", sx - 30, sy + 52, anchor="rm")
+    # end marker, numbered like the entrance map
+    ex, ey = ROUTE_END
+    ex += 38
+    r = 30
+    d.ellipse((ex - r - 4, ey - r - 4, ex + r + 4, ey + r + 4), fill=(255, 255, 255, 255))
+    d.ellipse((ex - r, ey - r, ex + r, ey + r), fill=MARK + (255,))
+    d.text((ex, ey - 1), "1", font=big, fill=(255, 255, 255, 255), anchor="mm")
+    pill("Elm Street entrance", ex + r + 12, ey - 64, anchor="lm")
+    # building and street names
+    pill("MEMORIAL HALL", 530, 735, font=small, fill=(35, 31, 32, 215), ink=(255, 255, 255, 255))
+    for text, x, y, rot in [("GRANT ST", 250, 910, -3), ("ELM ST", 640, 560, 81)]:
+        tw = int(d.textlength(text, font=small))
+        tag = Image.new("RGBA", (tw + 28, 38), (0, 0, 0, 0))
+        td = ImageDraw.Draw(tag)
+        td.rounded_rectangle((0, 0, tw + 27, 37), radius=19, fill=(35, 31, 32, 205))
+        td.text(((tw + 28) / 2, 19), text, font=small, fill=(255, 255, 255, 255), anchor="mm")
+        tag = tag.rotate(rot, expand=True)
+        over.alpha_composite(tag, (int(x - tag.width / 2), int(y - tag.height / 2)))
+    d.polygon([(1040, 30), (1024, 70), (1040, 60), (1056, 70)], fill=(255, 255, 255, 235))
+    d.text((1040, 94), "N", font=mid, fill=(255, 255, 255, 255), anchor="mm",
+           stroke_width=3, stroke_fill=(35, 31, 32, 255))
+    Image.alpha_composite(im, over).convert("RGB").save(ROUTE_ANNOTATED, quality=92)
+    return ROUTE_ANNOTATED
+
+
 def build(out_dir=None):
     pal = brand.palette("Washington Park")
     v = brand.venue_profile("Washington Park")
     annotate()
+    annotate_route()
     out = Path(out_dir or HERE.parent.parent / "app" / "brand" / "parking") / OUT_NAME
     out.parent.mkdir(parents=True, exist_ok=True)
     acc = colors.HexColor(pal["accent"])
@@ -177,6 +250,12 @@ def build(out_dir=None):
     flow += [RLImage(str(ANNOTATED), width=W, height=W * ih / iw), Spacer(1, 3),
              Paragraph(escape(CREDIT), st["cap"]), Spacer(1, 10),
              Paragraph(escape(HELP), st["note"])]
+    rw, rh = Image.open(ROUTE_ANNOTATED).size
+    flow += [PageBreak(),
+             Paragraph("FROM MEMORIAL HALL TO THE GARAGE", st["title"]),
+             Spacer(1, 6), Paragraph(escape(ROUTE_INTRO), st["intro"]), Spacer(1, 10),
+             RLImage(str(ROUTE_ANNOTATED), width=W, height=W * rh / rw), Spacer(1, 3),
+             Paragraph(escape(CREDIT), st["cap"])]
     doc.build(flow, onFirstPage=on_page)
     return out
 
