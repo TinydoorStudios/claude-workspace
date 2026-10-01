@@ -1100,6 +1100,23 @@ def _notify_email(event_type, fields):
         _log_db_error("notify_email", e)
 
 
+def _parking_sheet_for(show_id, venue, series):
+    """[(name, type, b64)] for the Washington Park garage sheet when this show's
+    parking calls for it (see ve.wants_parking_sheet), else []. Never raises: a
+    lookup problem just means the welcome goes without the sheet, and the
+    dashboard item still catches it."""
+    acts = None
+    if (venue or "").strip() == "Memorial Hall" and show_id:
+        try:
+            import memo_doc
+            with advance_db.get_conn() as conn, conn.cursor() as cur:
+                vals, _info = memo_doc.values_for(cur, show_id)
+            acts = vals.acts if vals else None
+        except Exception as e:  # noqa: BLE001
+            _log_db_error("parking_sheet_lookup", e)
+    return ve.parking_sheet_attachment() if ve.wants_parking_sheet(venue, series, acts) else []
+
+
 def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=90, attachments=None,
                         venue=None):
     """(ok, error) — thin wrapper over mailer.send, the single send path
@@ -1299,6 +1316,16 @@ def brand_asset(filename):
     import brand
     resp = send_from_directory(brand.BRAND_DIR / "logos", filename, as_attachment=False)
     resp.headers["Cache-Control"] = "public, max-age=604800"
+    return resp
+
+
+@app.route("/parking-sheet/washington-park-garage.pdf")
+def parking_sheet_pdf():
+    """Public copy of the Washington Park garage parking sheet (the staff page
+    links it; the email carries it as an attachment)."""
+    import brand
+    resp = send_from_directory(brand.BRAND_DIR / "parking", ve.PARKING_SHEET_NAME, as_attachment=False)
+    resp.headers["Cache-Control"] = "public, max-age=3600"
     return resp
 
 
@@ -2801,6 +2828,68 @@ def show_uncancel(show_id):
     return _back(url_for("artist_detail", artist_id=s["artist_id"]))
 
 
+def _parking_sheet_email(s):
+    """(subject, body) for the standalone parking-sheet email."""
+    first = ((s.get("contact_name") or "").split() or [""])[0]
+    when = f"{s['show_date']:%B} {s['show_date'].day}"
+    subject = f"Parking for {s['artist_name']} at {s['venue']}, {when}"
+    body = (f"Hi {first or 'there'},\n\n"
+            "Parking for your show is validated at the Washington Park Garage, directly across "
+            "Elm Street from Memorial Hall. The attached sheet shows both entrances and how "
+            "validation works:\n\n"
+            "- Pull a ticket at the entry kiosk and keep it with you.\n"
+            "- We'll email your validation QR code ahead of the show.\n"
+            "- On the way out, scan your original ticket first, then the QR code.\n\n"
+            "Thanks,\n3CDC Events / Production")
+    return subject, body
+
+
+@app.get("/show/<int:show_id>/parking-sheet")
+def show_parking_sheet(show_id):
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.show_with_artist(cur, show_id)
+        if not s:
+            abort(404)
+        cur.execute("SELECT contact_name FROM bookings WHERE venue=%s AND event_date=%s "
+                    "AND lower(btrim(regexp_replace(artist_name, '\\s+', ' ', 'g'))) = %s "
+                    "ORDER BY id DESC LIMIT 1", (s["venue"], s["show_date"], s["match_key"]))
+        s = dict(s, contact_name=(cur.fetchone() or {}).get("contact_name") or "")
+    to = ve.with_extra_recipients(s.get("last_email") or "", s.get("show_series"))
+    subject, body = _parking_sheet_email(s)
+    return render_template("parking_sheet.html", s=s, to=to, subject=subject, body=body)
+
+
+@app.post("/show/<int:show_id>/parking-sheet")
+def show_parking_sheet_send(show_id):
+    if not DB_OK:
+        abort(503)
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.show_with_artist(cur, show_id)
+        if not s:
+            abort(404)
+        if s.get("parking_sheet_sent_at"):
+            return redirect(url_for("show_parking_sheet", show_id=show_id))
+        cur.execute("SELECT contact_name FROM bookings WHERE venue=%s AND event_date=%s "
+                    "AND lower(btrim(regexp_replace(artist_name, '\\s+', ' ', 'g'))) = %s "
+                    "ORDER BY id DESC LIMIT 1", (s["venue"], s["show_date"], s["match_key"]))
+        s = dict(s, contact_name=(cur.fetchone() or {}).get("contact_name") or "")
+    to = ve.with_extra_recipients(s.get("last_email") or "", s.get("show_series"))
+    sheet = ve.parking_sheet_attachment()
+    if not to or not sheet:
+        abort(400, "no contact email on file" if not to else "parking sheet file missing")
+    subject, body = _parking_sheet_email(s)
+    ok, err = _send_outlook_email(to, subject, body=body, attachments=sheet, venue=s["venue"])
+    if not ok and not mailer.outcome_unknown(err):
+        abort(502, f"send failed: {err}")
+    # a timed-out send may still have gone out, so it is stamped like a good one
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        advance_db.mark_parking_sheet_sent(cur, show_id)
+        conn.commit()
+    return redirect(url_for("show_parking_sheet", show_id=show_id))
+
+
 @app.get("/show/<int:show_id>/hold")
 def show_hold(show_id):
     if not DB_OK:
@@ -3495,15 +3584,18 @@ def advance_lifecycle():
                 # hasn't been contacted — so the reminder cadence stays shut
                 # until the box is cleared. See advance_db.mark_advance_held_as_draft.
                 welcome_to = ve.with_extra_recipients(r["email"], r["series"])
+                parking_sheet = _parking_sheet_for(r["show_id"], r["venue"], r["series"])
                 if r.get("draft_only"):
                     ok, err, link = _create_outlook_draft(
                         welcome_to, subject, body=body.lstrip("\n"),
-                        attachments=ve.venue_attachments(r["venue"]), venue=r["venue"])
+                        attachments=ve.venue_attachments(r["venue"]) + parking_sheet, venue=r["venue"])
                     if not ok:
                         fail(r["show_id"], "welcome_draft", err)
                         continue
                     with advance_db.get_conn() as conn, conn.cursor() as cur:
                         advance_db.mark_advance_held_as_draft(cur, r["show_id"])
+                        if parking_sheet:
+                            advance_db.mark_parking_sheet_sent(cur, r["show_id"])
                         advance_db.resolve_booking_edits_carried(
                             cur, r.get("booking_id"), welcome_asof, "skipped: held draft carried it")
                         conn.commit()
@@ -3511,7 +3603,7 @@ def advance_lifecycle():
                                         "show_date": us_date(r["show_date"]), "link": link})
                     continue
                 ok, err = _send_outlook_email(welcome_to, subject, body=body.lstrip("\n"),
-                                              attachments=ve.venue_attachments(r["venue"]),
+                                              attachments=ve.venue_attachments(r["venue"]) + parking_sheet,
                                               venue=r["venue"])
                 if not ok:
                     if mailer.outcome_unknown(err):
@@ -3528,6 +3620,8 @@ def advance_lifecycle():
                         days_out = (r["show_date"] - dt.date.today()).days
                         with advance_db.get_conn() as conn, conn.cursor() as cur:
                             advance_db.mark_advance_drafted(cur, r["show_id"])
+                            if parking_sheet:
+                                advance_db.mark_parking_sheet_sent(cur, r["show_id"])
                             advance_db.mark_stale_followup_tiers_skipped(cur, r["show_id"], days_out)
                             advance_db.resolve_booking_edits_carried(
                                 cur, r.get("booking_id"), welcome_asof, "skipped: welcome carried it")
@@ -3539,6 +3633,8 @@ def advance_lifecycle():
                 days_out = (r["show_date"] - dt.date.today()).days
                 with advance_db.get_conn() as conn, conn.cursor() as cur:
                     advance_db.mark_advance_drafted(cur, r["show_id"])
+                    if parking_sheet:
+                        advance_db.mark_parking_sheet_sent(cur, r["show_id"])
                     advance_db.mark_stale_followup_tiers_skipped(cur, r["show_id"], days_out)
                     advance_db.resolve_booking_edits_carried(
                         cur, r.get("booking_id"), welcome_asof, "skipped: welcome carried it")

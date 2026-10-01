@@ -588,6 +588,34 @@ def mark_advance_drafted(cur, show_id):
     )
 
 
+def mark_parking_sheet_sent(cur, show_id):
+    """The Washington Park garage parking sheet reached the band (on the
+    welcome, or from the dashboard's "Parking sheet not sent" item)."""
+    cur.execute("UPDATE shows SET parking_sheet_sent_at = COALESCE(parking_sheet_sent_at, now()) "
+                "WHERE id = %s", (show_id,))
+
+
+def memo_parking_sheet_due(cur):
+    """Memorial Hall shows whose latest Parking answer is Washington Park and
+    whose garage sheet hasn't gone out, with a welcome that won't carry it: the
+    welcome already went, or Memo's welcome is paused (staff send the form link
+    by hand). Brian, 2026-10-01: the sheet rides the welcome when Parking is set
+    by then; otherwise staff send it from the dashboard."""
+    paused = bool(VENUE_LADDERS.get("Memorial Hall", {}).get("paused"))
+    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date
+                   FROM shows s JOIN artists a ON a.id=s.artist_id
+                   WHERE s.venue = 'Memorial Hall' AND s.show_date >= CURRENT_DATE
+                     AND s.cancelled_at IS NULL AND s.held_at IS NULL
+                     AND s.parking_sheet_sent_at IS NULL
+                     AND (s.advance_draft_created_at IS NOT NULL OR %s)
+                     AND (SELECT sub.data->>'parking' FROM submissions sub
+                           WHERE sub.show_id = s.id AND sub.data->>'_form' = 'memo'
+                             AND COALESCE(sub.data->>'parking', '') <> ''
+                           ORDER BY sub.submitted_at DESC, sub.id DESC LIMIT 1) = 'Washington Park'
+                   ORDER BY s.show_date""", (paused,))
+    return cur.fetchall()
+
+
 def mark_advance_held_as_draft(cur, show_id):
     """The welcome was put in Production@3cdc.org's drafts instead of sent
     (bookings.draft_only — Brian, 2026-09-15). Deliberately does NOT stamp
@@ -2826,6 +2854,11 @@ def needs_attention(cur):
                     "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: {why} — delete "
                               f"the unsent welcome from Production@3cdc.org drafts",
                     "link_path": f"/artist/{r['artist_id']}", "since": r["advance_held_draft_at"]})
+    for r in memo_parking_sheet_due(cur):
+        out.append({"kind": "parking_sheet", "label": "Parking sheet not sent",
+                    "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: parking is the "
+                              "Washington Park garage; the band hasn't been sent the sheet",
+                    "link_path": f"/show/{r['id']}/parking-sheet", "since": None})
     cur.execute("""SELECT f.*, a.name, s.venue, s.show_date FROM send_failures f
                    JOIN shows s ON s.id=f.show_id JOIN artists a ON a.id=s.artist_id
                    WHERE f.created_at > now() - interval '3 days' AND s.show_date >= CURRENT_DATE

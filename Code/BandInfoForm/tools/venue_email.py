@@ -384,6 +384,37 @@ def venue_attachments(venue, root=None):
     return out
 
 
+PARKING_SHEET_NAME = "Washington Park Garage Parking.pdf"
+
+
+def parking_sheet_attachment():
+    """[(name, type, base64)] for the Washington Park garage parking sheet
+    (tools/parking/parkingdoc.py writes it into brand/parking/), or [] if the
+    file isn't there. Local runs find it under app/brand, the VM under brand/."""
+    import base64
+    here = Path(__file__).resolve()
+    for d in (_os.environ.get("ADVANCE_BRAND_DIR"), here.parent.parent / "brand",
+              here.parent.parent / "app" / "brand"):
+        path = Path(d) / "parking" / PARKING_SHEET_NAME if d else None
+        if path and path.is_file():
+            return [(PARKING_SHEET_NAME, "application/pdf",
+                     base64.b64encode(path.read_bytes()).decode("ascii"))]
+    return []
+
+
+def wants_parking_sheet(venue, series=None, acts=None):
+    """Does this show's parking call for the Washington Park garage sheet?
+    Memorial Hall: staff set Parking = Washington Park on the advance form (any
+    act on the bill). Washington Park's own advanced events: yes, unless it's a
+    3rd-party event, which gets no validations (see the WP load_in block)."""
+    venue = (venue or "").strip()
+    if venue == "Washington Park":
+        return (series or "").strip().lower() != "3rd party"
+    if venue == "Memorial Hall":
+        return any(((a or {}).get("parking") or "") == "Washington Park" for a in acts or [])
+    return False
+
+
 def venue_attachment_links(venue, root=None):
     """Same standing files as venue_attachments(), as (filename, url) pairs
     instead of base64 content — for a reminder or day-before email, which

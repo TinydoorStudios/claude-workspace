@@ -694,6 +694,7 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS band_emails BOOLEAN NOT NULL DEFAU
 -- 2026-09-15-draft-only
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS draft_only BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS advance_held_draft_at TIMESTAMPTZ;
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS parking_sheet_sent_at TIMESTAMPTZ;
 
 -- 2026-09-15-fsq-parking-queue
 CREATE TABLE IF NOT EXISTS fsq_parking_queue (
