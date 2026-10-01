@@ -134,7 +134,8 @@ MAILLOG = Path(os.environ.get("MAILLOG", str(T / "mail.jsonl")))
 def mails_since(n0):
     lines = MAILLOG.read_text().splitlines() if MAILLOG.exists() else []
     import json
-    return [json.loads(x) for x in lines[n0:]]
+    recs = [json.loads(x) for x in lines[n0:]]
+    return [r["payload"] for r in recs if "send-outlook" in r.get("path", "")]
 
 
 def mail_count():
