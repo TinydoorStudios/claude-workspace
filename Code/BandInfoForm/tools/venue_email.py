@@ -349,6 +349,17 @@ import os as _os
 SERIES_EMAIL_ROOT = Path(_os.environ.get("ADVANCE_DROPBOX_ROOT") or (Path.home() / "Dropbox")) / "Nyquist" / "Series Email Templates"
 
 
+def attachment_display_name(filename):
+    """The name an `_attachment*` file goes out under. `_attachment Memorial
+    Hall Tech-Pack 2026.pdf` -> `Memorial Hall Tech-Pack 2026.pdf`: the
+    `_attachment` marker and an optional `-N` ordering digit are stripped.
+    A bare `_attachment.pdf` has nothing left to show, so it keeps its name."""
+    import re
+    stem, ext = _os.path.splitext(filename)
+    m = re.match(r"^_attachment(?:-\d+)?[ _-]*(.+)$", stem)
+    return m.group(1) + ext if m else filename
+
+
 def venue_attachments(venue, root=None):
     """Every standing attachment for this venue — all files named
     `_attachment*` in its Series Email Templates folder, in name order
@@ -369,7 +380,7 @@ def venue_attachments(venue, root=None):
             print(f"[venue_email] couldn't read attachment {path}: {e!r}", file=sys.stderr)
             continue
         ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
-        out.append((path.name, ctype, base64.b64encode(data).decode("ascii")))
+        out.append((attachment_display_name(path.name), ctype, base64.b64encode(data).decode("ascii")))
     return out
 
 
@@ -400,7 +411,14 @@ def venue_doc_links_text(venue, root=None):
     if not links:
         return ""
     labels = {0: "Load-in doc", 1: "Tech pack"}
-    lines = [f"{labels.get(i, name)}: {url}" for i, (name, url) in enumerate(links)]
+
+    def label(i, name):
+        shown = attachment_display_name(name)
+        if "tech" in shown.lower():
+            return "Tech pack"
+        return labels.get(i, shown) if shown == name else shown
+
+    lines = [f"{label(i, name)}: {url}" for i, (name, url) in enumerate(links)]
     return "\n".join(lines)
 
 

@@ -1,10 +1,10 @@
-"""Memorial Hall Technical Specifications, Version 1 (2026-09-29).
+"""Memorial Hall Technical Specifications, Version 2 (2026-10-01), from the v1 of 2026-09-29.
 
 Source: 'Memorial Hall Production Specifications - 2026 edit.docx' (Brian's Downloads).
 Brand: Code/BandInfoForm/app/brand/brand.json (Avenir Next, Memo gray + purple, logos).
 Builds the .docx here; build_pdf() has Word export the PDF so both files match.
 
-    python3 build_v1.py
+    python3 build_v2.py
 """
 import json
 import os
@@ -23,9 +23,9 @@ BRAND_DIR = os.path.expanduser("~/Documents/Claude/Code/BandInfoForm/app/brand")
 BRAND = json.load(open(os.path.join(BRAND_DIR, "brand.json")))
 VENUE = BRAND["venues"]["Memorial Hall"]
 
-VERSION = "Version 1"
-DATE = "September 2026"
-OUT = os.path.join(HERE, "Memorial Hall Technical Specifications v1")
+VERSION = "Version 2"
+DATE = "October 2026"
+OUT = os.path.join(HERE, "Memorial Hall Technical Specifications v2")
 
 BODY = BRAND["fonts"]["body"]
 HEAD = BRAND["fonts"]["heading"]
@@ -266,7 +266,7 @@ def setup(doc):
     set_run_font(rp.add_run("TECHNICAL SPECIFICATIONS"), HEAD, 10.5, True, color=TEXT)
     rp2 = t.cell(0, 1).add_paragraph()
     rp2.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    set_run_font(rp2.add_run(f"{VERSION}  ·  {DATE}"), BODY, 8, color=GRAY)
+    set_run_font(rp2.add_run(DATE), BODY, 8, color=GRAY)
     for c in t.rows[0].cells:
         c.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
     # move the empty default paragraph below the table and use it as the rule
@@ -334,12 +334,12 @@ def rich(cell_or_doc, parts, size=9.5, first=True):
     return p
 
 
-def spec_table(doc, rows, label_w=1.65):
+def spec_table(doc, rows, label_w=1.65, pad=60):
     """Two-column label/value table. value may be a str or a list of lines."""
     t = doc.add_table(rows=0, cols=2)
     t.alignment = WD_TABLE_ALIGNMENT.CENTER
     table_borders(t)
-    cell_margins(t)
+    cell_margins(t, pad, pad)
     for label, value in rows:
         r = t.add_row()
         no_split(r)
@@ -440,6 +440,8 @@ def page_one(doc):
     body(doc, "", after=2)
 
     h1(doc, "At a Glance")
+    body(doc, "Built in 1908 as a tribute to veterans and renovated in 2016. Listed on the National Register of Historic Places.",
+         after=6)
     spec_table(doc, [
         ("Capacity", "556 seats: 215 on the main level (orchestra) and 341 in the balcony. All 11 accessible seats are "
                      "on the main level."),
@@ -447,17 +449,16 @@ def page_one(doc):
                   "no soft goods and no overstage rigging."),
         ("Load-in", "Street-level door on Grant Street (2'7\" W × 6'10\" H) into a freight elevator. No dock. The stage is "
                     "on the second floor."),
-        ("Power", "One 400A 3-phase disconnect, backstage stage right. No shore power; generators are OK."),
         ("House console", "DiGiCo Quantum 225 with Pulse and a DQ Stage rack (48 inputs), in the house right balcony."),
         ("PA", "Sound Bridge line array (main and balcony hangs, L/R), dual 18\" subs and 4 front fills."),
-        ("Monitors", "8 wedges and 4 in-ear systems, mixed from FOH. A Yamaha CL3 monitor console and split are available; a fee may apply."),
-        ("Lighting", "ETC Ion Element 40 running an LED rep rig with Source 4s, 8 moving heads and 4 truss towers."),
+        ("Monitors", "8 wedges and 4 in-ear systems, mixed from FOH. A Yamaha CL3 monitor console and split are available; rental fee may apply."),
+        ("Lighting", "ETC Ion Element 40 running an LED rep rig with Source 4s and 8 moving heads."),
         ("Video", "10,000-lumen laser projector and a 20' motorized 16:9 screen, fed by HDMI from backstage."),
         ("Sound limit", "95 dB LAeq,6min (A-weighted, 6-minute average) at balcony center, per local ordinance."),
         ("Building curfew", "90 minutes after the scheduled end of the show. All touring personnel, artists and gear must be out of the building by then."),
-    ], label_w=1.35)
+    ], label_w=1.35, pad=35)
 
-    photos(doc, [(13, "The room from the stage, with the house FOH, house lighting, touring lighting and touring FOH positions marked")], height=1.62)
+    photos(doc, [(13, "The room from the stage, with the house FOH, house lighting, touring lighting and touring FOH positions marked")], height=2.1)
 
 
 def stage(doc):
@@ -472,7 +473,6 @@ def stage(doc):
         ("Entrances", ["Stage left and stage right doorways, 2'7\" W × 6'10\" H.",
                        "A 5'11\" piano door on the upstage right wall for load-in."]),
         ("House to stage", "Steps from the house to the stage, with or without a railing, can be added in the aisles."),
-        ("Building", "Opened 1908. Listed on the National Register of Historic Places in 1978."),
     ])
     photos(doc, [(3, "Stage plan with dimensions")], height=2.9)
     photos(doc, [(1, "The stage from the orchestra"), (2, "Trim and ledge heights on the upstage wall")], height=2.1)
@@ -485,7 +485,8 @@ def load_in(doc):
         ("Freight elevator", "Just inside the loading door. 5' W × 7'8\" L × 7' H."),
         ("Stage level", "The stage is on the second floor."),
         ("Parking", "Details come with your advance."),
-        ("Power", "One 400A 3-phase disconnect, backstage stage right."),
+        ("Power", "Modern, isolated supplies for lighting and sound. We can augment with a 400A 3-phase disconnect, "
+                  "backstage stage right."),
         ("Shore power", "None. Generators are OK."),
     ])
     photos(doc, [(18, "Loading door on Grant Street"), (17, "Freight elevator, just inside the loading door"),
@@ -507,29 +508,31 @@ def audio(doc):
         ("Stage rack", "DiGiCo DQ Stage rack, 48 inputs."),
         ("Position", "House right balcony, with a full view of the stage and no booth or overhang. The house console is in a fixed position and does not move."),
     ])
-    photos(doc, [(4, "House FOH position, house right balcony (red box)"), (5, "View from the house FOH console")], height=1.95)
+    photos(doc, [(4, "House FOH position, house right balcony (red box)"), (5, "View from the house FOH console")], height=1.7)
 
     h2(doc, "Touring FOH")
     spec_table(doc, [
         ("Routing", "Guest consoles run through the house console. We can accept left, right, sub, fill and assisted listening "
                     "feeds, or any combination of them."),
-        ("Position", "Rear center of the orchestra (Box M), with a full view of the stage and no booth or overhang."),
+        ("Position", "Rear center of the orchestra (Box M), with a full view of the stage and no booth or overhang. "
+                     "The guest console position typically requires at least two seat kills, in seats normally priced at P1."),
         ("Cabling", "No drylines at this position; PA drivelines are stage left. The run to the stage box is about 150'. "
                     "Tours must bring all cables needed to connect the touring console to any stage racks or devices."),
     ])
-    photos(doc, [(6, "Touring FOH position, Box M (red box)"), (7, "View from the touring FOH position")], height=1.95)
+    photos(doc, [(6, "Touring FOH position, Box M (red box)"), (7, "View from the touring FOH position")], height=1.7)
 
     h2(doc, "Monitors")
     spec_table(doc, [
         ("Wedges", "8 Sound Bridge 7122W 12\" stage monitors."),
         ("In-ears", "4 Sennheiser EW300 in-ear systems."),
         ("Monitor mixes", "Run from FOH on the house console unless a monitor console is in use."),
-        ("Monitor console", "Yamaha CL3, 48 inputs. A fee may apply."),
+        ("Monitor console", "Yamaha CL3, 48 inputs. Rental fee may apply."),
         ("Split", "40-channel transformer-isolated split. It's required when using the house monitor console, and it "
-                  "can also feed a touring monitor console. A fee may apply."),
-        ("Monitor position", "Offstage left, through a 2'7\" W × 6'10\" H doorway."),
+                  "can also feed a touring monitor console. Rental fee may apply."),
+        ("Monitor position", "Offstage left, with a view of the stage through a 2'7\" W × 6'10\" H doorway. We'll work with each show "
+                             "individually to recommend monitor placement options."),
     ])
-    photos(doc, [(9, "Monitor position, offstage left"), (8, "View from the monitor position")], height=2.1)
+    photos(doc, [(9, "Monitor position, offstage left"), (8, "Looking out through the doorway from the monitor console")], height=1.8)
 
     h2(doc, "Sound Level Limit")
     body(doc, "Local ordinance limits Memorial Hall to 95 dB LAeq,6min: the A-weighted equivalent level averaged over "
@@ -553,7 +556,7 @@ def audio(doc):
         (2, "Telefunken M60", "Small-diaphragm condenser", ""),
         (4, "Shure ULX-D2 / Beta 58A", "Wireless handheld", ""),
         (2, "Shure SLX / SM58", "Wireless handheld", ""),
-        (3, "Lavalier mic", "Lavalier", "May incur a fee"),
+        (4, "Lavalier mic", "Lavalier", "May incur a fee"),
         (5, "Countryman E6", "Headset", "May incur a fee"),
         (10, "Radial JDI", "Passive DI", ""),
     ], [0.6, 2.2, 2.4, CONTENT_W - 5.2])
@@ -578,8 +581,6 @@ def lighting(doc):
         (14, "LED overhead track wash", ""),
         (8, "LED uplight", ""),
         (4, "Elation Fuze 120 LED wash", ""),
-        (2, "1 × 1 × 5 stand-alone truss, 4 LED flat pars each", "Mounted"),
-        (2, "1 × 1 × 8 stand-alone truss, 4 LED flat pars each", "Mounted"),
         (1, "Radiant water-based hazer", "Additional fee"),
         (2, "Spotlight", "Additional fee"),
     ], [0.6, 4.4, CONTENT_W - 5.0])
@@ -592,7 +593,7 @@ def video(doc):
     h1(doc, "Video", page_break=True)
     spec_table(doc, [
         ("Projector", "Panasonic PT-RZ970BU laser projector, 10,000 lumens, WUXGA."),
-        ("Screen", "20' motorized screen, 135\" × 240\", 16:9. It can be partly lowered, with the picture resized to fit."),
+        ("Screen", "20' motorized screen, 135\" × 240\", 16:9, front projection only. It can be partly lowered, with the picture resized to fit."),
         ("Position", "About 13' from the back wall and 9' upstage of the lip. The screen can't be rehung."),
         ("Input", "HDMI from backstage."),
     ])
@@ -625,7 +626,7 @@ def equipment(doc):
         (4, "Wenger riser, 4' × 8' × 12\"", "Black skirting"),
         (6, "Wenger 3-level choral riser", ""),
         (1, "Conductor's podium", ""),
-        ("", "Pipe and drape", "Covers the back wall of the stage"),
+        ("", "Pipe and drape", ""),
         (1, "Large wooden podium", "Gooseneck mic"),
         (1, "Small black podium", "Gooseneck mic"),
         ("", "Drum rugs", ""),
@@ -698,7 +699,23 @@ end tell'''
     return pdf
 
 
+def build_email_copy(pdf):
+    """Photo-downsampled copy for the welcome-email attachment (full file is ~5 MB, which
+    is too heavy for a Graph sendMail attachment). Lands in the Memo series-email folder
+    under the name the band sees."""
+    import fitz
+    dest = os.path.expanduser("~/Dropbox/Nyquist/Series Email Templates/Memorial Hall/"
+                              "_attachment Memorial Hall Tech-Pack 2026.pdf")
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    d = fitz.open(pdf)
+    d.rewrite_images(dpi_threshold=170, dpi_target=150, quality=72)
+    d.save(dest, garbage=4, deflate=True, clean=True)
+    return dest
+
+
 if __name__ == "__main__":
     p = build()
     print(p)
-    print(build_pdf(p))
+    pdf = build_pdf(p)
+    print(pdf)
+    print(build_email_copy(pdf))
