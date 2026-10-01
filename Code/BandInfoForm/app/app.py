@@ -1105,6 +1105,7 @@ def _parking_sheet_for(show_id, venue, series):
     parking calls for it (see ve.wants_parking_sheet), else []. Never raises: a
     lookup problem just means the welcome goes without the sheet, and the
     dashboard item still catches it."""
+    import venue_email as ve
     acts = None
     if (venue or "").strip() == "Memorial Hall" and show_id:
         try:
@@ -1324,6 +1325,7 @@ def parking_sheet_pdf():
     """Public copy of the Washington Park garage parking sheet (the staff page
     links it; the email carries it as an attachment)."""
     import brand
+    import venue_email as ve
     resp = send_from_directory(brand.BRAND_DIR / "parking", ve.PARKING_SHEET_NAME, as_attachment=False)
     resp.headers["Cache-Control"] = "public, max-age=3600"
     return resp
@@ -2846,6 +2848,7 @@ def _parking_sheet_email(s):
 
 @app.get("/show/<int:show_id>/parking-sheet")
 def show_parking_sheet(show_id):
+    import venue_email as ve
     if not DB_OK:
         abort(503)
     with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -2863,6 +2866,7 @@ def show_parking_sheet(show_id):
 
 @app.post("/show/<int:show_id>/parking-sheet")
 def show_parking_sheet_send(show_id):
+    import venue_email as ve
     if not DB_OK:
         abort(503)
     with advance_db.get_conn() as conn, conn.cursor() as cur:
