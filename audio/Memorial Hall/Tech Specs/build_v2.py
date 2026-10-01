@@ -700,16 +700,12 @@ end tell'''
 
 
 def build_email_copy(pdf):
-    """Photo-downsampled copy for the welcome-email attachment (full file is ~5 MB, which
-    is too heavy for a Graph sendMail attachment). Lands in the Memo series-email folder
-    under the name the band sees."""
-    import fitz
+    """Full-quality copy for the welcome-email attachment, under the name the band sees."""
+    import shutil
     dest = os.path.expanduser("~/Dropbox/Nyquist/Series Email Templates/Memorial Hall/"
                               "_attachment Memorial Hall Tech-Pack 2026.pdf")
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    d = fitz.open(pdf)
-    d.rewrite_images(dpi_threshold=170, dpi_target=150, quality=72)
-    d.save(dest, garbage=4, deflate=True, clean=True)
+    shutil.copyfile(pdf, dest)
     return dest
 
 
