@@ -114,9 +114,9 @@ def annotate():
 # unload spot if that differs.
 # Corner points of the drive; annotate_route() rounds the corners. The long leg runs up
 # the middle of Elm Street, x = 635 + 0.16 * (y - 250) (measured on the aerial).
-ROUTE_CORNERS = [(470, 915), (700, 915), (735, 905), (730, 880), (639, 268), (645, 252), (690, 247),
+ROUTE_CORNERS = [(470, 890), (705, 890), (735, 880), (731, 850), (639, 268), (645, 252), (690, 247),
                  (755, 244)]
-ROUTE_START = (470, 915)
+ROUTE_START = (470, 890)
 ROUTE_END = (755, 244)
 
 
@@ -177,7 +177,7 @@ def annotate_route():
     pill("Elm Street entrance", ex - r - 14, ey - 70, anchor="rm")
     # building and street names
     pill("MEMORIAL HALL", 530, 735, font=small, fill=(35, 31, 32, 215), ink=(255, 255, 255, 255))
-    for text, x, y, rot in [("GRANT ST", 270, 905, -3), ("ELM ST", 610, 520, 81)]:
+    for text, x, y, rot in [("GRANT ST", 270, 880, -3), ("ELM ST", 610, 520, 81)]:
         tw = int(d.textlength(text, font=small))
         tag = Image.new("RGBA", (tw + 34, 48), (0, 0, 0, 0))
         td = ImageDraw.Draw(tag)
