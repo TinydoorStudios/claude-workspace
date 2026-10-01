@@ -112,10 +112,24 @@ def annotate():
 # Memorial Hall -> Elm Street entrance, in ROUTE_SOURCE pixels (1092 x 1092).
 # The start is on Grant Street at Memorial Hall's south side; move it to the real
 # unload spot if that differs.
-ROUTE_PATH = [(470, 918), (690, 908), (728, 884), (738, 858), (718, 760), (704, 700), (680, 500),
-              (650, 300), (655, 268), (690, 256), (748, 250)]
-ROUTE_START = (470, 918)
-ROUTE_END = (748, 250)
+# Corner points of the drive; annotate_route() rounds the corners. The long leg runs up
+# the middle of Elm Street, x = 635 + 0.16 * (y - 250) (measured on the aerial).
+ROUTE_CORNERS = [(470, 915), (700, 915), (735, 905), (730, 880), (639, 268), (645, 252), (690, 247),
+                 (755, 244)]
+ROUTE_START = (470, 915)
+ROUTE_END = (755, 244)
+
+
+def _round_corners(pts, rounds=3):
+    """Chaikin corner cutting: straight legs stay straight, turns become curves."""
+    for _ in range(rounds):
+        out = [pts[0]]
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            out += [(0.75 * x0 + 0.25 * x1, 0.75 * y0 + 0.25 * y1),
+                    (0.25 * x0 + 0.75 * x1, 0.25 * y0 + 0.75 * y1)]
+        out.append(pts[-1])
+        pts = out
+    return pts
 
 
 def annotate_route():
@@ -124,6 +138,7 @@ def annotate_route():
     im = Image.open(ROUTE_SOURCE).convert("RGBA")
     over = Image.new("RGBA", im.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(over)
+    ROUTE_PATH = _round_corners(ROUTE_CORNERS)
     d.line(ROUTE_PATH, fill=(255, 255, 255, 255), width=30, joint="curve")
     d.line(ROUTE_PATH, fill=MARK + (255,), width=17, joint="curve")
     # arrowheads: one mid-route heading north, one at the end heading into the ramp
@@ -134,8 +149,8 @@ def annotate_route():
         for da in (2.55, -2.55):
             pts.append((tip[0] + 46 * math.cos(ang + da), tip[1] + 46 * math.sin(ang + da)))
         d.polygon(pts, fill=MARK + (255,), outline=(255, 255, 255, 255))
-    arrow((712, 720), (708, 660))
-    arrow((700, 256), (760, 249))
+    arrow((712, 735), (704, 675))
+    arrow((700, 247), (762, 244))
     big = ImageFont.truetype(_AV, 46, index=2)
     mid = ImageFont.truetype(_AV, 36, index=2)
     small = ImageFont.truetype(_AV, 32, index=2)
