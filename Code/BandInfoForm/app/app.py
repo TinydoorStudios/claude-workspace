@@ -1224,13 +1224,19 @@ def _create_outlook_draft(to, subject, body=None, html=None, attachments=None, t
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             raw = json.loads(resp.read().decode("utf-8", "replace") or "{}")
     except Exception as e:  # noqa: BLE001
+        mailer._log(f"DRAFT FAILED to={to!r} subject={subject!r} {repr(e)[:200]}")
         return False, repr(e)[:200], None
     if isinstance(raw, list):
         raw = raw[0] if raw else {}
     gbody = raw.get("body") if isinstance(raw, dict) else None
     status = raw.get("statusCode") if isinstance(raw, dict) else None
     if status in (200, 201) and isinstance(gbody, dict) and gbody.get("id"):
+        # review 2026-10-01: drafts were invisible in mail.log, so two duplicate
+        # Memo welcome drafts had no trace of what created them
+        mailer._log(f"DRAFT CREATED to={to!r} subject={subject!r} attachments={len(att)} "
+                    f"id=...{str(gbody.get('id'))[-12:]}")
         return True, None, gbody.get("webLink")
+    mailer._log(f"DRAFT FAILED to={to!r} subject={subject!r} HTTP {status}")
     return False, f"draft not created (HTTP {status}): {str(gbody)[:200]}", None
 
 
