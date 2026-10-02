@@ -233,12 +233,57 @@ def _venue_gives_drink_tickets(venue, series=None):
     return "drink ticket" in (blocks.get("hospitality") or "").lower()
 
 
+def _build_recap_memo(venue, show_date, artist_name):
+    """Memorial Hall's recap, read from the database (review 2026-10-01 #7).
+    The Memo doc is its own layout in a per-show folder, not the day-sheet
+    grid read_filed_advance walks, so the schedule and the band's answers
+    come from memo_doc.values_for — the same values that draw the doc.
+    None (fail closed) when the show or this artist's act can't be found."""
+    import memo_doc
+    target = daysheet.norm(artist_name)
+    with db.get_conn() as conn, conn.cursor() as cur:
+        cur.execute("""SELECT s.id FROM shows s JOIN artists a ON a.id = s.artist_id
+                       WHERE s.venue=%s AND s.show_date=%s AND s.cancelled_at IS NULL""",
+                    (venue, show_date))
+        ids = [r["id"] for r in cur.fetchall()]
+        V = None
+        for sid in ids:
+            V, info = memo_doc.values_for(cur, sid)
+            if V and any(daysheet.norm(a["_name"]) == target for a in info["acts"]):
+                break
+            V = None
+    if not V:
+        return None
+    act = next(a for a in V.acts if daysheet.norm(a["_name"]) == target)
+    ev = V.event
+    schedule_lines = [(label, ev[k]) for label, k in (
+        ("Load-in", "artist_load_in"), ("Sound check", "sound_check"), ("Doors", "doors"),
+        ("Set 1", "set_1"), ("Set 2", "set_2"), ("End of show", "end_of_show")) if ev.get(k)]
+    if ev.get("set_1") and ev.get("set_1_end"):
+        schedule_lines = [(l, f"{t} – {ev['set_1_end']}" if l == "Set 1" else t) for l, t in schedule_lines]
+    if ev.get("set_2") and ev.get("set_2_end"):
+        schedule_lines = [(l, f"{t} – {ev['set_2_end']}" if l == "Set 2" else t) for l, t in schedule_lines]
+    if ev.get("curfew"):
+        schedule_lines.append(("Curfew", ev["curfew"]))
+    recap = []
+    for friendly, key in (("Performers", "performers"), ("Monitors", "wedges"),
+                          ("Backline", "backline_notes"), ("Merch", "merch"), ("Parking", "parking")):
+        v = str(act.get(key) or "").strip()
+        if v:
+            recap.append((friendly, v))
+    if act.get("_stage_plot"):
+        recap.append(("Stage plot", "on file"))
+    return schedule_lines, recap
+
+
 def build_recap(venue, show_date, artist_name, series=None):
     """(schedule_lines, recap_lines) for this artist's finalized show, or
     None if the filed doc — or this artist's own column in it — can't be
     resolved. None is the fail-closed signal: callers must not send
     anything when this comes back None, and must not guess at a
     replacement."""
+    if (venue or "").strip() == "Memorial Hall":
+        return _build_recap_memo(venue, show_date, artist_name)
     found = daysheet.read_filed_advance(venue, show_date, artist_name)
     if not found:
         return None

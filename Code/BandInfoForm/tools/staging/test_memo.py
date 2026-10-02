@@ -312,6 +312,24 @@ def main():
         print("   ", out)
         check("hand edit" in doc_text(doc), "hand-edited doc left alone")
         check(any("(updated" in p.name for p in folder.iterdir()), "new version saved beside it")
+        # review 2026-10-01: repeat runs reuse the one side file, none pile up
+        memo_doc(sid); memo_doc(sid)
+        sides = [p.name for p in folder.iterdir() if "(updated" in p.name and not p.name.startswith(".")]
+        check(len(sides) == 1, f"repeat runs on a hand-edited doc keep one side file ({sides})")
+        # ...and a changed answer refreshes that same file, not a new one
+        band.req("/memo/submit", [("token", tok), ("band_name", BAND1), ("show_date", DATE.isoformat()),
+                                  ("set_length", "2 x 50")], files=[])
+        time.sleep(6); memo_doc(sid)
+        sides = [p.name for p in folder.iterdir() if "(updated" in p.name and not p.name.startswith(".")]
+        check(len(sides) == 1 and "2 x 50" in doc_text(folder / sides[0]),
+              "a changed answer refreshes the same side file")
+        check("hand edit" in doc_text(doc), "the hand-edited doc itself is still untouched")
+        # Finalize reads Memo from the database, not the day-sheet grid
+        import finalize_thankyou as ft
+        rc = ft.build_recap("Memorial Hall", DATE, BAND1)
+        check(rc is not None and any(l == "Doors" or l == "Set 1" for l, _ in rc[0]),
+              f"Finalize builds a Memo schedule recap ({rc[0] if rc else None})")
+        check(ft.build_recap("Memorial Hall", DATE, "Nobody Here") is None, "Finalize fails closed for an unknown Memo artist")
 
     # ── Memo's own ladder: welcome at 30 days out, chases 15/10/7/5/3/2/1
     import json as _json

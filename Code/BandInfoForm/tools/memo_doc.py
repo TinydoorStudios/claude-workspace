@@ -545,13 +545,29 @@ def _file_show(show_id, dry_run=False, out=None, today=None):
     key = str(target)
     rec = led.get(key) or {}
     vhash = hashlib.sha256(repr((V.event, V.acts, V.crew)).encode()).hexdigest()
+    def _side_path():
+        # review 2026-10-01: ONE side file, overwritten in place, instead of a
+        # new "(updated HHMM)" copy on every run. If a person has edited the
+        # side file too (its sha no longer matches the ledger), fall back to a
+        # stamped name so their edit survives.
+        side = folder / f"MEMO Adv - {_safe_name(info['event'])} (updated).docx"
+        srec = led.get(str(side)) or {}
+        if side.exists() and srec.get("sha") != _sha(side):
+            stamp = dt.datetime.now().strftime("%m%d%y-%H%M")
+            side = folder / f"MEMO Adv - {_safe_name(info['event'])} (updated {stamp}).docx"
+        return side
+
     if target.exists():
         if rec.get("sha") != _sha(target):
             # a person edited it (or it pre-dates the pipeline): never overwrite
             res["hand_edited"] = True
-            stamp = dt.datetime.now().strftime("%m%d%y-%H%M")
-            target = folder / f"MEMO Adv - {_safe_name(info['event'])} (updated {stamp}).docx"
+            target = _side_path()
+            key = str(target)
+            rec = led.get(key) or {}
             res["path"] = str(target)
+            if target.exists() and rec.get("sha") == _sha(target) and rec.get("values") == vhash:
+                res["action"] = "unchanged"
+                return res
         elif rec.get("values") == vhash:
             res["action"] = "unchanged"
             return res
@@ -561,14 +577,13 @@ def _file_show(show_id, dry_run=False, out=None, today=None):
     if not res["hand_edited"] and target.exists() and rec.get("sha") != _sha(target):
         # edited by a person while we were building: keep theirs, save ours beside it
         res["hand_edited"] = True
-        stamp = dt.datetime.now().strftime("%m%d%y-%H%M")
-        target = folder / f"MEMO Adv - {_safe_name(info['event'])} (updated {stamp}).docx"
+        target = _side_path()
+        key = str(target)
         res["path"] = str(target)
     tmp.replace(target)
-    if not res["hand_edited"]:
-        led[key] = {"sha": _sha(target), "values": vhash,
-                    "written_at": dt.datetime.now().isoformat(timespec="seconds")}
-        _save_ledger(led)
+    led[key] = {"sha": _sha(target), "values": vhash,
+                "written_at": dt.datetime.now().isoformat(timespec="seconds")}
+    _save_ledger(led)
     res["action"] = "merged" if rec else "created"
     return res
 
