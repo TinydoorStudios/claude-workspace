@@ -317,8 +317,10 @@ def main():
         sides = [p.name for p in folder.iterdir() if "(updated" in p.name and not p.name.startswith(".")]
         check(len(sides) == 1, f"repeat runs on a hand-edited doc keep one side file ({sides})")
         # ...and a changed answer refreshes that same file, not a new one
-        band.req("/memo/submit", [("token", tok), ("band_name", BAND1), ("show_date", DATE.isoformat()),
-                                  ("set_length", "2 x 50")], files=[])
+        # (a staff save applies as typed; a band's change to a settled answer is held)
+        st_, html_, _u = staff.req(link)
+        staff.req("/memo/submit", [("token", tok), ("csrf", csrf_of(html_)), ("band_name", BAND1),
+                                   ("show_date", DATE.isoformat()), ("set_length", "2 x 50")], files=[])
         time.sleep(6); memo_doc(sid)
         sides = [p.name for p in folder.iterdir() if "(updated" in p.name and not p.name.startswith(".")]
         check(len(sides) == 1 and "2 x 50" in doc_text(folder / sides[0]),
