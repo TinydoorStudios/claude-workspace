@@ -2311,7 +2311,10 @@ def booking():
                                    edit_booking_id=None if existing_show else existing["id"])
         band_answers_saved = _record_booking_band_answers(f, request.files, data,
                                                           prefilled=False) is not None
-        _notify_email("booking", data)
+        # "Don't send the staff summary" (open item from 2026-09-29): this save
+        # is a correction or a bulk entry, not news. Per save, never stored.
+        if f.get("no_summary") != "on":
+            _notify_email("booking", data)
         show_date = advance_db.to_date(data.get("event_date"))
         days_out = (show_date - dt.date.today()).days if show_date else None
         urgent = days_out is not None and 0 <= days_out <= advance_db.welcome_days(data.get("venue"))

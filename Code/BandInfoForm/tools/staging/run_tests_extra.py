@@ -3090,6 +3090,23 @@ def tx_iso():
 
 
 # ── 2026-10-01: Elm Street Plaza built into the system ───────────────────────
+@test("x-sum: the booking summary email fires by default and is skipped with 'Don't send the staff summary'")
+def tx_booking_summary_optout():
+    login()
+    venue, d = "Fountain Square", TODAY + dt.timedelta(days=71)
+    for band, email, minute, extra, expect in (
+            ("Summary Default Band", "sumdefault@example.test", 33, {}, 1),
+            ("Summary Quiet Band", "sumquiet@example.test", 34, {"no_summary": "on"}, 0)):
+        n0 = mail_count()
+        hhmm, _house = _book_free(band, venue, d, email, minute, skip_welcome_email="on", **extra)
+        if not hhmm:
+            return
+        got = [m for m in mails(n0) if m["path"].endswith("/advance-notify")
+               and m["payload"].get("event_type") == "booking" and m["payload"].get("artist_name") == band]
+        check(len(got) == expect, f"{band}: {expect} 'New booking' summary expected, got {len(got)}")
+        wait_run_now()
+
+
 @test("x-esp: ESP welcome, 84.51 parking digest, form acknowledgment and the trimmed advance doc")
 def tx_esp():
     login()

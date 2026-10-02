@@ -6,8 +6,9 @@ the show date instead. Deactivated in n8n (`active=false`), not deleted — the 
 endpoint it called (`/internal/run-followups`) and `followup_queue` table are still
 in the codebase, just unused by anything live now.
 
-- Workflow: `advance_followup_check.json` (token shown as a placeholder; the live
-  copy in n8n carries the real `ADVANCE_INTERNAL_TOKEN`).
+- Workflow file REMOVED from the repo 2026-10-02 (it pointed at the retired
+  `/internal/run-followups` route, so an accidental re-import would 404 daily). The
+  inactive copy still sits in n8n; delete it there when convenient.
 - Import: `docker cp` into the n8n container, then `n8n import:workflow`,
   `n8n publish:workflow --id=<id>`, and restart n8n so the schedule registers.
 - Connectivity: `advance-db` is attached to the `n8n_default` docker network

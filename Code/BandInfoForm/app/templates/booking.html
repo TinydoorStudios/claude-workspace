@@ -206,6 +206,11 @@
         <span>Draft the advance email — don't send it</span>
       </label>
       <p class="hint" style="margin:6px 0 0 25px">The welcome lands in Production@3cdc.org as a draft for you to review and send by hand. Nothing else about the booking changes, and no reminders go out to this band until the box is cleared.</p>
+      <label style="display:flex;align-items:flex-start;gap:9px;text-transform:none;font-weight:400;letter-spacing:normal;color:#e6edf3;font-size:14px;cursor:pointer;margin-top:12px">
+        <input type="checkbox" name="no_summary" id="no_summary" style="width:auto;margin-top:2px">
+        <span>Don't send the staff "New booking" summary</span>
+      </label>
+      <p class="hint" style="margin:6px 0 0 25px">This save only. Use it for corrections and bulk entry so the team inbox isn't pinged. Nothing about the booking or the band's emails changes.</p>
     </div>
     <div><label>Set Length</label><input name="set_time" id="set_time_input" value="{{ form.set_time or '' }}" placeholder="e.g. 60 min" oninput="scheduleTouched.set_time_input=true"></div>
     <p class="hint">More than one artist on the bill? Log each one separately with the same event name, date, and venue. Set Start puts them in order on the paperwork — earliest is Artist 1 — so nothing here asks who opens or how many are playing.</p>
