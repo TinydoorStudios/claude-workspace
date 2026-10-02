@@ -231,6 +231,10 @@ def main():
           and ve.parking_sheet_name("Memorial Hall", None, [{"parking": "SP+ Lot"}, {"parking": "Washington Park"}])
           == ve.MEMO_PARKING_SHEETS["Washington Park"], "Memo sheet choice by Parking answer")
     check(all(ve.parking_sheet_attachment(n) for n in ve.PARKING_SHEET_FILES), "every sheet file ships")
+    check("Reserved Lot Parking sheet" in ve.memo_parking_text([{"parking": "SP+ Lot"}])
+          and "Garage Parking sheet" in ve.memo_parking_text([{"parking": "Washington Park"}])
+          and ve.memo_parking_text([{"parking": ""}]) == ve.MEMO_PARKING_DEFAULT,
+          "Memo welcome parking lines follow the Parking answer")
     names = [n for n, _t, _c in ve.venue_attachments("Memorial Hall")]
     check("Memorial Hall Tech-Pack 2026.pdf" in names, f"Memo tech pack attaches under its clean name ({names})")
 

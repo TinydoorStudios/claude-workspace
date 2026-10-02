@@ -639,6 +639,7 @@ def main():
                 if venue == "Memorial Hall" and show_id:
                     email_extra["backline_text"] = ve.MEMO_BACKLINE_DEFAULT
                     email_extra["crew_text"] = ve.MEMO_CREW_DEFAULT
+                    email_extra["parking_text"] = ve.MEMO_PARKING_DEFAULT
                     try:
                         import memo_doc
                         with conn.cursor() as cur:
@@ -653,6 +654,7 @@ def main():
                     # advancing contact working the desk that night
                     if memo_vals:
                         email_extra["backline_text"] = ve.memo_backline_text(memo_vals.acts)
+                        email_extra["parking_text"] = ve.memo_parking_text(memo_vals.acts)
                         try:
                             email_extra["crew_text"] = ve.memo_crew_text(
                                 memo_doc.cost_model_crew(show_date, r.get("event_name") or name))

@@ -67,6 +67,28 @@ MEMO_BACKLINE_ARRANGED = "your backline is arranged. Check the details on the fo
 MEMO_CREW_DEFAULT = "house crew covers sound, lighting and stagehand duties from load-in to load-out."
 
 
+MEMO_PARKING_DEFAULT = ("Load-in details are in the attached tech packet. Tell us on the form which "
+                        "vehicles you're bringing and we'll follow up on parking.")
+_MEMO_PARKING_TEXT = {
+    "Washington Park": ("The attached Load-In and Garage Parking sheet shows the freight door and how "
+                        "parking works at the Washington Park Garage, directly across Elm Street. We'll "
+                        "email your validation QR code ahead of the show."),
+    "SP+ Lot": ("The attached Load-In and Reserved Lot Parking sheet shows the freight door and the "
+                "reserved spaces in the lot behind the building. Enter the lot from Elm Street."),
+    "No": "The attached Load-In sheet shows the freight door.",
+}
+
+
+def memo_parking_text(acts):
+    """The Memo welcome's parking lines, matching the sheet parking_sheet_name() attaches
+    (nothing attached when Parking is blank, so the generic ask stays)."""
+    name = parking_sheet_name("Memorial Hall", None, acts)
+    for choice, sheet in MEMO_PARKING_SHEETS.items():
+        if sheet == name:
+            return _MEMO_PARKING_TEXT[choice]
+    return MEMO_PARKING_DEFAULT
+
+
 def memo_backline_text(acts):
     """Per artist: 'ordered' in any act's backline notes means staff already
     arranged it; otherwise the standard ask."""
@@ -275,10 +297,11 @@ Hospitality & Site:
         "review_note": "We've filled in what we already have from your contract and rider, below and on the form. Please check it for accuracy and add anything we're missing.",
         "load_in": """\
 Load-In & Parking:
-Load in on Grant Street, on the south side of the building. It's a street-level door (2'7" W × 6'10" H) into a freight elevator; there's no dock. The doors are locked at all times, so call your day-of contact when you arrive and they'll let you in. Load-in details are in the attached tech packet.
-Tell us on the form which vehicles you're bringing and we'll follow up on parking. Please also give us a day-of contact for your team.""",
-        # {backline_text} / {crew_text} are set per show by draft_emails.py
-        # (memo_backline_text / memo_crew_text below); it always supplies both.
+Load in on Grant Street, on the south side of the building. It's a street-level door (2'7" W × 6'10" H) into a freight elevator; there's no dock. The doors are locked at all times, so call your day-of contact when you arrive and they'll let you in.
+{parking_text}
+Please also give us a day-of contact for your team.""",
+        # {backline_text} / {crew_text} / {parking_text} are set per show by draft_emails.py
+        # (memo_backline_text / memo_crew_text / memo_parking_text below); it always supplies all three.
         "technical": """\
 Technical:
 - PA: full specs are in the attached tech packet.
