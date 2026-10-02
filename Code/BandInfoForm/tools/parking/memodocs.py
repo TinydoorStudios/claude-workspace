@@ -35,7 +35,7 @@ STAR_BLUE = (58, 110, 200)
 YELLOW = (255, 214, 0)
 RED = (214, 24, 40)
 # the stalls along Memo's west wall (corners, clockwise from top-left)
-STALLS = [(506, 180), (566, 180), (566, 478), (506, 478)]
+STALLS = [(491, 180), (556, 180), (602, 472), (549, 472)]   # follows the slant of the back wall
 LOT_ENTRY_ARROW = ((945, 72), (800, 72))   # tail -> tip, pointing west into the lot off Elm Street
 CREDIT = "Imagery: Google Maps and Google Street View. Imagery ©2026 Google, Airbus, Maxar Technologies."
 
@@ -52,7 +52,7 @@ def clean_aerial():
     x0, y0, x1, y1 = 350, 214, 540, 262
     rng = np.random.default_rng(5)
     noise = gaussian_filter(rng.normal(0, 1, (y1 - y0, x1 - x0)), 1.2)[:, :, None] * 2.2
-    a[y0:y1, x0:x1] = np.clip(med + noise * sd * 0.7, 0, 255)
+    a[y0:y1, x0:x1] = np.clip(med + noise * sd * 0.35, 0, 255)
     out = Image.fromarray(a.astype("uint8"))
     mask = Image.new("L", out.size, 0)
     ImageDraw.Draw(mask).rectangle((x0, y0, x1, y1), fill=255)
@@ -126,7 +126,7 @@ def annotate_lot_aerial():
     d.polygon(STALLS, fill=YELLOW + (120,), outline=YELLOW + (255,))
     d.line(STALLS + [STALLS[0]], fill=YELLOW + (255,), width=5, joint="curve")
     pill(d, "Reserved spaces, coned off", 330, 130, 28, anchor="mm", fill=(255, 214, 0, 245))
-    d.line([(395, 146), (506, 230)], fill=YELLOW + (255,), width=5)
+    d.line([(395, 146), (505, 235)], fill=YELLOW + (255,), width=5)
     # entry arrow
     (tx, ty), (hx, hy) = LOT_ENTRY_ARROW
     d.line([(tx, ty), (hx + 40, hy)], fill=(255, 255, 255, 255), width=40)
