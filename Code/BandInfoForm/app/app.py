@@ -656,7 +656,7 @@ def memo_submit():
 
     # a band answer that differs from one already on this show is held for
     # Brian's call, not applied (2026-09-29); staff saves apply as typed
-    held, current, held_show = {}, {}, None
+    held, current, held_show, held_failed = {}, {}, None, {}
     if not staff and DB_OK:
         try:
             with advance_db.get_conn() as conn, conn.cursor() as cur:
@@ -679,6 +679,17 @@ def memo_submit():
                 rec["_held"] = held
         except Exception as e:
             _log_db_error("memo_hold", e)
+            # review 2026-10-01 #6: FAIL CLOSED. If the lookup of what staff
+            # already settled failed, applying the band's answers could silently
+            # overwrite them. Hold the lot instead: the answers ride along under
+            # _unreviewed (disk record, and the alert below) and none reach the
+            # merged state, so a backfill replay can't apply them either.
+            unreviewed = {k: rec.pop(k) for k in list(memo_fields.FIELDS) if k in rec}
+            if unreviewed:
+                rec["_unreviewed"] = unreviewed
+                rec["_hold_failed"] = repr(e)[:300]
+                held_failed = unreviewed
+            held, current = {}, {}
 
     disk_path = DATA / f"{stamp}__{slug}__memo.json"
     disk_path.write_text(json.dumps(rec, indent=2))
@@ -708,6 +719,16 @@ def memo_submit():
             _log_db_error("memo_record_submission", e)
             _alert_db_write_failure(rec, e)
 
+    if held_failed:
+        rows = "".join(f"<li><b>{mailer.esc(memo_fields.FIELDS[k]['label'])}</b>: "
+                       f"{mailer.esc(memo_fields.display(v))}</li>" for k, v in held_failed.items())
+        mailer.alert(
+            f"Memo band save HELD, not applied — {band_name}",
+            f"<p>{mailer.esc(band_name)} saved the Memorial Hall form for {mailer.esc(show_date)}, "
+            "but the check against what staff already settled failed "
+            f"(<code>{mailer.esc(rec.get('_hold_failed'))}</code>), so none of their answers were applied. "
+            "They are kept on the submission and listed here:</p>"
+            f"<ul>{rows}</ul><p>Enter the ones you want on the staff form.</p>")
     if not staff:
         _notify_submission(rec)
         _notify_email("submission", rec)

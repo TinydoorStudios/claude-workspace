@@ -394,6 +394,32 @@ def main():
     check("cell number for whoever" not in body and "monitor mixes" not in body,
           "Memo chase has no escort-cell or monitor-mix wording")
 
+    # ── band save fails CLOSED when the hold lookup errors (review 2026-10-01 #6)
+    import importlib
+    appmod = importlib.import_module("app")
+    sid_h = show_id_for(BAND1)
+    with db.get_conn() as conn, conn.cursor() as cur:
+        before = db.memo_state(cur, sid_h).get("set_length")
+    real_state = db.memo_state
+    def _boom(cur, show_id):
+        raise RuntimeError("simulated hold-lookup failure")
+    db.memo_state = _boom
+    try:
+        rv = appmod.app.test_client().post("/memo/submit", data={
+            "token": tok, "band_name": BAND1, "show_date": DATE.isoformat(), "set_length": "9 x 99"})
+    finally:
+        db.memo_state = real_state
+    time.sleep(1)
+    with db.get_conn() as conn, conn.cursor() as cur:
+        after = db.memo_state(cur, sid_h).get("set_length")
+        cur.execute("""SELECT data FROM submissions WHERE show_id=%s AND data->>'_form'='memo'
+                       ORDER BY submitted_at DESC, id DESC LIMIT 1""", (sid_h,))
+        last = (cur.fetchone() or {}).get("data") or {}
+    check(rv.status_code in (200, 302), f"band save still completes for the band ({rv.status_code})")
+    check(after == before and after != "9 x 99", "failed hold lookup: band answer NOT applied over staff's")
+    check(last.get("_unreviewed", {}).get("set_length") == "9 x 99" and "set_length" not in last,
+          "failed hold lookup: answer kept under _unreviewed, not in the merged fields")
+
     # ── paused = no day-before and no post-show thank-you either (review 2026-10-01 #1/#2)
     import dayahead
     sid = show_id_for(BAND1)
