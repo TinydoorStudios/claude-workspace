@@ -162,7 +162,7 @@
       </select>
     </div>
     <div class="req" id="wp_location_field" style="display:none">
-      <label>Location (WP / ESP)</label>
+      <label>Location</label>
       <select name="location" id="location_select">
         <option value="">Select…</option>
         {% for loc in wp_locations %}<option data-venue="Washington Park" {% if form.location==loc %}selected{% endif %}>{{ loc }}</option>{% endfor %}
