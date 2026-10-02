@@ -3089,6 +3089,74 @@ def tx_iso():
     check(not bad, f"every mail hit the stub webhooks only ({len(bad)} odd)")
 
 
+# ── 2026-10-01: Elm Street Plaza built into the system ───────────────────────
+@test("x-esp: ESP welcome, 84.51 parking digest, form acknowledgment and the trimmed advance doc")
+def tx_esp():
+    login()
+    venue, band, series = "Elm Street Plaza", "Plaza Test Band", "DJ Skate"
+    email = "plazatestband@example.test"
+    d = TODAY + dt.timedelta(days=19)
+    answers = dict(monitors="2", stage_type="Flat stage", performers="3", vehicle_count="2",
+                   large_vehicle_count="0")
+    hhmm, house = _book_free(band, venue, d, email, 29, series=series, **answers)
+    if not hhmm:
+        return
+    check(wait_run_now(), "booking run finished")
+    s = show_for(band, venue, d)
+    if not s:
+        check(False, "show seeded")
+        return
+    # parking digest: ESP rides the same queue, in its own email naming the 84.51 garage
+    qrow = q("SELECT venue, vehicle_count FROM fsq_parking_queue WHERE show_id=%s AND digested_at IS NULL",
+             (s["id"],), one=True)
+    check(qrow and qrow["venue"] == venue and qrow["vehicle_count"] == 2,
+          f"the ESP vehicle count is queued for the parking digest ({qrow})")
+    n0 = mail_count()
+    st, body = post("/internal/fsq-parking-digest", json_body={}, headers={"X-Advance-Token": TOKEN})
+    esp_sent = [m for m in mails(n0) if band in json.dumps(m["payload"])]
+    subj = (esp_sent[0]["payload"].get("subject") or "") if esp_sent else ""
+    html_body = json.dumps(esp_sent[0]["payload"]) if esp_sent else ""
+    check(st == 200 and subj.startswith("ESP Parking Validations"),
+          f"the digest goes out as its own ESP email ({st}, {subj!r})")
+    check("84.51" in html_body and "mtully@3cdc.org" in html_body.lower(),
+          "the ESP digest names the 84.51 garage and goes to Mya")
+    check("Fountain Square" not in html_body, "the ESP digest says nothing about Fountain Square")
+    # the band's form: ESP's own acknowledgment text
+    from itsdangerous import URLSafeTimedSerializer
+    link = URLSafeTimedSerializer(os.environ["ADVANCE_SECRET"], salt="advance-prefill").dumps(
+        {"a": s["artist_id"], "s": {"venue": venue, "date": d.isoformat(), "series": series,
+                                    "show_id": s["id"]}})
+    st, html = get(f"/f/{link}")
+    check(st == 200 and "6th St." in html and "84.51" in html and 'id="ack_loadin_esp"' in html,
+          "the ESP form carries the unload + 84.51 acknowledgment")
+    # the welcome
+    x("UPDATE shows SET advance_draft_created_at=NULL, responded_at=NULL WHERE id=%s", (s["id"],))
+    n0 = mail_count()
+    _run_lifecycle()
+    welcomes = [m for m in sends_to(n0, email) if (m["payload"].get("subject") or "").startswith("Welcome")]
+    check(len(welcomes) == 1, f"one welcome went out ({len(welcomes)})")
+    if welcomes:
+        body = welcomes[0]["payload"].get("body") or welcomes[0]["payload"].get("html") or json.dumps(welcomes[0]["payload"])
+        for want in ("620 Elm St", "6th St., north of Elm Street Plaza", "15-minute unloading",
+                     "84.51 garage (100 W 5th St", "20' wide x 12' deep", "2 wedges",
+                     "drink tickets and water"):
+            check(want in body, f"the ESP welcome says {want!r}")
+        for bad in ("Fountain Square Garage", "95 dBA", "6'8", "Washington Park", "10×10"):
+            check(bad not in body, f"the ESP welcome never says {bad!r}")
+    MAIL_PER_TEST["x-esp"] = sends_since(n0)
+    # the filed advance doc: ESP's own trimmed template, in the ESP month folder
+    rows, path = doc_rows(venue, d, band)
+    check(path and "3CDC Elm Street Plaza" in str(path), f"the doc files under the ESP folder ({path})")
+    check(rows and "PA" not in rows and "Subs" not in rows and "Dressing Room Tent" not in rows,
+          "the ESP doc has no PA / Subs / Dressing Room Tent rows")
+    from docx import Document as _Doc
+    _g = rt.daysheet.find_grid(_Doc(str(path))) if path else None
+    _cons = next((r.cells[1].text for r in _g.rows if rt.daysheet.norm(r.cells[0].text) == "consoles"), "") if _g else ""
+    check(_cons.startswith("FOH: Wing"), f"consoles reads the Wing ({_cons!r})")
+    check(rows and rows.get("Monitors") == "2 wedges" and rows.get("Number of Performers") == "3",
+          "the staff-typed answers reached the ESP doc")
+
+
 def main():
     tests = [v for v in globals().values() if callable(v) and getattr(v, "_test_name", "").startswith("x-")]
     for fn in tests:

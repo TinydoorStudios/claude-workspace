@@ -115,7 +115,8 @@ offers the staff fill link.
   question is answered that way.
 - **Email ladder:** `advance_db.VENUE_LADDERS` — Memo welcomes at 30 days and
   chases at 15/10/7/5/3/2/1 (others: 21 and 10/7/3/1). Memo is `paused` as of
-  2026-09-29: no automatic welcome (so no chase/schedule/day-ahead either); staff
+  2026-09-29: no automatic welcome, chase, schedule, day-before or post-show
+  thank-you (every band-facing query carries `_paused_sql()`, review 2026-10-01); staff
   send the form link from the booking page, and the T-3 "no answer" alert still
   fires, treated like a manual show. `venue_email.VENUE_EMAIL["Memorial Hall"]`
   is DRAFT copy for when it's turned on.
@@ -143,12 +144,26 @@ offers the staff fill link.
   black print; "Print to PDF" text is outlined, so read it from the page image. Extract,
   show Brian for approval, then load as a staff save. Processed backline is marked
   "Backline ordered" on the advance and not listed.
+- **Public form:** Memorial Hall is not on the universal form's venue pick and
+  `/submit` refuses `venue=Memorial Hall` (review 2026-10-01) — a universal
+  submission would stamp responded and feed nothing the Memo doc reads.
 - **Gotchas:** loading a band's `/s/` link stamps first-opened on the dashboard, so
   check with the `/f/` token or the test client. Memo files read 0 bytes on the Mac
   (Dropbox online-only), read them on the VM. `tools/staging/pages.sh` exports through
   Word and occasionally hangs; quitting Word clears it. Staging needs a fresh
   `setup.sh` before every `run_tests`.
 - **Tests:** `tools/staging/test_memo.py` (52 checks) against the staging clone.
+
+## Elm Street Plaza: welcome, 84.51 parking, trimmed doc (2026-10-01)
+
+ESP rides the universal pipeline; only the content differs. Built from Brian's old Blues & Brews welcome, winter edition (no PA specs, lighting or site detail beyond unload + garage).
+
+- **Welcome / reminders:** `venue_email.VENUE_EMAIL["Elm Street Plaza"]`. Unload on 6th St. north of the plaza (15-minute unload, move the vehicle before sound check), validations for the 84.51 garage (100 W 5th St), 20' x 12' stage footprint, 2 wedges, house engineer, drink tickets + water. 3rd-party shows drop the validation paragraph and the drink tickets, same rule as FSQ and WP. The day-of contact is the Mix engineer on the staffing sheet (`draft_emails`, `dayahead` now include ESP).
+- **Parking rules = FSQ's** (Brian): one QR per vehicle, counts from the form. Band and staff-typed ESP counts land in `fsq_parking_queue` (it already had a `venue` column). `/internal/fsq-parking-digest` now sends one email per venue to the same recipient(s) as FSQ's; the ESP one is "ESP Parking Validations" and names the 84.51 garage. `app.PARKING_DIGEST_VENUES` holds each venue's subject, garage line and trailer note. The 6'8" large-vehicle help text on the form is FSQ's garage; ESP inherits it unverified.
+- **Form:** ESP gets its own load-in acknowledgment (`ack_loadin_esp_*` in i18n.py, `#ack_loadin_esp` in form.html) instead of FSQ's "document your contact sent" text. Every other question is shared.
+- **Doc:** `doc_templates/ESP Show Advance.docx`, built by `tools/build_esp_template.py` from the universal template minus PA, Subs, LIGHTING, Stage Type, Lighting Notes, VIDEO and Dressing Room Tent. `daysheet.template_for(venue)` picks it (build and docmerge); every fill routine looks rows up by label and skips a missing one, so nothing else forks. Consoles reads "FOH: Wing". Files to `3CDC Elm Street Plaza/<MM.YYYY> ESP/<MMDDYY> <Event> - <Artist> Prod Adv.docx`.
+- **Not built:** ESP load-in / parking sheets (Brian: later), a Spanish ESP block.
+- **Test:** `tools/staging/run_tests_extra.py -k x-esp`.
 
 ## The shape
 

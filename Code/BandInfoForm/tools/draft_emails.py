@@ -572,7 +572,7 @@ def main():
                                              event_name=r.get("event_name"),
                                              artist_name=name,
                                              event_start=r.get("event_start"))
-                       if venue in ("Fountain Square", "Washington Park") else None)
+                       if venue in ("Fountain Square", "Washington Park", "Elm Street Plaza") else None)
                 if eng:
                     day_of_contact = eng
                     engineer_contact = True

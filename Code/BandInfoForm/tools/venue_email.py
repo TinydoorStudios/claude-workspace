@@ -283,6 +283,38 @@ Hospitality & Site:
 - Hospitality: we provide water for all performers and crew.""",
         "requirements": "- Sound limit: strict 95 dBA-Slow at the FOH position, for all engineers (house or talent).",
     },
+    # Elm Street Plaza (Brian, 2026-10-01): rebuilt from his old Blues & Brews welcome,
+    # winter edition — basic stuff only, so no PA specs, no lighting, no site details beyond
+    # unload + garage. Parking follows Fountain Square's rules (one QR per vehicle, validations
+    # emailed ahead; staff typed counts reach the same daily parking digest), but the garage is
+    # 84.51 (100 W 5th St), next to Court Street Plaza. Load-in documents come later.
+    "Elm Street Plaza": {
+        "location": "Elm Street Plaza; 620 Elm St, Cincinnati, OH 45202",
+        "load_in": """\
+Load-In & Parking:
+You can unload on 6th St., north of Elm Street Plaza. This is 15-minute unloading only, so the vehicle must be moved before you go into sound check. Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.
+We'll send QR codes that serve as your validations for the 84.51 garage (100 W 5th St, Cincinnati, OH 45202). Each vehicle needs its own QR code before arriving. You can scan it from your phone or print it, at the kiosk when you enter or exit, depending on what mode the garage is in (please don't pay). Need more validations or large-vehicle parking? Note it on the form.""",
+        # 3rd-party: no touring-band validations (same rule as FSQ and WP, 2026-09-16/25).
+        "load_in_third_party": """\
+Load-In & Parking:
+You can unload on 6th St., north of Elm Street Plaza. This is 15-minute unloading only, so the vehicle must be moved before you go into sound check. Text or call your day-of contact when you're about 5 minutes out, and introduce yourself onsite as soon as you arrive.""",
+        "technical": """\
+Technical:
+- Stage: your band must fit a 20' wide x 12' deep footprint.
+- Backline / instrumentation: you provide all instruments, including your own amps and 1/4" cables.
+- Audio: we provide a house engineer who mixes FOH and monitors. We provide power, mics, 2 wedges, stands, cables and a sound system. Coordinate in advance if you're bringing your own engineer.
+- On the form: stage plot / input list, monitor count, and any scenic elements.""",
+        "hospitality": """\
+Hospitality & Site:
+- Merch: if you're selling, you provide the seller, point of sale, and bank; ask your day-of contact about a table.
+- Hospitality: we provide drink tickets and water for the band. Please confirm your total number of band members on the form.""",
+        # 3rd-party: no drink tickets.
+        "hospitality_third_party": """\
+Hospitality & Site:
+- Merch: if you're selling, you provide the seller, point of sale, and bank; ask your day-of contact about a table.
+- Hospitality: we provide water for all performers and crew.""",
+        "requirements": "",
+    },
     # Memorial Hall (2026-09-29) — rebuilt from Brian's old Memo advance email
     # (the "Hi Feliks" one) plus the Memo tech specs. DRAFT: Brian reviews it
     # before Memo welcomes are un-paused. Indoor theater, so no tents or drink
@@ -987,15 +1019,17 @@ def blocks_for(venue, series=None, lang="en", third_party=False, **dynamic):
         else:
             out.update({k: val for k, val in override.items()
                         if val is not None and not k.endswith("_es")})
-    if dynamic:
-        safe = _SafeDict(dynamic)
-        for k, text in out.items():
-            if isinstance(text, str) and "{" in text:
-                try:
-                    # format_map with a blank-defaulting dict: a missing
-                    # placeholder renders empty instead of leaving the WHOLE
-                    # block's {braces} literal in the email (Brian, 2026-09-11).
-                    out[k] = text.format_map(safe)
-                except (IndexError, ValueError):
-                    pass  # positional/malformed braces — leave as-is
+    # review 2026-10-01 #1: run the substitution pass even with no dynamics —
+    # a caller that passes none (the day-before email for most venues) used to
+    # ship Memo's "{parking_text}" literally.
+    safe = _SafeDict(dynamic or {})
+    for k, text in out.items():
+        if isinstance(text, str) and "{" in text:
+            try:
+                # format_map with a blank-defaulting dict: a missing
+                # placeholder renders empty instead of leaving the WHOLE
+                # block's {braces} literal in the email (Brian, 2026-09-11).
+                out[k] = text.format_map(safe)
+            except (IndexError, ValueError):
+                pass  # positional/malformed braces — leave as-is
     return out

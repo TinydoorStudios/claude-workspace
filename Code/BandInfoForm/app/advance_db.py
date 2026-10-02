@@ -420,8 +420,10 @@ CHASE_TIERS = tuple(t for t in FOLLOWUP_TIERS if t != SCHEDULE_TIER)
 # above (welcome at 21, chases at 10/7/3/1). Tier 7 stays the confirmed-
 # schedule email everywhere. A venue not listed here runs the default.
 DEFAULT_WELCOME_DAYS = 21
-# "paused": no welcome goes out automatically (and so no chase, schedule or
-# day-ahead email either — they all wait on the welcome). Brian, 2026-09-29:
+# "paused": no welcome goes out automatically, and no chase, schedule,
+# day-before or post-show thank-you either — every band-facing query carries
+# _paused_sql() (review 2026-10-01: day-before and thank-you used to key off
+# "any submissions row", which a staff-filled Memo show has). Brian, 2026-09-29:
 # Memo's welcome copy is on hold; staff send the show's form link by hand.
 # Flip it to False (and review venue_email's Memo block) to turn Memo on.
 VENUE_LADDERS = {
@@ -572,6 +574,9 @@ def shows_due_for_thankyou(cur):
              AND s.show_date IS NOT NULL
              AND s.show_date BETWEEN CURRENT_DATE - 7 AND CURRENT_DATE - 1
              AND NOT """ + THIRD_PARTY_SILENT_SQL + """
+             -- review 2026-10-01 #2: a paused-welcome venue (Memo) sends no
+             -- automatic band email at all, this one included
+             AND """ + _paused_sql() + """
            ORDER BY s.show_date""")
     return [r["show_id"] for r in cur.fetchall()]
 

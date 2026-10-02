@@ -90,6 +90,17 @@ FILLED.mkdir(exist_ok=True)
 
 # Every venue, every band count — ONE template (Brian, 2026-09-11).
 UNIVERSAL_TEMPLATE = TEMPLATES / "3CDC Universal Show Advance.docx"
+# Elm Street Plaza (2026-10-01): the universal grid minus the rows a plaza date never fills
+# (PA, Subs, lighting, video, tent) — built by build_esp_template.py. Same labels, same
+# columns, so every fill and merge routine works on it unchanged.
+ESP_TEMPLATE = TEMPLATES / "ESP Show Advance.docx"
+VENUE_TEMPLATES = {"Elm Street Plaza": ESP_TEMPLATE}
+
+
+def template_for(venue):
+    """The blank doc this venue's advance starts from (universal unless the venue has its own)."""
+    t = VENUE_TEMPLATES.get((venue or "").strip())
+    return t if t is not None and t.exists() else UNIVERSAL_TEMPLATE
 
 # Retired — fill() never picks from these again, and _template_defaults()
 # doesn't either (an already-filed doc could be genuinely old-shaped OR a
@@ -1072,6 +1083,7 @@ def _consoles_text(event):
         monitors by hand when needed, so it isn't printed.
       - Washington Park Main Stage: FOH is M32 (monitors added when needed).
       - Washington Park Porch / Bandstand: one M32R.
+      - Elm Street Plaza: FOH is the Wing.
       - Anywhere else: left blank for now."""
     venue = event.get("venue")
     det = event.get("details") or {}
@@ -1086,6 +1098,8 @@ def _consoles_text(event):
         if loc in ("Porch", "Bandstand"):
             return "M32R"
         return "FOH: M32"
+    if venue == "Elm Street Plaza":
+        return "FOH: Wing"      # every summer ESP advance lists the Wing
     return ""
 
 
@@ -1204,7 +1218,7 @@ def build(event_id, template=None, stageplot_names=None):
     # with the bookings it's counting.
     n = max(len(acts), booked_n or 0)
     if template is None:
-        template = UNIVERSAL_TEMPLATE
+        template = template_for(event.get("venue"))
     if not template.exists():
         print(f"Template not found: {template}", file=sys.stderr)
         sys.exit(1)

@@ -950,7 +950,7 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
         # provenance of a freshly created doc: every cell that differs from
         # the template is the pipeline's (merge of the fresh doc against
         # itself records exactly those)
-        _c, _nn, prov = merge(Document(str(daysheet.UNIVERSAL_TEMPLATE)),
+        _c, _nn, prov = merge(Document(str(daysheet.template_for(venue))),
                               Document(str(desired)), Document(str(desired)), cols=cols)
         with db.get_conn() as conn, conn.cursor() as cur:
             db.upsert_filed_doc(cur, venue, d, key, _rel_to_root(desired), sha256_file(desired),
@@ -973,7 +973,7 @@ def file_event_doc(eid, ev, acts, stem, stageplot_names=None, today=None, dry_ru
     before_sha = sha256_file(existing)
     res["hand_edited"] = bool(reg and reg.get("sha256") and reg["sha256"] != before_sha)
     E = Document(str(existing))
-    T = Document(str(daysheet.UNIVERSAL_TEMPLATE))
+    T = Document(str(daysheet.template_for(venue)))
     info = {}
     changed, notices, newprov = merge(T, fresh, E, prov=(reg or {}).get("cells") or {},
                                       review=review, force=force, info=info,

@@ -76,6 +76,18 @@ UNRESPONDED_ALERT_TO = os.environ.get("ADVANCE_UNRESPONDED_ALERT_TO", "blloyd@3c
 # sent, to whoever handles garage validations. A mirror workflow for large
 # vehicles, to a different recipient, is a separate later build.
 FSQ_PARKING_NOTICE_TO = os.environ.get("ADVANCE_FSQ_PARKING_NOTICE_TO", "Mtully@3cdc.org")
+# Venues whose band parking counts feed the nightly validations digest (Brian, 2026-10-01:
+# Elm Street Plaza joins Fountain Square, same recipient, own email so each one names its own
+# garage). `subject` is the email subject prefix, `trailer` the note on a towed trailer.
+PARKING_DIGEST_VENUES = {
+    "Fountain Square": {
+        "label": "Fountain Square", "subject": "FSQ Parking Validations", "garage": "",
+        "trailer": "towing a trailer — no garage"},
+    "Elm Street Plaza": {
+        "label": "Elm Street Plaza", "subject": "ESP Parking Validations",
+        "garage": "Validations are for the 84.51 garage, 100 W 5th St (next to Court Street Plaza).",
+        "trailer": "towing a trailer — no garage"},
+}
 TOOLS_DIR = BASE / "tools"
 
 app = Flask(__name__)
@@ -287,6 +299,14 @@ def _inject_brand():
 
 # ── public form ─────────────────────────────────────────────────────────────
 
+def _public_venues():
+    """The universal form's venue pick. Memorial Hall has its own form
+    (memo_fields / memo_form.html), so it isn't offered here — a universal
+    submission for Memo would stamp responded and feed nothing the Memo doc
+    reads (review 2026-10-01 #3)."""
+    return [v for v in forms_config.VENUES if v != memo_fields.VENUE]
+
+
 @app.get("/")
 def form():
     if (request.args.get("venue") or "").strip() == memo_fields.VENUE:
@@ -299,7 +319,7 @@ def form():
     )
     cfg["third_party"] = advance_db.is_third_party(request.args.get("series"))
     return render_template(
-        "form.html", venues=forms_config.VENUES, cfg=cfg,
+        "form.html", venues=_public_venues(), cfg=cfg,
         prefill={}, returning=False, artist_name=None,
         tech_packs=forms_config.tech_packs(),
         known_artist_id=None, artist_tok="", locked_venue=False, locked_date=False,
@@ -463,7 +483,7 @@ def prefilled_form(token):
         except Exception as e:
             _log_db_error("prefill", e)
     return render_template(
-        "form.html", venues=forms_config.VENUES, cfg=cfg,
+        "form.html", venues=_public_venues(), cfg=cfg,
         prefill=prefill, returning=returning, artist_name=artist_name,
         tech_packs=forms_config.tech_packs(),
         known_artist_id=known_artist_id, artist_tok=artist_token(known_artist_id),
@@ -798,6 +818,10 @@ def submit():
     raw_name = (f.get("band_name") or "").strip()[:300].strip()
     if not raw_name and not third:
         abort(400, "Band name is required.")
+    if (f.get("venue") or "").strip() == memo_fields.VENUE:
+        # review 2026-10-01 #3: Memo advances only through the Memo form
+        abort(400, "Memorial Hall shows use their own advance form — please open the "
+                   "link in your advance email, or ask your contact for it.")
 
     # The band's own link carries a SIGNED artist id (audit #6). A raw
     # artist_id field is ignored — it could be edited to hijack another
@@ -909,7 +933,7 @@ def submit():
     if not staff_edit:
         _notify_submission(rec)
         _notify_email("submission", rec)
-        if rec.get("venue") == "Fountain Square":
+        if rec.get("venue") in PARKING_DIGEST_VENUES:
             _queue_fsq_parking(rec)
     if result and result.get("match"):
         _email_submission_match(result, rec)
@@ -1927,7 +1951,7 @@ def _record_booking_band_answers(f, files, data, existing_artist_id=None, prefil
         # 2026-09-21 sweep (FLOW-10): staff-typed FSQ vehicle counts reach Mtully's
         # parking digest like a band's own — but only when new or changed for THIS show
         # (keyed on `posted`, 2026-09-21 sweep: counts carried from another show aren't new)
-        if (result and data.get("venue") == "Fountain Square"
+        if (result and data.get("venue") in PARKING_DIGEST_VENUES
                 # 2026-09-24 research #(b): a trailer alone is worth the digest —
                 # it decides whether their vehicles can use the garage at all.
                 and (posted.get("vehicle_count") or posted.get("large_vehicle_count")
@@ -2536,7 +2560,7 @@ def _recap_for_draft(sub):
 
 
 def _queue_fsq_parking(rec):
-    """Hold this Fountain Square submission's parking numbers for tomorrow's
+    """Hold this Fountain Square (or Elm Street Plaza) submission's parking numbers for tomorrow's
     digest instead of drafting/sending anything now (Brian, 2026-09-15 —
     step 2, supersedes the per-submission draft built and live-tested
     earlier the same day: 'from this point forward... hold that information
@@ -2572,7 +2596,7 @@ def _queue_fsq_parking(rec):
                 cur,
                 artist_id=db_ids.get("artist_id"), show_id=db_ids.get("show_id"),
                 band=rec.get("band_name") or "(no band name given)",
-                venue="Fountain Square", show_date=show_date,
+                venue=rec.get("venue") or "Fountain Square", show_date=show_date,
                 contact_name=rec.get("contact_name"), contact_email=rec.get("contact_email"),
                 contact_phone=rec.get("contact_phone"),
                 vehicle_count=vehicles, large_vehicle_count=large, trailer=trailer)
@@ -2581,80 +2605,98 @@ def _queue_fsq_parking(rec):
         _log_db_error("fsq_parking_queue", e)
 
 
+def _parking_digest_email(venue, items):
+    """(subject, html) for one venue's batch of queued parking items."""
+    cfg = PARKING_DIGEST_VENUES.get(venue) or {
+        "label": venue, "subject": f"{venue} Parking Validations", "garage": "",
+        "trailer": "towing a trailer"}
+    rows_html = []
+    for it in items:
+        regular = max((it.get("vehicle_count") or 0) - (it.get("large_vehicle_count") or 0), 0)
+        when = us_date(it["show_date"]) if it.get("show_date") else "(not given)"
+        rows_html.append(
+            "<tr>"
+            "<td style='padding:8px 14px 8px 0;border-top:1px solid #ddd'>"
+            f"<b>{mailer.esc(it['band'])}</b><br>"
+            f"<span style='color:#666;font-size:12px'>{mailer.esc(when)}</span></td>"
+            "<td style='padding:8px 14px;border-top:1px solid #ddd;font-size:13px'>"
+            f"{mailer.esc(it.get('contact_name') or '(none given)')}<br>"
+            f"{mailer.esc(it.get('contact_email') or '')}<br>"
+            f"{mailer.esc(it.get('contact_phone') or '')}</td>"
+            "<td style='padding:8px 0 8px 14px;border-top:1px solid #ddd;"
+            "text-align:right;font-size:14px;font-weight:700'>"
+            f"{regular}"
+            "<div style='font-weight:400;color:#666;font-size:11px'>"
+            f"of {it.get('vehicle_count') or 0} total, "
+            f"{it.get('large_vehicle_count') or 0} large</div>"
+            # 2026-09-24 research #(b): a towed trailer is invisible in the
+            # counts (van + trailer is one vehicle) and may not fit the garage,
+            # so it gets called out rather than left to show day.
+            + (f"<div style='font-weight:700;color:#b3261e;font-size:11px'>"
+               f"{mailer.esc(cfg['trailer'])}</div>" if it.get("trailer") else "")
+            + "</td></tr>")
+    count = len(items)
+    plural = "s" if count != 1 else ""
+    subject = f"{cfg['subject']} — {count} band{plural}"
+    html = (
+        "<div style='font-family:-apple-system,sans-serif'>"
+        f"<p>{count} {mailer.esc(cfg['label'])} band{plural} "
+        "submitted since the last check:</p>"
+        + (f"<p style='color:#444;font-size:13px'>{mailer.esc(cfg['garage'])}</p>" if cfg["garage"] else "")
+        + "<table style='border-collapse:collapse;width:100%'>"
+        "<tr style='text-align:left;font-size:11px;color:#888;text-transform:uppercase'>"
+        "<th style='padding:0 14px 6px 0'>Band / Date</th>"
+        "<th style='padding:0 14px 6px'>Contact</th>"
+        "<th style='padding:0 0 6px 14px;text-align:right'>Regular validations</th>"
+        "</tr>" + "".join(rows_html) + "</table></div>")
+    return subject, html
+
+
 @app.post("/internal/fsq-parking-digest")
 def fsq_parking_digest():
-    """Called once a day by n8n's 'FSQ Parking Digest' workflow. One email,
-    only when there's something to report (Brian, 2026-09-15, step 2: 'if
-    no new submissions have come in the night before, do not send the
-    digest') — every FSQ band queued since the last run, broken out
-    individually with its own contact info and regular-vehicle count, never
-    just a grand total. Auto-sent for real to Mtully@3cdc.org, same
+    """Called once a day by n8n's 'FSQ Parking Digest' workflow. One email PER
+    VENUE (Fountain Square, Elm Street Plaza), only when that venue has something
+    to report (Brian, 2026-09-15, step 2: 'if no new submissions have come in the
+    night before, do not send the digest') — every band queued since the last
+    run, broken out individually with its own contact info and regular-vehicle
+    count, never just a grand total. Auto-sent for real to Mtully@3cdc.org, same
     real-send path as the ops Daily Digest — not a draft.
 
     Returns {"send": false} when the queue is empty so the workflow's own
     IF node skips the send step; this endpoint never sends anything
-    itself, only says what to send. Marks every included item delivered
-    before returning, same convention as the general digest_items queue
-    (tools/daily_digest.py) — a downstream send failure would need a manual
-    resend, not a silent duplicate tomorrow. Token-protected, same as
+    itself, only says what to send. Marks a venue's items delivered only after
+    mailer.send confirms (a downstream send failure leaves them queued for the
+    next run, not silently lost). Token-protected, same as
     /internal/daily-digest."""
     _internal_auth()
     if not DB_OK:
         return {"error": "db-unavailable"}, 503
+    sent, errors = [], []
     with advance_db.get_conn() as conn, conn.cursor() as cur:
         items = advance_db.undelivered_fsq_parking(cur)
         if not items:
             return {"send": False}
-        rows_html = []
+        by_venue = {}
         for it in items:
-            regular = max((it.get("vehicle_count") or 0) - (it.get("large_vehicle_count") or 0), 0)
-            when = us_date(it["show_date"]) if it.get("show_date") else "(not given)"
-            rows_html.append(
-                "<tr>"
-                "<td style='padding:8px 14px 8px 0;border-top:1px solid #ddd'>"
-                f"<b>{mailer.esc(it['band'])}</b><br>"
-                f"<span style='color:#666;font-size:12px'>{mailer.esc(when)}</span></td>"
-                "<td style='padding:8px 14px;border-top:1px solid #ddd;font-size:13px'>"
-                f"{mailer.esc(it.get('contact_name') or '(none given)')}<br>"
-                f"{mailer.esc(it.get('contact_email') or '')}<br>"
-                f"{mailer.esc(it.get('contact_phone') or '')}</td>"
-                "<td style='padding:8px 0 8px 14px;border-top:1px solid #ddd;"
-                "text-align:right;font-size:14px;font-weight:700'>"
-                f"{regular}"
-                "<div style='font-weight:400;color:#666;font-size:11px'>"
-                f"of {it.get('vehicle_count') or 0} total, "
-                f"{it.get('large_vehicle_count') or 0} large</div>"
-                # 2026-09-24 research #(b): a towed trailer is invisible in the
-                # counts (van + trailer is one vehicle) and can't use the 6'8"
-                # garage, so it gets called out rather than left to show day.
-                + ("<div style='font-weight:700;color:#b3261e;font-size:11px'>"
-                   "towing a trailer — no garage</div>" if it.get("trailer") else "")
-                + "</td></tr>")
-        count = len(items)
-        subject = f"FSQ Parking Validations — {count} band{'s' if count != 1 else ''}"
-        html = (
-            "<div style='font-family:-apple-system,sans-serif'>"
-            f"<p>{count} Fountain Square band{'s' if count != 1 else ''} "
-            "submitted since the last check:</p>"
-            "<table style='border-collapse:collapse;width:100%'>"
-            "<tr style='text-align:left;font-size:11px;color:#888;text-transform:uppercase'>"
-            "<th style='padding:0 14px 6px 0'>Band / Date</th>"
-            "<th style='padding:0 14px 6px'>Contact</th>"
-            "<th style='padding:0 0 6px 14px;text-align:right'>Regular validations</th>"
-            "</tr>" + "".join(rows_html) + "</table></div>")
-        # Send here, from Flask, via the real-send path (audit 2026-09-16
-        # #16) — this used to hand {send:true, subject, html} back to n8n's
-        # own Send node and mark every item delivered regardless, so a
-        # downstream send failure lost that night's parking validations for
-        # good. Now delivered is stamped only once mailer.send confirms it.
-        ok, err = mailer.send(FSQ_PARKING_NOTICE_TO, subject, html=html)
-        if ok:
-            advance_db.mark_fsq_parking_delivered(cur, [it["id"] for it in items])
-            conn.commit()
-        else:
-            _log_db_error("fsq_parking_digest_send", RuntimeError(err))
-    return {"send": ok, "subject": subject, "html": html, "to": FSQ_PARKING_NOTICE_TO,
-           "error": None if ok else err}
+            by_venue.setdefault(it.get("venue") or "Fountain Square", []).append(it)
+        # Fountain Square first so its email order never changes; anything else alphabetically
+        for venue in sorted(by_venue, key=lambda v: (v != "Fountain Square", v)):
+            batch = by_venue[venue]
+            subject, html = _parking_digest_email(venue, batch)
+            # Send here, from Flask, via the real-send path (audit 2026-09-16
+            # #16): delivered is stamped only once mailer.send confirms it.
+            ok, err = mailer.send(FSQ_PARKING_NOTICE_TO, subject, html=html)
+            if ok:
+                advance_db.mark_fsq_parking_delivered(cur, [it["id"] for it in batch])
+                conn.commit()
+                sent.append({"venue": venue, "subject": subject, "html": html})
+            else:
+                _log_db_error("fsq_parking_digest_send", RuntimeError(err))
+                errors.append(f"{venue}: {err}")
+    first = sent[0] if sent else {}
+    return {"send": bool(sent), "subject": first.get("subject"), "html": first.get("html"),
+            "sent": sent, "to": FSQ_PARKING_NOTICE_TO,
+            "error": "; ".join(errors) or None}
 
 
 def _build_reply_draft(show, artist, sub):

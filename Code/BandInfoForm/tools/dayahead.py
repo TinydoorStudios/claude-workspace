@@ -64,6 +64,9 @@ def due_shows(cur):
               AND (s.responded_at IS NOT NULL
                    OR EXISTS (SELECT 1 FROM submissions x WHERE x.show_id = s.id))
               AND NOT """ + db.THIRD_PARTY_SILENT_SQL + r"""
+              -- review 2026-10-01 #1: a paused-welcome venue (Memo) sends no
+              -- automatic band email; staff-filled Memo saves are submissions too
+              AND """ + db._paused_sql() + r"""
             ORDER BY s.id, b.id DESC NULLS LAST""")
     return cur.fetchall()
 
@@ -102,7 +105,7 @@ def _day_of_contact(r):
                                  event_name=r.get("event_name"),
                                  artist_name=r.get("artist_name"),
                                  event_start=r.get("event_start"))
-           if r["venue"] in ("Fountain Square", "Washington Park") else None)
+           if r["venue"] in ("Fountain Square", "Washington Park", "Elm Street Plaza") else None)
     if eng:
         return eng, True
     if r.get("lead_name"):
@@ -124,7 +127,8 @@ def _greeting(r, es=False):
 
 _FORM_REFS = {
     "en": [r"The load-in process at [^.]*has changed — please review the attached document and acknowledge understanding on the form\.\s*",
-           r"\s*Need more validations or large-vehicle parking\? Note it on the form\.", r"\s*Note any large-vehicle needs on the form\."],
+           r"\s*Need more validations or large-vehicle parking\? Note it on the form\.", r"\s*Note any large-vehicle needs on the form\.",
+           r"\s*Please also give us a day-of contact for your team\."],
     "es": [r"El proceso de carga en [^.]*ha cambiado — por favor revisen el documento adjunto y confirmen que lo entendieron en el formulario\.\s*",
            r"\s*¿Necesitan más validaciones o espacio para vehículos grandes\? Indíquenlo en el formulario\.",
            r"\s*Indiquen en el formulario si necesitan espacio para vehículos grandes\."],

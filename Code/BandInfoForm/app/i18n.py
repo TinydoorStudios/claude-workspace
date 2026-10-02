@@ -264,6 +264,17 @@ STRINGS = {
                                        "evento antes del día del show."},
     "ack_loadin_generic_check": {"en": "I will review load-in details with our day-of contact.",
                                   "es": "Revisaremos los detalles de carga con nuestro contacto del día del evento."},
+    # Elm Street Plaza (Brian, 2026-10-01): same QR-validation rule as Fountain Square, its own garage
+    "ack_loadin_esp_text": {"en": "You can unload on 6th St., north of Elm Street Plaza (15-minute unloading "
+                                   "only). Each vehicle needs its own parking QR validation for the 84.51 "
+                                   "garage before arriving; scan at the kiosk on entry or exit (please "
+                                   "don't pay).",
+                             "es": "Pueden descargar en la calle 6th, al norte de Elm Street Plaza (solo "
+                                   "15 minutos para descargar). Cada vehículo necesita su propia validación "
+                                   "de estacionamiento con código QR para el garaje 84.51 antes de llegar; "
+                                   "escaneen en el quiosco al entrar o salir (por favor no paguen)."},
+    "ack_loadin_esp_check": {"en": "I have reviewed the load-in and parking details.",
+                              "es": "He revisado los detalles de carga y estacionamiento."},
     # audit #15: Salsa On The Square stage-escort rep
     "stage_escort_name_label": {"en": "Band representative for stage escort — name",
                                  "es": "Representante de la banda para acompañar al escenario — nombre"},

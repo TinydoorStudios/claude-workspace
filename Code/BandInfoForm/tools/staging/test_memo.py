@@ -30,6 +30,7 @@ CODE = T / "code"
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "tools"))
 import advance_db as db  # noqa: E402
+import venue_email as ve  # noqa: E402
 import docx  # noqa: E402
 
 with db.get_conn() as _c:
@@ -350,9 +351,26 @@ def main():
     check(db.welcome_days("Fountain Square") == 21 and db.tiers_for("Fountain Square") == (10, 7, 3, 1),
           "other venues keep 21 / 10-7-3-1")
 
+    # ── paused = no day-before and no post-show thank-you either (review 2026-10-01 #1/#2)
+    import dayahead
+    sid = show_id_for(BAND1)
+    with db.get_conn() as conn, conn.cursor() as cur:
+        cur.execute("UPDATE shows SET show_date = CURRENT_DATE + 1 WHERE id=%s", (sid,))
+        due = [r["show_id"] for r in dayahead.due_shows(cur)]
+        check(sid not in due, "paused Memo show playing tomorrow gets no day-before")
+        cur.execute("UPDATE shows SET show_date = CURRENT_DATE - 1 WHERE id=%s", (sid,))
+        check(sid not in db.shows_due_for_thankyou(cur), "paused Memo show from yesterday gets no thank-you")
+        conn.rollback()
+    blocks = ve.blocks_for("Memorial Hall")
+    check("{" not in blocks["load_in"], "Memo load-in renders with no literal placeholder when no dynamics are passed")
+
     # ── the universal form is untouched
     st, html, _ = Client().req("/")
     check(st == 200 and "bandform" in html, "universal form still renders")
+    check("<option>Memorial Hall</option>" not in html, "Memorial Hall is not on the universal form's venue pick")
+    st, _, _ = Client().req("/submit", [("venue", "Memorial Hall"), ("band_name", "Nope"),
+                                        ("show_date", DATE.isoformat()), ("contact_email", "x@example.com")])
+    check(st == 400, "universal /submit refuses venue=Memorial Hall")
     st, html, _ = Client().req("/?venue=Memorial%20Hall")
     check(st == 200 and "memoform" in html, "?venue=Memorial Hall opens the Memo form")
 

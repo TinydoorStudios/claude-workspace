@@ -393,6 +393,15 @@
       </div>
     </div>
   </div>
+  <div class="field hidden" id="ack_loadin_esp">
+    <div class="ack">
+      {{ t('ack_loadin_esp_text') }}
+      <div class="checkrow">
+        <input type="checkbox" id="ack_loadin_esp_box" name="ack_loadin" value="yes" disabled{{ ' checked' if staff_edit and prefill.get('ack_loadin') == 'yes' else '' }}>
+        <label for="ack_loadin_esp_box">{{ t('ack_loadin_esp_check') }}<span class="req">*</span></label>
+      </div>
+    </div>
+  </div>
   <div class="field hidden" id="ack_loadin_other">
     <div class="ack">
       {{ t('ack_loadin_generic_text') }}
@@ -531,17 +540,22 @@
 
   // Load-in acknowledgment: FSQ garage/QR text for Fountain Square only.
   var ackFsq = document.getElementById('ack_loadin_fsq');
+  var ackEsp = document.getElementById('ack_loadin_esp');
   var ackOther = document.getElementById('ack_loadin_other');
   var venueHidden = document.querySelector('input[type=hidden][name=venue]');
   function currentVenue(){ return venueHidden ? venueHidden.value : venueSel.value; }
   function syncLoadinAck(){
-    var fsq = !currentVenue() || currentVenue() === 'Fountain Square';
-    ackFsq.classList.toggle('hidden', !fsq);
-    ackOther.classList.toggle('hidden', fsq);
-    document.getElementById('ack_loadin').required = fsq;
-    document.getElementById('ack_loadin').disabled = !fsq;
-    document.getElementById('ack_loadin_generic').required = !fsq;
-    document.getElementById('ack_loadin_generic').disabled = fsq;
+    var v = currentVenue();
+    var fsq = !v || v === 'Fountain Square';
+    var esp = v === 'Elm Street Plaza';
+    var other = !fsq && !esp;
+    [[ackFsq, 'ack_loadin', fsq], [ackEsp, 'ack_loadin_esp_box', esp], [ackOther, 'ack_loadin_generic', other]]
+      .forEach(function(a){
+        a[0].classList.toggle('hidden', !a[2]);
+        var box = document.getElementById(a[1]);
+        box.required = a[2];
+        box.disabled = !a[2];
+      });
   }
   venueSel.addEventListener('change', syncLoadinAck);
   syncLoadinAck();
