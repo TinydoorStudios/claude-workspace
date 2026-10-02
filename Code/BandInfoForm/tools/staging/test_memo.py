@@ -371,6 +371,29 @@ def main():
     check(db.welcome_days("Fountain Square") == 21 and db.tiers_for("Fountain Square") == (10, 7, 3, 1),
           "other venues keep 21 / 10-7-3-1")
 
+    # ── Memo chase wording (review 2026-10-01 #5): Memo's own missing list, never the universal one
+    import draft_emails as de
+    with db.get_conn() as conn, conn.cursor() as cur:
+        sid_c = show_id_for(BAND1)
+        codes = de.missing_for_show(cur, sid_c)
+        check(not ({"plot", "escort", "monitors"} & set(codes)),
+              f"Memo chase never asks the universal escort/plot/monitors items ({codes})")
+        # staff and band saves above filled performers/wedges/phone; only files can still be owed
+        check(set(codes) <= {"memo_plot", "memo_inputs", "performers", "monitors", "phone", "confirm"},
+              "Memo chase codes come from Memo's own list")
+        cur.execute("SELECT id FROM shows WHERE venue='Memorial Hall' AND show_date=%s AND id <> %s LIMIT 1",
+                    (dt.date.today() + dt.timedelta(days=26), sid_c))
+        r26 = cur.fetchone()
+        if r26:
+            check(de.missing_for_show(cur, r26["id"]) == ["form"],
+                  "a Memo show with no Memo save is chased for the whole form")
+    subj, body = de.build_reminder(5, BAND1, "Pat Tester", "Memorial Hall", DATE, "https://x.example/s/abc",
+                                   ["memo_plot", "memo_inputs", "phone"])
+    check("your stage plot, your input list and a phone number" in body,
+          "Memo chase names the stage plot and input list separately")
+    check("cell number for whoever" not in body and "monitor mixes" not in body,
+          "Memo chase has no escort-cell or monitor-mix wording")
+
     # ── paused = no day-before and no post-show thank-you either (review 2026-10-01 #1/#2)
     import dayahead
     sid = show_id_for(BAND1)

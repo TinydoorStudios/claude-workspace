@@ -207,6 +207,12 @@ MISSING_LABELS = {
                    "es": "su formulario de avance (todavía no tenemos nada registrado)"},
     "plot":       {"en": "your stage plot and input list",
                    "es": "su plano de escenario / lista de entradas"},
+    # Memorial Hall's own list (review 2026-10-01 #5): its form has no escort
+    # cell, keeps files in upload buckets, and asks wedges rather than monitors
+    "memo_plot":   {"en": "your stage plot",
+                    "es": "su plano de escenario"},
+    "memo_inputs": {"en": "your input list",
+                    "es": "su lista de entradas"},
     "escort":     {"en": "a cell number for whoever's on stage that day",
                    "es": "un número de celular de quien esté en el escenario ese día"},
     "performers": {"en": "how many of you are on stage",
@@ -319,11 +325,44 @@ def tier_key(tier):
     return min(REMINDER_TIERS, key=lambda k: (abs(k - tier), -k))
 
 
+def _missing_for_memo(cur, show_id):
+    """Memorial Hall's version of missing_for_show: read the MERGED Memo answers
+    (staff and band saves together, so whatever staff already typed counts as
+    answered) and the upload buckets, not the universal form's columns. Only
+    things the band itself supplies are chased: stage plot, input list,
+    performer count, monitors (wedges, or an in-ear answer) and a phone number.
+    No Memo save at all = the whole form; nothing missing = the 'confirm' ask."""
+    cur.execute("""SELECT 1 FROM submissions WHERE show_id = %s AND data->>'_form' = 'memo' LIMIT 1""",
+                (show_id,))
+    if not cur.fetchone():
+        return ["form"]
+    st = db.memo_state(cur, show_id)
+    kinds = {(f or {}).get("kind") for f in (st.get("memo_files") or [])}
+    def blank(k):
+        return not str(st.get(k) or "").strip()
+    out = []
+    if "stage_plot" not in kinds:
+        out.append("memo_plot")
+    if "input_list" not in kinds:
+        out.append("memo_inputs")
+    if blank("performers"):
+        out.append("performers")
+    if blank("wedges") and blank("iems"):
+        out.append("monitors")
+    if blank("contact_phone"):
+        out.append("phone")
+    return out[:3] or ["confirm"]
+
+
 def missing_for_show(cur, show_id):
     """What this show is still missing, as MISSING_LABELS codes — no
     submission at all is the whole form; otherwise whatever the promoted
     columns and the raw form data say we never got. Capped at three: a band
     reads this on a phone, and a list of everything reads like a form."""
+    cur.execute("SELECT venue FROM shows WHERE id = %s", (show_id,))
+    _v = cur.fetchone()
+    if _v and (_v.get("venue") or "").strip() == "Memorial Hall":
+        return _missing_for_memo(cur, show_id)
     cur.execute("""SELECT performers, monitors, contact_phone, data
                    FROM submissions WHERE show_id = %s
                    ORDER BY submitted_at DESC, id DESC LIMIT 1""", (show_id,))
@@ -370,7 +409,7 @@ def chase_paragraph(tier, lang, venue, show_date, link, codes, deadline=None, se
     then = _TIER_THEN[key][lang]
     if "{deadline}" in then:
         then = then.format(deadline=ve.band_date(deadline, lang=lang)) if deadline else ""
-    if key == 3 and "plot" in (codes or []):
+    if key == 3 and ({"plot", "memo_plot"} & set(codes or [])):
         then = f"{then} {_PLOT_CLAUSE[lang]}".strip()
     intro, after = _TIER_ASK[key][lang]
     return (f"{(lead + ' ' + then).strip()}\n\n"
