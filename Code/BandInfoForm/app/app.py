@@ -4175,8 +4175,8 @@ def daily_digest():
         return {"error": e.__class__.__name__}, 500
     # comma-separated — internal_send_outlook.json's Send via Graph node
     # splits b.to on "," into one Graph recipient per address (Brian,
-    # 2026-09-15: add aschultes@3cdc.org; 2026-10-01: add Jmayborg@3cdc.org).
-    to = "blloyd@3cdc.org,aschultes@3cdc.org,Jmayborg@3cdc.org"
+    # 2026-09-15: add aschultes@3cdc.org; 2026-10-01: add Jmayborg@3cdc.org, jsteele@3cdc.org).
+    to = "blloyd@3cdc.org,aschultes@3cdc.org,Jmayborg@3cdc.org,jsteele@3cdc.org"
     # Send here, from Flask (audit 2026-09-16 #16) — queued digest_items
     # (doc notices, pipeline failures, etc.) are stamped delivered only once
     # this confirms sent; a failed send used to lose them for good, since
