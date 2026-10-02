@@ -117,8 +117,8 @@ def annotate_loadin_aerial():
     return path
 
 
-def annotate_lot_aerial():
-    crop = (0, 0, 1230, 650)
+def annotate_lot_aerial(tall=False):
+    crop = (0, 0, 1250, 740) if tall else (0, 0, 1230, 650)
     im = clean_aerial().convert("RGBA")
     over = Image.new("RGBA", im.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(over)
@@ -141,7 +141,7 @@ def annotate_lot_aerial():
     tag(over, "ELM ST", 1010, 330, 82, 26)
     north_arrow(d, 70, 24)
     out = Image.alpha_composite(im, over).convert("RGB").crop(crop)
-    path = HERE / "memo-lot-aerial-annotated.jpg"
+    path = HERE / ("memo-lot-aerial-annotated-tall.jpg" if tall else "memo-lot-aerial-annotated.jpg")
     out.save(path, quality=92)
     return path
 
@@ -262,6 +262,43 @@ def loadin_flow(st, pal, W, logo):
     return flow + [two]
 
 
+def lot_page_flow(st, pal, W, logo):
+    """The parking page of the SP+ packet: page 1 is the load-in sheet, so no door photo here."""
+    aerial = annotate_lot_aerial(tall=True)
+    steps = [("Enter the lot from Elm Street.", "Follow the red arrow on the map."),
+             ("Park in the yellow spaces behind the building.",
+              "They'll be coned off for your arrival."),
+             ("Unload at the freight elevator door on Grant Street.",
+              "It's the blue star, at the south end of the reserved spaces. Load-in details are on the previous page.")]
+    return [Paragraph("RESERVED PARKING", st["title"]),
+            Paragraph("Memorial Hall · Flat lot behind the building · 1225 Elm Street", st["sub"]),
+            Spacer(1, 8), Paragraph("We have reserved parking for your performance.", st["intro"]), Spacer(1, 8),
+            steps_table(st, pal, W, steps), Spacer(1, 10), fit(aerial, W), Spacer(1, 3),
+            Paragraph(escape(CREDIT), st["cap"])]
+
+
+def packets():
+    """Two attachments, one per parking choice, each = load-in page + that parking page."""
+    from pypdf import PdfReader, PdfWriter
+    lot_page = doc("_lot_page.pdf", lot_page_flow)
+    loadin = OUT_DIR / "Memorial Hall Load In Instructions.pdf"
+    garage = OUT_DIR / "Washington Park Garage Parking.pdf"
+    made = []
+    for name, second in (("Memorial Hall Load-In and Garage Parking.pdf", garage),
+                         ("Memorial Hall Load-In and Reserved Lot Parking.pdf", lot_page)):
+        w = PdfWriter()
+        for src in (loadin, second):
+            for pg in PdfReader(str(src)).pages:
+                w.add_page(pg)
+        w.add_metadata({"/Title": name[:-4], "/Author": "3CDC Events / Production"})
+        out = OUT_DIR / name
+        with open(out, "wb") as fh:
+            w.write(fh)
+        made.append(out)
+    lot_page.unlink()
+    return made
+
+
 def lot_flow(st, pal, W, logo):
     aerial = annotate_lot_aerial()
     photo = annotate_door_photo()
@@ -292,3 +329,5 @@ if __name__ == "__main__":
     for name, fn in (("Memorial Hall Load In Instructions.pdf", loadin_flow),
                      ("Memorial Hall Flat Lot Parking Instructions.pdf", lot_flow)):
         print(doc(name, fn))
+    for p in packets():
+        print(p)
