@@ -192,12 +192,14 @@ def annotate_route():
     return ROUTE_ANNOTATED
 
 
-def build(out_dir=None):
-    pal = brand.palette("Washington Park")
-    v = brand.venue_profile("Washington Park")
+def build(out_dir=None, venue="Washington Park", out_name=OUT_NAME):
+    """venue brands the page: Washington Park for its own events, Memorial Hall when the
+    sheet rides inside a Memo packet (memodocs.packets)."""
+    pal = brand.palette(venue)
+    v = brand.venue_profile(venue)
     annotate()
     annotate_route()
-    out = Path(out_dir or HERE.parent.parent / "app" / "brand" / "parking") / OUT_NAME
+    out = Path(out_dir or HERE.parent.parent / "app" / "brand" / "parking") / out_name
     out.parent.mkdir(parents=True, exist_ok=True)
     acc = colors.HexColor(pal["accent"])
     st = {
@@ -226,12 +228,15 @@ def build(out_dir=None):
         c.saveState()
         c.setFillColor(colors.HexColor(pal["primary"]))
         c.rect(0, letter[1] - 8, letter[0], 8, stroke=0, fill=1)
+        if venue == "Memorial Hall":          # same two-tone bar as the Memo load-in page
+            c.setFillColor(colors.HexColor(pal["secondary"]))
+            c.rect(0, letter[1] - 8, letter[0] * 0.18, 8, stroke=0, fill=1)
         c.setStrokeColor(RULE)
         c.line(L, 0.62 * inch, letter[0] - R, 0.62 * inch)
         logo(foot, 0.22 * inch).drawOn(c, L, 0.3 * inch)
         c.setFont("Av", 7.5)
         c.setFillColor(CHARCOAL)
-        c.drawRightString(letter[0] - R, 0.38 * inch, f"Washington Park · {v['address']}")
+        c.drawRightString(letter[0] - R, 0.38 * inch, f"{venue} · {v['address']}")
         c.restoreState()
 
     doc = SimpleDocTemplate(str(out), pagesize=letter, leftMargin=L, rightMargin=R,

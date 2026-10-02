@@ -42,6 +42,7 @@ DATE = dt.date.today() + dt.timedelta(days=40 + int(uuid.uuid4().int % 300))  # 
 TAG = uuid.uuid4().hex[:5]
 EVENT = f"Memo Test Night {TAG}"
 BAND1, BAND2 = f"Test Quartet {TAG}", f"Opener Duo {TAG}"
+BAND3, BAND4 = f"No Parking Trio {TAG}", f"Blank Parking Duo {TAG}"
 RESULTS = []
 
 
@@ -172,9 +173,9 @@ def main():
     check(len(items) == 1 and items[0]["link_path"] == f"/show/{sid}/parking-sheet",
           "dashboard lists 'Parking sheet not sent' for it")
     st, html, _ = staff.req(f"/show/{sid}/parking-sheet")
-    check(st == 200 and "Send the parking sheet" in html and "Washington Park Garage Parking.pdf" in html,
+    check(st == 200 and "Send the sheet" in html and "Memorial Hall Load-In and Garage Parking.pdf" in html,
           "parking-sheet page shows the preview and the send button")
-    if "Send the parking sheet" not in html:
+    if "Send the sheet" not in html:
         h = re.sub(r"\s+", " ", re.sub(r"<style.*?</style>", "", html, flags=re.S))
         print("   DEBUG", st, h[h.find("</header>"):][:1500])
     n0 = mail_count()
@@ -186,7 +187,7 @@ def main():
     if sent:
         m = sent[0]
         names = [m.get("attachment_name")] + [a.get("name") for a in m.get("attachments", [])]
-        check("Washington Park Garage Parking.pdf" in names, f"it carries the parking sheet ({names})")
+        check("Memorial Hall Load-In and Garage Parking.pdf" in names, f"it carries the garage packet ({names})")
         check(BAND1 in m.get("subject", "") and "Parking for" in m.get("subject", ""),
               f"subject names the band ({m.get('subject')})")
         check("Nyquist" not in (m.get("body") or "") and "Claude" not in (m.get("body") or ""),
@@ -195,11 +196,28 @@ def main():
     st, html3, _ = staff.req(f"/show/{sid}/parking-sheet", {"csrf": csrf_of(html2) or c}, method="POST")
     check(len(mails_since(n0)) == 1, "a second POST does not send again")
 
-    # SP+ parking: no item
+    # SP+ Lot gets the lot packet; a send carries it
     DATE_SAVE = globals()["DATE"]
     globals()["DATE"] = DATE + dt.timedelta(days=1)
     setup_show(staff, BAND2, "SP+ Lot")
-    check(not needs_for(BAND2), "SP+ Lot show gets no parking-sheet item")
+    sid2 = show_id_for(BAND2)
+    check(len(needs_for(BAND2)) == 1, "SP+ Lot show gets a parking-sheet item too")
+    st, html, _ = staff.req(f"/show/{sid2}/parking-sheet")
+    check("Memorial Hall Load-In and Reserved Lot Parking.pdf" in html and "reserved" in html.lower(),
+          "its page names the lot packet and the lot wording")
+    n1 = mail_count()
+    staff.req(f"/show/{sid2}/parking-sheet", {"csrf": csrf_of(html)}, method="POST")
+    sent2 = mails_since(n1)
+    names2 = [sent2[0].get("attachment_name")] + [a.get("name") for a in sent2[0].get("attachments", [])] if sent2 else []
+    check("Memorial Hall Load-In and Reserved Lot Parking.pdf" in names2, f"it carries the lot packet ({names2})")
+
+    # "No" gets the load-in page alone; a blank Parking gets nothing
+    globals()["DATE"] = DATE_SAVE + dt.timedelta(days=2)
+    setup_show(staff, BAND3, "No")
+    check(len(needs_for(BAND3)) == 1, "Parking = No gets the load-in item")
+    globals()["DATE"] = DATE_SAVE + dt.timedelta(days=3)
+    setup_show(staff, BAND4, "")
+    check(not needs_for(BAND4), "blank Parking gets nothing")
     globals()["DATE"] = DATE_SAVE
 
     # welcome helper
@@ -208,6 +226,11 @@ def main():
     check(ve.wants_parking_sheet("Washington Park", "Neo Soul Nights") and
           not ve.wants_parking_sheet("Washington Park", "3rd Party") and
           not ve.wants_parking_sheet("Fountain Square", None), "wants_parking_sheet rules")
+    check(ve.parking_sheet_name("Memorial Hall", None, [{"parking": "SP+ Lot"}]) == ve.MEMO_PARKING_SHEETS["SP+ Lot"]
+          and ve.parking_sheet_name("Memorial Hall", None, [{"parking": ""}]) is None
+          and ve.parking_sheet_name("Memorial Hall", None, [{"parking": "SP+ Lot"}, {"parking": "Washington Park"}])
+          == ve.MEMO_PARKING_SHEETS["Washington Park"], "Memo sheet choice by Parking answer")
+    check(all(ve.parking_sheet_attachment(n) for n in ve.PARKING_SHEET_FILES), "every sheet file ships")
     names = [n for n, _t, _c in ve.venue_attachments("Memorial Hall")]
     check("Memorial Hall Tech-Pack 2026.pdf" in names, f"Memo tech pack attaches under its clean name ({names})")
 

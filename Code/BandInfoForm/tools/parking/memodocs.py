@@ -282,7 +282,7 @@ def packets():
     from pypdf import PdfReader, PdfWriter
     lot_page = doc("_lot_page.pdf", lot_page_flow)
     loadin = OUT_DIR / "Memorial Hall Load In Instructions.pdf"
-    garage = OUT_DIR / "Washington Park Garage Parking.pdf"
+    garage = P.build(venue="Memorial Hall", out_name="Memorial Hall Garage Parking Instructions.pdf")
     made = []
     for name, second in (("Memorial Hall Load-In and Garage Parking.pdf", garage),
                          ("Memorial Hall Load-In and Reserved Lot Parking.pdf", lot_page)):

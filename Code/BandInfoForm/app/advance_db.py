@@ -596,23 +596,26 @@ def mark_parking_sheet_sent(cur, show_id):
 
 
 def memo_parking_sheet_due(cur):
-    """Memorial Hall shows whose latest Parking answer is Washington Park and
-    whose garage sheet hasn't gone out, with a welcome that won't carry it: the
-    welcome already went, or Memo's welcome is paused (staff send the form link
-    by hand). Brian, 2026-10-01: the sheet rides the welcome when Parking is set
-    by then; otherwise staff send it from the dashboard."""
+    """Memorial Hall shows whose latest Parking answer is filled in (Washington Park,
+    SP+ Lot or No) and whose parking/load-in packet hasn't gone out, with a welcome
+    that won't carry it: the welcome already went, or Memo's welcome is paused (staff
+    send the form link by hand). Brian, 2026-10-01: the packet rides the welcome when
+    Parking is set by then; otherwise staff send it from the dashboard. Each row
+    carries `parking`, the answer."""
     paused = bool(VENUE_LADDERS.get("Memorial Hall", {}).get("paused"))
-    cur.execute("""SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date
-                   FROM shows s JOIN artists a ON a.id=s.artist_id
-                   WHERE s.venue = 'Memorial Hall' AND s.show_date >= CURRENT_DATE
-                     AND s.cancelled_at IS NULL AND s.held_at IS NULL
-                     AND s.parking_sheet_sent_at IS NULL
-                     AND (s.advance_draft_created_at IS NOT NULL OR %s)
-                     AND (SELECT sub.data->>'parking' FROM submissions sub
-                           WHERE sub.show_id = s.id AND sub.data->>'_form' = 'memo'
-                             AND COALESCE(sub.data->>'parking', '') <> ''
-                           ORDER BY sub.submitted_at DESC, sub.id DESC LIMIT 1) = 'Washington Park'
-                   ORDER BY s.show_date""", (paused,))
+    cur.execute("""SELECT * FROM (
+                     SELECT s.id, a.id AS artist_id, a.name, s.venue, s.show_date,
+                            (SELECT sub.data->>'parking' FROM submissions sub
+                              WHERE sub.show_id = s.id AND sub.data->>'_form' = 'memo'
+                                AND COALESCE(sub.data->>'parking', '') <> ''
+                              ORDER BY sub.submitted_at DESC, sub.id DESC LIMIT 1) AS parking
+                     FROM shows s JOIN artists a ON a.id=s.artist_id
+                     WHERE s.venue = 'Memorial Hall' AND s.show_date >= CURRENT_DATE
+                       AND s.cancelled_at IS NULL AND s.held_at IS NULL
+                       AND s.parking_sheet_sent_at IS NULL
+                       AND (s.advance_draft_created_at IS NOT NULL OR %s)) q
+                   WHERE parking IN ('Washington Park', 'SP+ Lot', 'No')
+                   ORDER BY show_date""", (paused,))
     return cur.fetchall()
 
 
@@ -2856,8 +2859,8 @@ def needs_attention(cur):
                     "link_path": f"/artist/{r['artist_id']}", "since": r["advance_held_draft_at"]})
     for r in memo_parking_sheet_due(cur):
         out.append({"kind": "parking_sheet", "label": "Parking sheet not sent",
-                    "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: parking is the "
-                              "Washington Park garage; the band hasn't been sent the sheet",
+                    "detail": f"{r['name']} — {r['venue']} {r['show_date']:%m/%d}: Parking is "
+                              f"{r['parking']}; the band hasn't been sent the load-in/parking sheet",
                     "link_path": f"/show/{r['id']}/parking-sheet", "since": None})
     cur.execute("""SELECT f.*, a.name, s.venue, s.show_date FROM send_failures f
                    JOIN shows s ON s.id=f.show_id JOIN artists a ON a.id=s.artist_id

@@ -1108,23 +1108,27 @@ def _ve():
     return venue_email
 
 
-def _parking_sheet_for(show_id, venue, series):
-    """[(name, type, b64)] for the Washington Park garage sheet when this show's
-    parking calls for it (see ve.wants_parking_sheet), else []. Never raises: a
-    lookup problem just means the welcome goes without the sheet, and the
+def _parking_sheet_name_for(show_id, venue, series):
+    """The parking/load-in sheet this show gets (see ve.parking_sheet_name), or None.
+    Never raises: a lookup problem just means no sheet rides the welcome, and the
     dashboard item still catches it."""
     ve = _ve()
     acts = None
     if (venue or "").strip() == "Memorial Hall" and show_id:
         try:
-            _ve()
             import memo_doc
             with advance_db.get_conn() as conn, conn.cursor() as cur:
                 vals, _info = memo_doc.values_for(cur, show_id)
             acts = vals.acts if vals else None
         except Exception as e:  # noqa: BLE001
             _log_db_error("parking_sheet_lookup", e)
-    return ve.parking_sheet_attachment() if ve.wants_parking_sheet(venue, series, acts) else []
+    return ve.parking_sheet_name(venue, series, acts)
+
+
+def _parking_sheet_for(show_id, venue, series):
+    """[(name, type, b64)] for the parking/load-in sheet that goes with the welcome, else []."""
+    name = _parking_sheet_name_for(show_id, venue, series)
+    return _ve().parking_sheet_attachment(name) if name else []
 
 
 def _send_outlook_email(to, subject, body=None, html=None, attachment=None, timeout=90, attachments=None,
@@ -1329,13 +1333,14 @@ def brand_asset(filename):
     return resp
 
 
-@app.route("/parking-sheet/washington-park-garage.pdf")
-def parking_sheet_pdf():
-    """Public copy of the Washington Park garage parking sheet (the staff page
-    links it; the email carries it as an attachment)."""
+@app.route("/parking-sheet/<path:filename>")
+def parking_sheet_pdf(filename):
+    """Public copy of a parking/load-in sheet (the staff page links it; the email
+    carries it as an attachment). Only the known sheets are served."""
     import brand
-    ve = _ve()
-    resp = send_from_directory(brand.BRAND_DIR / "parking", ve.PARKING_SHEET_NAME, as_attachment=False)
+    if filename not in _ve().PARKING_SHEET_FILES:
+        abort(404)
+    resp = send_from_directory(brand.BRAND_DIR / "parking", filename, as_attachment=False)
     resp.headers["Cache-Control"] = "public, max-age=3600"
     return resp
 
@@ -2850,20 +2855,51 @@ def _parking_sheet_show(cur, s):
                 to_email=(s.get("last_email") or b.get("contact_email") or "").strip())
 
 
-def _parking_sheet_email(s):
-    """(subject, body) for the standalone parking-sheet email."""
+def _parking_sheet_email(s, name):
+    """(subject, body) for the standalone parking/load-in email, by which sheet goes."""
+    ve = _ve()
     first = ((s.get("contact_name") or "").split() or [""])[0]
     when = f"{s['show_date']:%B} {s['show_date'].day}"
-    subject = f"Parking for {s['artist_name']} at {s['venue']}, {when}"
-    body = (f"Hi {first or 'there'},\n\n"
-            "Parking for your show is validated at the Washington Park Garage, directly across "
-            "Elm Street from Memorial Hall. The attached sheet shows both entrances and how "
-            "validation works:\n\n"
-            "- Pull a ticket at the entry kiosk and keep it with you.\n"
-            "- We'll email your validation QR code ahead of the show.\n"
-            "- On the way out, scan your original ticket first, then the QR code.\n\n"
-            "Thanks,\n3CDC Events / Production")
+    if name == ve.MEMO_PARKING_SHEETS["Washington Park"]:
+        subject = f"Load-in and parking for {s['artist_name']} at {s['venue']}, {when}"
+        lead = ("Load-in and parking for your show are in the attached sheet. Parking is the "
+                "Washington Park Garage, directly across Elm Street from Memorial Hall:\n\n"
+                "- Pull a ticket at the entry kiosk and keep it with you.\n"
+                "- We'll email your validation QR code ahead of the show.\n"
+                "- On the way out, scan your original ticket first, then the QR code.")
+    elif name == ve.MEMO_PARKING_SHEETS["SP+ Lot"]:
+        subject = f"Load-in and parking for {s['artist_name']} at {s['venue']}, {when}"
+        lead = ("Load-in and parking for your show are in the attached sheet. We have reserved "
+                "spaces for you in the lot behind Memorial Hall. Enter from Elm Street, and the "
+                "yellow spaces will be coned off for your arrival.")
+    elif name == ve.MEMO_PARKING_SHEETS["No"]:
+        subject = f"Load-in for {s['artist_name']} at {s['venue']}, {when}"
+        lead = "Load-in instructions for your show are in the attached sheet."
+    else:   # Washington Park's own garage sheet
+        subject = f"Parking for {s['artist_name']} at {s['venue']}, {when}"
+        lead = ("Parking for your show is validated at the Washington Park Garage. The attached "
+                "sheet shows both entrances and how validation works:\n\n"
+                "- Pull a ticket at the entry kiosk and keep it with you.\n"
+                "- We'll email your validation QR code ahead of the show.\n"
+                "- On the way out, scan your original ticket first, then the QR code.")
+    body = f"Hi {first or 'there'},\n\n{lead}\n\nThanks,\n3CDC Events / Production"
     return subject, body
+
+
+def _parking_sheet_ctx(show_id):
+    """(show dict with recipient, sheet name or None), or aborts 404."""
+    with advance_db.get_conn() as conn, conn.cursor() as cur:
+        s = advance_db.show_with_artist(cur, show_id)
+        if not s:
+            abort(404)
+        s = _parking_sheet_show(cur, s)
+        cur.execute("""SELECT sub.data->>'parking' AS parking FROM submissions sub
+                       WHERE sub.show_id = %s AND sub.data->>'_form' = 'memo'
+                         AND COALESCE(sub.data->>'parking', '') <> ''
+                       ORDER BY sub.submitted_at DESC, sub.id DESC LIMIT 1""", (show_id,))
+        parking = (cur.fetchone() or {}).get("parking")
+    name = _ve().parking_sheet_name(s["venue"], s.get("show_series"), parking=parking)
+    return s, name
 
 
 @app.get("/show/<int:show_id>/parking-sheet")
@@ -2871,14 +2907,11 @@ def show_parking_sheet(show_id):
     ve = _ve()
     if not DB_OK:
         abort(503)
-    with advance_db.get_conn() as conn, conn.cursor() as cur:
-        s = advance_db.show_with_artist(cur, show_id)
-        if not s:
-            abort(404)
-        s = _parking_sheet_show(cur, s)
+    s, name = _parking_sheet_ctx(show_id)
     to = ve.with_extra_recipients(s["to_email"], s.get("show_series"))
-    subject, body = _parking_sheet_email(s)
-    return render_template("parking_sheet.html", s=s, to=to, subject=subject, body=body)
+    subject, body = _parking_sheet_email(s, name) if name else ("", "")
+    return render_template("parking_sheet.html", s=s, to=to, subject=subject, body=body,
+                           sheet_name=name)
 
 
 @app.post("/show/<int:show_id>/parking-sheet")
@@ -2886,18 +2919,16 @@ def show_parking_sheet_send(show_id):
     ve = _ve()
     if not DB_OK:
         abort(503)
-    with advance_db.get_conn() as conn, conn.cursor() as cur:
-        s = advance_db.show_with_artist(cur, show_id)
-        if not s:
-            abort(404)
-        if s.get("parking_sheet_sent_at"):
-            return redirect(url_for("show_parking_sheet", show_id=show_id))
-        s = _parking_sheet_show(cur, s)
+    s, name = _parking_sheet_ctx(show_id)
+    if s.get("parking_sheet_sent_at"):
+        return redirect(url_for("show_parking_sheet", show_id=show_id))
     to = ve.with_extra_recipients(s["to_email"], s.get("show_series"))
-    sheet = ve.parking_sheet_attachment()
+    sheet = ve.parking_sheet_attachment(name) if name else []
+    if not name:
+        abort(400, "Parking isn't set on the advance form")
     if not to or not sheet:
         abort(400, "no contact email on file" if not to else "parking sheet file missing")
-    subject, body = _parking_sheet_email(s)
+    subject, body = _parking_sheet_email(s, name)
     ok, err = _send_outlook_email(to, subject, body=body, attachments=sheet, venue=s["venue"])
     if not ok and not mailer.outcome_unknown(err):
         abort(502, f"send failed: {err}")

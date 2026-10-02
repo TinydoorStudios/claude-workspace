@@ -384,35 +384,53 @@ def venue_attachments(venue, root=None):
     return out
 
 
-PARKING_SHEET_NAME = "Washington Park Garage Parking.pdf"
+PARKING_SHEET_NAME = "Washington Park Garage Parking.pdf"      # Washington Park's own events
+# Memorial Hall: one packet per Parking answer on the advance form (Brian, 2026-10-01).
+# Each opens with the load-in page; tools/parking/memodocs.py builds them.
+MEMO_PARKING_SHEETS = {
+    "Washington Park": "Memorial Hall Load-In and Garage Parking.pdf",
+    "SP+ Lot": "Memorial Hall Load-In and Reserved Lot Parking.pdf",
+    "No": "Memorial Hall Load In Instructions.pdf",
+}
+PARKING_SHEET_FILES = {PARKING_SHEET_NAME, *MEMO_PARKING_SHEETS.values()}
 
 
-def parking_sheet_attachment():
-    """[(name, type, base64)] for the Washington Park garage parking sheet
-    (tools/parking/parkingdoc.py writes it into brand/parking/), or [] if the
-    file isn't there. Local runs find it under app/brand, the VM under brand/."""
+def parking_sheet_name(venue, series=None, acts=None, parking=None):
+    """Which parking/load-in sheet this show gets, or None.
+    Memorial Hall: from the Parking answer on the advance form (`parking`, or the
+    acts' answers; Washington Park wins over SP+ Lot wins over No when a bill mixes
+    them). A blank answer gets nothing. Washington Park's own advanced events get the
+    garage sheet unless the event is 3rd-party, which gets no validations."""
+    venue = (venue or "").strip()
+    if venue == "Washington Park":
+        return None if (series or "").strip().lower() == "3rd party" else PARKING_SHEET_NAME
+    if venue == "Memorial Hall":
+        answers = [parking] if parking else [((a or {}).get("parking") or "") for a in acts or []]
+        for choice in ("Washington Park", "SP+ Lot", "No"):
+            if choice in answers:
+                return MEMO_PARKING_SHEETS[choice]
+    return None
+
+
+def parking_sheet_attachment(name=None):
+    """[(name, type, base64)] for a parking sheet (default: the Washington Park garage
+    sheet), or [] if the file isn't there. tools/parking/ writes them into
+    brand/parking/; local runs find that under app/brand, the VM under brand/."""
     import base64
+    name = name or PARKING_SHEET_NAME
+    if name not in PARKING_SHEET_FILES:
+        return []
     here = Path(__file__).resolve()
     for d in (_os.environ.get("ADVANCE_BRAND_DIR"), here.parent.parent / "brand",
               here.parent.parent / "app" / "brand"):
-        path = Path(d) / "parking" / PARKING_SHEET_NAME if d else None
+        path = Path(d) / "parking" / name if d else None
         if path and path.is_file():
-            return [(PARKING_SHEET_NAME, "application/pdf",
-                     base64.b64encode(path.read_bytes()).decode("ascii"))]
+            return [(name, "application/pdf", base64.b64encode(path.read_bytes()).decode("ascii"))]
     return []
 
 
 def wants_parking_sheet(venue, series=None, acts=None):
-    """Does this show's parking call for the Washington Park garage sheet?
-    Memorial Hall: staff set Parking = Washington Park on the advance form (any
-    act on the bill). Washington Park's own advanced events: yes, unless it's a
-    3rd-party event, which gets no validations (see the WP load_in block)."""
-    venue = (venue or "").strip()
-    if venue == "Washington Park":
-        return (series or "").strip().lower() != "3rd party"
-    if venue == "Memorial Hall":
-        return any(((a or {}).get("parking") or "") == "Washington Park" for a in acts or [])
-    return False
+    return parking_sheet_name(venue, series, acts) is not None
 
 
 def venue_attachment_links(venue, root=None):
