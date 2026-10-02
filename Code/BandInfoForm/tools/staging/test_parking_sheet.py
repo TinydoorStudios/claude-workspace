@@ -188,7 +188,7 @@ def main():
         m = sent[0]
         names = [m.get("attachment_name")] + [a.get("name") for a in m.get("attachments", [])]
         check("Memorial Hall Load-In and Garage Parking.pdf" in names, f"it carries the garage packet ({names})")
-        check(BAND1 in m.get("subject", "") and "Parking for" in m.get("subject", ""),
+        check(BAND1 in m.get("subject", "") and "oad-in and parking for" in m.get("subject", ""),
               f"subject names the band ({m.get('subject')})")
         check("Nyquist" not in (m.get("body") or "") and "Claude" not in (m.get("body") or ""),
               "no assistant mention in the body")
