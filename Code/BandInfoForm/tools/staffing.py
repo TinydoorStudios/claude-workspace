@@ -39,6 +39,10 @@ import urllib.request
 
 SCHEDULE_SHEET_ID = "10idHRrZrEjj1bwuexXIMQ6GY3tr0pXOd2YQcO60NnJw"
 SCHEDULE_GID = "1413426845"
+# The tab's NAME, for the strikethrough read below (the CSV export drops all cell
+# formatting, so struck-through shifts only show up in the xlsx export, where tabs
+# are addressed by name, not gid). Roll this with SCHEDULE_GID each new year.
+SCHEDULE_SHEET_NAME = "Tech Staffing 2026"
 CODES_GID = "809527620"
 
 # venue -> 0-based column indices within the schedule sheet's day-by-venue grid.
@@ -118,6 +122,45 @@ def _fetch_csv(gid, timeout=10):
     _CSV_CACHE[gid] = (dt.datetime.now().timestamp(), rows)
     _CSV_FAIL.pop(gid, None)
     return rows
+
+
+_STRUCK_CACHE = [0.0, frozenset()]   # (fetched_at, cells)
+_STRUCK_FAIL_AT = [0.0]
+
+
+def struck_cells(timeout=20):
+    """{(row, col)} — 0-based, the same coordinates the _fetch_csv rows use — of every
+    non-empty cell on the schedule tab that is struck through. Brian's convention
+    (2026-10-02): a struck-through shift means the event was cancelled.
+
+    The CSV export carries no formatting, so this reads the xlsx export of the
+    same public sheet. Fails open — an unreachable sheet or a missing openpyxl
+    returns an empty set (nothing treated as cancelled, a cancelled event might
+    show for a day) and logs; it never raises, and a failure isn't retried for 60s."""
+    now = dt.datetime.now().timestamp()
+    if now - _STRUCK_CACHE[0] < _CSV_TTL:
+        return _STRUCK_CACHE[1]
+    if now - _STRUCK_FAIL_AT[0] < _CSV_FAIL_TTL:
+        return frozenset()
+    try:
+        import openpyxl
+        url = f"https://docs.google.com/spreadsheets/d/{SCHEDULE_SHEET_ID}/export?format=xlsx"
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            data = resp.read()
+        wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True)
+        ws = wb[SCHEDULE_SHEET_NAME]
+        cells = set()
+        for r, row in enumerate(ws.iter_rows()):
+            for c, cell in enumerate(row):
+                if cell.value not in (None, "") and cell.font is not None and cell.font.strike:
+                    cells.add((r, c))
+        wb.close()
+    except Exception as e:  # noqa: BLE001 — fail open, see docstring
+        _STRUCK_FAIL_AT[0] = now
+        print(f"[staffing] strikethrough read failed: {e!r}", file=__import__("sys").stderr)
+        return frozenset()
+    _STRUCK_CACHE[0], _STRUCK_CACHE[1] = now, frozenset(cells)
+    return _STRUCK_CACHE[1]
 
 
 def _parse_date(s):

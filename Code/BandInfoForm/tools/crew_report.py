@@ -77,20 +77,31 @@ def collect_days(start, end, schedule_rows=None, codes_rows=None):
     schedule_rows/codes_rows through if the caller already fetched them
     (daily_digest.py wants just today's rows and shouldn't pay for a
     second sheet fetch on top of its own)."""
+    live_rows = None
     if schedule_rows is None:
-        schedule_rows = st._fetch_csv(st.SCHEDULE_GID)
+        schedule_rows = live_rows = st._fetch_csv(st.SCHEDULE_GID)
     if codes_rows is None:
         codes_rows = st._fetch_csv(st.CODES_GID)
+
+    # 2026-10-02 (Brian): a struck-through shift on the sheet = the event was cancelled.
+    # Only works against the live sheet (struck_cells' coordinates are the live CSV's), so a
+    # caller-supplied schedule_rows skips it.
+    struck = st.struck_cells() if schedule_rows is live_rows else frozenset()
 
     by_date = {}
     for venue, cols in _unique_blocks():
         need = max(cols.values())
-        for row in schedule_rows:
+        for r, row in enumerate(schedule_rows):
             if len(row) <= need:
+                continue
+            # struck date or event name: the whole event is cancelled
+            if (r, cols["date"]) in struck or ("event" in cols and (r, cols["event"]) in struck):
                 continue
             d = st._parse_date(row[cols["date"]])
             if not d or d < start or d > end:
                 continue
+            # any other struck cell (a dropped crew name) reads as empty
+            row = [("" if (r, i) in struck else v) for i, v in enumerate(row)]
             has_content = any((row[c] or "").strip() for k, c in cols.items() if k != "date")
             if not has_content:
                 continue
