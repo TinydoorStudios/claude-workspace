@@ -231,7 +231,8 @@ EVENT_FIELDS = [
     # WP-only sub-venue (Brian, 2026-09-06): Main Stage / Porch / Bandstand —
     # each has its own monitor cap and Porch/Bandstand have no lighting.
     # Blank for every other venue. See forms_config.WP_LOCATIONS (app side).
-    ("Location",      "location",    ["Main Stage", "Porch", "Bandstand"]),
+    ("Location",      "location",    ["Main Stage", "Porch", "Bandstand",
+                                    "Pavilion", "North Plaza", "South Lawn", "Other"]),
     # Brian, 2026-09-08: declared per booking so a multi-band bill entered one
     # act at a time still knows it's multi-band on day one — see
     # draft_emails.py (drops "take set breaks as needed" when >1) and

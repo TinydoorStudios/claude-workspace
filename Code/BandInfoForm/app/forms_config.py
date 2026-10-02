@@ -72,6 +72,10 @@ WP_LOCATIONS = {
                    "stage_size": "TBD — confirm with your day-of contact"},
 }
 
+# Elm Street Plaza sub-venues (Brian, 2026-10-01): booking-form dropdown only —
+# unlike WP they carry no monitor cap or hidden questions. "Other" is the catch-all.
+ESP_LOCATIONS = ["Pavilion", "North Plaza", "South Lawn", "Other"]
+
 # Each WP series plays a fixed stage (Brian, 2026-09-11): Neo Soul on the
 # Bandstand, Blues & Brews on the Porch. This is the AUTHORITATIVE source of a
 # booking's WP location — the per-show/booking location can be blank (it lives

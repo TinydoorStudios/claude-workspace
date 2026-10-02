@@ -162,10 +162,11 @@
       </select>
     </div>
     <div class="req" id="wp_location_field" style="display:none">
-      <label>Location (WP only)</label>
+      <label>Location (WP / ESP)</label>
       <select name="location" id="location_select">
         <option value="">Select…</option>
-        {% for loc in wp_locations %}<option {% if form.location==loc %}selected{% endif %}>{{ loc }}</option>{% endfor %}
+        {% for loc in wp_locations %}<option data-venue="Washington Park" {% if form.location==loc %}selected{% endif %}>{{ loc }}</option>{% endfor %}
+        {% for loc in esp_locations %}<option data-venue="Elm Street Plaza" {% if form.location==loc %}selected{% endif %}>{{ loc }}</option>{% endfor %}
       </select>
     </div>
     <div class="req"><label>Set Start</label>
@@ -515,9 +516,16 @@
     var venue = document.getElementById('venue_select');
     var field = document.getElementById('wp_location_field');
     var loc = document.getElementById('location_select');
-    var show = venue.value === 'Washington Park';
+    var show = venue.value === 'Washington Park' || venue.value === 'Elm Street Plaza';
     field.style.display = show ? 'block' : 'none';
     loc.required = show;
+    // each venue only offers its own locations
+    Array.prototype.forEach.call(loc.options, function(o){
+      if (!o.dataset.venue) return;
+      var ok = o.dataset.venue === venue.value;
+      o.hidden = !ok; o.disabled = !ok;
+      if (!ok && o.selected) loc.value = '';
+    });
     if (!show) { loc.value = ''; }
     // Memorial Hall has its own advance form (opened after saving), so the
     // universal band-answers section doesn't apply there (2026-09-29)

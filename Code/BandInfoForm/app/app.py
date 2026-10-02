@@ -2000,6 +2000,7 @@ def _manual_fill_link(data):
 def _booking_form(error=None, form=None, status=200, edit_booking_id=None, show_id=None):
     return render_template("booking.html", venues=forms_config.VENUES,
                            wp_locations=list(forms_config.WP_LOCATIONS),
+                           esp_locations=forms_config.ESP_LOCATIONS,
                            series_by_venue=_series_by_venue(),
                            standalone_series=STANDALONE_SERIES,
                            locked_schedule_series=_locked_schedule_series(),
