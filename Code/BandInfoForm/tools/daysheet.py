@@ -368,6 +368,39 @@ def _make_checkbox_sdt(checked=False):
     return sdt
 
 
+def _make_dropdown_sdt(items, selected, rPr=None):
+    """One real Word 'Drop-Down List Content Control' (<w:sdt> + <w:dropDownList>)
+    showing `selected` (an item, or the first when it matches none). The visible
+    text lives in an ordinary <w:r>/<w:t> inside sdtContent, same as the checkbox
+    controls, so anything that reads run text (full_text, the recap extraction,
+    docmerge's cell compare) sees the chosen value. `rPr` = run formatting to copy."""
+    chosen = next((i for i in items if norm(i) == norm(selected)), items[0])
+    sdt = OxmlElement('w:sdt')
+    sdtPr = OxmlElement('w:sdtPr')
+    id_el = OxmlElement('w:id')
+    id_el.set(qn('w:val'), str(next(_sdt_id_counter)))
+    sdtPr.append(id_el)
+    dd = OxmlElement('w:dropDownList')
+    for it in items:
+        li = OxmlElement('w:listItem')
+        li.set(qn('w:displayText'), it)
+        li.set(qn('w:value'), it)
+        dd.append(li)
+    sdtPr.append(dd)
+    sdt.append(sdtPr)
+    sdt.append(OxmlElement('w:sdtEndPr'))
+    sdtContent = OxmlElement('w:sdtContent')
+    r = OxmlElement('w:r')
+    if rPr is not None:
+        r.append(copy.deepcopy(rPr))
+    t = OxmlElement('w:t')
+    t.text = chosen
+    r.append(t)
+    sdtContent.append(r)
+    sdt.append(sdtContent)
+    return sdt
+
+
 def full_text(paragraph):
     """A paragraph's visible text, including a run nested inside a checkbox
     content control (<w:sdt>). python-docx's own Paragraph.text only reads
@@ -1076,6 +1109,20 @@ def fill_crew_schedule(doc, event, acts=None):
     name_schedule_labels(table, acts)
 
 
+def _forms_config():
+    sys.path.insert(0, str(HERE.parent / "app"))
+    import forms_config
+    return forms_config
+
+
+def _fsq_foh_console(event):
+    """The FSQ FOH desk pick from the booking (DiGiCo Quantum 225 | iPad);
+    DiGiCo when none is on file (Brian, 2026-10-01)."""
+    consoles = _forms_config().FSQ_FOH_CONSOLES
+    pick = (event.get("foh_console") or "").strip()
+    return next((c for c in consoles if norm(c) == norm(pick)), consoles[0])
+
+
 def _consoles_text(event):
     """Console line for the Consoles row (Brian, 2026-09-11):
       - Fountain Square: FOH is DiGiCo; the M32 monitor desk is listed by
@@ -1093,7 +1140,7 @@ def _consoles_text(event):
     series = (event.get("series") or "").lower()
     if venue == "Fountain Square":
         default_mon = ("513 airwaves" in series) or ("salsa" in series)
-        return "FOH: DiGiCo Quantum 225" + (" · Mon: M32" if default_mon else "")
+        return "FOH: " + _fsq_foh_console(event) + (" · Mon: M32" if default_mon else "")
     if venue == "Washington Park":
         if loc in ("Porch", "Bandstand"):
             return "M32R"
@@ -1101,6 +1148,35 @@ def _consoles_text(event):
     if venue == "Elm Street Plaza":
         return "FOH: Wing"      # every summer ESP advance lists the Wing
     return ""
+
+
+def _fsq_console_items():
+    return list(_forms_config().FSQ_FOH_CONSOLES)
+
+
+def set_cell_with_dropdown(cell, prefix, items, selected, tail=()):
+    """Rebuild a cell's one paragraph as prefix + a Word dropdown + ' · tail'
+    pieces, keeping the cell's existing run formatting (font/size)."""
+    p = cell.paragraphs[0]
+    for extra in cell.paragraphs[1:]:
+        extra._element.getparent().remove(extra._element)
+    first = p._p.find(qn('w:r'))
+    rPr = first.find(qn('w:rPr')) if first is not None else None
+    _clear_paragraph(p)
+
+    def run(text):
+        r = OxmlElement('w:r')
+        if rPr is not None:
+            r.append(copy.deepcopy(rPr))
+        t = OxmlElement('w:t')
+        t.set(qn('xml:space'), 'preserve')
+        t.text = text
+        r.append(t)
+        p._p.append(r)
+    run(prefix)
+    p._p.append(_make_dropdown_sdt(items, selected, rPr))
+    for piece in tail:
+        run(" · " + piece)
 
 
 def fill_consoles(grid, event, n=3):
@@ -1112,11 +1188,18 @@ def fill_consoles(grid, event, n=3):
     text = _consoles_text(event)
     if not text:
         return
+    # Fountain Square: the FOH desk is a real dropdown the crew can flip in Word
+    # (Brian, 2026-10-01) — "FOH: [DiGiCo Quantum 225 v]" + the Mon default.
+    fsq = event.get("venue") == "Fountain Square"
     for r in grid.rows:
         if norm(r.cells[0].text) == "consoles" and len(r.cells) > 1:
             for ci in _active_cols(n):
                 if ci < len(r.cells):
-                    set_cell(r.cells[ci], text)
+                    if fsq:
+                        set_cell_with_dropdown(r.cells[ci], "FOH: ", _fsq_console_items(),
+                                               _fsq_foh_console(event), text.split(" · ", 1)[1:])
+                    else:
+                        set_cell(r.cells[ci], text)
             break
 
 
@@ -1199,6 +1282,8 @@ def build(event_id, template=None, stageplot_names=None):
                 bk = db.find_booking(cur, event.get("venue"), event.get("event_date"),
                                      a["artist"]["name"])
                 a["_booking_contact_name"] = (bk or {}).get("contact_name")
+                if (bk or {}).get("foh_console") and not event.get("foh_console"):
+                    event["foh_console"] = bk["foh_console"]
 
     # 2026-09-21 sweep (DAY-1): a cancelled act keeps its column only while the
     # 3-column template has room — never at a real act's expense. Over 3, drop

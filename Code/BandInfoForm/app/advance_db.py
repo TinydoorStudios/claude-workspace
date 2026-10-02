@@ -1599,7 +1599,7 @@ def event_acts(cur, event_id):
 
 # ── staff booking intake ─────────────────────────────────────────────────────
 BOOKING_FIELDS = [
-    "event_name", "event_date", "venue", "location", "series", "event_type", "paying_band",
+    "event_name", "event_date", "venue", "location", "foh_console", "series", "event_type", "paying_band",
     "lead_name", "lead_phone", "load_in", "soundcheck", "event_start",
     "event_end", "curfew", "set_time", "artist_name", "contact_name", "contact_email",
     "email_note", "entered_by",

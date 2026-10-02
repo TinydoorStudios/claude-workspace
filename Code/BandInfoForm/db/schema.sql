@@ -307,6 +307,7 @@ CREATE TABLE IF NOT EXISTS bookings (
 );
 -- for DBs created before this column existed:
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS location TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS foh_console TEXT;  -- FSQ: DiGiCo Quantum 225 | iPad
 -- staff-entered contact name (Brian, 2026-09-09): carries into the band's own
 -- advance form as an editable starting value — see /f/<token> prefill in
 -- app.py and _token() in draft_emails.py. contact_email already existed.

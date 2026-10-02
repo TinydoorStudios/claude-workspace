@@ -161,6 +161,12 @@
         {% if form.venue and form.venue not in venues %}<option value="{{ form.venue }}" selected>{{ form.venue }}</option>{% endif %}
       </select>
     </div>
+    <div class="req" id="foh_console_field" style="display:none">
+      <label>FOH Console</label>
+      <select name="foh_console" id="foh_console_select">
+        {% for c in fsq_foh_consoles %}<option {% if (form.foh_console or fsq_foh_consoles[0])==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </select>
+    </div>
     <div class="req" id="wp_location_field" style="display:none">
       <label>Location</label>
       <select name="location" id="location_select">
@@ -527,6 +533,11 @@
       if (!ok && o.selected) loc.value = '';
     });
     if (!show) { loc.value = ''; }
+    var fohField = document.getElementById('foh_console_field');
+    var fohSel = document.getElementById('foh_console_select');
+    var isFsq = venue.value === 'Fountain Square';
+    fohField.style.display = isFsq ? 'block' : 'none';
+    fohSel.disabled = !isFsq;
     // Memorial Hall has its own advance form (opened after saving), so the
     // universal band-answers section doesn't apply there (2026-09-29)
     var ba = document.getElementById('band_answers');

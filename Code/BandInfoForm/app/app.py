@@ -2001,6 +2001,7 @@ def _booking_form(error=None, form=None, status=200, edit_booking_id=None, show_
     return render_template("booking.html", venues=forms_config.VENUES,
                            wp_locations=list(forms_config.WP_LOCATIONS),
                            esp_locations=forms_config.ESP_LOCATIONS,
+                           fsq_foh_consoles=forms_config.FSQ_FOH_CONSOLES,
                            series_by_venue=_series_by_venue(),
                            standalone_series=STANDALONE_SERIES,
                            locked_schedule_series=_locked_schedule_series(),
@@ -2117,6 +2118,9 @@ def _validate_booking_data(f):
       Set Start / Set End (Brian, 2026-09-15) are required on every booking;
       they aren't stored fields themselves — see _derive_schedule."""
     data = {k: (f.get(k) or "").strip() for k in advance_db.BOOKING_FIELDS}
+    # FOH console is a Fountain Square pick; anything else is stored blank
+    if data.get("venue") != "Fountain Square" or data.get("foh_console") not in forms_config.FSQ_FOH_CONSOLES:
+        data["foh_console"] = ""
     data["skip_welcome_email"] = f.get("skip_welcome_email") == "on"
     data["draft_only"] = f.get("draft_only") == "on"
     # 3rd Party: the band gets no automated email unless this is ticked
